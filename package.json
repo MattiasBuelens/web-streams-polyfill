@@ -1,0 +1,24 @@
+{
+  "name": "web-stream-polyfill",
+  "version": "1.0.0",
+  "description": "Web Streams, based on the WHATWG spec reference implementation",
+  "main": "index.js",
+  "scripts": {
+    "test": "(cd spec/reference-implementation ; npm install && npm run test)"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/creatorrr/web-stream-polyfill.git"
+  },
+  "keywords": [
+    "streams",
+    "whatwg",
+    "polyfill"
+  ],
+  "author": "Diwank Singh <diwank.singh@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/creatorrr/web-stream-polyfill/issues"
+  },
+  "homepage": "https://github.com/creatorrr/web-stream-polyfill#readme"
+}
