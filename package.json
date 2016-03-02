@@ -2,16 +2,18 @@
   "name": "web-streams-polyfill",
   "version": "1.0.0",
   "description": "Web Streams, based on the WHATWG spec reference implementation",
-  "main": "index.js",
-  "browser": "dist/polyfill.js",
+  "main": "dist/polyfill.js",
+  "browser": "dist/polyfill.min.js",
   "scripts": {
-    "install": "npm run build",
     "test": "(cd spec/reference-implementation ; npm install && npm run test)",
     "bundle": "rollup index.es6.js > dist/polyfill.es6.js",
     "transpile": "babel dist/polyfill.es6.js -o dist/polyfill.js",
     "minify": "uglifyjs dist/polyfill.js -o dist/polyfill.min.js -c",
     "build": "npm run bundle && npm run transpile && npm run minify"
   },
+  "files": [
+    "./dist"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/creatorrr/web-stream-polyfill.git"
@@ -24,9 +26,9 @@
   "author": "Diwank Singh <diwank.singh@gmail.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/creatorrr/web-stream-polyfill/issues"
+    "url": "https://github.com/creatorrr/web-streams-polyfill/issues"
   },
-  "homepage": "https://github.com/creatorrr/web-stream-polyfill#readme",
+  "homepage": "https://github.com/creatorrr/web-streams-polyfill#readme",
   "devDependencies": {
     "babel-cli": "^6.6.0",
     "babel-polyfill": "^6.6.1",
