@@ -4,7 +4,9 @@
   "description": "Web Streams, based on the WHATWG spec reference implementation",
   "main": "index.js",
   "scripts": {
-    "test": "(cd spec/reference-implementation ; npm install && npm run test)"
+    "test": "(cd spec/reference-implementation ; npm install && npm run test)",
+    "bundle": "rollup index.es6.js > dist/polyfill.es6.js",
+    "transpile": "babel dist/polyfill.es6.js -o dist/polyfill.js"
   },
   "repository": {
     "type": "git",
@@ -22,8 +24,10 @@
   },
   "homepage": "https://github.com/creatorrr/web-stream-polyfill#readme",
   "devDependencies": {
+    "babel-cli": "^6.6.0",
     "babel-polyfill": "^6.6.1",
     "babel-preset-es2015": "^6.6.0",
-    "babel-register": "^6.6.0"
+    "babel-register": "^6.6.0",
+    "rollup": "^0.25.4"
   }
 }
