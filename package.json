@@ -5,6 +5,7 @@
   "main": "index.js",
   "browser": "dist/polyfill.js",
   "scripts": {
+    "install": "npm run build",
     "test": "(cd spec/reference-implementation ; npm install && npm run test)",
     "bundle": "rollup index.es6.js > dist/polyfill.es6.js",
     "transpile": "babel dist/polyfill.es6.js -o dist/polyfill.js",
