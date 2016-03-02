@@ -1,8 +1,9 @@
 {
-  "name": "web-stream-polyfill",
+  "name": "web-streams-polyfill",
   "version": "1.0.0",
   "description": "Web Streams, based on the WHATWG spec reference implementation",
   "main": "index.js",
+  "browser": "dist/polyfill.js",
   "scripts": {
     "test": "(cd spec/reference-implementation ; npm install && npm run test)",
     "bundle": "rollup index.es6.js > dist/polyfill.es6.js",
