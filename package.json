@@ -1,6 +1,6 @@
 {
   "name": "web-streams-polyfill",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Web Streams, based on the WHATWG spec reference implementation",
   "main": "dist/polyfill.js",
   "browser": "dist/polyfill.min.js",
@@ -12,7 +12,7 @@
     "build": "npm run bundle && npm run transpile && npm run minify"
   },
   "files": [
-    "./dist"
+    "dist"
   ],
   "repository": {
     "type": "git",
