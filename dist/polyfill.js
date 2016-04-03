@@ -3504,7 +3504,7 @@ var interfaces = {
   TransformStream: TransformStream
 };
 
-// Add classes to global
-Object.assign(global, interfaces);
+// Add classes to window
+if (typeof window !== "undefined") Object.assign(window, interfaces);
 
 exports.default = interfaces;
