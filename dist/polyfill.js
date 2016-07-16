@@ -1,30 +1,32 @@
-(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.default = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _readableStream = require('./spec/reference-implementation/lib/readable-stream');
+var _require = require('./spec/reference-implementation/lib/readable-stream');
 
-var _writableStream = require('./spec/reference-implementation/lib/writable-stream');
+var ReadableStream = _require.ReadableStream;
 
-var _byteLengthQueuingStrategy = require('./spec/reference-implementation/lib/byte-length-queuing-strategy');
+var _require2 = require('./spec/reference-implementation/lib/writable-stream');
 
-var _countQueuingStrategy = require('./spec/reference-implementation/lib/count-queuing-strategy');
+var WritableStream = _require2.WritableStream;
+var ByteLengthQueuingStrategy = require('./spec/reference-implementation/lib/byte-length-queuing-strategy');
+var CountQueuingStrategy = require('./spec/reference-implementation/lib/count-queuing-strategy');
+var TransformStream = require('./spec/reference-implementation/lib/transform-stream');exports.ByteLengthQueuingStrategy = ByteLengthQueuingStrategy;
+exports.CountQueuingStrategy = CountQueuingStrategy;
+exports.TransformStream = TransformStream;
+exports.ReadableStream = ReadableStream;
+exports.WritableStream = WritableStream;
 
-var _transformStream = require('./spec/reference-implementation/lib/transform-stream');
-
-var _transformStream2 = _interopRequireDefault(_transformStream);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var interfaces = {
-  ReadableStream: _readableStream.ReadableStream,
-  WritableStream: _writableStream.WritableStream,
-  ByteLengthQueuingStrategy: _byteLengthQueuingStrategy.ByteLengthQueuingStrategy,
-  CountQueuingStrategy: _countQueuingStrategy.CountQueuingStrategy,
-  TransformStream: _transformStream2.default
+  ReadableStream: ReadableStream,
+  WritableStream: WritableStream,
+  ByteLengthQueuingStrategy: ByteLengthQueuingStrategy,
+  CountQueuingStrategy: CountQueuingStrategy,
+  TransformStream: TransformStream
 };
 
 // Export
@@ -3745,4 +3747,5 @@ function WritableStreamAdvanceQueue(stream) {
   }
 }
 
-},{"./count-queuing-strategy.js":8,"./helpers.js":9,"./queue-with-sizes.js":10,"./utils.js":13,"assert":2}]},{},[1]);
+},{"./count-queuing-strategy.js":8,"./helpers.js":9,"./queue-with-sizes.js":10,"./utils.js":13,"assert":2}]},{},[1])(1)
+});
