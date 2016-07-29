@@ -7,18 +7,10 @@
   "jsnext:main": "index.js",
   "scripts": {
     "test": "(cd spec/reference-implementation ; npm install && npm run test)",
-    "bundle": "npm run de-assert && npm-run-all bundle:* && npm run re-assert",
+    "bundle": "npm-run-all bundle:*",
     "bundle:no-min": "browserify index.es6.js -d -s default -t [ babelify ] | exorcist ./dist/polyfill.js.map > ./dist/polyfill.js",
-    "bundle:min": "browserify -g uglifyify index.es6.js -i ./spec/reference-implementation/lib/utils.js -d -s default -t [ babelify --plugins babel-plugin-unassert uglifyify ] -i ./spec/reference-implementation/lib/utils.js -d | exorcist ./dist/polyfill.min.js.map > ./dist/polyfill.min.js",
-    "de-assert:catch": "rsync -rIl spec/ spec-orig && grep -Evo '^.*rethrowAssertionErrorRejection.*$' ./spec-orig/reference-implementation/lib/helpers.js > ./spec/reference-implementation/lib/helpers.js && grep -Evo '^.*rethrowAssertionErrorRejection.*$' ./spec-orig/reference-implementation/lib/queue-with-sizes.js > ./spec/reference-implementation/lib/queue-with-sizes.js && grep -Evo '^.*rethrowAssertionErrorRejection.*$' ./spec-orig/reference-implementation/lib/readable-stream.js > ./spec/reference-implementation/lib/readable-stream.js && grep -Evo '^.*rethrowAssertionErrorRejection.*$' ./spec-orig/reference-implementation/lib/transform-stream.js > ./spec/reference-implementation/lib/transform-stream.js && grep -Evo '^.*rethrowAssertionErrorRejection.*$' ./spec-orig/reference-implementation/lib/writable-stream.js > ./spec/reference-implementation/lib/writable-stream.js",
-    "bar": "mkdir spec-babel && mkdir ./spec-babel/reference-implementation/ && mkdir ./spec-babel/reference-implementation/lib/ && babel ./spec/reference-implementation/lib --out-dir ./spec-babel/reference-implementation/lib && rsync ./spec/ ./spec-orig && rm ./spec/reference-implementation/lib/* && grep -Evo '^(.*[Aa]ssert)' ./spec-babel/reference-implementation/lib/helpers.js > ./spec/reference-implementation/lib/helpers.js",
-    "de-assert:all": "mkdir spec-babel && mkdir ./spec-babel/reference-implementation/ && mkdir ./spec-babel/reference-implementation/lib/ && babel ./spec/reference-implementation/lib --out-dir ./spec-babel/reference-implementation/lib && rsync ./spec/ ./spec-orig && grep -Evo '^(.*[Aa]ssert)' ./spec-babel/reference-implementation/lib/helpers.js > ./spec/reference-implementation/lib/helpers.js && grep -Evo '^(.*[Aa]ssert)' ./spec-babel/reference-implementation/lib/queue-with-sizes.js > ./spec/reference-implementation/lib/queue-with-sizes.js && grep -Evo '^(.*[Aa]ssert)' ./spec-babel/reference-implementation/lib/readable-stream.js > ./spec/reference-implementation/lib/readable-stream.js && grep -Evo '^(.*[Aa]ssert)' ./spec-babel/reference-implementation/lib/transform-stream.js > ./spec/reference-implementation/lib/transform-stream.js && grep -Evo '^(.*[Aa]ssert)' ./spec-babel/reference-implementation/lib/writable-stream.js > ./spec/reference-implementation/lib/writable-stream.js",
-    "re-assert": "rm -rf spec-babel && rm -rf spec && mv spec-orig spec",
-    "babel": "babel ./spec/reference-implementation/lib/writable-stream.js --out-file ./writable-stream.js && grep -Evo '^(.*[Aa]ssert)' ./writable-stream.js > ./writable-stream.no-assert.js",
-    "readable:no-assert-all": "npm run de-assert:all && browserify -g uglifyify ./spec/reference-implementation/lib/readable-stream.js -d -s default -t [ babelify uglifyify ] -i ./spec/reference-implementation/lib/utils.js -d | exorcist ./readable.min.js.map > ./readable.min.js && npm run re-assert && ls -lh",
-    "readable:no-assert": "browserify -g uglifyify ./spec/reference-implementation/lib/readable-stream.js -d -s default -t [ babelify --plugins babel-plugin-unassert  uglifyify ] -i ./spec/reference-implementation/lib/utils.js -d | exorcist ./readable.min.js.map > ./readable.min.js && ls -lh",
-    "readable:assert": "browserify -g uglifyify ./spec/reference-implementation/lib/readable-stream.js -d -s default -t [ babelify uglifyify ] -i assert -i ./spec/reference-implementation/lib/utils.js -d | exorcist ./readable.min.js.map > ./readable.min.js && ls -lh",
-    "build": "rm -rf spec && git clone https://github.com/whatwg/streams.git && mv ./streams ./spec && cd spec && git checkout ba5cc069302db2e325815af7d2cd1e743e12773f && cd .. && npm run bundle",
+    "bundle:min": "browserify -g uglifyify index.es6.js -d -i ./spec/reference-implementation/lib/utils.js -s default -t [ babelify --plugins babel-plugin-unassert uglifyify ] | exorcist ./dist/polyfill.min.js.map > ./dist/polyfill.min.js",
+    "build": "npm run prebuild && npm run bundle",
     "prebuild": "rm -rf spec && git clone https://github.com/whatwg/streams.git && mv ./streams ./spec && cd spec && git checkout ba5cc069302db2e325815af7d2cd1e743e12773f && cd ..",
     "prepublish": "npm run build"
   },
@@ -48,12 +40,10 @@
     "babel-register": "^6.6.0",
     "babelify": "^7.3.0",
     "browserify": "^13.0.1",
-    "browserify-replace": "^0.9.0",
     "exorcist": "^0.4.0",
     "npm-run-all": "^2.3.0",
     "uglify-js": "^2.6.2",
-    "uglifyify": "^3.0.2",
-    "unassertify": "^2.0.3"
+    "uglifyify": "^3.0.2"
   },
   "dependencies": {}
 }
