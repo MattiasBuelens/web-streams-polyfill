@@ -4,6 +4,7 @@
   "description": "Web Streams, based on the WHATWG spec reference implementation",
   "main": "dist/polyfill.js",
   "browser": "dist/polyfill.min.js",
+  "jsnext:main": "index.js",
   "scripts": {
     "test": "(cd spec/reference-implementation ; npm install && npm run test)",
     "bundle": "npm-run-all bundle:*",
@@ -38,9 +39,8 @@
     "browserify": "^13.0.1",
     "exorcist": "^0.4.0",
     "npm-run-all": "^2.3.0",
-    "uglify-js": "^2.6.2"
-  },
-  "dependencies": {
+    "uglify-js": "^2.6.2",
     "uglifyify": "^3.0.2"
-  }
+  },
+  "dependencies": {}
 }
