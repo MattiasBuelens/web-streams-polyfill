@@ -1140,6 +1140,7 @@ function hasOwnProperty(obj, prop) {
 }
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+
 },{"./support/isBuffer":5,"_process":4,"inherits":3}],7:[function(require,module,exports){
 'use strict';
 
@@ -3750,3 +3751,4 @@ function WritableStreamAdvanceQueue(stream) {
 
 },{"./count-queuing-strategy.js":8,"./helpers.js":9,"./queue-with-sizes.js":10,"./utils.js":13,"assert":2}]},{},[1])(1)
 });
+//# sourceMappingURL=polyfill.js.map
