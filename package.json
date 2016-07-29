@@ -10,7 +10,8 @@
     "bundle": "npm-run-all bundle:*",
     "bundle:nomin": "browserify index.es6.js -d -s default -t [ babelify ] | exorcist ./dist/polyfill.js.map > ./dist/polyfill.js",
     "bundle:min": "browserify -g uglifyify index.es6.js -d -s default -t [ babelify uglifyify ] -d | exorcist ./dist/polyfill.min.js.map > ./dist/polyfill.min.js",
-    "build": "rm -rf spec && git clone https://github.com/whatwg/streams.git && mv ./streams ./spec && npm run bundle"
+    "build": "rm -rf spec && git clone https://github.com/whatwg/streams.git#ba5cc069302db2e325815af7d2cd1e743e12773f && mv ./streams ./spec && npm run bundle",
+    "prepublish": "npm run build"
   },
   "files": [
     "dist"
