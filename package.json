@@ -6,9 +6,10 @@
   "browser": "dist/polyfill.min.js",
   "scripts": {
     "test": "(cd spec/reference-implementation ; npm install && npm run test)",
-    "bundle": "browserify index.es6.js -s default -o dist/polyfill.js -t [ babelify ]",
-    "minify": "uglifyjs dist/polyfill.js -o dist/polyfill.min.js -c",
-    "build": "npm run bundle && npm run minify"
+    "bundle": "npm-run-all bundle:*",
+    "bundle:unminified": "browserify index.es6.js -s default -o dist/polyfill.js -t [ babelify ]",
+    "bundle:minified": "browserify -g uglifyify index.es6.js -s default -o dist/polyfill.min.js -t [ babelify uglifyify ]",
+    "build": "rm -rf spec && git clone https://github.com/whatwg/streams.git && mv ./streams ./spec && npm run bundle"
   },
   "files": [
     "dist"
@@ -35,6 +36,10 @@
     "babel-register": "^6.6.0",
     "babelify": "^7.3.0",
     "browserify": "^13.0.1",
+    "npm-run-all": "^2.3.0",
     "uglify-js": "^2.6.2"
+  },
+  "dependencies": {
+    "uglifyify": "^3.0.2"
   }
 }

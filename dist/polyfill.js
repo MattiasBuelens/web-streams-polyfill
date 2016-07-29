@@ -475,7 +475,7 @@ function drainQueue() {
     if (draining) {
         return;
     }
-    var timeout = cachedSetTimeout(cleanUpNextTick);
+    var timeout = cachedSetTimeout.call(null, cleanUpNextTick);
     draining = true;
 
     var len = queue.length;
@@ -492,7 +492,7 @@ function drainQueue() {
     }
     currentQueue = null;
     draining = false;
-    cachedClearTimeout(timeout);
+    cachedClearTimeout.call(null, timeout);
 }
 
 process.nextTick = function (fun) {
@@ -504,7 +504,7 @@ process.nextTick = function (fun) {
     }
     queue.push(new Item(fun, args));
     if (queue.length === 1 && !draining) {
-        cachedSetTimeout(drainQueue, 0);
+        cachedSetTimeout.call(null, drainQueue, 0);
     }
 };
 
@@ -1284,7 +1284,7 @@ exports.InvokeOrNoop = function (O, P, args) {
 };
 
 exports.PromiseInvokeOrNoop = function (O, P, args) {
-  var method = undefined;
+  var method = void 0;
   try {
     method = O[P];
   } catch (methodE) {
@@ -1303,7 +1303,7 @@ exports.PromiseInvokeOrNoop = function (O, P, args) {
 };
 
 exports.PromiseInvokeOrFallbackOrNoop = function (O, P1, args1, P2, args2) {
-  var method = undefined;
+  var method = void 0;
   try {
     method = O[P1];
   } catch (methodE) {
@@ -1530,12 +1530,12 @@ var ReadableStream = function () {
 
       var source = this;
 
-      var reader = undefined;
-      var lastRead = undefined;
-      var lastWrite = undefined;
+      var reader = void 0;
+      var lastRead = void 0;
+      var lastWrite = void 0;
       var closedPurposefully = false;
-      var resolvePipeToPromise = undefined;
-      var rejectPipeToPromise = undefined;
+      var resolvePipeToPromise = void 0;
+      var rejectPipeToPromise = void 0;
 
       return new Promise(function (resolve, reject) {
         resolvePipeToPromise = resolve;
@@ -1770,6 +1770,7 @@ function create_ReadableStreamTeePullFunction() {
 
       // There is no way to access the cloning code right now in the reference implementation.
       // If we add one then we'll need an implementation for StructuredClone.
+
 
       if (teeState.canceled1 === false) {
         var value1 = value;
@@ -2774,7 +2775,7 @@ var ReadableByteStreamController = function () {
 
           ReadableByteStreamControllerHandleQueueDrain(this);
 
-          var view = undefined;
+          var view = void 0;
           try {
             view = new Uint8Array(entry.buffer, entry.byteOffset, entry.byteLength);
           } catch (viewE) {
@@ -2786,7 +2787,7 @@ var ReadableByteStreamController = function () {
 
         var autoAllocateChunkSize = this._autoAllocateChunkSize;
         if (autoAllocateChunkSize !== undefined) {
-          var buffer = undefined;
+          var buffer = void 0;
           try {
             buffer = new ArrayBuffer(autoAllocateChunkSize);
           } catch (bufferE) {
@@ -3322,9 +3323,9 @@ module.exports = function TransformStream(transformer) {
     throw new TypeError('transform must be a function');
   }
 
-  var writeChunk = undefined,
-      writeDone = undefined,
-      errorWritable = undefined;
+  var writeChunk = void 0,
+      writeDone = void 0,
+      errorWritable = void 0;
   var transforming = false;
   var chunkWrittenButNotYetTransformed = false;
   this.writable = new WritableStream({
@@ -3351,9 +3352,9 @@ module.exports = function TransformStream(transformer) {
     }
   }, transformer.writableStrategy);
 
-  var enqueueInReadable = undefined,
-      closeReadable = undefined,
-      errorReadable = undefined;
+  var enqueueInReadable = void 0,
+      closeReadable = void 0,
+      errorReadable = void 0;
   this.readable = new ReadableStream({
     start: function start(c) {
       enqueueInReadable = c.enqueue.bind(c);
@@ -3559,8 +3560,8 @@ var WritableStream = function () {
         }
       }
 
-      var resolver = undefined,
-          rejecter = undefined;
+      var resolver = void 0,
+          rejecter = void 0;
       var promise = new Promise(function (resolve, reject) {
         resolver = resolve;
         rejecter = reject;
