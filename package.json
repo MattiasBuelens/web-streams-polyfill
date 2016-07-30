@@ -6,7 +6,7 @@
   "browser": "dist/polyfill.min.js",
   "jsnext:main": "index.es6.js",
   "scripts": {
-    "test": "(cd spec/reference-implementation ; npm install && npm run test)",
+    "test": "(cd spec/reference-implementation ; npm install && npm run test && cp ../../run-web-platform-tests-on-bundle.js ./ && node --expose_gc run-web-platform-tests-on-bundle.js && rm ./run-web-platform-tests-on-bundle.js)",
     "bundle": "npm-run-all bundle:*",
     "bundle:no-min": "browserify index.es6.js -d -s default -t [ babelify ] | exorcist ./dist/polyfill.js.map > ./dist/polyfill.js",
     "bundle:min": "browserify -g uglifyify index.es6.js -d -i ./spec/reference-implementation/lib/utils.js -s default -t [ babelify --plugins babel-plugin-unassert uglifyify ] | exorcist ./dist/polyfill.min.js.map > ./dist/polyfill.min.js",
