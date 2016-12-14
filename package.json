@@ -4,11 +4,15 @@
   "description": "Web Streams, based on the WHATWG spec reference implementation",
   "main": "dist/polyfill.js",
   "browser": "dist/polyfill.min.js",
+  "jsnext:main": "index.es6.js",
   "scripts": {
-    "test": "(cd spec/reference-implementation ; npm install && npm run test)",
-    "bundle": "browserify index.es6.js -s default -o dist/polyfill.js -t [ babelify ]",
-    "minify": "uglifyjs dist/polyfill.js -o dist/polyfill.min.js -c",
-    "build": "npm run bundle && npm run minify"
+    "test": "(cd spec/reference-implementation ; npm install && npm run test && cp ../../run-web-platform-tests-on-bundle.js ./ && node --expose_gc run-web-platform-tests-on-bundle.js && rm ./run-web-platform-tests-on-bundle.js)",
+    "bundle": "npm-run-all bundle:*",
+    "bundle:no-min": "browserify index.es6.js -d -s default -t [ babelify ] | exorcist ./dist/polyfill.js.map > ./dist/polyfill.js",
+    "bundle:min": "browserify -g uglifyify index.es6.js -d -i ./spec/reference-implementation/lib/utils.js -s default -t [ babelify --plugins babel-plugin-unassert uglifyify ] | exorcist ./dist/polyfill.min.js.map > ./dist/polyfill.min.js",
+    "build": "npm run bundle",
+    "prebuild": "git submodule update --init",
+    "prepublish": "npm run build"
   },
   "files": [
     "dist"
@@ -29,12 +33,17 @@
   },
   "homepage": "https://github.com/creatorrr/web-streams-polyfill#readme",
   "devDependencies": {
-    "babel-cli": "^6.6.0",
+    "babel-cli": "^6.11.4",
+    "babel-plugin-unassert": "^2.1.1",
     "babel-polyfill": "^6.6.1",
-    "babel-preset-es2015": "^6.6.0",
+    "babel-preset-es2015": "^6.9.0",
     "babel-register": "^6.6.0",
     "babelify": "^7.3.0",
     "browserify": "^13.0.1",
-    "uglify-js": "^2.6.2"
-  }
+    "exorcist": "^0.4.0",
+    "npm-run-all": "^2.3.0",
+    "uglifyify": "^3.0.2",
+    "yarn": "^0.17.0"
+  },
+  "dependencies": {}
 }
