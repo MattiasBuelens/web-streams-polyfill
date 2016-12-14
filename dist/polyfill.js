@@ -1,20 +1,20 @@
-(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.default = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.default = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _require = require('./spec/reference-implementation/lib/readable-stream');
+var _require = _dereq_('./spec/reference-implementation/lib/readable-stream');
 
 var ReadableStream = _require.ReadableStream;
 
-var _require2 = require('./spec/reference-implementation/lib/writable-stream');
+var _require2 = _dereq_('./spec/reference-implementation/lib/writable-stream');
 
 var WritableStream = _require2.WritableStream,
-    ByteLengthQueuingStrategy = require('./spec/reference-implementation/lib/byte-length-queuing-strategy'),
-    CountQueuingStrategy = require('./spec/reference-implementation/lib/count-queuing-strategy'),
-    TransformStream = require('./spec/reference-implementation/lib/transform-stream');
+    ByteLengthQueuingStrategy = _dereq_('./spec/reference-implementation/lib/byte-length-queuing-strategy'),
+    CountQueuingStrategy = _dereq_('./spec/reference-implementation/lib/count-queuing-strategy'),
+    TransformStream = _dereq_('./spec/reference-implementation/lib/transform-stream');
 exports.ByteLengthQueuingStrategy = ByteLengthQueuingStrategy;
 exports.CountQueuingStrategy = CountQueuingStrategy;
 exports.TransformStream = TransformStream;
@@ -37,7 +37,7 @@ exports.default = interfaces;
 
 if (typeof window !== "undefined") Object.assign(window, interfaces);
 
-},{"./spec/reference-implementation/lib/byte-length-queuing-strategy":7,"./spec/reference-implementation/lib/count-queuing-strategy":8,"./spec/reference-implementation/lib/readable-stream":11,"./spec/reference-implementation/lib/transform-stream":12,"./spec/reference-implementation/lib/writable-stream":14}],2:[function(require,module,exports){
+},{"./spec/reference-implementation/lib/byte-length-queuing-strategy":7,"./spec/reference-implementation/lib/count-queuing-strategy":8,"./spec/reference-implementation/lib/readable-stream":11,"./spec/reference-implementation/lib/transform-stream":12,"./spec/reference-implementation/lib/writable-stream":14}],2:[function(_dereq_,module,exports){
 // http://wiki.commonjs.org/wiki/Unit_Testing/1.0
 //
 // THIS IS NOT TESTED NOR LIKELY TO WORK OUTSIDE V8!
@@ -65,7 +65,7 @@ if (typeof window !== "undefined") Object.assign(window, interfaces);
 // when used in node, this will actually load the util module we depend on
 // versus loading the builtin util module as happens otherwise
 // this is a bug in node module loading as far as I am concerned
-var util = require('util/');
+var util = _dereq_('util/');
 
 var pSlice = Array.prototype.slice;
 var hasOwn = Object.prototype.hasOwnProperty;
@@ -398,7 +398,7 @@ var objectKeys = Object.keys || function (obj) {
   return keys;
 };
 
-},{"util/":6}],3:[function(require,module,exports){
+},{"util/":6}],3:[function(_dereq_,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -580,7 +580,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],4:[function(require,module,exports){
+},{}],4:[function(_dereq_,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -605,14 +605,14 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],5:[function(require,module,exports){
+},{}],5:[function(_dereq_,module,exports){
 module.exports = function isBuffer(arg) {
   return arg && typeof arg === 'object'
     && typeof arg.copy === 'function'
     && typeof arg.fill === 'function'
     && typeof arg.readUInt8 === 'function';
 }
-},{}],6:[function(require,module,exports){
+},{}],6:[function(_dereq_,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -1139,7 +1139,7 @@ function isPrimitive(arg) {
 }
 exports.isPrimitive = isPrimitive;
 
-exports.isBuffer = require('./support/isBuffer');
+exports.isBuffer = _dereq_('./support/isBuffer');
 
 function objectToString(o) {
   return Object.prototype.toString.call(o);
@@ -1183,7 +1183,7 @@ exports.log = function() {
  *     prototype.
  * @param {function} superCtor Constructor function to inherit prototype from.
  */
-exports.inherits = require('inherits');
+exports.inherits = _dereq_('inherits');
 
 exports._extend = function(origin, add) {
   // Don't do anything if add isn't an object
@@ -1201,16 +1201,16 @@ function hasOwnProperty(obj, prop) {
   return Object.prototype.hasOwnProperty.call(obj, prop);
 }
 
-}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+}).call(this,_dereq_('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
-},{"./support/isBuffer":5,"_process":3,"inherits":4}],7:[function(require,module,exports){
+},{"./support/isBuffer":5,"_process":3,"inherits":4}],7:[function(_dereq_,module,exports){
 'use strict';
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var _require = require('./helpers.js'),
+var _require = _dereq_('./helpers.js'),
     createDataProperty = _require.createDataProperty;
 
 module.exports = function () {
@@ -1232,14 +1232,14 @@ module.exports = function () {
   return ByteLengthQueuingStrategy;
 }();
 
-},{"./helpers.js":9}],8:[function(require,module,exports){
+},{"./helpers.js":9}],8:[function(_dereq_,module,exports){
 'use strict';
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var _require = require('./helpers.js'),
+var _require = _dereq_('./helpers.js'),
     createDataProperty = _require.createDataProperty;
 
 module.exports = function () {
@@ -1261,14 +1261,14 @@ module.exports = function () {
   return CountQueuingStrategy;
 }();
 
-},{"./helpers.js":9}],9:[function(require,module,exports){
+},{"./helpers.js":9}],9:[function(_dereq_,module,exports){
 'use strict';
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
-var assert = require('assert');
+var assert = _dereq_('assert');
 
 function IsPropertyKey(argument) {
   return typeof argument === 'string' || (typeof argument === 'undefined' ? 'undefined' : _typeof(argument)) === 'symbol';
@@ -1405,12 +1405,12 @@ exports.ValidateAndNormalizeQueuingStrategy = function (size, highWaterMark) {
   return { size: size, highWaterMark: highWaterMark };
 };
 
-},{"assert":2}],10:[function(require,module,exports){
+},{"assert":2}],10:[function(_dereq_,module,exports){
 'use strict';
 
-var assert = require('assert');
+var assert = _dereq_('assert');
 
-var _require = require('./helpers.js'),
+var _require = _dereq_('./helpers.js'),
     IsFiniteNonNegativeNumber = _require.IsFiniteNonNegativeNumber;
 
 exports.DequeueValue = function (queue) {
@@ -1450,16 +1450,16 @@ exports.PeekQueueValue = function (queue) {
   return pair.value;
 };
 
-},{"./helpers.js":9,"assert":2}],11:[function(require,module,exports){
+},{"./helpers.js":9,"assert":2}],11:[function(_dereq_,module,exports){
 'use strict';
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var assert = require('assert');
+var assert = _dereq_('assert');
 
-var _require = require('./helpers.js'),
+var _require = _dereq_('./helpers.js'),
     ArrayBufferCopy = _require.ArrayBufferCopy,
     CreateIterResultObject = _require.CreateIterResultObject,
     IsFiniteNonNegativeNumber = _require.IsFiniteNonNegativeNumber,
@@ -1469,20 +1469,20 @@ var _require = require('./helpers.js'),
     ValidateAndNormalizeQueuingStrategy = _require.ValidateAndNormalizeQueuingStrategy,
     ValidateAndNormalizeHighWaterMark = _require.ValidateAndNormalizeHighWaterMark;
 
-var _require2 = require('./helpers.js'),
+var _require2 = _dereq_('./helpers.js'),
     createArrayFromList = _require2.createArrayFromList,
     createDataProperty = _require2.createDataProperty,
     typeIsObject = _require2.typeIsObject;
 
-var _require3 = require('./utils.js'),
+var _require3 = _dereq_('./utils.js'),
     rethrowAssertionErrorRejection = _require3.rethrowAssertionErrorRejection;
 
-var _require4 = require('./queue-with-sizes.js'),
+var _require4 = _dereq_('./queue-with-sizes.js'),
     DequeueValue = _require4.DequeueValue,
     EnqueueValueWithSize = _require4.EnqueueValueWithSize,
     GetTotalQueueSize = _require4.GetTotalQueueSize;
 
-var _require5 = require('./writable-stream.js'),
+var _require5 = _dereq_('./writable-stream.js'),
     AcquireWritableStreamDefaultWriter = _require5.AcquireWritableStreamDefaultWriter,
     IsWritableStream = _require5.IsWritableStream,
     IsWritableStreamLocked = _require5.IsWritableStreamLocked,
@@ -3513,29 +3513,29 @@ function byteStreamControllerBrandCheckException(name) {
   return new TypeError('ReadableByteStreamController.prototype.' + name + ' can only be used on a ReadableByteStreamController');
 }
 
-},{"./helpers.js":9,"./queue-with-sizes.js":10,"./utils.js":13,"./writable-stream.js":14,"assert":2}],12:[function(require,module,exports){
+},{"./helpers.js":9,"./queue-with-sizes.js":10,"./utils.js":13,"./writable-stream.js":14,"assert":2}],12:[function(_dereq_,module,exports){
 'use strict';
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var assert = require('assert');
+var assert = _dereq_('assert');
 
-var _require = require('./helpers.js'),
+var _require = _dereq_('./helpers.js'),
     InvokeOrNoop = _require.InvokeOrNoop,
     PromiseInvokeOrPerformFallback = _require.PromiseInvokeOrPerformFallback,
     PromiseInvokeOrNoop = _require.PromiseInvokeOrNoop,
     typeIsObject = _require.typeIsObject;
 
-var _require2 = require('./readable-stream.js'),
+var _require2 = _dereq_('./readable-stream.js'),
     ReadableStream = _require2.ReadableStream,
     ReadableStreamDefaultControllerClose = _require2.ReadableStreamDefaultControllerClose,
     ReadableStreamDefaultControllerEnqueue = _require2.ReadableStreamDefaultControllerEnqueue,
     ReadableStreamDefaultControllerError = _require2.ReadableStreamDefaultControllerError,
     ReadableStreamDefaultControllerGetDesiredSize = _require2.ReadableStreamDefaultControllerGetDesiredSize;
 
-var _require3 = require('./writable-stream.js'),
+var _require3 = _dereq_('./writable-stream.js'),
     WritableStream = _require3.WritableStream,
     WritableStreamDefaultControllerError = _require3.WritableStreamDefaultControllerError;
 
@@ -4011,10 +4011,10 @@ function streamBrandCheckException(name) {
   return new TypeError('TransformStream.prototype.' + name + ' can only be used on a TransformStream');
 }
 
-},{"./helpers.js":9,"./readable-stream.js":11,"./writable-stream.js":14,"assert":2}],13:[function(require,module,exports){
+},{"./helpers.js":9,"./readable-stream.js":11,"./writable-stream.js":14,"assert":2}],13:[function(_dereq_,module,exports){
 'use strict';
 
-var assert = require('assert');
+var assert = _dereq_('assert');
 
 exports.rethrowAssertionErrorRejection = function (e) {
   // Used throughout the reference implementation, as `.catch(rethrowAssertionErrorRejection)`, to ensure any errors
@@ -4027,26 +4027,26 @@ exports.rethrowAssertionErrorRejection = function (e) {
   }
 };
 
-},{"assert":2}],14:[function(require,module,exports){
+},{"assert":2}],14:[function(_dereq_,module,exports){
 'use strict';
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var assert = require('assert');
+var assert = _dereq_('assert');
 
-var _require = require('./helpers.js'),
+var _require = _dereq_('./helpers.js'),
     InvokeOrNoop = _require.InvokeOrNoop,
     PromiseInvokeOrNoop = _require.PromiseInvokeOrNoop,
     PromiseInvokeOrFallbackOrNoop = _require.PromiseInvokeOrFallbackOrNoop,
     ValidateAndNormalizeQueuingStrategy = _require.ValidateAndNormalizeQueuingStrategy,
     typeIsObject = _require.typeIsObject;
 
-var _require2 = require('./utils.js'),
+var _require2 = _dereq_('./utils.js'),
     rethrowAssertionErrorRejection = _require2.rethrowAssertionErrorRejection;
 
-var _require3 = require('./queue-with-sizes.js'),
+var _require3 = _dereq_('./queue-with-sizes.js'),
     DequeueValue = _require3.DequeueValue,
     EnqueueValueWithSize = _require3.EnqueueValueWithSize,
     GetTotalQueueSize = _require3.GetTotalQueueSize,
