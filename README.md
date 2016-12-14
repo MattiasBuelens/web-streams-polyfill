@@ -30,3 +30,8 @@ For use as polyfill, include the `dist/polyfill.min.js` file in your html before
 
 </script>
 ```
+## Contributors
+
+Thanks to these people for their contributions:
+
+ - Anders Riutta [ariutta](https://github.com/ariutta)
