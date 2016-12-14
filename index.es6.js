@@ -3,7 +3,7 @@ export const
   { WritableStream } = require('./spec/reference-implementation/lib/writable-stream'),
   ByteLengthQueuingStrategy = require('./spec/reference-implementation/lib/byte-length-queuing-strategy'),
   CountQueuingStrategy = require('./spec/reference-implementation/lib/count-queuing-strategy'),
-  TransformStream = require('./spec/reference-implementation/lib/transform-stream');
+  TransformStream = require('./spec/reference-implementation/lib/transform-stream').TransformStream;
 
 const interfaces = {
   ReadableStream,
