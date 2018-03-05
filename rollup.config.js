@@ -18,11 +18,13 @@ module.exports = {
     {
       file: 'dist/polyfill' + SUFFIX + '.js',
       format: 'umd',
+      freeze: false,
       name: 'WebStreamsPolyfill'
     },
     (DEV) ? {
       file: 'dist/polyfill' + SUFFIX + '.es.js',
-      format: 'es'
+      format: 'es',
+      freeze: false
     } : undefined
   ].filter(Boolean),
   plugins: [
