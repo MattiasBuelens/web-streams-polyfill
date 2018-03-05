@@ -9,7 +9,8 @@
     "test": "cd spec/reference-implementation && npm install && cp ../../run-web-platform-tests-on-bundle.js ./ && node --expose_gc run-web-platform-tests-on-bundle.js && rm ./run-web-platform-tests-on-bundle.js",
     "bundle": "npm-run-all bundle:*",
     "bundle:no-min": "rollup -c",
-    "bundle:min": "rollup -c --environment NODE_ENV:production",
+    "bundle:min": "rollup -c --environment BUILD_TARGET:min",
+    "bundle:wpt": "rollup -c --environment BUILD_TARGET:wpt",
     "build": "npm run bundle",
     "prebuild": "git submodule update --init",
     "prepublish": "npm run build"
