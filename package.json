@@ -6,7 +6,7 @@
   "browser": "dist/polyfill.min.js",
   "jsnext:main": "index.es6.js",
   "scripts": {
-    "test": "(cd spec/reference-implementation ; npm install && npm run test && cp ../../run-web-platform-tests-on-bundle.js ./ && node --expose_gc run-web-platform-tests-on-bundle.js && rm ./run-web-platform-tests-on-bundle.js)",
+    "test": "cd spec/reference-implementation && npm install && npm run test && cp ../../run-web-platform-tests-on-bundle.js ./ && node --expose_gc run-web-platform-tests-on-bundle.js && rm ./run-web-platform-tests-on-bundle.js",
     "bundle": "npm-run-all bundle:*",
     "bundle:no-min": "rollup -c",
     "bundle:min": "rollup -c",
