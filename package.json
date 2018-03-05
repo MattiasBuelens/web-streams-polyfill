@@ -9,7 +9,7 @@
     "test": "cd spec/reference-implementation && npm install && cp ../../run-web-platform-tests-on-bundle.js ./ && node --expose_gc run-web-platform-tests-on-bundle.js && rm ./run-web-platform-tests-on-bundle.js",
     "bundle": "npm-run-all bundle:*",
     "bundle:no-min": "rollup -c",
-    "bundle:min": "rollup -c",
+    "bundle:min": "rollup -c --environment NODE_ENV:production",
     "build": "npm run bundle",
     "prebuild": "git submodule update --init",
     "prepublish": "npm run build"
@@ -42,6 +42,7 @@
     "rollup": "^0.56.4",
     "rollup-plugin-alias": "^1.4.0",
     "rollup-plugin-commonjs": "^9.0.0",
+    "rollup-plugin-uglify": "^3.0.0",
     "yarn": "^0.17.0"
   },
   "dependencies": {}
