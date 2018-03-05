@@ -14,14 +14,17 @@ const SUFFIX = MIN ? '.min' : WPT ? '.wpt' : '';
 
 module.exports = {
   input: 'src/index.es6.js',
-  output: [{
-    file: 'dist/polyfill' + SUFFIX + '.js',
-    format: 'umd',
-    name: 'WebStreamsPolyfill'
-  }, {
-    file: 'dist/polyfill.es' + SUFFIX + '.js',
-    format: 'es'
-  }],
+  output: [
+    {
+      file: 'dist/polyfill' + SUFFIX + '.js',
+      format: 'umd',
+      name: 'WebStreamsPolyfill'
+    },
+    (DEV) ? {
+      file: 'dist/polyfill' + SUFFIX + '.es.js',
+      format: 'es'
+    } : undefined
+  ].filter(Boolean),
   plugins: [
     rollupCommonJS({
       include: 'spec/reference-implementation/lib/*.js'
