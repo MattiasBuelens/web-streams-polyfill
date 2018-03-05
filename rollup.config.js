@@ -2,6 +2,7 @@ const path = require('path');
 
 const rollupCommonJS = require('rollup-plugin-commonjs');
 const rollupAlias = require('rollup-plugin-alias');
+const rollupBabel = require('rollup-plugin-babel');
 const rollupUglify = require('rollup-plugin-uglify');
 
 const TARGET = process.env.BUILD_TARGET || 'dev';
@@ -29,7 +30,8 @@ module.exports = {
       'better-assert': path.resolve(__dirname, './src/stub/better-assert.js'),
       'debug': path.resolve(__dirname, './src/stub/debug.js')
     }),
-    MIN ? rollupUglify({
+    (!WPT) ? rollupBabel() : undefined,
+    (MIN || WPT) ? rollupUglify({
       keep_classnames: true, // needed for WPT
       compress: {
         inline: 1 // TODO re-enable when this is fixed: https://github.com/mishoo/UglifyJS2/issues/2842

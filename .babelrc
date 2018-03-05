@@ -1,1 +1,18 @@
-{ "presets": ["es2015"] }
+{
+  "presets": [
+    [
+      "env",
+      {
+        "browsers": [
+          "last 2 versions",
+          "IE >= 11"
+        ],
+        "loose": true,
+        "modules": false
+      }
+    ]
+  ],
+  "plugins": [
+    "external-helpers"
+  ]
+}
