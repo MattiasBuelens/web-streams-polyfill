@@ -12,6 +12,9 @@ module.exports = {
     file: PRODUCTION ? 'dist/polyfill.min.js' : 'dist/polyfill.js',
     format: 'umd',
     name: 'WebStreamsPolyfill'
+  }, {
+    file: PRODUCTION ? 'dist/polyfill.es.min.js' : 'dist/polyfill.es.js',
+    format: 'es'
   }],
   plugins: [
     rollupCommonJS({
