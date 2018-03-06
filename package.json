@@ -17,6 +17,9 @@
   "files": [
     "dist"
   ],
+  "engines": {
+    "node": ">= 4"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/creatorrr/web-stream-polyfill.git"
