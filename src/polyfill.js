@@ -1,10 +1,24 @@
-import * as interfaces from './ponyfill';
+import {
+  ByteLengthQueuingStrategy,
+  CountQueuingStrategy,
+  ReadableStream,
+  TransformStream,
+  WritableStream
+} from './ponyfill';
 import { globals } from './utils';
 
 // Export
 export * from './ponyfill';
 
+const exports = {
+  ReadableStream,
+  WritableStream,
+  ByteLengthQueuingStrategy,
+  CountQueuingStrategy,
+  TransformStream
+};
+
 // Add classes to global scope
 if (typeof globals !== 'undefined') {
-  Object.assign(globals, interfaces);
+  Object.assign(globals, exports);
 }
