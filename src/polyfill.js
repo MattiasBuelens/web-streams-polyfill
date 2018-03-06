@@ -1,10 +1,11 @@
-/* global window */
 import * as interfaces from './ponyfill';
+import { getGlobals } from './utils';
 
 // Export
 export * from './ponyfill';
 
-// Add classes to window
-if (typeof window !== 'undefined') {
-  Object.assign(window, interfaces);
+// Add classes to global scope
+const globals = getGlobals();
+if (typeof globals !== 'undefined') {
+  Object.assign(globals, interfaces);
 }
