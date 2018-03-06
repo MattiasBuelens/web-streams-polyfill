@@ -13,6 +13,7 @@
     ]
   ],
   "plugins": [
+    "transform-object-assign",
     "external-helpers"
   ]
 }
