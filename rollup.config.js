@@ -14,7 +14,7 @@ const WPT = TARGET === 'wpt';
 const SUFFIX = MIN ? '.min' : WPT ? '.wpt' : '';
 
 module.exports = {
-  input: 'src/index.es6.js',
+  input: 'src/polyfill.js',
   output: [
     {
       file: 'dist/polyfill' + SUFFIX + '.js',

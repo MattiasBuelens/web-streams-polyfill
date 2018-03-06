@@ -11,18 +11,3 @@ export {
   CountQueuingStrategy,
   TransformStream
 };
-
-const interfaces = {
-  ReadableStream,
-  WritableStream,
-  ByteLengthQueuingStrategy,
-  CountQueuingStrategy,
-  TransformStream
-};
-
-// Export
-export default interfaces;
-
-// Add classes to window
-if ( typeof window !== "undefined" )
-  Object.assign( window, interfaces );
