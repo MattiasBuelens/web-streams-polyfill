@@ -16,17 +16,17 @@ function buildConfig(entry, target) {
   const SUFFIX = MIN ? '.min' : WPT ? '.wpt' : '';
 
   return {
-    input: 'src/polyfill.js',
+    input: 'src/' + entry + '.js',
     output: [
       {
-        file: 'dist/polyfill' + SUFFIX + '.js',
+        file: 'dist/' + entry + SUFFIX + '.js',
         format: 'umd',
         freeze: false,
         sourcemap: true,
         name: 'WebStreamsPolyfill'
       },
       (DEV) ? {
-        file: 'dist/polyfill' + SUFFIX + '.es.js',
+        file: 'dist/' + entry + SUFFIX + '.es.js',
         format: 'es',
         freeze: false,
         sourcemap: true
