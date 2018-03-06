@@ -6,12 +6,8 @@ const rollupBabel = require('rollup-plugin-babel');
 const rollupStrip = require('rollup-plugin-strip');
 const rollupUglify = require('rollup-plugin-uglify');
 
-function buildConfig(entry, target) {
-  const DEV = target === 'dev';
-  const MIN = target === 'min';
-  const WPT = target === 'wpt';
-
-  const SUFFIX = MIN ? '.min' : WPT ? '.wpt' : '';
+function buildConfig(entry, { esm = false, minify = false, wpt = false } = {}) {
+  const SUFFIX = minify ? '.min' : wpt ? '.wpt' : '';
 
   return {
     input: 'src/' + entry + '.js',
@@ -23,7 +19,7 @@ function buildConfig(entry, target) {
         sourcemap: true,
         name: 'WebStreamsPolyfill'
       },
-      (DEV) ? {
+      esm ? {
         file: 'dist/' + entry + SUFFIX + '.es.js',
         format: 'es',
         freeze: false,
@@ -34,18 +30,18 @@ function buildConfig(entry, target) {
       rollupCommonJS({
         include: 'spec/reference-implementation/lib/*.js'
       }),
-      MIN ? rollupStrip({
+      minify ? rollupStrip({
         functions: ['assert', 'debug', 'verbose']
       }) : undefined,
-      rollupAlias(MIN ? {
+      rollupAlias(minify ? {
         'better-assert': path.resolve(__dirname, './src/stub/min/better-assert.js'),
         'debug': path.resolve(__dirname, './src/stub/min/debug.js')
       } : {
         'better-assert': path.resolve(__dirname, './src/stub/no-min/better-assert.js'),
         'debug': path.resolve(__dirname, './src/stub/no-min/debug.js')
       }),
-      (!WPT) ? rollupBabel() : undefined,
-      (MIN || WPT) ? rollupUglify({
+      (!wpt) ? rollupBabel() : undefined,
+      (minify || wpt) ? rollupUglify({
         keep_classnames: true, // needed for WPT
         compress: {
           inline: 1 // TODO re-enable when this is fixed: https://github.com/mishoo/UglifyJS2/issues/2842
@@ -56,8 +52,8 @@ function buildConfig(entry, target) {
 }
 
 module.exports = [
-  buildConfig('polyfill', 'dev'),
-  buildConfig('polyfill', 'min'),
-  buildConfig('polyfill', 'wpt'),
-  buildConfig('ponyfill', 'dev')
+  buildConfig('polyfill', { esm: true }),
+  buildConfig('polyfill', { minify: true }),
+  buildConfig('polyfill', { wpt: true }),
+  buildConfig('ponyfill', { esm: true })
 ];
