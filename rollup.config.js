@@ -19,7 +19,7 @@ function buildConfig(entry, { esm = false, cjs = false, minify = false, wpt = fa
         name: 'WebStreamsPolyfill'
       },
       esm ? {
-        file: `dist/${entry}${suffix}.es.js`,
+        file: `dist/${entry}${suffix}.mjs`,
         format: 'es',
         freeze: false,
         sourcemap: true

@@ -4,8 +4,8 @@
   "description": "Web Streams, based on the WHATWG spec reference implementation",
   "main": "dist/ponyfill.js",
   "browser": "dist/polyfill.min.js",
-  "module": "dist/ponyfill.es.js",
-  "jsnext:main": "dist/ponyfill.es.js",
+  "module": "dist/ponyfill.mjs",
+  "jsnext:main": "dist/ponyfill.mjs",
   "scripts": {
     "test": "cd spec/reference-implementation && npm install && cp ../../run-web-platform-tests-on-bundle.js ./ && node --expose_gc run-web-platform-tests-on-bundle.js && rm ./run-web-platform-tests-on-bundle.js",
     "lint": "eslint \"src/**/*.js\"",
