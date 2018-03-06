@@ -2,7 +2,7 @@ export function noop() {
   // do nothing
 }
 
-export function getGlobals() {
+function getGlobals() {
   /* global self, window, global */
   if (typeof self !== 'undefined') {
     return self;
@@ -13,3 +13,5 @@ export function getGlobals() {
   }
   return undefined;
 }
+
+export const globals = getGlobals();
