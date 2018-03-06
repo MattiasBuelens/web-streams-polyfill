@@ -9,10 +9,7 @@
   "scripts": {
     "test": "cd spec/reference-implementation && npm install && cp ../../run-web-platform-tests-on-bundle.js ./ && node --expose_gc run-web-platform-tests-on-bundle.js && rm ./run-web-platform-tests-on-bundle.js",
     "lint": "eslint \"src/**/*.js\"",
-    "bundle": "npm-run-all bundle:*",
-    "bundle:no-min": "rollup -c",
-    "bundle:min": "rollup -c --environment BUILD_TARGET:min",
-    "bundle:wpt": "rollup -c --environment BUILD_TARGET:wpt",
+    "bundle": "rollup -c",
     "build": "npm run bundle",
     "prebuild": "git submodule update --init",
     "prepublish": "npm run build"
@@ -41,7 +38,6 @@
     "babel-plugin-transform-object-assign": "^6.22.0",
     "babel-preset-env": "^1.6.1",
     "eslint": "^4.18.2",
-    "npm-run-all": "^2.3.0",
     "rollup": "^0.56.4",
     "rollup-plugin-alias": "^1.4.0",
     "rollup-plugin-babel": "^3.0.3",

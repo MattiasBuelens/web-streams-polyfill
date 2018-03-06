@@ -6,12 +6,10 @@ const rollupBabel = require('rollup-plugin-babel');
 const rollupStrip = require('rollup-plugin-strip');
 const rollupUglify = require('rollup-plugin-uglify');
 
-const TARGET = process.env.BUILD_TARGET || 'dev';
-
 function buildConfig(entry, target) {
-  const DEV = TARGET === 'dev';
-  const MIN = TARGET === 'min';
-  const WPT = TARGET === 'wpt';
+  const DEV = target === 'dev';
+  const MIN = target === 'min';
+  const WPT = target === 'wpt';
 
   const SUFFIX = MIN ? '.min' : WPT ? '.wpt' : '';
 
@@ -57,4 +55,9 @@ function buildConfig(entry, target) {
   };
 }
 
-module.exports = buildConfig('polyfill', TARGET);
+module.exports = [
+  buildConfig('polyfill', 'dev'),
+  buildConfig('polyfill', 'min'),
+  buildConfig('polyfill', 'wpt'),
+  buildConfig('ponyfill', 'dev')
+];
