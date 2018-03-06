@@ -1,3 +1,5 @@
+import { noop } from '../utils';
+
 function createDebugMessage(namespace, message) {
   return `[${namespace}] ${message}`;
 }
@@ -12,6 +14,5 @@ export default function debug(namespace) {
       return message => console.log(createDebugMessage(namespace, message));
     }
   }
-  return () => {
-  };
+  return noop;
 }

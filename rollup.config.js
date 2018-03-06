@@ -3,6 +3,7 @@ const path = require('path');
 const rollupCommonJS = require('rollup-plugin-commonjs');
 const rollupAlias = require('rollup-plugin-alias');
 const rollupBabel = require('rollup-plugin-babel');
+const rollupStrip = require('rollup-plugin-strip');
 const rollupUglify = require('rollup-plugin-uglify');
 
 const TARGET = process.env.BUILD_TARGET || 'dev';
@@ -31,7 +32,13 @@ module.exports = {
     rollupCommonJS({
       include: 'spec/reference-implementation/lib/*.js'
     }),
-    rollupAlias({
+    MIN ? rollupStrip({
+      functions: ['assert', 'debug', 'verbose']
+    }) : undefined,
+    rollupAlias(MIN ? {
+      'better-assert': path.resolve(__dirname, './src/stub/min/better-assert.js'),
+      'debug': path.resolve(__dirname, './src/stub/min/debug.js')
+    } : {
       'better-assert': path.resolve(__dirname, './src/stub/better-assert.js'),
       'debug': path.resolve(__dirname, './src/stub/debug.js')
     }),
