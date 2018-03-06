@@ -6,14 +6,14 @@ const rollupBabel = require('rollup-plugin-babel');
 const rollupStrip = require('rollup-plugin-strip');
 const rollupUglify = require('rollup-plugin-uglify');
 
-function buildConfig(entry, { esm = false, minify = false, wpt = false } = {}) {
+function buildConfig(entry, { esm = false, cjs = false, minify = false, wpt = false } = {}) {
   const suffix = `${wpt ? '.wpt' : ''}${minify ? '.min' : ''}`;
   return {
     input: `src/${entry}.js`,
     output: [
       {
         file: `dist/${entry}${suffix}.js`,
-        format: 'umd',
+        format: cjs ? 'cjs' : 'umd',
         freeze: false,
         sourcemap: true,
         name: 'WebStreamsPolyfill'
@@ -54,5 +54,5 @@ module.exports = [
   buildConfig('polyfill', { esm: true }),
   buildConfig('polyfill', { minify: true }),
   buildConfig('polyfill', { wpt: true }),
-  buildConfig('ponyfill', { esm: true })
+  buildConfig('ponyfill', { cjs: true, esm: true })
 ];
