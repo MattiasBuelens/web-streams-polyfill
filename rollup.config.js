@@ -39,8 +39,8 @@ module.exports = {
       'better-assert': path.resolve(__dirname, './src/stub/min/better-assert.js'),
       'debug': path.resolve(__dirname, './src/stub/min/debug.js')
     } : {
-      'better-assert': path.resolve(__dirname, './src/stub/better-assert.js'),
-      'debug': path.resolve(__dirname, './src/stub/debug.js')
+      'better-assert': path.resolve(__dirname, './src/stub/no-min/better-assert.js'),
+      'debug': path.resolve(__dirname, './src/stub/no-min/debug.js')
     }),
     (!WPT) ? rollupBabel() : undefined,
     (MIN || WPT) ? rollupUglify({

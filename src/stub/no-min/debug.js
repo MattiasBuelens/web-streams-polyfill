@@ -1,4 +1,4 @@
-import { noop } from '../utils';
+import { noop } from '../../utils';
 
 function createDebugMessage(namespace, message) {
   return `[${namespace}] ${message}`;
