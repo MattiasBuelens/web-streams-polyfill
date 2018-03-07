@@ -7,6 +7,9 @@
           "last 2 versions",
           "IE >= 11"
         ],
+        "exclude": [
+          "transform-es2015-for-of"
+        ],
         "loose": true,
         "modules": false
       }
@@ -14,6 +17,7 @@
   ],
   "plugins": [
     "transform-object-assign",
+    "transform-for-of-as-array",
     "external-helpers"
   ]
 }
