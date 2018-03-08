@@ -27,10 +27,12 @@ function buildConfig(entry, { esm = false, cjs = false, minify = false, wpt = fa
     ].filter(Boolean),
     plugins: [
       rollupCommonJS({
-        include: 'spec/reference-implementation/lib/*.js'
+        include: 'spec/reference-implementation/lib/*.js',
+        sourceMap: true
       }),
       minify ? rollupStrip({
-        functions: ['assert', 'debug', 'verbose']
+        functions: ['assert', 'debug', 'verbose'],
+        sourceMap: true
       }) : undefined,
       rollupAlias(minify ? {
         'better-assert': path.resolve(__dirname, './src/stub/min/better-assert.js'),
@@ -39,12 +41,15 @@ function buildConfig(entry, { esm = false, cjs = false, minify = false, wpt = fa
         'better-assert': path.resolve(__dirname, './src/stub/no-min/better-assert.js'),
         'debug': path.resolve(__dirname, './src/stub/no-min/debug.js')
       }),
-      (!wpt) ? rollupBabel() : undefined,
+      (!wpt) ? rollupBabel({
+        sourceMap: true
+      }) : undefined,
       (minify || wpt) ? rollupUglify({
         keep_classnames: true, // needed for WPT
         compress: {
           inline: 1 // TODO re-enable when this is fixed: https://github.com/mishoo/UglifyJS2/issues/2842
-        }
+        },
+        sourceMap: true
       }) : undefined
     ].filter(Boolean)
   };
