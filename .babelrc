@@ -8,7 +8,8 @@
           "IE >= 11"
         ],
         "exclude": [
-          "transform-es2015-for-of"
+          "transform-es2015-for-of",
+          "transform-es2015-typeof-symbol"
         ],
         "loose": true,
         "modules": false

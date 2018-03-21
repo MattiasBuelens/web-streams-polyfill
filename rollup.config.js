@@ -3,6 +3,7 @@ const path = require('path');
 const rollupCommonJS = require('rollup-plugin-commonjs');
 const rollupAlias = require('rollup-plugin-alias');
 const rollupBabel = require('rollup-plugin-babel');
+const rollupInject = require('rollup-plugin-inject');
 const rollupStrip = require('rollup-plugin-strip');
 const rollupUglify = require('rollup-plugin-uglify');
 
@@ -29,6 +30,12 @@ function buildConfig(entry, { esm = false, cjs = false, minify = false, wpt = fa
       rollupCommonJS({
         include: 'spec/reference-implementation/lib/*.js',
         sourceMap: true
+      }),
+      rollupInject({
+        include: 'spec/reference-implementation/lib/*.js',
+        modules: {
+          'Symbol': path.resolve(__dirname, `./src/stub/symbol.js`)
+        }
       }),
       minify ? rollupStrip({
         functions: ['assert', 'debug', 'verbose'],
