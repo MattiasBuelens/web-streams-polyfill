@@ -12,7 +12,7 @@
     "bundle": "rollup -c",
     "build": "npm run bundle",
     "prebuild": "git submodule update --init",
-    "prepublish": "npm run build"
+    "prepare": "npm run build"
   },
   "files": [
     "dist"
