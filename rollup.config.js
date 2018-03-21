@@ -34,7 +34,9 @@ function buildConfig(entry, { esm = false, cjs = false, minify = false, wpt = fa
       rollupInject({
         include: 'spec/reference-implementation/lib/*.js',
         modules: {
-          'Symbol': path.resolve(__dirname, `./src/stub/symbol.js`)
+          'Symbol': path.resolve(__dirname, `./src/stub/symbol.js`),
+          'Number.isNaN': path.resolve(__dirname, `./src/stub/number-isnan.js`),
+          'Number.isInteger': path.resolve(__dirname, `./src/stub/number-isinteger.js`)
         }
       }),
       minify ? rollupStrip({
