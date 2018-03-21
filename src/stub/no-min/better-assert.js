@@ -1,8 +1,3 @@
-export class AssertionError extends Error {
-}
+import assert from './assert';
 
-export default function assert(test) {
-  if (!test) {
-    throw new AssertionError();
-  }
-}
+export default assert;

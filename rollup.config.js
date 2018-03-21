@@ -35,6 +35,7 @@ function buildConfig(entry, { esm = false, cjs = false, minify = false, wpt = fa
         sourceMap: true
       }) : undefined,
       rollupAlias({
+        'assert': path.resolve(__dirname, `./src/stub/${minify ? 'min' : 'no-min'}/assert.js`),
         'better-assert': path.resolve(__dirname, `./src/stub/${minify ? 'min' : 'no-min'}/better-assert.js`),
         'debug': path.resolve(__dirname, `./src/stub/${minify ? 'min' : 'no-min'}/debug.js`)
       }),
