@@ -11,7 +11,7 @@
     "lint": "eslint \"src/**/*.js\"",
     "bundle": "rollup -c",
     "build": "npm run bundle",
-    "prebuild": "git submodule update --init",
+    "prebuild": "git submodule update --init --recursive",
     "prepare": "npm run build"
   },
   "files": [
