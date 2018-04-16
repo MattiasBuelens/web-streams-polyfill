@@ -4,39 +4,45 @@ import { QueuingStrategy } from './queuing-strategy';
 export interface ReadableStreamConstructor {
   readonly prototype: ReadableStream;
 
-  new(underlyingSource?: ReadableStreamUnderlyingSource,
-      queuingStrategy?: Partial<QueuingStrategy>): ReadableStream;
+  new(underlyingSource?: ReadableByteStreamStreamUnderlyingSource,
+      queuingStrategy?: Partial<QueuingStrategy>): ReadableByteStream;
+
+  new<R = any>(underlyingSource?: ReadableStreamDefaultUnderlyingSource<R>,
+               queuingStrategy?: Partial<QueuingStrategy>): ReadableStream<R>;
 }
 
-export interface ReadableStream {
+export interface ReadableStream<R = any> {
   readonly locked: boolean;
 
   cancel(reason: any): Promise<void>;
 
+  getReader(options?: { mode?: string }): ReadableStreamDefaultReader<R>;
+
+  pipeThrough<T = any>(pair: ReadableWritableStreamPair<T, R>,
+                       options?: ReadableStreamPipeOptions): ReadableStream<T>;
+
+  pipeTo(dest: WritableStream<R>, options?: ReadableStreamPipeOptions): Promise<void>;
+
+  tee(): [ReadableStream<R>, ReadableStream<R>];
+}
+
+export interface ReadableByteStream extends ReadableStream<Uint8Array> {
   getReader(options: { mode: 'byob' }): ReadableStreamBYOBReader;
 
-  getReader(options?: { mode?: string }): ReadableStreamDefaultReader;
-
-  pipeThrough(pair: ReadableWritableStreamPair,
-              options?: ReadableStreamPipeOptions): ReadableStream;
-
-  pipeTo(dest: WritableStream,
-         options?: ReadableStreamPipeOptions): Promise<void>;
-
-  tee(): [ReadableStream, ReadableStream];
+  getReader(options?: { mode?: string }): ReadableStreamDefaultReader<Uint8Array>;
 }
 
-export interface ReadableWritableStreamPair {
-  readonly readable: ReadableStream;
-  readonly writable: WritableStream;
+export interface ReadableWritableStreamPair<R = any, W = any> {
+  readonly readable: ReadableStream<R>;
+  readonly writable: WritableStream<W>;
 }
 
-export interface ReadableStreamDefaultUnderlyingSource {
+export interface ReadableStreamDefaultUnderlyingSource<R = any> {
   readonly type?: undefined;
 
-  start?(controller: ReadableStreamDefaultController): void | Promise<void>;
+  start?(controller: ReadableStreamDefaultController<R>): void | Promise<void>;
 
-  pull?(controller: ReadableStreamDefaultController): void | Promise<void>;
+  pull?(controller: ReadableStreamDefaultController<R>): void | Promise<void>;
 
   cancel?(reason: any): void | Promise<void>;
 }
@@ -56,12 +62,12 @@ export type ReadableStreamUnderlyingSource
   = ReadableStreamDefaultUnderlyingSource
   | ReadableByteStreamStreamUnderlyingSource;
 
-export interface ReadableStreamDefaultController {
+export interface ReadableStreamDefaultController<R = any> {
   readonly desiredSize: number | null;
 
   close(): void;
 
-  enqueue(chunk: any): void;
+  enqueue(chunk: R): void;
 
   error(e: any): void;
 }
@@ -85,12 +91,12 @@ export interface ReadableStreamBYOBRequest {
   respondWithNewView(view: ArrayBufferView): void;
 }
 
-export interface ReadableStreamDefaultReader {
+export interface ReadableStreamDefaultReader<R = any> {
   readonly closed: Promise<void>;
 
   cancel(reason: any): Promise<void>;
 
-  read(): Promise<IteratorResult<any>>;
+  read(): Promise<IteratorResult<R>>;
 
   releaseLock(): void;
 }

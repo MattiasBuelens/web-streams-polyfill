@@ -1,9 +1,10 @@
 import {
+  ReadableByteStreamStreamUnderlyingSource,
   ReadableStream as IReadableStream,
   ReadableStreamBYOBReader,
   ReadableStreamDefaultReader,
+  ReadableStreamDefaultUnderlyingSource,
   ReadableStreamPipeOptions,
-  ReadableStreamUnderlyingSource,
   ReadableWritableStreamPair
 } from './readable-stream';
 import {
@@ -25,34 +26,36 @@ export * from './transform-stream';
 
 // region Class exports
 
-export declare class ReadableStream implements IReadableStream {
+export declare class ReadableStream<R = any> implements IReadableStream<R> {
 
-  constructor(underlyingSource?: ReadableStreamUnderlyingSource, queuingStrategy?: Partial<QueuingStrategy>);
+  constructor(underlyingSource?: ReadableStreamDefaultUnderlyingSource<R> | ReadableByteStreamStreamUnderlyingSource,
+              queuingStrategy?: Partial<QueuingStrategy>);
 
   readonly locked: boolean;
 
   cancel(reason: any): Promise<void>;
 
   getReader(options: { mode: 'byob' }): ReadableStreamBYOBReader;
-  getReader(options?: { mode?: string }): ReadableStreamDefaultReader;
+  getReader(options?: { mode?: string }): ReadableStreamDefaultReader<R>;
 
-  pipeThrough(pair: ReadableWritableStreamPair, options?: ReadableStreamPipeOptions): ReadableStream;
+  pipeThrough<T = any>(pair: ReadableWritableStreamPair<T, R>,
+                       options?: ReadableStreamPipeOptions): IReadableStream<T>;
 
-  pipeTo(dest: WritableStream, options?: ReadableStreamPipeOptions): Promise<void>;
+  pipeTo(dest: WritableStream<R>, options?: ReadableStreamPipeOptions): Promise<void>;
 
-  tee(): [ReadableStream, ReadableStream];
+  tee(): [ReadableStream<R>, ReadableStream<R>];
 
 }
 
-export declare class WritableStream implements IWritableStream {
+export declare class WritableStream<W = any> implements IWritableStream<W> {
 
-  constructor(underlyingSink?: WritableStreamUnderlyingSink, queuingStrategy?: Partial<QueuingStrategy>);
+  constructor(underlyingSink?: WritableStreamUnderlyingSink<W>, queuingStrategy?: Partial<QueuingStrategy>);
 
   readonly locked: boolean;
 
   abort(reason: any): Promise<void>;
 
-  getWriter(): WritableStreamDefaultWriter;
+  getWriter(): WritableStreamDefaultWriter<W>;
 
 }
 
@@ -75,15 +78,14 @@ export declare class ByteLengthQueuingStrategy implements QueuingStrategy {
   size(chunk: ArrayBufferView): number;
 }
 
-
-export declare class TransformStream implements ITransformStream {
+export declare class TransformStream<I = any, O = any> implements ITransformStream<I, O> {
 
   constructor(transformer?: TransformStreamTransformer,
               writableStrategy?: Partial<QueuingStrategy>,
               readableStrategy?: Partial<QueuingStrategy>);
 
-  readonly readable: ReadableStream;
-  readonly writable: WritableStream;
+  readonly readable: ReadableStream<O>;
+  readonly writable: WritableStream<I>;
 
 }
 

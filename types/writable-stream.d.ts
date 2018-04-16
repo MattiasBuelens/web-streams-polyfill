@@ -3,24 +3,24 @@ import { QueuingStrategy } from './queuing-strategy';
 export interface WritableStreamConstructor {
   readonly prototype: WritableStream;
 
-  new(underlyingSink?: WritableStreamUnderlyingSink,
-      queuingStrategy?: Partial<QueuingStrategy>): WritableStream;
+  new<W = any>(underlyingSink?: WritableStreamUnderlyingSink<W>,
+               queuingStrategy?: Partial<QueuingStrategy>): WritableStream<W>;
 }
 
-export interface WritableStream {
+export interface WritableStream<W = any> {
   readonly locked: boolean;
 
   abort(reason: any): Promise<void>;
 
-  getWriter(): WritableStreamDefaultWriter;
+  getWriter(): WritableStreamDefaultWriter<W>;
 }
 
-export interface WritableStreamUnderlyingSink {
+export interface WritableStreamUnderlyingSink<W = any> {
   readonly type?: undefined;
 
   start?(controller: WritableStreamDefaultController): void | Promise<void>;
 
-  write?(chunk: any, controller: WritableStreamDefaultController): void | Promise<void>;
+  write?(chunk: W, controller: WritableStreamDefaultController): void | Promise<void>;
 
   close?(): void | Promise<void>;
 
@@ -31,7 +31,7 @@ export interface WritableStreamDefaultController {
   error(e: any): void;
 }
 
-export interface WritableStreamDefaultWriter {
+export interface WritableStreamDefaultWriter<W = any> {
   readonly closed: Promise<void>;
   readonly desiredSize: number | null;
   readonly ready: Promise<void>;
@@ -42,5 +42,5 @@ export interface WritableStreamDefaultWriter {
 
   releaseLock(): void;
 
-  write(chunk: any): Promise<void>;
+  write(chunk: W): Promise<void>;
 }
