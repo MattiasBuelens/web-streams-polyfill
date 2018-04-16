@@ -1,5 +1,4 @@
-import { ReadableStream } from './readable-stream';
-import { WritableStream } from './writable-stream';
+import { ReadableWritableStreamPair } from './readable-stream';
 import { QueuingStrategy } from './queuing-strategy';
 
 export interface TransformStreamConstructor {
@@ -10,9 +9,7 @@ export interface TransformStreamConstructor {
       readableStrategy?: Partial<QueuingStrategy>): TransformStream;
 }
 
-export interface TransformStream {
-  readonly readable: ReadableStream;
-  readonly writable: WritableStream;
+export interface TransformStream extends ReadableWritableStreamPair {
 }
 
 export interface TransformStreamTransformer {
