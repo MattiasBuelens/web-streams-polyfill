@@ -19,7 +19,7 @@ export interface ReadableStream<R = any> {
   getReader(options?: { mode?: undefined }): ReadableStreamDefaultReader<R>;
 
   pipeThrough<T = any>(pair: ReadableWritableStreamPair<T, R>,
-                       options?: ReadableStreamPipeOptions): ReadableStream<T>;
+                       options?: ReadableStreamPipeOptions): typeof pair['readable'];
 
   pipeTo(dest: WritableStream<R>, options?: ReadableStreamPipeOptions): Promise<void>;
 
