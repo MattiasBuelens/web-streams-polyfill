@@ -4,10 +4,7 @@ import { QueuingStrategy } from './queuing-strategy';
 export interface ReadableStreamConstructor {
   readonly prototype: ReadableStream;
 
-  new(underlyingSource?: ReadableByteStreamStreamUnderlyingSource,
-      queuingStrategy?: Partial<QueuingStrategy>): ReadableByteStream;
-
-  new<R = any>(underlyingSource?: ReadableStreamDefaultUnderlyingSource<R>,
+  new<R = any>(underlyingSource?: ReadableStreamUnderlyingSource<R>,
                queuingStrategy?: Partial<QueuingStrategy>): ReadableStream<R>;
 }
 
@@ -16,7 +13,10 @@ export interface ReadableStream<R = any> {
 
   cancel(reason: any): Promise<void>;
 
-  getReader(options?: { mode?: string }): ReadableStreamDefaultReader<R>;
+  // TODO 'byob' mode is available iff underlyingSource extends ReadableByteStreamStreamUnderlyingSource
+  getReader(options: { mode: (R extends Uint8Array ? 'byob' : never) }): ReadableStreamBYOBReader;
+
+  getReader(options?: { mode?: undefined }): ReadableStreamDefaultReader<R>;
 
   pipeThrough<T = any>(pair: ReadableWritableStreamPair<T, R>,
                        options?: ReadableStreamPipeOptions): ReadableStream<T>;
@@ -24,12 +24,6 @@ export interface ReadableStream<R = any> {
   pipeTo(dest: WritableStream<R>, options?: ReadableStreamPipeOptions): Promise<void>;
 
   tee(): [ReadableStream<R>, ReadableStream<R>];
-}
-
-export interface ReadableByteStream extends ReadableStream<Uint8Array> {
-  getReader(options: { mode: 'byob' }): ReadableStreamBYOBReader;
-
-  getReader(options?: { mode?: string }): ReadableStreamDefaultReader<Uint8Array>;
 }
 
 export interface ReadableWritableStreamPair<R = any, W = any> {
@@ -58,9 +52,9 @@ export interface ReadableByteStreamStreamUnderlyingSource {
   cancel?(reason: any): void | Promise<void>;
 }
 
-export type ReadableStreamUnderlyingSource
-  = ReadableStreamDefaultUnderlyingSource
-  | ReadableByteStreamStreamUnderlyingSource;
+export type ReadableStreamUnderlyingSource<R = any>
+  = ReadableStreamDefaultUnderlyingSource<R>
+  | (R extends Uint8Array ? ReadableByteStreamStreamUnderlyingSource : never);
 
 export interface ReadableStreamDefaultController<R = any> {
   readonly desiredSize: number | null;
