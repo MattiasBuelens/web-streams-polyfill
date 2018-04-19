@@ -1,6 +1,6 @@
 {
-  "name": "web-streams-polyfill",
-  "version": "1.3.2",
+  "name": "@mattiasbuelens/web-streams-polyfill",
+  "version": "0.0.0",
   "description": "Web Streams, based on the WHATWG spec reference implementation",
   "main": "dist/ponyfill.js",
   "browser": "dist/polyfill.min.js",
