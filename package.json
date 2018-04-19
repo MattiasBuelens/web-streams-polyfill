@@ -10,8 +10,7 @@
   "scripts": {
     "test": "cd spec/reference-implementation && npm install && cpx ../../run-web-platform-tests-on-bundle.js ./ && node --expose_gc run-web-platform-tests-on-bundle.js && rimraf ./run-web-platform-tests-on-bundle.js",
     "lint": "eslint \"src/**/*.js\"",
-    "bundle": "rollup -c",
-    "build": "npm run bundle",
+    "build": "rollup -c",
     "prebuild": "git submodule update --init --recursive",
     "prepare": "npm run build"
   },
@@ -54,6 +53,5 @@
     "rollup-plugin-strip": "^1.1.1",
     "rollup-plugin-uglify": "^3.0.0",
     "typescript": "^2.8.1"
-  },
-  "dependencies": {}
+  }
 }
