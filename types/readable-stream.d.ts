@@ -31,32 +31,28 @@ export interface ReadableWritableStreamPair<R = any, W = any> {
   readonly writable: WritableStream<W>;
 }
 
-export interface ReadableStreamDefaultUnderlyingSource<R = any> {
-  readonly type?: undefined;
+export interface ReadableStreamUnderlyingSourceBase<C extends ReadableStreamControllerBase> {
+  start?(controller: C): void | Promise<void>;
 
-  start?(controller: ReadableStreamDefaultController<R>): void | Promise<void>;
-
-  pull?(controller: ReadableStreamDefaultController<R>): void | Promise<void>;
+  pull?(controller: C): void | Promise<void>;
 
   cancel?(reason: any): void | Promise<void>;
 }
 
-export interface ReadableByteStreamStreamUnderlyingSource {
+export interface ReadableStreamDefaultUnderlyingSource<R = any> extends ReadableStreamUnderlyingSourceBase<ReadableStreamDefaultController<R>> {
+  readonly type?: undefined;
+}
+
+export interface ReadableByteStreamStreamUnderlyingSource extends ReadableStreamUnderlyingSourceBase<ReadableByteStreamController> {
   readonly type: 'bytes';
   readonly autoAllocateChunkSize?: number;
-
-  start?(controller: ReadableByteStreamController): void | Promise<void>;
-
-  pull?(controller: ReadableByteStreamController): void | Promise<void>;
-
-  cancel?(reason: any): void | Promise<void>;
 }
 
 export type ReadableStreamUnderlyingSource<R = any>
   = ReadableStreamDefaultUnderlyingSource<R>
   | (R extends Uint8Array ? ReadableByteStreamStreamUnderlyingSource : never);
 
-export interface ReadableStreamDefaultController<R = any> {
+export interface ReadableStreamControllerBase<R = any> {
   readonly desiredSize: number | null;
 
   close(): void;
@@ -66,15 +62,11 @@ export interface ReadableStreamDefaultController<R = any> {
   error(e: any): void;
 }
 
-export interface ReadableByteStreamController {
+export interface ReadableStreamDefaultController<R = any> extends ReadableStreamControllerBase<R> {
+}
+
+export interface ReadableByteStreamController extends ReadableStreamControllerBase<ArrayBufferView> {
   readonly byobRequest: ReadableStreamBYOBRequest | undefined;
-  readonly desiredSize: number | null;
-
-  close(): void;
-
-  enqueue(chunk: ArrayBufferView): void;
-
-  error(e: any): void;
 }
 
 export interface ReadableStreamBYOBRequest {
@@ -85,24 +77,20 @@ export interface ReadableStreamBYOBRequest {
   respondWithNewView(view: ArrayBufferView): void;
 }
 
-export interface ReadableStreamDefaultReader<R = any> {
+export interface ReadableStreamReaderBase {
   readonly closed: Promise<void>;
 
   cancel(reason: any): Promise<void>;
-
-  read(): Promise<IteratorResult<R>>;
 
   releaseLock(): void;
 }
 
-export interface ReadableStreamBYOBReader {
-  readonly closed: Promise<void>;
+export interface ReadableStreamDefaultReader<R = any> extends ReadableStreamReaderBase {
+  read(): Promise<IteratorResult<R>>;
+}
 
-  cancel(reason: any): Promise<void>;
-
+export interface ReadableStreamBYOBReader extends ReadableStreamReaderBase {
   read<T extends ArrayBufferView>(view: T): Promise<IteratorResult<T>>;
-
-  releaseLock(): void;
 }
 
 export interface ReadableStreamPipeOptions {
