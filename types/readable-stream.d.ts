@@ -5,7 +5,7 @@ export interface ReadableStreamConstructor {
   readonly prototype: ReadableStream;
 
   new<R = any>(underlyingSource?: ReadableStreamUnderlyingSource<R>,
-               queuingStrategy?: Partial<QueuingStrategy>): ReadableStream<R>;
+               strategy?: Partial<QueuingStrategy>): ReadableStream<R>;
 }
 
 export interface ReadableStream<R = any> {

@@ -4,7 +4,7 @@ export interface WritableStreamConstructor {
   readonly prototype: WritableStream;
 
   new<W = any>(underlyingSink?: WritableStreamUnderlyingSink<W>,
-               queuingStrategy?: Partial<QueuingStrategy>): WritableStream<W>;
+               strategy?: Partial<QueuingStrategy>): WritableStream<W>;
 }
 
 export interface WritableStream<W = any> {
