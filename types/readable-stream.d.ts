@@ -14,7 +14,7 @@ export interface ReadableStream<R = any> {
   cancel(reason: any): Promise<void>;
 
   // TODO 'byob' mode is available iff underlyingSource extends ReadableByteStreamStreamUnderlyingSource
-  getReader(options: { mode: (R extends Uint8Array ? 'byob' : never) }): ReadableStreamBYOBReader;
+  getReader(options: { mode: 'byob' }): ReadableStreamBYOBReader;
 
   getReader(options?: { mode?: undefined }): ReadableStreamDefaultReader<R>;
 
@@ -50,7 +50,7 @@ export interface ReadableByteStreamStreamUnderlyingSource extends ReadableStream
 
 export type ReadableStreamUnderlyingSource<R = any>
   = ReadableStreamDefaultUnderlyingSource<R>
-  | (R extends Uint8Array ? ReadableByteStreamStreamUnderlyingSource : never);
+  | ReadableByteStreamStreamUnderlyingSource;
 
 export interface ReadableStreamControllerBase<R = any> {
   readonly desiredSize: number | null;
