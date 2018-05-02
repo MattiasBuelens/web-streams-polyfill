@@ -8,7 +8,9 @@
   "jsnext:main": "dist/ponyfill.mjs",
   "types": "types/polyfill.d.ts",
   "scripts": {
-    "test": "cd spec/reference-implementation && npm install && cpx ../../run-web-platform-tests-on-bundle.js ./ && node --expose_gc run-web-platform-tests-on-bundle.js && rimraf ./run-web-platform-tests-on-bundle.js",
+    "pretest": "cd spec/reference-implementation && npm install && cpx ../../run-web-platform-tests-on-bundle.js ./",
+    "test": "cd spec/reference-implementation && node --expose_gc run-web-platform-tests-on-bundle.js",
+    "posttest": "rimraf spec/reference-implementation/run-web-platform-tests-on-bundle.js",
     "lint": "eslint \"src/**/*.js\"",
     "build": "rollup -c",
     "prebuild": "git submodule update --init --recursive",
