@@ -66,6 +66,5 @@ module.exports = [
   buildConfig('polyfill', { esm: true }),
   buildConfig('polyfill', { minify: true }),
   buildConfig('ponyfill', { cjs: true, esm: true }),
-  buildConfig('ponyfill', { cjs: true, minify: true }),
   buildConfig('ponyfill', { cjs: true, es6: true, esm: true })
 ];
