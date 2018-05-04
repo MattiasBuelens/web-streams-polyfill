@@ -8,19 +8,18 @@ const rollupStrip = require('rollup-plugin-strip');
 const rollupUglify = require('rollup-plugin-uglify');
 
 function buildConfig(entry, { esm = false, cjs = false, minify = false, es6 = false } = {}) {
-  const suffix = `${es6 ? '.es6' : ''}${minify ? '.min' : ''}`;
   return {
     input: `src/${entry}.js`,
     output: [
       {
-        file: `dist/${entry}${cjs ? '.cjs' : '.umd'}${suffix}.js`,
+        file: `dist/${entry}${es6 ? '.es6' : ''}${cjs ? '.cjs' : '.umd'}${minify ? '.min' : ''}.js`,
         format: cjs ? 'cjs' : 'umd',
         freeze: false,
         sourcemap: true,
         name: 'WebStreamsPolyfill'
       },
       esm ? {
-        file: `dist/${entry}${suffix}.mjs`,
+        file: `dist/${entry}${es6 ? '.es6' : ''}${minify ? '.min' : ''}.mjs`,
         format: 'es',
         freeze: false,
         sourcemap: true
