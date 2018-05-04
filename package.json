@@ -2,10 +2,10 @@
   "name": "@mattiasbuelens/web-streams-polyfill",
   "version": "0.1.0-alpha.2",
   "description": "Web Streams, based on the WHATWG spec reference implementation",
-  "main": "dist/ponyfill.js",
-  "browser": "dist/polyfill.min.js",
-  "module": "dist/ponyfill.mjs",
-  "jsnext:main": "dist/ponyfill.mjs",
+  "main": "dist/polyfill.umd.js",
+  "browser": "dist/polyfill.umd.min.js",
+  "module": "dist/polyfill.mjs",
+  "jsnext:main": "dist/polyfill.mjs",
   "types": "types/polyfill.d.ts",
   "scripts": {
     "pretest": "cd spec/reference-implementation && npm install && cpx ../../run-web-platform-tests-on-bundle.js ./",
@@ -18,7 +18,8 @@
   },
   "files": [
     "dist",
-    "types"
+    "types",
+    "ponyfill"
   ],
   "engines": {
     "node": ">= 4"

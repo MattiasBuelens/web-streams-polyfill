@@ -1,0 +1,7 @@
+{
+  "name": "@mattiasbuelens/web-streams-ponyfill-es6",
+  "main": "../../dist/ponyfill.cjs.es6.js",
+  "module": "../../dist/ponyfill.es6.mjs",
+  "jsnext:main": "../../dist/ponyfill.es6.mjs",
+  "types": "../../types/polyfill.d.ts"
+}

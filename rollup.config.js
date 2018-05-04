@@ -7,13 +7,13 @@ const rollupInject = require('rollup-plugin-inject');
 const rollupStrip = require('rollup-plugin-strip');
 const rollupUglify = require('rollup-plugin-uglify');
 
-function buildConfig(entry, { esm = false, cjs = false, minify = false, wpt = false } = {}) {
-  const suffix = `${wpt ? '.wpt' : ''}${minify ? '.min' : ''}`;
+function buildConfig(entry, { esm = false, cjs = false, minify = false, es6 = false } = {}) {
+  const suffix = `${es6 ? '.es6' : ''}${minify ? '.min' : ''}`;
   return {
     input: `src/${entry}.js`,
     output: [
       {
-        file: `dist/${entry}${suffix}.js`,
+        file: `dist/${entry}${cjs ? '.cjs' : '.umd'}${suffix}.js`,
         format: cjs ? 'cjs' : 'umd',
         freeze: false,
         sourcemap: true,
@@ -48,10 +48,10 @@ function buildConfig(entry, { esm = false, cjs = false, minify = false, wpt = fa
         'better-assert': path.resolve(__dirname, `./src/stub/${minify ? 'min' : 'no-min'}/better-assert.js`),
         'debug': path.resolve(__dirname, `./src/stub/${minify ? 'min' : 'no-min'}/debug.js`)
       }),
-      (!wpt) ? rollupBabel({
+      !es6 ? rollupBabel({
         sourceMap: true
       }) : undefined,
-      (minify || wpt) ? rollupUglify({
+      minify ? rollupUglify({
         keep_classnames: true, // needed for WPT
         compress: {
           inline: 1 // TODO re-enable when this is fixed: https://github.com/mishoo/UglifyJS2/issues/2842
@@ -65,6 +65,7 @@ function buildConfig(entry, { esm = false, cjs = false, minify = false, wpt = fa
 module.exports = [
   buildConfig('polyfill', { esm: true }),
   buildConfig('polyfill', { minify: true }),
-  buildConfig('polyfill', { wpt: true }),
-  buildConfig('ponyfill', { cjs: true, esm: true })
+  buildConfig('ponyfill', { cjs: true, esm: true }),
+  buildConfig('ponyfill', { cjs: true, minify: true }),
+  buildConfig('ponyfill', { cjs: true, es6: true, esm: true })
 ];
