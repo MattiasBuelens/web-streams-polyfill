@@ -5,7 +5,6 @@
   "main": "dist/polyfill.umd.js",
   "browser": "dist/polyfill.umd.min.js",
   "module": "dist/polyfill.mjs",
-  "jsnext:main": "dist/polyfill.mjs",
   "types": "types/polyfill.d.ts",
   "scripts": {
     "pretest": "cd spec/reference-implementation && npm install && cpx ../../run-web-platform-tests-on-bundle.js ./",
