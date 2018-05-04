@@ -6,7 +6,7 @@ const path = require('path');
 const wptRunner = require('wpt-runner');
 const minimatch = require('minimatch');
 
-const { ReadableStream, WritableStream, TransformStream, ByteLengthQueuingStrategy, CountQueuingStrategy } = require('../../dist/polyfill.wpt.js');
+const { ReadableStream, WritableStream, TransformStream, ByteLengthQueuingStrategy, CountQueuingStrategy } = require('../../ponyfill/es6');
 
 const testsPath = path.resolve(__dirname, 'web-platform-tests/streams');
 
