@@ -25,7 +25,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/creatorrr/web-stream-polyfill.git"
+    "url": "git+https://github.com/MattiasBuelens/web-streams-polyfill.git"
   },
   "keywords": [
     "streams",
@@ -38,9 +38,9 @@
   ],
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/creatorrr/web-streams-polyfill/issues"
+    "url": "https://github.com/MattiasBuelens/web-streams-polyfill/issues"
   },
-  "homepage": "https://github.com/creatorrr/web-streams-polyfill#readme",
+  "homepage": "https://github.com/MattiasBuelens/web-streams-polyfill#readme",
   "devDependencies": {
     "babel-core": "^6.22.0",
     "babel-plugin-external-helpers": "^6.22.0",
