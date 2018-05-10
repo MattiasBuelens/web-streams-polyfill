@@ -1,4 +1,4 @@
-import { noop } from '../../utils';
+import { noop } from '../utils';
 
 export default function assert() {
   // do nothing

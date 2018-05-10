@@ -44,9 +44,9 @@ function buildConfig(entry, { esm = false, cjs = false, minify = false, es6 = fa
         sourceMap: true
       }),
       rollupAlias({
-        'assert': path.resolve(__dirname, `./src/stub/no-wpt/assert.js`),
-        'better-assert': path.resolve(__dirname, `./src/stub/no-wpt/better-assert.js`),
-        'debug': path.resolve(__dirname, `./src/stub/no-wpt/debug.js`)
+        'assert': path.resolve(__dirname, `./src/stub/assert.js`),
+        'better-assert': path.resolve(__dirname, `./src/stub/better-assert.js`),
+        'debug': path.resolve(__dirname, `./src/stub/debug.js`)
       }),
       !es6 ? rollupBabel({
         sourceMap: true
