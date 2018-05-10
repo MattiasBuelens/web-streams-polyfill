@@ -33,6 +33,9 @@
     "polyfill"
   ],
   "author": "Diwank Singh <diwank.singh@gmail.com>",
+  "contributors": [
+    "Mattias Buelens <mattias@buelens.com>"
+  ],
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/creatorrr/web-streams-polyfill/issues"
