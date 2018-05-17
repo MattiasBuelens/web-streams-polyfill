@@ -53,6 +53,9 @@ function buildConfig(entry, { esm = false, cjs = false, minify = false, es6 = fa
       }) : undefined,
       minify ? rollupUglify({
         keep_classnames: true, // needed for WPT
+        mangle: {
+          toplevel: true
+        },
         compress: {
           inline: 1 // TODO re-enable when this is fixed: https://github.com/mishoo/UglifyJS2/issues/2842
         },
