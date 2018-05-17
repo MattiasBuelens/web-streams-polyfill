@@ -1,29 +1,29 @@
 module.exports = {
-  "presets": [
+  presets: [
     [
-      "@babel/env",
+      '@babel/env',
       {
-        "targets": {
-          "browsers": [
-            "last 2 versions",
-            "IE >= 11"
+        targets: {
+          browsers: [
+            'last 2 versions',
+            'IE >= 11'
           ]
         },
-        "exclude": [
-          "transform-for-of",
-          "transform-typeof-symbol"
+        exclude: [
+          'transform-for-of',
+          'transform-typeof-symbol'
         ],
-        "loose": true,
-        "modules": false
+        loose: true,
+        modules: false
       }
     ]
   ],
-  "plugins": [
-    "@babel/transform-object-assign",
+  plugins: [
+    '@babel/transform-object-assign',
     [
-      "@babel/transform-for-of",
+      '@babel/transform-for-of',
       {
-        "assumeArray": true
+        assumeArray: true
       }
     ]
   ]
