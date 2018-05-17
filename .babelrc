@@ -1,15 +1,17 @@
 {
   "presets": [
     [
-      "env",
+      "@babel/env",
       {
-        "browsers": [
-          "last 2 versions",
-          "IE >= 11"
-        ],
+        "targets": {
+          "browsers": [
+            "last 2 versions",
+            "IE >= 11"
+          ]
+        },
         "exclude": [
-          "transform-es2015-for-of",
-          "transform-es2015-typeof-symbol"
+          "transform-for-of",
+          "transform-typeof-symbol"
         ],
         "loose": true,
         "modules": false
@@ -17,8 +19,12 @@
     ]
   ],
   "plugins": [
-    "transform-object-assign",
-    "transform-for-of-as-array",
-    "external-helpers"
+    "@babel/transform-object-assign",
+    [
+      "@babel/transform-for-of",
+      {
+        "assumeArray": true
+      }
+    ]
   ]
 }
