@@ -1,37 +1,22 @@
-import { ReadableStream as IReadableStream, ReadableStreamConstructor } from './readable-stream';
-import { WritableStream as IWritableStream, WritableStreamConstructor } from './writable-stream';
 import {
-  ByteLengthQueuingStrategy as IByteLengthQueuingStrategy,
-  ByteLengthQueuingStrategyConstructor,
-  CountQueuingStrategy as ICountQueuingStrategy,
-  CountQueuingStrategyConstructor
-} from './queuing-strategy';
-import { TransformStream as ITransformStream, TransformStreamConstructor } from './transform-stream';
+    ByteLengthQueuingStrategy as WhatWGByteLengthQueuingStrategy,
+    CountQueuingStrategy as WhatWGCountQueuingStrategy,
+    ReadableStream as WhatWGReadableStream,
+    TransformStream as WhatWGTransformStream,
+    WritableStream as WhatWGWritableStream
+} from 'whatwg-streams';
 
-// region Type exports
+export type ReadableStream<R = any> = WhatWGReadableStream<R>;
+export const ReadableStream: typeof WhatWGReadableStream;
 
-export * from './readable-stream';
-export * from './writable-stream';
-export * from './queuing-strategy';
-export * from './transform-stream';
+export type WritableStream<W = any> = WhatWGWritableStream<W>;
+export const WritableStream: typeof WhatWGWritableStream;
 
-// endregion
+export type CountQueuingStrategy = WhatWGCountQueuingStrategy;
+export const CountQueuingStrategy: typeof WhatWGCountQueuingStrategy;
 
-// region Class exports
+export type ByteLengthQueuingStrategy = WhatWGByteLengthQueuingStrategy;
+export const ByteLengthQueuingStrategy: typeof WhatWGByteLengthQueuingStrategy;
 
-export type ReadableStream<R = any> = IReadableStream<R>;
-export const ReadableStream: ReadableStreamConstructor;
-
-export type WritableStream<R = any> = IWritableStream<R>;
-export const WritableStream: WritableStreamConstructor;
-
-export type CountQueuingStrategy = ICountQueuingStrategy;
-export const CountQueuingStrategy: CountQueuingStrategyConstructor;
-
-export type ByteLengthQueuingStrategy = IByteLengthQueuingStrategy;
-export const ByteLengthQueuingStrategy: ByteLengthQueuingStrategyConstructor;
-
-export type TransformStream<I = any, O = any> = ITransformStream<I, O>;
-export const TransformStream: TransformStreamConstructor;
-
-// endregion
+export type TransformStream<R = any, W = any> = WhatWGTransformStream<R, W>;
+export const TransformStream: typeof WhatWGTransformStream;

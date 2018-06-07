@@ -41,6 +41,9 @@
     "url": "https://github.com/MattiasBuelens/web-streams-polyfill/issues"
   },
   "homepage": "https://github.com/MattiasBuelens/web-streams-polyfill#readme",
+  "dependencies": {
+    "@types/whatwg-streams": "0.0.5"
+  },
   "devDependencies": {
     "@babel/core": "^7.0.0-beta.47",
     "@babel/plugin-transform-object-assign": "^7.0.0-beta.47",
