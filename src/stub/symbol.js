@@ -1,5 +1,5 @@
-const FakeSymbol = typeof Symbol === 'function' && typeof Symbol.iterator === 'symbol' ?
+const SymbolPolyfill = typeof Symbol === 'function' && typeof Symbol.iterator === 'symbol' ?
   Symbol :
   description => `Symbol(${description})`;
 
-export default FakeSymbol;
+export default SymbolPolyfill;
