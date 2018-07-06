@@ -2,7 +2,7 @@
   "name": "@mattiasbuelens/web-streams-polyfill",
   "version": "0.1.0-alpha.5",
   "description": "Web Streams, based on the WHATWG spec reference implementation",
-  "main": "dist/polyfill.js",
+  "main": "dist/polyfill",
   "browser": "dist/polyfill.min.js",
   "module": "dist/polyfill.mjs",
   "types": "types/polyfill.d.ts",
