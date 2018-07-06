@@ -12,7 +12,7 @@ const {
   TransformStream,
   ByteLengthQueuingStrategy,
   CountQueuingStrategy
-} = require('../../dist/ponyfill.es6.cjs.min');
+} = require('../../dist/ponyfill.es6.min');
 
 const testsPath = path.resolve(__dirname, 'web-platform-tests/streams');
 

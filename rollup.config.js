@@ -7,14 +7,14 @@ const rollupInject = require('rollup-plugin-inject');
 const rollupStrip = require('rollup-plugin-strip');
 const rollupUglify = require('rollup-plugin-uglify');
 
-function buildConfig(entry, { esm = false, cjs = false, minify = false, es6 = false } = {}) {
+function buildConfig(entry, { esm = false, minify = false, es6 = false } = {}) {
   const outname = `${entry}${es6 ? '.es6' : ''}`;
   return {
     input: `src/${entry}.js`,
     output: [
       {
-        file: `dist/${outname}${cjs ? '.cjs' : '.umd'}${minify ? '.min' : ''}.js`,
-        format: cjs ? 'cjs' : 'umd',
+        file: `dist/${outname}${minify ? '.min' : ''}.js`,
+        format: 'umd',
         freeze: false,
         sourcemap: true,
         name: 'WebStreamsPolyfill'
@@ -68,7 +68,7 @@ function buildConfig(entry, { esm = false, cjs = false, minify = false, es6 = fa
 module.exports = [
   buildConfig('polyfill', { esm: true }),
   buildConfig('polyfill', { minify: true }),
-  buildConfig('ponyfill', { cjs: true, esm: true }),
-  buildConfig('ponyfill', { cjs: true, es6: true, esm: true }),
-  buildConfig('ponyfill', { cjs: true, es6: true, minify: true })
+  buildConfig('ponyfill', { esm: true }),
+  buildConfig('ponyfill', { es6: true, esm: true }),
+  buildConfig('ponyfill', { es6: true, minify: true })
 ];
