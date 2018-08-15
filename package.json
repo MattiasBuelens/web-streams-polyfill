@@ -42,7 +42,7 @@
   },
   "homepage": "https://github.com/MattiasBuelens/web-streams-polyfill#readme",
   "dependencies": {
-    "@types/whatwg-streams": "^0.0.6"
+    "@types/whatwg-streams": "^0.0.7"
   },
   "devDependencies": {
     "@babel/core": "^7.0.0-beta.47",
