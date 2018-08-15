@@ -5,7 +5,7 @@ const rollupAlias = require('rollup-plugin-alias');
 const rollupBabel = require('rollup-plugin-babel');
 const rollupInject = require('rollup-plugin-inject');
 const rollupStrip = require('rollup-plugin-strip');
-const rollupUglify = require('rollup-plugin-uglify');
+const { terser: rollupTerser } = require('rollup-plugin-terser');
 
 function buildConfig(entry, { esm = false, minify = false, es6 = false } = {}) {
   const outname = `${entry}${es6 ? '.es6' : ''}`;
@@ -51,7 +51,7 @@ function buildConfig(entry, { esm = false, minify = false, es6 = false } = {}) {
       !es6 ? rollupBabel({
         sourceMap: true
       }) : undefined,
-      minify ? rollupUglify({
+      minify ? rollupTerser({
         keep_classnames: true, // needed for WPT
         mangle: {
           toplevel: true
