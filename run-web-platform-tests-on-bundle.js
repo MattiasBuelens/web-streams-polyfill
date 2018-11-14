@@ -58,6 +58,11 @@ function setup(window) {
   // Necessary so that we can send test-realm promises to the jsdom-realm implementation without causing assimilation.
   window.Promise = Promise;
 
+  // TODO Find a cleaner way to expose globals for aborting
+  global.AbortController = window.AbortController;
+  global.AbortSignal = window.AbortSignal;
+  global.DOMException = window.DOMException;
+
   window.ReadableStream = ReadableStream;
   window.WritableStream = WritableStream;
   window.TransformStream = TransformStream;
