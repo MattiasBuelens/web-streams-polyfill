@@ -59,7 +59,7 @@ function buildConfig(entry, { esm = false, minify = false, es6 = false } = {}) {
         compress: {
           inline: 1 // TODO re-enable when this is fixed: https://github.com/mishoo/UglifyJS2/issues/2842
         },
-        sourceMap: true
+        sourcemap: true
       }) : undefined
     ].filter(Boolean)
   };
