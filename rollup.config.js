@@ -34,7 +34,7 @@ function buildConfig(entry, { esm = false, minify = false, es6 = false } = {}) {
       rollupInject({
         include: 'spec/reference-implementation/lib/*.js',
         modules: {
-          'Symbol': path.resolve(__dirname, `./src/stub/symbol.js`),
+          Symbol: path.resolve(__dirname, `./src/stub/symbol.js`),
           'Number.isNaN': path.resolve(__dirname, `./src/stub/number-isnan.js`),
           'Number.isInteger': path.resolve(__dirname, `./src/stub/number-isinteger.js`)
         }
@@ -44,9 +44,9 @@ function buildConfig(entry, { esm = false, minify = false, es6 = false } = {}) {
         sourceMap: true
       }),
       rollupAlias({
-        'assert': path.resolve(__dirname, `./src/stub/assert.js`),
+        assert: path.resolve(__dirname, `./src/stub/assert.js`),
         'better-assert': path.resolve(__dirname, `./src/stub/better-assert.js`),
-        'debug': path.resolve(__dirname, `./src/stub/debug.js`)
+        debug: path.resolve(__dirname, `./src/stub/debug.js`)
       }),
       !es6 ? rollupBabel({
         sourceMap: true

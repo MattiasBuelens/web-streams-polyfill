@@ -10,7 +10,7 @@
     "pretest": "cd spec/reference-implementation && npm install && cpx ../../run-web-platform-tests-on-bundle.js ./",
     "test": "cd spec/reference-implementation && node --expose_gc run-web-platform-tests-on-bundle.js",
     "posttest": "rimraf spec/reference-implementation/run-web-platform-tests-on-bundle.js",
-    "lint": "eslint \"src/**/*.js\"",
+    "lint": "eslint \"*.js\" \"src/**/*.js\"",
     "build": "rollup -c",
     "prebuild": "git submodule update --init --recursive",
     "prepare": "npm run build"

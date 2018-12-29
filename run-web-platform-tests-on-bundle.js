@@ -1,7 +1,7 @@
 // This runs the web platform tests against the reference implementation, in Node.js using jsdom, for easier rapid
 // development of the reference implementation and the web platform tests.
 /* eslint-disable no-console*/
-'use strict';
+
 const path = require('path');
 const wptRunner = require('wpt-runner');
 const minimatch = require('minimatch');
@@ -36,23 +36,23 @@ process.on('rejectionHandled', promise => {
 });
 
 wptRunner(testsPath, { rootURL: 'streams/', setup, filter })
-    .then(failures => {
-      process.exitCode = failures;
+  .then(failures => {
+    process.exitCode = failures;
 
-      if (rejections.size > 0) {
-        if (failures === 0) {
-          process.exitCode = 1;
-        }
-
-        for (const reason of rejections.values()) {
-          console.error('Unhandled promise rejection: ', reason.stack);
-        }
+    if (rejections.size > 0) {
+      if (failures === 0) {
+        process.exitCode = 1;
       }
-    })
-    .catch(e => {
-      console.error(e.stack);
-      process.exitCode = 1;
-    });
+
+      for (const reason of rejections.values()) {
+        console.error('Unhandled promise rejection: ', reason.stack);
+      }
+    }
+  })
+  .catch(e => {
+    console.error(e.stack);
+    process.exitCode = 1;
+  });
 
 function setup(window) {
   // Necessary so that we can send test-realm promises to the jsdom-realm implementation without causing assimilation.
