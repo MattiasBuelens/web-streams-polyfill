@@ -8,7 +8,7 @@
   "types": "types/polyfill.d.ts",
   "scripts": {
     "test": "node --expose_gc run-web-platform-tests.js",
-    "lint": "eslint \"*.js\" \"src/**/*.js\"",
+    "lint": "eslint \"*.js\" \"build/**/*.js\" \"src/**/*.js\"",
     "build": "rollup -c",
     "prebuild": "git submodule update --init --recursive",
     "prepare": "npm run build"
@@ -56,6 +56,7 @@
     "rollup-plugin-inject": "^2.2.0",
     "rollup-plugin-strip": "^1.2.0",
     "rollup-plugin-terser": "^3.0.0",
+    "rollup-pluginutils": "^2.3.3",
     "typescript": "^3.2.2",
     "wpt-runner": "^2.7.0"
   }
