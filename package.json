@@ -7,7 +7,7 @@
   "module": "dist/polyfill.mjs",
   "types": "types/polyfill.d.ts",
   "scripts": {
-    "test": "node --expose_gc run-web-platform-tests-on-bundle.js",
+    "test": "node --expose_gc run-web-platform-tests.js",
     "lint": "eslint \"*.js\" \"src/**/*.js\"",
     "build": "rollup -c",
     "prebuild": "git submodule update --init --recursive",
