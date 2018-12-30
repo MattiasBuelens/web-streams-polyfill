@@ -3,16 +3,12 @@
 /* eslint-disable no-console */
 
 const path = require('path');
+const fs = require('fs');
+const { promisify } = require('util');
 const wptRunner = require('wpt-runner');
 const minimatch = require('minimatch');
 
-const {
-  ReadableStream,
-  WritableStream,
-  TransformStream,
-  ByteLengthQueuingStrategy,
-  CountQueuingStrategy
-} = require('./dist/ponyfill.es6.min');
+const readFileAsync = promisify(fs.readFile);
 
 // wpt-runner does not yet support unhandled rejection tracking a la
 // https://github.com/w3c/testharness.js/commit/7716e2581a86dfd9405a9c00547a7504f0c7fe94
@@ -32,28 +28,19 @@ main().catch(e => {
 });
 
 async function main() {
+  const entryPath = path.resolve(__dirname, 'dist/polyfill.es6.min.js');
   const testsPath = path.resolve(__dirname, 'spec/reference-implementation/web-platform-tests/streams');
 
   const filterGlobs = process.argv.length >= 3 ? process.argv.slice(2) : ['**/*.html'];
   const workerTestPattern = /\.(?:dedicated|shared|service)worker(?:\.https)?\.html$/;
 
+  const bundledJS = await readFileAsync(entryPath, { encoding: 'utf8' });
+
   const failures = await wptRunner(testsPath, {
     rootURL: 'streams/',
     setup(window) {
-      // Necessary so that we can send test-realm promises
-      // to the jsdom-realm implementation without causing assimilation.
-      window.Promise = Promise;
-
-      // TODO Find a cleaner way to expose globals for aborting
-      global.AbortController = window.AbortController;
-      global.AbortSignal = window.AbortSignal;
-      global.DOMException = window.DOMException;
-
-      window.ReadableStream = ReadableStream;
-      window.WritableStream = WritableStream;
-      window.TransformStream = TransformStream;
-      window.ByteLengthQueuingStrategy = ByteLengthQueuingStrategy;
-      window.CountQueuingStrategy = CountQueuingStrategy;
+      window.gc = gc;
+      window.eval(bundledJS);
     },
     filter(testPath) {
       return !workerTestPattern.test(testPath) && // ignore the worker versions

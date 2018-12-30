@@ -68,6 +68,7 @@ function buildConfig(entry, { esm = false, minify = false, es6 = false } = {}) {
 module.exports = [
   buildConfig('polyfill', { esm: true }),
   buildConfig('polyfill', { minify: true }),
+  buildConfig('polyfill', { es6: true, minify: true }),
   buildConfig('ponyfill', { esm: true }),
   buildConfig('ponyfill', { es6: true, esm: true }),
   buildConfig('ponyfill', { es6: true, minify: true })
