@@ -12,9 +12,9 @@ const {
   TransformStream,
   ByteLengthQueuingStrategy,
   CountQueuingStrategy
-} = require('../../dist/ponyfill.es6.min');
+} = require('./dist/ponyfill.es6.min');
 
-const testsPath = path.resolve(__dirname, 'web-platform-tests/streams');
+const testsPath = path.resolve(__dirname, 'spec/reference-implementation/web-platform-tests/streams');
 
 const filterGlobs = process.argv.length >= 3 ? process.argv.slice(2) : ['**/*.html'];
 const workerTestPattern = /\.(?:dedicated|shared|service)worker(?:\.https)?\.html$/;

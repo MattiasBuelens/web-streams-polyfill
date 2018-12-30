@@ -7,9 +7,7 @@
   "module": "dist/polyfill.mjs",
   "types": "types/polyfill.d.ts",
   "scripts": {
-    "pretest": "cd spec/reference-implementation && npm install && cpx ../../run-web-platform-tests-on-bundle.js ./",
-    "test": "cd spec/reference-implementation && node --expose_gc run-web-platform-tests-on-bundle.js",
-    "posttest": "rimraf spec/reference-implementation/run-web-platform-tests-on-bundle.js",
+    "test": "node --expose_gc run-web-platform-tests-on-bundle.js",
     "lint": "eslint \"*.js\" \"src/**/*.js\"",
     "build": "rollup -c",
     "prebuild": "git submodule update --init --recursive",
@@ -49,9 +47,8 @@
     "@babel/plugin-transform-for-of": "^7.0.0",
     "@babel/plugin-transform-object-assign": "^7.0.0",
     "@babel/preset-env": "^7.1.0",
-    "cpx": "^1.5.0",
     "eslint": "^5.9.0",
-    "rimraf": "^2.6.2",
+    "minimatch": "^3.0.4",
     "rollup": "^0.67.1",
     "rollup-plugin-alias": "^1.4.0",
     "rollup-plugin-babel": "^4.0.0",
@@ -59,6 +56,7 @@
     "rollup-plugin-inject": "^2.2.0",
     "rollup-plugin-strip": "^1.2.0",
     "rollup-plugin-terser": "^3.0.0",
-    "typescript": "^3.1.6"
+    "typescript": "^3.1.6",
+    "wpt-runner": "^2.7.0"
   }
 }
