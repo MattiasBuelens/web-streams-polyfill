@@ -48,7 +48,7 @@
     "@babel/plugin-transform-object-assign": "^7.0.0",
     "@babel/preset-env": "^7.1.0",
     "eslint": "^5.9.0",
-    "minimatch": "^3.0.4",
+    "micromatch": "^3.1.10",
     "rollup": "^0.67.1",
     "rollup-plugin-alias": "^1.4.0",
     "rollup-plugin-babel": "^4.0.0",

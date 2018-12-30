@@ -6,7 +6,7 @@ const path = require('path');
 const fs = require('fs');
 const { promisify } = require('util');
 const wptRunner = require('wpt-runner');
-const minimatch = require('minimatch');
+const micromatch = require('micromatch');
 
 const readFileAsync = promisify(fs.readFile);
 
@@ -32,6 +32,7 @@ async function main() {
   const testsPath = path.resolve(__dirname, 'spec/reference-implementation/web-platform-tests/streams');
 
   const filterGlobs = process.argv.length >= 3 ? process.argv.slice(2) : ['**/*.html'];
+  const filterMatcher = micromatch.matcher(filterGlobs);
   const workerTestPattern = /\.(?:dedicated|shared|service)worker(?:\.https)?\.html$/;
 
   const bundledJS = await readFileAsync(entryPath, { encoding: 'utf8' });
@@ -44,7 +45,7 @@ async function main() {
     },
     filter(testPath) {
       return !workerTestPattern.test(testPath) && // ignore the worker versions
-          filterGlobs.some(glob => minimatch(testPath, glob));
+          filterMatcher(testPath);
     }
   });
 
