@@ -9,6 +9,10 @@
 > - 🏠 Internal
 > - 💅 Polish
 
+## Unreleased
+
+* 🚀 Add `polyfill/es6` variant
+
 ## v0.2.1 (2018-12-31)
 
 * 🐛 Do not copy `ArrayBuffer` when transferring chunk to readable byte stream ([#3](https://github.com/MattiasBuelens/web-streams-polyfill/issues/3), [#4](https://github.com/MattiasBuelens/web-streams-polyfill/pull/4))

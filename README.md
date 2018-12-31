@@ -1,4 +1,5 @@
 # web-streams-polyfill
+
 Web Streams, based on the WHATWG spec reference implementation.  
 [![Join the chat at https://gitter.im/web-streams-polyfill/Lobby](https://img.shields.io/badge/GITTER-join%20chat-green.svg)](https://gitter.im/web-streams-polyfill/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
@@ -11,11 +12,13 @@ Web Streams, based on the WHATWG spec reference implementation.
 This project comes in three variants:
 * `@mattiasbuelens/web-streams-polyfill`: a polyfill that replaces the native stream implementations.
   Recommended for use in web apps through a `<script>` tag.
+* `@mattiasbuelens/web-streams-polyfill/es6`: a polyfill targeting ES2015+ environments.
+  Recommended for use in web apps targeting modern browsers through a `<script>` tag.
 * `@mattiasbuelens/web-streams-polyfill/ponyfill`: a [ponyfill] that provides
   the stream implementations without replacing any globals.
   Recommended for use in Node applications or web libraries.
 * `@mattiasbuelens/web-streams-polyfill/ponyfill/es6`: a ponyfill targeting ES2015+ environments.
-  Recommended for use in modern Node applications, or in web apps targeting modern browsers.
+  Recommended for use in modern Node applications, or in web libraries targeting modern browsers.
 
 Each variant also includes the [type definitions for WHATWG streams from DefinitelyTyped][types-streams].  
 
@@ -44,7 +47,7 @@ If you need to support older browsers or Node versions that do not have a native
 (check the [support table][promise-support]), you must first include a `Promise` polyfill
 (e.g. [promise-polyfill][promise-polyfill]).
 
-The `ponyfill/es6` variant works in any ES2015-compatible environment.
+The `polyfill/es6` and `ponyfill/es6` variants work in any ES2015-compatible environment.
 
 ### Contributors
 
