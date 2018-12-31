@@ -12,7 +12,7 @@ Web Streams, based on the WHATWG spec reference implementation.
 
 ## Usage
 
-This project comes in three variants:
+This library comes in four variants:
 * `@mattiasbuelens/web-streams-polyfill`: a polyfill that replaces the native stream implementations.
   Recommended for use in web apps through a `<script>` tag.
 * `@mattiasbuelens/web-streams-polyfill/es6`: a polyfill targeting ES2015+ environments.
@@ -32,7 +32,7 @@ Usage as a polyfill:
 var readable = new ReadableStream();
 </script>
 ```
-Usage as a Node library:
+Usage as a Node module:
 ```js
 var streams = require("@mattiasbuelens/web-streams-polyfill/ponyfill");
 var readable = new streams.ReadableStream();
