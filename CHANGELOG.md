@@ -9,6 +9,11 @@
 > - 🏠 Internal
 > - 💅 Polish
 
+## v0.2.1 (2018-12-31)
+
+* 🐛 Do not copy `ArrayBuffer` when transferring chunk to readable byte stream ([#3](https://github.com/MattiasBuelens/web-streams-polyfill/issues/3), [#4](https://github.com/MattiasBuelens/web-streams-polyfill/pull/4))
+* 👓 Align with [spec version `1116de06e9`](https://github.com/whatwg/streams/tree/1116de06e94bf4406c60b1e766111dfd8bc7bfcd/)
+
 ## v0.2.0 (2018-11-15)
 
 * 🐛 Avoid long promise chains in `ReadableStream.pipeTo()` ([whatwg/streams#968](https://github.com/whatwg/streams/pull/968))
