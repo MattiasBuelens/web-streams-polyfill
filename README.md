@@ -1,7 +1,10 @@
 # web-streams-polyfill
 
 Web Streams, based on the WHATWG spec reference implementation.  
-[![Join the chat at https://gitter.im/web-streams-polyfill/Lobby](https://img.shields.io/badge/GITTER-join%20chat-green.svg)](https://gitter.im/web-streams-polyfill/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
+[![npm version](https://img.shields.io/npm/v/@mattiasbuelens/web-streams-polyfill.svg)](https://www.npmjs.com/package/@mattiasbuelens/web-streams-polyfill)
+[![license](https://img.shields.io/npm/l/@mattiasbuelens/web-streams-polyfill.svg)](https://github.com/MattiasBuelens/web-streams-polyfill/blob/master/LICENSE)
+[![Join the chat at https://gitter.im/web-streams-polyfill/Lobby](https://badges.gitter.im/web-streams-polyfill/Lobby.svg)](https://gitter.im/web-streams-polyfill/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 ## Links
  - [Official spec](https://streams.spec.whatwg.org/)
