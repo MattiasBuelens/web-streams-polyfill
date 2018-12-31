@@ -31,8 +31,14 @@ async function main() {
   const entryPath = path.resolve(__dirname, 'dist/polyfill.es6.min.js');
   const testsPath = path.resolve(__dirname, 'spec/reference-implementation/web-platform-tests/streams');
 
-  const filterGlobs = process.argv.length >= 3 ? process.argv.slice(2) : ['**/*.html'];
-  const filterMatcher = micromatch.matcher(filterGlobs);
+  const includeGlobs = process.argv.length >= 3 ? process.argv.slice(2) : ['**/*.html'];
+  const excludeGlobs = [
+    // We cannot polyfill TransferArrayBuffer yet, so disable tests for detached array buffers
+    // See https://github.com/MattiasBuelens/web-streams-polyfill/issues/3
+    'readable-byte-streams/detached-buffers.*.html'
+  ];
+  const includeMatcher = micromatch.matcher(includeGlobs);
+  const excludeMatcher = micromatch.matcher(excludeGlobs);
   const workerTestPattern = /\.(?:dedicated|shared|service)worker(?:\.https)?\.html$/;
 
   const bundledJS = await readFileAsync(entryPath, { encoding: 'utf8' });
@@ -45,7 +51,8 @@ async function main() {
     },
     filter(testPath) {
       return !workerTestPattern.test(testPath) && // ignore the worker versions
-          filterMatcher(testPath);
+          includeMatcher(testPath) &&
+          !excludeMatcher(testPath);
     }
   });
 
