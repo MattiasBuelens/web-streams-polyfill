@@ -2,7 +2,7 @@
 
 Web Streams, based on the WHATWG spec reference implementation.  
 
-[![build status](https://api.travis-ci.org/MattiasBuelens/web-streams-polyfill.svg?branch=master)](https://travis-ci.org/MattiasBuelens/web-streams-polyfill)
+[![build status](https://api.travis-ci.com/MattiasBuelens/web-streams-polyfill.svg?branch=master)](https://travis-ci.com/MattiasBuelens/web-streams-polyfill)
 [![npm version](https://img.shields.io/npm/v/@mattiasbuelens/web-streams-polyfill.svg)](https://www.npmjs.com/package/@mattiasbuelens/web-streams-polyfill)
 [![license](https://img.shields.io/npm/l/@mattiasbuelens/web-streams-polyfill.svg)](https://github.com/MattiasBuelens/web-streams-polyfill/blob/master/LICENSE)
 [![Join the chat at https://gitter.im/web-streams-polyfill/Lobby](https://badges.gitter.im/web-streams-polyfill/Lobby.svg)](https://gitter.im/web-streams-polyfill/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
