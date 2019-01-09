@@ -1,6 +1,6 @@
 /* global AbortSignal:false */
 
-import assert from 'better-assert';
+import assert from '../../../src/stub/better-assert.js';
 import { ArrayBufferCopy, CreateAlgorithmFromUnderlyingMethod, IsFiniteNonNegativeNumber, InvokeOrNoop,
         IsDetachedBuffer, TransferArrayBuffer, ValidateAndNormalizeHighWaterMark, IsNonNegativeNumber,
         MakeSizeAlgorithmFromSizeFunction, createArrayFromList, typeIsObject, WaitForAllPromise } from './helpers.js';
@@ -9,6 +9,8 @@ import { DequeueValue, EnqueueValueWithSize, ResetQueue } from './queue-with-siz
 import { AcquireWritableStreamDefaultWriter, IsWritableStream, IsWritableStreamLocked,
         WritableStreamAbort, WritableStreamDefaultWriterCloseWithErrorPropagation,
         WritableStreamDefaultWriterRelease, WritableStreamDefaultWriterWrite, WritableStreamCloseQueuedOrInFlight } from './writable-stream.js';
+import NumberIsInteger from '../../../src/stub/number-isinteger.js';
+import Symbol from '../../../src/stub/symbol.js';
 
 const CancelSteps = Symbol('[[CancelSteps]]');
 const PullSteps = Symbol('[[PullSteps]]');
@@ -202,7 +204,7 @@ function CreateReadableByteStream(startAlgorithm, pullAlgorithm, cancelAlgorithm
                                   autoAllocateChunkSize = undefined) {
   assert(IsNonNegativeNumber(highWaterMark) === true);
   if (autoAllocateChunkSize !== undefined) {
-    assert(Number.isInteger(autoAllocateChunkSize) === true);
+    assert(NumberIsInteger(autoAllocateChunkSize) === true);
     assert(autoAllocateChunkSize > 0);
   }
 
@@ -1960,7 +1962,7 @@ function SetUpReadableByteStreamController(stream, controller, startAlgorithm, p
                                            highWaterMark, autoAllocateChunkSize) {
   assert(stream._readableStreamController === undefined);
   if (autoAllocateChunkSize !== undefined) {
-    assert(Number.isInteger(autoAllocateChunkSize) === true);
+    assert(NumberIsInteger(autoAllocateChunkSize) === true);
     assert(autoAllocateChunkSize > 0);
   }
 
@@ -2021,7 +2023,7 @@ function SetUpReadableByteStreamControllerFromUnderlyingSource(stream, underlyin
   let autoAllocateChunkSize = underlyingByteSource.autoAllocateChunkSize;
   if (autoAllocateChunkSize !== undefined) {
     autoAllocateChunkSize = Number(autoAllocateChunkSize);
-    if (Number.isInteger(autoAllocateChunkSize) === false || autoAllocateChunkSize <= 0) {
+    if (NumberIsInteger(autoAllocateChunkSize) === false || autoAllocateChunkSize <= 0) {
       throw new RangeError('autoAllocateChunkSize must be a positive integer');
     }
   }

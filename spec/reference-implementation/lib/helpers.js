@@ -1,6 +1,5 @@
-import assert from 'better-assert';
-
-const isFakeDetached = Symbol('is "detached" for our purposes');
+import assert from '../../../src/stub/better-assert.js';
+import NumberIsNaN from '../../../src/stub/number-isnan.js';
 
 function IsPropertyKey(argument) {
   return typeof argument === 'string' || typeof argument === 'symbol';
@@ -40,7 +39,7 @@ export const IsNonNegativeNumber = v => {
     return false;
   }
 
-  if (Number.isNaN(v)) {
+  if (NumberIsNaN(v)) {
     return false;
   }
 
@@ -113,29 +112,17 @@ export function PromiseCall(F, V, args) {
 
 // Not implemented correctly
 export const TransferArrayBuffer = O => {
-  assert(!IsDetachedBuffer(O));
-  const transferredIshVersion = O.slice();
-
-  // This is specifically to fool tests that test "is transferred" by taking a non-zero-length
-  // ArrayBuffer and checking if its byteLength starts returning 0.
-  Object.defineProperty(O, 'byteLength', {
-    get() {
-      return 0;
-    }
-  });
-  O[isFakeDetached] = true;
-
-  return transferredIshVersion;
+  return O;
 };
 
 // Not implemented correctly
-export const IsDetachedBuffer = O => {
-  return isFakeDetached in O;
+export const IsDetachedBuffer = O => { // eslint-disable-line no-unused-vars
+  return false;
 };
 
 export const ValidateAndNormalizeHighWaterMark = highWaterMark => {
   highWaterMark = Number(highWaterMark);
-  if (Number.isNaN(highWaterMark) || highWaterMark < 0) {
+  if (NumberIsNaN(highWaterMark) || highWaterMark < 0) {
     throw new RangeError('highWaterMark property of a queuing strategy must be non-negative and non-NaN');
   }
 

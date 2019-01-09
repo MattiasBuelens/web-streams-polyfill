@@ -1,4 +1,4 @@
-import assert from 'better-assert';
+import assert from '../../../src/stub/better-assert.js';
 import { IsFiniteNonNegativeNumber } from './helpers.js';
 
 export const DequeueValue = container => {
