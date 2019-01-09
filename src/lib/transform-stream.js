@@ -1,18 +1,28 @@
 import assert from '../stub/better-assert.js';
+import debug from '../stub/debug.js';
+import {
+  CreateAlgorithmFromUnderlyingMethod,
+  InvokeOrNoop,
+  IsNonNegativeNumber,
+  MakeSizeAlgorithmFromSizeFunction,
+  PromiseCall,
+  typeIsObject,
+  ValidateAndNormalizeHighWaterMark
+} from './helpers.js';
+import {
+  CreateReadableStream,
+  ReadableStreamDefaultControllerCanCloseOrEnqueue,
+  ReadableStreamDefaultControllerClose,
+  ReadableStreamDefaultControllerEnqueue,
+  ReadableStreamDefaultControllerError,
+  ReadableStreamDefaultControllerGetDesiredSize,
+  ReadableStreamDefaultControllerHasBackpressure
+} from './readable-stream.js';
+import { CreateWritableStream, WritableStreamDefaultControllerErrorIfNeeded } from './writable-stream.js';
 
 // Calls to verbose() are purely for debugging the reference implementation and tests. They are not part of the standard
 // and do not appear in the standard text.
-import debug from '../stub/debug.js';
 const verbose = debug('streams:transform-stream:verbose');
-
-import { InvokeOrNoop, CreateAlgorithmFromUnderlyingMethod, PromiseCall, typeIsObject,
-        ValidateAndNormalizeHighWaterMark, IsNonNegativeNumber,
-        MakeSizeAlgorithmFromSizeFunction } from './helpers.js';
-import { CreateReadableStream, ReadableStreamDefaultControllerClose, ReadableStreamDefaultControllerEnqueue,
-        ReadableStreamDefaultControllerError, ReadableStreamDefaultControllerGetDesiredSize,
-        ReadableStreamDefaultControllerHasBackpressure,
-        ReadableStreamDefaultControllerCanCloseOrEnqueue } from './readable-stream.js';
-import { CreateWritableStream, WritableStreamDefaultControllerErrorIfNeeded } from './writable-stream.js';
 
 // Class TransformStream
 

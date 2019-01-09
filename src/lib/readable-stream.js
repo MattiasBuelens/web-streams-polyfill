@@ -1,14 +1,32 @@
 /* global AbortSignal:false */
 
 import assert from '../stub/better-assert.js';
-import { ArrayBufferCopy, CreateAlgorithmFromUnderlyingMethod, IsFiniteNonNegativeNumber, InvokeOrNoop,
-        IsDetachedBuffer, TransferArrayBuffer, ValidateAndNormalizeHighWaterMark, IsNonNegativeNumber,
-        MakeSizeAlgorithmFromSizeFunction, createArrayFromList, typeIsObject, WaitForAllPromise } from './helpers.js';
+import {
+  ArrayBufferCopy,
+  CreateAlgorithmFromUnderlyingMethod,
+  createArrayFromList,
+  InvokeOrNoop,
+  IsDetachedBuffer,
+  IsFiniteNonNegativeNumber,
+  IsNonNegativeNumber,
+  MakeSizeAlgorithmFromSizeFunction,
+  TransferArrayBuffer,
+  typeIsObject,
+  ValidateAndNormalizeHighWaterMark,
+  WaitForAllPromise
+} from './helpers.js';
 import { rethrowAssertionErrorRejection } from './utils.js';
 import { DequeueValue, EnqueueValueWithSize, ResetQueue } from './queue-with-sizes.js';
-import { AcquireWritableStreamDefaultWriter, IsWritableStream, IsWritableStreamLocked,
-        WritableStreamAbort, WritableStreamDefaultWriterCloseWithErrorPropagation,
-        WritableStreamDefaultWriterRelease, WritableStreamDefaultWriterWrite, WritableStreamCloseQueuedOrInFlight } from './writable-stream.js';
+import {
+  AcquireWritableStreamDefaultWriter,
+  IsWritableStream,
+  IsWritableStreamLocked,
+  WritableStreamAbort,
+  WritableStreamCloseQueuedOrInFlight,
+  WritableStreamDefaultWriterCloseWithErrorPropagation,
+  WritableStreamDefaultWriterRelease,
+  WritableStreamDefaultWriterWrite
+} from './writable-stream.js';
 import NumberIsInteger from '../stub/number-isinteger.js';
 import Symbol from '../stub/symbol.js';
 
