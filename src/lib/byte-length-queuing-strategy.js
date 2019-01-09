@@ -1,7 +1,6 @@
-'use strict';
-const { createDataProperty } = require('./helpers.js');
+import { createDataProperty } from './helpers.js';
 
-module.exports = class ByteLengthQueuingStrategy {
+export default class ByteLengthQueuingStrategy {
   constructor({ highWaterMark }) {
     createDataProperty(this, 'highWaterMark', highWaterMark);
   }
@@ -9,4 +8,4 @@ module.exports = class ByteLengthQueuingStrategy {
   size(chunk) {
     return chunk.byteLength;
   }
-};
+}

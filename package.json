@@ -8,7 +8,7 @@
   "types": "types/polyfill.d.ts",
   "scripts": {
     "test": "node --expose_gc run-web-platform-tests.js",
-    "lint": "eslint \"*.js\" \"build/**/*.js\" \"src/**/*.js\"",
+    "lint": "eslint \"*.js\" \"src/**/*.js\"",
     "build": "rollup -c",
     "prebuild": "git submodule update --init --recursive",
     "prepare": "npm run build"
@@ -48,18 +48,12 @@
     "@babel/plugin-transform-for-of": "^7.2.0",
     "@babel/plugin-transform-object-assign": "^7.2.0",
     "@babel/preset-env": "^7.2.0",
-    "better-assert": "^1.0.2",
-    "debug": "^4.1.0",
     "eslint": "^5.11.1",
     "micromatch": "^3.1.10",
     "rollup": "^1.0.0",
-    "rollup-plugin-alias": "^1.5.1",
     "rollup-plugin-babel": "^4.2.0",
-    "rollup-plugin-commonjs": "^9.2.0",
-    "rollup-plugin-inject": "^2.2.0",
     "rollup-plugin-strip": "^1.2.0",
     "rollup-plugin-terser": "^3.0.0",
-    "rollup-pluginutils": "^2.3.3",
     "typescript": "^3.2.2",
     "wpt-runner": "^2.7.0"
   }

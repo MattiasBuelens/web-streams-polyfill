@@ -1,31 +1,29 @@
-'use strict';
-const assert = require('better-assert');
-
-const isFakeDetached = Symbol('is "detached" for our purposes');
+import assert from '../stub/better-assert.js';
+import NumberIsNaN from '../stub/number-isnan.js';
 
 function IsPropertyKey(argument) {
   return typeof argument === 'string' || typeof argument === 'symbol';
 }
 
-exports.typeIsObject = x => (typeof x === 'object' && x !== null) || typeof x === 'function';
+export const typeIsObject = x => (typeof x === 'object' && x !== null) || typeof x === 'function';
 
-exports.createDataProperty = (o, p, v) => {
-  assert(exports.typeIsObject(o));
+export const createDataProperty = (o, p, v) => {
+  assert(typeIsObject(o));
   Object.defineProperty(o, p, { value: v, writable: true, enumerable: true, configurable: true });
 };
 
-exports.createArrayFromList = elements => {
+export const createArrayFromList = elements => {
   // We use arrays to represent lists, so this is basically a no-op.
   // Do a slice though just in case we happen to depend on the unique-ness.
   return elements.slice();
 };
 
-exports.ArrayBufferCopy = (dest, destOffset, src, srcOffset, n) => {
+export const ArrayBufferCopy = (dest, destOffset, src, srcOffset, n) => {
   new Uint8Array(dest).set(new Uint8Array(src, srcOffset, n), destOffset);
 };
 
-exports.IsFiniteNonNegativeNumber = v => {
-  if (exports.IsNonNegativeNumber(v) === false) {
+export const IsFiniteNonNegativeNumber = v => {
+  if (IsNonNegativeNumber(v) === false) {
     return false;
   }
 
@@ -36,12 +34,12 @@ exports.IsFiniteNonNegativeNumber = v => {
   return true;
 };
 
-exports.IsNonNegativeNumber = v => {
+export const IsNonNegativeNumber = v => {
   if (typeof v !== 'number') {
     return false;
   }
 
-  if (Number.isNaN(v)) {
+  if (NumberIsNaN(v)) {
     return false;
   }
 
@@ -52,7 +50,7 @@ exports.IsNonNegativeNumber = v => {
   return true;
 };
 
-function Call(F, V, args) {
+export function Call(F, V, args) {
   if (typeof F !== 'function') {
     throw new TypeError('Argument is not a function');
   }
@@ -60,9 +58,7 @@ function Call(F, V, args) {
   return Function.prototype.apply.call(F, V, args);
 }
 
-exports.Call = Call;
-
-exports.CreateAlgorithmFromUnderlyingMethod = (underlyingObject, methodName, algoArgCount, extraArgs) => {
+export const CreateAlgorithmFromUnderlyingMethod = (underlyingObject, methodName, algoArgCount, extraArgs) => {
   assert(underlyingObject !== undefined);
   assert(IsPropertyKey(methodName));
   assert(algoArgCount === 0 || algoArgCount === 1);
@@ -90,7 +86,7 @@ exports.CreateAlgorithmFromUnderlyingMethod = (underlyingObject, methodName, alg
   return () => Promise.resolve();
 };
 
-exports.InvokeOrNoop = (O, P, args) => {
+export const InvokeOrNoop = (O, P, args) => {
   assert(O !== undefined);
   assert(IsPropertyKey(P));
   assert(Array.isArray(args));
@@ -103,7 +99,7 @@ exports.InvokeOrNoop = (O, P, args) => {
   return Call(method, O, args);
 };
 
-function PromiseCall(F, V, args) {
+export function PromiseCall(F, V, args) {
   assert(typeof F === 'function');
   assert(V !== undefined);
   assert(Array.isArray(args));
@@ -114,40 +110,26 @@ function PromiseCall(F, V, args) {
   }
 }
 
-exports.PromiseCall = PromiseCall;
-
 // Not implemented correctly
-exports.TransferArrayBuffer = O => {
-  assert(!exports.IsDetachedBuffer(O));
-  const transferredIshVersion = O.slice();
-
-  // This is specifically to fool tests that test "is transferred" by taking a non-zero-length
-  // ArrayBuffer and checking if its byteLength starts returning 0.
-  Object.defineProperty(O, 'byteLength', {
-    get() {
-      return 0;
-    }
-  });
-  O[isFakeDetached] = true;
-
-  return transferredIshVersion;
+export const TransferArrayBuffer = O => {
+  return O;
 };
 
 // Not implemented correctly
-exports.IsDetachedBuffer = O => {
-  return isFakeDetached in O;
+export const IsDetachedBuffer = O => { // eslint-disable-line no-unused-vars
+  return false;
 };
 
-exports.ValidateAndNormalizeHighWaterMark = highWaterMark => {
+export const ValidateAndNormalizeHighWaterMark = highWaterMark => {
   highWaterMark = Number(highWaterMark);
-  if (Number.isNaN(highWaterMark) || highWaterMark < 0) {
+  if (NumberIsNaN(highWaterMark) || highWaterMark < 0) {
     throw new RangeError('highWaterMark property of a queuing strategy must be non-negative and non-NaN');
   }
 
   return highWaterMark;
 };
 
-exports.MakeSizeAlgorithmFromSizeFunction = size => {
+export const MakeSizeAlgorithmFromSizeFunction = size => {
   if (size === undefined) {
     return () => 1;
   }
@@ -157,13 +139,13 @@ exports.MakeSizeAlgorithmFromSizeFunction = size => {
   return chunk => size(chunk);
 };
 
-exports.PerformPromiseThen = (promise, onFulfilled, onRejected) => {
+export const PerformPromiseThen = (promise, onFulfilled, onRejected) => {
   // There doesn't appear to be any way to correctly emulate the behaviour from JavaScript, so this is just an
   // approximation.
   return Promise.prototype.then.call(promise, onFulfilled, onRejected);
 };
 
-exports.WaitForAll = (promises, successSteps, failureSteps) => {
+export const WaitForAll = (promises, successSteps, failureSteps) => {
   let rejected = false;
   const rejectionHandler = arg => {
     if (rejected === false) {
@@ -184,12 +166,12 @@ exports.WaitForAll = (promises, successSteps, failureSteps) => {
         successSteps(result);
       }
     };
-    exports.PerformPromiseThen(promise, fulfillmentHandler, rejectionHandler);
+    PerformPromiseThen(promise, fulfillmentHandler, rejectionHandler);
     ++index;
   }
 };
 
-exports.WaitForAllPromise = (promises, successSteps, failureSteps = undefined) => {
+export const WaitForAllPromise = (promises, successSteps, failureSteps = undefined) => {
   let resolvePromise;
   let rejectPromise;
   const promise = new Promise((resolve, reject) => {
@@ -217,6 +199,6 @@ exports.WaitForAllPromise = (promises, successSteps, failureSteps = undefined) =
       rejectPromise(e);
     }
   };
-  exports.WaitForAll(promises, successStepsWrapper, failureStepsWrapper);
+  WaitForAll(promises, successStepsWrapper, failureStepsWrapper);
   return promise;
 };

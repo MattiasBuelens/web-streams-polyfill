@@ -1,12 +1,6 @@
-const path = require('path');
-
-const rollupCommonJS = require('rollup-plugin-commonjs');
-const rollupAlias = require('rollup-plugin-alias');
 const rollupBabel = require('rollup-plugin-babel');
-const rollupInject = require('rollup-plugin-inject');
 const rollupStrip = require('rollup-plugin-strip');
 const { terser: rollupTerser } = require('rollup-plugin-terser');
-const replaceImports = require('./build/replace-imports');
 
 function buildConfig(entry, { esm = false, minify = false, es6 = false } = {}) {
   const outname = `${entry}${es6 ? '.es6' : ''}`;
@@ -28,33 +22,9 @@ function buildConfig(entry, { esm = false, minify = false, es6 = false } = {}) {
       } : undefined
     ].filter(Boolean),
     plugins: [
-      replaceImports({
-        include: 'spec/reference-implementation/lib/*.js',
-        imports: [{
-          from: path.resolve(__dirname, './spec/reference-implementation/lib/helpers.js'),
-          to: path.resolve(__dirname, './src/stub/helpers.js')
-        }]
-      }),
-      rollupCommonJS({
-        include: ['spec/reference-implementation/lib/*.js'],
-        sourceMap: true
-      }),
-      rollupInject({
-        include: 'spec/reference-implementation/lib/*.js',
-        modules: {
-          Symbol: path.resolve(__dirname, `./src/stub/symbol.js`),
-          'Number.isNaN': path.resolve(__dirname, `./src/stub/number-isnan.js`),
-          'Number.isInteger': path.resolve(__dirname, `./src/stub/number-isinteger.js`)
-        }
-      }),
       rollupStrip({
         functions: ['assert', 'debug', 'verbose'],
         sourceMap: true
-      }),
-      rollupAlias({
-        assert: path.resolve(__dirname, `./src/stub/assert.js`),
-        'better-assert': path.resolve(__dirname, `./src/stub/better-assert.js`),
-        debug: path.resolve(__dirname, `./src/stub/debug.js`)
       }),
       !es6 ? rollupBabel({
         sourceMap: true

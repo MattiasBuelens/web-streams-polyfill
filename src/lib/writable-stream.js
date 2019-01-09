@@ -1,14 +1,20 @@
-'use strict';
-const assert = require('better-assert');
+import assert from '../stub/better-assert.js';
+import debug from '../stub/debug.js';
+import {
+  CreateAlgorithmFromUnderlyingMethod,
+  InvokeOrNoop,
+  IsNonNegativeNumber,
+  MakeSizeAlgorithmFromSizeFunction,
+  typeIsObject,
+  ValidateAndNormalizeHighWaterMark
+} from './helpers.js';
+import { rethrowAssertionErrorRejection } from './utils.js';
+import { DequeueValue, EnqueueValueWithSize, PeekQueueValue, ResetQueue } from './queue-with-sizes.js';
+import Symbol from '../stub/symbol.js';
 
 // Calls to verbose() are purely for debugging the reference implementation and tests. They are not part of the standard
 // and do not appear in the standard text.
-const verbose = require('debug')('streams:writable-stream:verbose');
-
-const { CreateAlgorithmFromUnderlyingMethod, InvokeOrNoop, ValidateAndNormalizeHighWaterMark, IsNonNegativeNumber,
-        MakeSizeAlgorithmFromSizeFunction, typeIsObject } = require('./helpers.js');
-const { rethrowAssertionErrorRejection } = require('./utils.js');
-const { DequeueValue, EnqueueValueWithSize, PeekQueueValue, ResetQueue } = require('./queue-with-sizes.js');
+const verbose = debug('streams:writable-stream:verbose');
 
 const AbortSteps = Symbol('[[AbortSteps]]');
 const ErrorSteps = Symbol('[[ErrorSteps]]');
@@ -64,7 +70,7 @@ class WritableStream {
   }
 }
 
-module.exports = {
+export {
   AcquireWritableStreamDefaultWriter,
   CreateWritableStream,
   IsWritableStream,
@@ -86,7 +92,7 @@ function AcquireWritableStreamDefaultWriter(stream) {
 
 // Throws if and only if startAlgorithm throws.
 function CreateWritableStream(startAlgorithm, writeAlgorithm, closeAlgorithm, abortAlgorithm, highWaterMark = 1,
-                              sizeAlgorithm = () => 1) {
+  sizeAlgorithm = () => 1) {
   assert(IsNonNegativeNumber(highWaterMark) === true);
 
   const stream = Object.create(WritableStream.prototype);
@@ -95,7 +101,7 @@ function CreateWritableStream(startAlgorithm, writeAlgorithm, closeAlgorithm, ab
   const controller = Object.create(WritableStreamDefaultController.prototype);
 
   SetUpWritableStreamDefaultController(stream, controller, startAlgorithm, writeAlgorithm, closeAlgorithm,
-                                       abortAlgorithm, highWaterMark, sizeAlgorithm);
+    abortAlgorithm, highWaterMark, sizeAlgorithm);
   return stream;
 }
 
@@ -272,14 +278,14 @@ function WritableStreamFinishErroring(stream) {
 
   const promise = stream._writableStreamController[AbortSteps](abortRequest._reason);
   promise.then(
-      () => {
-        abortRequest._resolve();
-        WritableStreamRejectCloseAndClosedPromiseIfNeeded(stream);
-      },
-      reason => {
-        abortRequest._reject(reason);
-        WritableStreamRejectCloseAndClosedPromiseIfNeeded(stream);
-      });
+    () => {
+      abortRequest._resolve();
+      WritableStreamRejectCloseAndClosedPromiseIfNeeded(stream);
+    },
+    reason => {
+      abortRequest._reject(reason);
+      WritableStreamRejectCloseAndClosedPromiseIfNeeded(stream);
+    });
 }
 
 function WritableStreamFinishInFlightWrite(stream) {
@@ -742,7 +748,7 @@ function IsWritableStreamDefaultController(x) {
 }
 
 function SetUpWritableStreamDefaultController(stream, controller, startAlgorithm, writeAlgorithm, closeAlgorithm,
-                                              abortAlgorithm, highWaterMark, sizeAlgorithm) {
+  abortAlgorithm, highWaterMark, sizeAlgorithm) {
   assert(IsWritableStream(stream) === true);
   assert(stream._writableStreamController === undefined);
 
@@ -769,18 +775,18 @@ function SetUpWritableStreamDefaultController(stream, controller, startAlgorithm
   const startResult = startAlgorithm();
   const startPromise = Promise.resolve(startResult);
   startPromise.then(
-      () => {
-        assert(stream._state === 'writable' || stream._state === 'erroring');
-        controller._started = true;
-        WritableStreamDefaultControllerAdvanceQueueIfNeeded(controller);
-      },
-      r => {
-        assert(stream._state === 'writable' || stream._state === 'erroring');
-        controller._started = true;
-        WritableStreamDealWithRejection(stream, r);
-      }
+    () => {
+      assert(stream._state === 'writable' || stream._state === 'erroring');
+      controller._started = true;
+      WritableStreamDefaultControllerAdvanceQueueIfNeeded(controller);
+    },
+    r => {
+      assert(stream._state === 'writable' || stream._state === 'erroring');
+      controller._started = true;
+      WritableStreamDealWithRejection(stream, r);
+    }
   )
-  .catch(rethrowAssertionErrorRejection);
+    .catch(rethrowAssertionErrorRejection);
 }
 
 function SetUpWritableStreamDefaultControllerFromUnderlyingSink(stream, underlyingSink, highWaterMark, sizeAlgorithm) {
@@ -797,7 +803,7 @@ function SetUpWritableStreamDefaultControllerFromUnderlyingSink(stream, underlyi
   const abortAlgorithm = CreateAlgorithmFromUnderlyingMethod(underlyingSink, 'abort', 1, []);
 
   SetUpWritableStreamDefaultController(stream, controller, startAlgorithm, writeAlgorithm, closeAlgorithm,
-                                       abortAlgorithm, highWaterMark, sizeAlgorithm);
+    abortAlgorithm, highWaterMark, sizeAlgorithm);
 }
 
 // ClearAlgorithms may be called twice. Erroring the same stream in multiple ways will often result in redundant calls.
@@ -904,7 +910,7 @@ function WritableStreamDefaultControllerProcessClose(controller) {
       WritableStreamFinishInFlightCloseWithError(stream, reason);
     }
   )
-  .catch(rethrowAssertionErrorRejection);
+    .catch(rethrowAssertionErrorRejection);
 }
 
 function WritableStreamDefaultControllerProcessWrite(controller, chunk) {
@@ -936,7 +942,7 @@ function WritableStreamDefaultControllerProcessWrite(controller, chunk) {
       WritableStreamFinishInFlightWriteWithError(stream, reason);
     }
   )
-  .catch(rethrowAssertionErrorRejection);
+    .catch(rethrowAssertionErrorRejection);
 }
 
 function WritableStreamDefaultControllerGetBackpressure(controller) {
