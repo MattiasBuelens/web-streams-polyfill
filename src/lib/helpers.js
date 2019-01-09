@@ -1,5 +1,5 @@
-import assert from '../../../src/stub/better-assert.js';
-import NumberIsNaN from '../../../src/stub/number-isnan.js';
+import assert from '../stub/better-assert.js';
+import NumberIsNaN from '../stub/number-isnan.js';
 
 function IsPropertyKey(argument) {
   return typeof argument === 'string' || typeof argument === 'symbol';

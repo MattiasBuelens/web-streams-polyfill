@@ -1,8 +1,8 @@
-import assert from '../../../src/stub/better-assert.js';
+import assert from '../stub/better-assert.js';
 
 // Calls to verbose() are purely for debugging the reference implementation and tests. They are not part of the standard
 // and do not appear in the standard text.
-import debug from '../../../src/stub/debug.js';
+import debug from '../stub/debug.js';
 const verbose = debug('streams:transform-stream:verbose');
 
 import { InvokeOrNoop, CreateAlgorithmFromUnderlyingMethod, PromiseCall, typeIsObject,

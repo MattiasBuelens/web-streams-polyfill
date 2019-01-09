@@ -1,6 +1,6 @@
 /* global AbortSignal:false */
 
-import assert from '../../../src/stub/better-assert.js';
+import assert from '../stub/better-assert.js';
 import { ArrayBufferCopy, CreateAlgorithmFromUnderlyingMethod, IsFiniteNonNegativeNumber, InvokeOrNoop,
         IsDetachedBuffer, TransferArrayBuffer, ValidateAndNormalizeHighWaterMark, IsNonNegativeNumber,
         MakeSizeAlgorithmFromSizeFunction, createArrayFromList, typeIsObject, WaitForAllPromise } from './helpers.js';
@@ -9,8 +9,8 @@ import { DequeueValue, EnqueueValueWithSize, ResetQueue } from './queue-with-siz
 import { AcquireWritableStreamDefaultWriter, IsWritableStream, IsWritableStreamLocked,
         WritableStreamAbort, WritableStreamDefaultWriterCloseWithErrorPropagation,
         WritableStreamDefaultWriterRelease, WritableStreamDefaultWriterWrite, WritableStreamCloseQueuedOrInFlight } from './writable-stream.js';
-import NumberIsInteger from '../../../src/stub/number-isinteger.js';
-import Symbol from '../../../src/stub/symbol.js';
+import NumberIsInteger from '../stub/number-isinteger.js';
+import Symbol from '../stub/symbol.js';
 
 const CancelSteps = Symbol('[[CancelSteps]]');
 const PullSteps = Symbol('[[PullSteps]]');
