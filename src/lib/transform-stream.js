@@ -63,7 +63,7 @@ class TransformStream {
     });
 
     InitializeTransformStream(this, startPromise, writableHighWaterMark, writableSizeAlgorithm, readableHighWaterMark,
-                              readableSizeAlgorithm);
+      readableSizeAlgorithm);
     SetUpTransformStreamDefaultControllerFromTransformer(this, transformer);
 
     const startResult = InvokeOrNoop(transformer, 'start', [this._transformStreamController]);
@@ -90,8 +90,8 @@ class TransformStream {
 // Transform Stream Abstract Operations
 
 function CreateTransformStream(startAlgorithm, transformAlgorithm, flushAlgorithm, writableHighWaterMark = 1,
-                               writableSizeAlgorithm = () => 1, readableHighWaterMark = 0,
-                               readableSizeAlgorithm = () => 1) {
+  writableSizeAlgorithm = () => 1, readableHighWaterMark = 0,
+  readableSizeAlgorithm = () => 1) {
   assert(IsNonNegativeNumber(writableHighWaterMark));
   assert(IsNonNegativeNumber(readableHighWaterMark));
 
@@ -103,7 +103,7 @@ function CreateTransformStream(startAlgorithm, transformAlgorithm, flushAlgorith
   });
 
   InitializeTransformStream(stream, startPromise, writableHighWaterMark, writableSizeAlgorithm, readableHighWaterMark,
-                            readableSizeAlgorithm);
+    readableSizeAlgorithm);
 
   const controller = Object.create(TransformStreamDefaultController.prototype);
 
@@ -115,7 +115,7 @@ function CreateTransformStream(startAlgorithm, transformAlgorithm, flushAlgorith
 }
 
 function InitializeTransformStream(stream, startPromise, writableHighWaterMark, writableSizeAlgorithm,
-                                   readableHighWaterMark, readableSizeAlgorithm) {
+  readableHighWaterMark, readableSizeAlgorithm) {
   function startAlgorithm() {
     return startPromise;
   }
@@ -133,7 +133,7 @@ function InitializeTransformStream(stream, startPromise, writableHighWaterMark, 
   }
 
   stream._writable = CreateWritableStream(startAlgorithm, writeAlgorithm, closeAlgorithm, abortAlgorithm,
-                                          writableHighWaterMark, writableSizeAlgorithm);
+    writableHighWaterMark, writableSizeAlgorithm);
 
   function pullAlgorithm() {
     return TransformStreamDefaultSourcePullAlgorithm(stream);
@@ -145,7 +145,7 @@ function InitializeTransformStream(stream, startPromise, writableHighWaterMark, 
   }
 
   stream._readable = CreateReadableStream(startAlgorithm, pullAlgorithm, cancelAlgorithm, readableHighWaterMark,
-                                          readableSizeAlgorithm);
+    readableSizeAlgorithm);
 
   // The [[backpressure]] slot is set to undefined so that it can be initialised by TransformStreamSetBackpressure.
   stream._backpressure = undefined;
@@ -369,15 +369,15 @@ function TransformStreamDefaultSinkWriteAlgorithm(stream, chunk) {
     const backpressureChangePromise = stream._backpressureChangePromise;
     assert(backpressureChangePromise !== undefined);
     return backpressureChangePromise
-        .then(() => {
-          const writable = stream._writable;
-          const state = writable._state;
-          if (state === 'erroring') {
-            throw writable._storedError;
-          }
-          assert(state === 'writable');
-          return TransformStreamDefaultControllerPerformTransform(controller, chunk);
-        });
+      .then(() => {
+        const writable = stream._writable;
+        const state = writable._state;
+        if (state === 'erroring') {
+          throw writable._storedError;
+        }
+        assert(state === 'writable');
+        return TransformStreamDefaultControllerPerformTransform(controller, chunk);
+      });
   }
 
   return TransformStreamDefaultControllerPerformTransform(controller, chunk);

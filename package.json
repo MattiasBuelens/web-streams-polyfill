@@ -8,7 +8,7 @@
   "types": "types/polyfill.d.ts",
   "scripts": {
     "test": "node --expose_gc run-web-platform-tests.js",
-    "lint": "eslint \"*.js\" \"build/**/*.js\" \"src/**/*.js\"",
+    "lint": "eslint \"*.js\" \"src/**/*.js\"",
     "build": "rollup -c",
     "prebuild": "git submodule update --init --recursive",
     "prepare": "npm run build"

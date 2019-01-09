@@ -146,7 +146,7 @@ class ReadableStream {
     }
     if (IsWritableStream(dest) === false) {
       return Promise.reject(
-          new TypeError('ReadableStream.prototype.pipeTo\'s first argument must be a WritableStream'));
+        new TypeError('ReadableStream.prototype.pipeTo\'s first argument must be a WritableStream'));
     }
 
     preventClose = Boolean(preventClose);
@@ -202,7 +202,7 @@ function AcquireReadableStreamDefaultReader(stream) {
 
 // Throws if and only if startAlgorithm throws.
 function CreateReadableStream(startAlgorithm, pullAlgorithm, cancelAlgorithm, highWaterMark = 1,
-                              sizeAlgorithm = () => 1) {
+  sizeAlgorithm = () => 1) {
   assert(IsNonNegativeNumber(highWaterMark) === true);
 
   const stream = Object.create(ReadableStream.prototype);
@@ -211,7 +211,7 @@ function CreateReadableStream(startAlgorithm, pullAlgorithm, cancelAlgorithm, hi
   const controller = Object.create(ReadableStreamDefaultController.prototype);
 
   SetUpReadableStreamDefaultController(
-      stream, controller, startAlgorithm, pullAlgorithm, cancelAlgorithm, highWaterMark, sizeAlgorithm
+    stream, controller, startAlgorithm, pullAlgorithm, cancelAlgorithm, highWaterMark, sizeAlgorithm
   );
 
   return stream;
@@ -219,7 +219,7 @@ function CreateReadableStream(startAlgorithm, pullAlgorithm, cancelAlgorithm, hi
 
 // Throws if and only if startAlgorithm throws.
 function CreateReadableByteStream(startAlgorithm, pullAlgorithm, cancelAlgorithm, highWaterMark = 0,
-                                  autoAllocateChunkSize = undefined) {
+  autoAllocateChunkSize = undefined) {
   assert(IsNonNegativeNumber(highWaterMark) === true);
   if (autoAllocateChunkSize !== undefined) {
     assert(NumberIsInteger(autoAllocateChunkSize) === true);
@@ -232,7 +232,7 @@ function CreateReadableByteStream(startAlgorithm, pullAlgorithm, cancelAlgorithm
   const controller = Object.create(ReadableByteStreamController.prototype);
 
   SetUpReadableByteStreamController(stream, controller, startAlgorithm, pullAlgorithm, cancelAlgorithm, highWaterMark,
-                                    autoAllocateChunkSize);
+    autoAllocateChunkSize);
 
   return stream;
 }
@@ -437,10 +437,10 @@ function ReadableStreamPipeTo(source, dest, preventClose, preventAbort, preventC
 
       function doTheRest() {
         action().then(
-            () => finalize(originalIsError, originalError),
-            newError => finalize(true, newError)
+          () => finalize(originalIsError, originalError),
+          newError => finalize(true, newError)
         )
-            .catch(rethrowAssertionErrorRejection);
+          .catch(rethrowAssertionErrorRejection);
       }
     }
 
@@ -948,12 +948,12 @@ function ReadableStreamReaderGenericRelease(reader) {
 
   if (reader._ownerReadableStream._state === 'readable') {
     defaultReaderClosedPromiseReject(
-        reader,
-        new TypeError('Reader was released and can no longer be used to monitor the stream\'s closedness'));
+      reader,
+      new TypeError('Reader was released and can no longer be used to monitor the stream\'s closedness'));
   } else {
     defaultReaderClosedPromiseResetToRejected(
-        reader,
-        new TypeError('Reader was released and can no longer be used to monitor the stream\'s closedness'));
+      reader,
+      new TypeError('Reader was released and can no longer be used to monitor the stream\'s closedness'));
   }
   reader._closedPromise.catch(() => {});
 
@@ -1116,7 +1116,7 @@ function ReadableStreamDefaultControllerCallPullIfNeeded(controller) {
       ReadableStreamDefaultControllerError(controller, e);
     }
   )
-  .catch(rethrowAssertionErrorRejection);
+    .catch(rethrowAssertionErrorRejection);
 
   return undefined;
 }
@@ -1278,11 +1278,11 @@ function SetUpReadableStreamDefaultController(
       ReadableStreamDefaultControllerError(controller, r);
     }
   )
-  .catch(rethrowAssertionErrorRejection);
+    .catch(rethrowAssertionErrorRejection);
 }
 
 function SetUpReadableStreamDefaultControllerFromUnderlyingSource(stream, underlyingSource, highWaterMark,
-                                                                  sizeAlgorithm) {
+  sizeAlgorithm) {
   assert(underlyingSource !== undefined);
 
   const controller = Object.create(ReadableStreamDefaultController.prototype);
@@ -1295,7 +1295,7 @@ function SetUpReadableStreamDefaultControllerFromUnderlyingSource(stream, underl
   const cancelAlgorithm = CreateAlgorithmFromUnderlyingMethod(underlyingSource, 'cancel', 1, []);
 
   SetUpReadableStreamDefaultController(stream, controller, startAlgorithm, pullAlgorithm, cancelAlgorithm,
-                                       highWaterMark, sizeAlgorithm);
+    highWaterMark, sizeAlgorithm);
 }
 
 class ReadableStreamBYOBRequest {
@@ -1361,8 +1361,8 @@ class ReadableByteStreamController {
     if (this._byobRequest === undefined && this._pendingPullIntos.length > 0) {
       const firstDescriptor = this._pendingPullIntos[0];
       const view = new Uint8Array(firstDescriptor.buffer,
-                                  firstDescriptor.byteOffset + firstDescriptor.bytesFilled,
-                                  firstDescriptor.byteLength - firstDescriptor.bytesFilled);
+        firstDescriptor.byteOffset + firstDescriptor.bytesFilled,
+        firstDescriptor.byteLength - firstDescriptor.bytesFilled);
 
       const byobRequest = Object.create(ReadableStreamBYOBRequest.prototype);
       SetUpReadableStreamBYOBRequest(byobRequest, this, view);
@@ -1551,7 +1551,7 @@ function ReadableByteStreamControllerCallPullIfNeeded(controller) {
       ReadableByteStreamControllerError(controller, e);
     }
   )
-  .catch(rethrowAssertionErrorRejection);
+    .catch(rethrowAssertionErrorRejection);
 
   return undefined;
 }
@@ -1587,7 +1587,7 @@ function ReadableByteStreamControllerConvertPullIntoDescriptor(pullIntoDescripto
   assert(bytesFilled % elementSize === 0);
 
   return new pullIntoDescriptor.ctor(
-      pullIntoDescriptor.buffer, pullIntoDescriptor.byteOffset, bytesFilled / elementSize);
+    pullIntoDescriptor.buffer, pullIntoDescriptor.byteOffset, bytesFilled / elementSize);
 }
 
 function ReadableByteStreamControllerEnqueueChunkToQueue(controller, buffer, byteOffset, byteLength) {
@@ -1601,7 +1601,7 @@ function ReadableByteStreamControllerFillPullIntoDescriptorFromQueue(controller,
   const currentAlignedBytes = pullIntoDescriptor.bytesFilled - pullIntoDescriptor.bytesFilled % elementSize;
 
   const maxBytesToCopy = Math.min(controller._queueTotalSize,
-                                  pullIntoDescriptor.byteLength - pullIntoDescriptor.bytesFilled);
+    pullIntoDescriptor.byteLength - pullIntoDescriptor.bytesFilled);
   const maxBytesFilled = pullIntoDescriptor.bytesFilled + maxBytesToCopy;
   const maxAlignedBytes = maxBytesFilled - maxBytesFilled % elementSize;
 
@@ -1977,7 +1977,7 @@ function ReadableByteStreamControllerRespondWithNewView(controller, view) {
 }
 
 function SetUpReadableByteStreamController(stream, controller, startAlgorithm, pullAlgorithm, cancelAlgorithm,
-                                           highWaterMark, autoAllocateChunkSize) {
+  highWaterMark, autoAllocateChunkSize) {
   assert(stream._readableStreamController === undefined);
   if (autoAllocateChunkSize !== undefined) {
     assert(NumberIsInteger(autoAllocateChunkSize) === true);
@@ -2011,19 +2011,19 @@ function SetUpReadableByteStreamController(stream, controller, startAlgorithm, p
 
   const startResult = startAlgorithm();
   Promise.resolve(startResult).then(
-      () => {
-        controller._started = true;
+    () => {
+      controller._started = true;
 
-        assert(controller._pulling === false);
-        assert(controller._pullAgain === false);
+      assert(controller._pulling === false);
+      assert(controller._pullAgain === false);
 
-        ReadableByteStreamControllerCallPullIfNeeded(controller);
-      },
-      r => {
-        ReadableByteStreamControllerError(controller, r);
-      }
+      ReadableByteStreamControllerCallPullIfNeeded(controller);
+    },
+    r => {
+      ReadableByteStreamControllerError(controller, r);
+    }
   )
-      .catch(rethrowAssertionErrorRejection);
+    .catch(rethrowAssertionErrorRejection);
 }
 
 function SetUpReadableByteStreamControllerFromUnderlyingSource(stream, underlyingByteSource, highWaterMark) {
@@ -2047,7 +2047,7 @@ function SetUpReadableByteStreamControllerFromUnderlyingSource(stream, underlyin
   }
 
   SetUpReadableByteStreamController(stream, controller, startAlgorithm, pullAlgorithm, cancelAlgorithm, highWaterMark,
-                                    autoAllocateChunkSize);
+    autoAllocateChunkSize);
 }
 
 function SetUpReadableStreamBYOBRequest(request, controller, view) {
