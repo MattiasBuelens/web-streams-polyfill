@@ -29,7 +29,7 @@ main().catch(e => {
 
 async function main() {
   const entryPath = path.resolve(__dirname, 'dist/polyfill.es6.min.js');
-  const testsPath = path.resolve(__dirname, 'spec/reference-implementation/web-platform-tests/streams');
+  const testsPath = path.resolve(__dirname, 'test/web-platform-tests/streams');
 
   const includeGlobs = process.argv.length >= 3 ? process.argv.slice(2) : ['**/*.html'];
   const excludeGlobs = [

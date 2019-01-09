@@ -48,6 +48,8 @@
     "@babel/plugin-transform-for-of": "^7.2.0",
     "@babel/plugin-transform-object-assign": "^7.2.0",
     "@babel/preset-env": "^7.2.0",
+    "better-assert": "^1.0.2",
+    "debug": "^4.1.0",
     "eslint": "^5.11.1",
     "micromatch": "^3.1.10",
     "rollup": "^1.0.0",
