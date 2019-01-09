@@ -1,6 +1,5 @@
 const path = require('path');
 
-const rollupCommonJS = require('rollup-plugin-commonjs');
 const rollupAlias = require('rollup-plugin-alias');
 const rollupBabel = require('rollup-plugin-babel');
 const rollupInject = require('rollup-plugin-inject');
@@ -34,10 +33,6 @@ function buildConfig(entry, { esm = false, minify = false, es6 = false } = {}) {
           from: path.resolve(__dirname, './spec/reference-implementation/lib/helpers.js'),
           to: path.resolve(__dirname, './src/stub/helpers.js')
         }]
-      }),
-      rollupCommonJS({
-        include: ['spec/reference-implementation/lib/*.js'],
-        sourceMap: true
       }),
       rollupInject({
         include: 'spec/reference-implementation/lib/*.js',

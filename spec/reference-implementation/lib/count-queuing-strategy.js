@@ -1,7 +1,6 @@
-'use strict';
-const { createDataProperty } = require('./helpers.js');
+import { createDataProperty } from './helpers.js';
 
-module.exports = class CountQueuingStrategy {
+export default class CountQueuingStrategy {
   constructor({ highWaterMark }) {
     createDataProperty(this, 'highWaterMark', highWaterMark);
   }
@@ -9,4 +8,4 @@ module.exports = class CountQueuingStrategy {
   size() {
     return 1;
   }
-};
+}

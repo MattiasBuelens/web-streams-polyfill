@@ -1,17 +1,14 @@
-'use strict';
 /* global AbortSignal:false */
 
-const assert = require('better-assert');
-const { ArrayBufferCopy, CreateAlgorithmFromUnderlyingMethod, IsFiniteNonNegativeNumber, InvokeOrNoop,
+import assert from 'better-assert';
+import { ArrayBufferCopy, CreateAlgorithmFromUnderlyingMethod, IsFiniteNonNegativeNumber, InvokeOrNoop,
         IsDetachedBuffer, TransferArrayBuffer, ValidateAndNormalizeHighWaterMark, IsNonNegativeNumber,
-        MakeSizeAlgorithmFromSizeFunction, createArrayFromList, typeIsObject, WaitForAllPromise } =
-      require('./helpers.js');
-const { rethrowAssertionErrorRejection } = require('./utils.js');
-const { DequeueValue, EnqueueValueWithSize, ResetQueue } = require('./queue-with-sizes.js');
-const { AcquireWritableStreamDefaultWriter, IsWritableStream, IsWritableStreamLocked,
+        MakeSizeAlgorithmFromSizeFunction, createArrayFromList, typeIsObject, WaitForAllPromise } from './helpers.js';
+import { rethrowAssertionErrorRejection } from './utils.js';
+import { DequeueValue, EnqueueValueWithSize, ResetQueue } from './queue-with-sizes.js';
+import { AcquireWritableStreamDefaultWriter, IsWritableStream, IsWritableStreamLocked,
         WritableStreamAbort, WritableStreamDefaultWriterCloseWithErrorPropagation,
-        WritableStreamDefaultWriterRelease, WritableStreamDefaultWriterWrite, WritableStreamCloseQueuedOrInFlight } =
-      require('./writable-stream.js');
+        WritableStreamDefaultWriterRelease, WritableStreamDefaultWriterWrite, WritableStreamCloseQueuedOrInFlight } from './writable-stream.js';
 
 const CancelSteps = Symbol('[[CancelSteps]]');
 const PullSteps = Symbol('[[PullSteps]]');
@@ -160,7 +157,7 @@ class ReadableStream {
   }
 }
 
-module.exports = {
+export {
   CreateReadableByteStream,
   CreateReadableStream,
   ReadableStream,

@@ -1,17 +1,18 @@
-'use strict';
-const assert = require('better-assert');
+import assert from 'better-assert';
 
 // Calls to verbose() are purely for debugging the reference implementation and tests. They are not part of the standard
 // and do not appear in the standard text.
-const verbose = require('debug')('streams:transform-stream:verbose');
-const { InvokeOrNoop, CreateAlgorithmFromUnderlyingMethod, PromiseCall, typeIsObject,
+import debug from 'debug';
+const verbose = debug('streams:transform-stream:verbose');
+
+import { InvokeOrNoop, CreateAlgorithmFromUnderlyingMethod, PromiseCall, typeIsObject,
         ValidateAndNormalizeHighWaterMark, IsNonNegativeNumber,
-        MakeSizeAlgorithmFromSizeFunction } = require('./helpers.js');
-const { CreateReadableStream, ReadableStreamDefaultControllerClose, ReadableStreamDefaultControllerEnqueue,
+        MakeSizeAlgorithmFromSizeFunction } from './helpers.js';
+import { CreateReadableStream, ReadableStreamDefaultControllerClose, ReadableStreamDefaultControllerEnqueue,
         ReadableStreamDefaultControllerError, ReadableStreamDefaultControllerGetDesiredSize,
         ReadableStreamDefaultControllerHasBackpressure,
-        ReadableStreamDefaultControllerCanCloseOrEnqueue } = require('./readable-stream.js');
-const { CreateWritableStream, WritableStreamDefaultControllerErrorIfNeeded } = require('./writable-stream.js');
+        ReadableStreamDefaultControllerCanCloseOrEnqueue } from './readable-stream.js';
+import { CreateWritableStream, WritableStreamDefaultControllerErrorIfNeeded } from './writable-stream.js';
 
 // Class TransformStream
 
@@ -420,7 +421,7 @@ function TransformStreamDefaultSourcePullAlgorithm(stream) {
   return stream._backpressureChangePromise;
 }
 
-module.exports = { CreateTransformStream, TransformStream };
+export { CreateTransformStream, TransformStream };
 
 // Helper functions for the TransformStreamDefaultController.
 
