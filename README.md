@@ -28,6 +28,10 @@ Each variant also includes the [type definitions for WHATWG streams from Definit
 
 Usage as a polyfill:
 ```html
+<!-- unpkg cdn -->
+<script src="https://unpkg.com/@mattiasbuelens/web-streams-polyfill/dist/polyfill.min.js"></script>
+
+<!-- self hosted -->
 <script src="/path/to/web-streams-polyfill/dist/polyfill.min.js"></script>
 <script>
 var readable = new ReadableStream();
