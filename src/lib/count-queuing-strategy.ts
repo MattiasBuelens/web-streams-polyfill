@@ -1,4 +1,4 @@
-import { createDataProperty } from './helpers.js';
+import { createDataProperty } from './helpers';
 
 export default class CountQueuingStrategy {
   constructor({ highWaterMark }) {

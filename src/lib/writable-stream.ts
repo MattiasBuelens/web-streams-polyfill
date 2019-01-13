@@ -1,5 +1,5 @@
-import assert from '../stub/better-assert.js';
-import debug from '../stub/debug.js';
+import assert from '../stub/better-assert';
+import debug from '../stub/debug';
 import {
   CreateAlgorithmFromUnderlyingMethod,
   InvokeOrNoop,
@@ -7,10 +7,10 @@ import {
   MakeSizeAlgorithmFromSizeFunction,
   typeIsObject,
   ValidateAndNormalizeHighWaterMark
-} from './helpers.js';
-import { rethrowAssertionErrorRejection } from './utils.js';
-import { DequeueValue, EnqueueValueWithSize, PeekQueueValue, ResetQueue } from './queue-with-sizes.js';
-import Symbol from '../stub/symbol.js';
+} from './helpers';
+import { rethrowAssertionErrorRejection } from './utils';
+import { DequeueValue, EnqueueValueWithSize, PeekQueueValue, ResetQueue } from './queue-with-sizes';
+import Symbol from '../stub/symbol';
 
 // Calls to verbose() are purely for debugging the reference implementation and tests. They are not part of the standard
 // and do not appear in the standard text.

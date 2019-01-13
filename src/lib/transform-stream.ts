@@ -1,5 +1,5 @@
-import assert from '../stub/better-assert.js';
-import debug from '../stub/debug.js';
+import assert from '../stub/better-assert';
+import debug from '../stub/debug';
 import {
   CreateAlgorithmFromUnderlyingMethod,
   InvokeOrNoop,
@@ -8,7 +8,7 @@ import {
   PromiseCall,
   typeIsObject,
   ValidateAndNormalizeHighWaterMark
-} from './helpers.js';
+} from './helpers';
 import {
   CreateReadableStream,
   ReadableStreamDefaultControllerCanCloseOrEnqueue,
@@ -17,8 +17,8 @@ import {
   ReadableStreamDefaultControllerError,
   ReadableStreamDefaultControllerGetDesiredSize,
   ReadableStreamDefaultControllerHasBackpressure
-} from './readable-stream.js';
-import { CreateWritableStream, WritableStreamDefaultControllerErrorIfNeeded } from './writable-stream.js';
+} from './readable-stream';
+import { CreateWritableStream, WritableStreamDefaultControllerErrorIfNeeded } from './writable-stream';
 
 // Calls to verbose() are purely for debugging the reference implementation and tests. They are not part of the standard
 // and do not appear in the standard text.
