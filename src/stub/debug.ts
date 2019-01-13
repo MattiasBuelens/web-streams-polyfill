@@ -1,5 +1,4 @@
 import { noop } from '../utils';
 
-export {
-  noop as default
-};
+const debug: (name: string) => (message: string) => void = noop as any;
+export default debug;

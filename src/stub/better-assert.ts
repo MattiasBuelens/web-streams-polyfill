@@ -1,5 +1,4 @@
 import { noop } from '../utils';
 
-export {
-  noop as default
-};
+const betterAssert: (test: boolean) => void = noop;
+export default betterAssert;

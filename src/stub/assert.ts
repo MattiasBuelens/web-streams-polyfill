@@ -1,6 +1,6 @@
 import { noop } from '../utils';
 
-export default function assert() {
+export default function assert(test: boolean): void {
   // do nothing
 }
 
