@@ -5,24 +5,24 @@ function IsPropertyKey(argument) {
   return typeof argument === 'string' || typeof argument === 'symbol';
 }
 
-export const typeIsObject = x => (typeof x === 'object' && x !== null) || typeof x === 'function';
+export function typeIsObject(x) { return (typeof x === 'object' && x !== null) || typeof x === 'function'; }
 
-export const createDataProperty = (o, p, v) => {
+export function createDataProperty(o, p, v) {
   assert(typeIsObject(o));
   Object.defineProperty(o, p, { value: v, writable: true, enumerable: true, configurable: true });
-};
+}
 
-export const createArrayFromList = elements => {
+export function createArrayFromList(elements) {
   // We use arrays to represent lists, so this is basically a no-op.
   // Do a slice though just in case we happen to depend on the unique-ness.
   return elements.slice();
-};
+}
 
-export const ArrayBufferCopy = (dest, destOffset, src, srcOffset, n) => {
+export function ArrayBufferCopy(dest, destOffset, src, srcOffset, n) {
   new Uint8Array(dest).set(new Uint8Array(src, srcOffset, n), destOffset);
-};
+}
 
-export const IsFiniteNonNegativeNumber = v => {
+export function IsFiniteNonNegativeNumber(v) {
   if (IsNonNegativeNumber(v) === false) {
     return false;
   }
@@ -32,9 +32,9 @@ export const IsFiniteNonNegativeNumber = v => {
   }
 
   return true;
-};
+}
 
-export const IsNonNegativeNumber = v => {
+export function IsNonNegativeNumber(v) {
   if (typeof v !== 'number') {
     return false;
   }
@@ -48,7 +48,7 @@ export const IsNonNegativeNumber = v => {
   }
 
   return true;
-};
+}
 
 export function Call(F, V, args) {
   if (typeof F !== 'function') {
@@ -58,7 +58,7 @@ export function Call(F, V, args) {
   return Function.prototype.apply.call(F, V, args);
 }
 
-export const CreateAlgorithmFromUnderlyingMethod = (underlyingObject, methodName, algoArgCount, extraArgs) => {
+export function CreateAlgorithmFromUnderlyingMethod(underlyingObject, methodName, algoArgCount, extraArgs) {
   assert(underlyingObject !== undefined);
   assert(IsPropertyKey(methodName));
   assert(algoArgCount === 0 || algoArgCount === 1);
@@ -84,9 +84,9 @@ export const CreateAlgorithmFromUnderlyingMethod = (underlyingObject, methodName
     }
   }
   return () => Promise.resolve();
-};
+}
 
-export const InvokeOrNoop = (O, P, args) => {
+export function InvokeOrNoop(O, P, args) {
   assert(O !== undefined);
   assert(IsPropertyKey(P));
   assert(Array.isArray(args));
@@ -97,7 +97,7 @@ export const InvokeOrNoop = (O, P, args) => {
   }
 
   return Call(method, O, args);
-};
+}
 
 export function PromiseCall(F, V, args) {
   assert(typeof F === 'function');
@@ -111,25 +111,25 @@ export function PromiseCall(F, V, args) {
 }
 
 // Not implemented correctly
-export const TransferArrayBuffer = O => {
+export function TransferArrayBuffer(O) {
   return O;
-};
+}
 
 // Not implemented correctly
-export const IsDetachedBuffer = O => { // eslint-disable-line no-unused-vars
+export function IsDetachedBuffer(O) { // eslint-disable-line no-unused-vars
   return false;
-};
+}
 
-export const ValidateAndNormalizeHighWaterMark = highWaterMark => {
+export function ValidateAndNormalizeHighWaterMark(highWaterMark) {
   highWaterMark = Number(highWaterMark);
   if (NumberIsNaN(highWaterMark) || highWaterMark < 0) {
     throw new RangeError('highWaterMark property of a queuing strategy must be non-negative and non-NaN');
   }
 
   return highWaterMark;
-};
+}
 
-export const MakeSizeAlgorithmFromSizeFunction = size => {
+export function MakeSizeAlgorithmFromSizeFunction(size) {
   if (size === undefined) {
     return () => 1;
   }
@@ -137,15 +137,15 @@ export const MakeSizeAlgorithmFromSizeFunction = size => {
     throw new TypeError('size property of a queuing strategy must be a function');
   }
   return chunk => size(chunk);
-};
+}
 
-export const PerformPromiseThen = (promise, onFulfilled, onRejected) => {
+export function PerformPromiseThen(promise, onFulfilled, onRejected) {
   // There doesn't appear to be any way to correctly emulate the behaviour from JavaScript, so this is just an
   // approximation.
   return Promise.prototype.then.call(promise, onFulfilled, onRejected);
-};
+}
 
-export const WaitForAll = (promises, successSteps, failureSteps) => {
+export function WaitForAll(promises, successSteps, failureSteps) {
   let rejected = false;
   const rejectionHandler = arg => {
     if (rejected === false) {
@@ -169,9 +169,9 @@ export const WaitForAll = (promises, successSteps, failureSteps) => {
     PerformPromiseThen(promise, fulfillmentHandler, rejectionHandler);
     ++index;
   }
-};
+}
 
-export const WaitForAllPromise = (promises, successSteps, failureSteps = undefined) => {
+export function WaitForAllPromise(promises, successSteps, failureSteps = undefined) {
   let resolvePromise;
   let rejectPromise;
   const promise = new Promise((resolve, reject) => {
@@ -201,4 +201,4 @@ export const WaitForAllPromise = (promises, successSteps, failureSteps = undefin
   };
   WaitForAll(promises, successStepsWrapper, failureStepsWrapper);
   return promise;
-};
+}
