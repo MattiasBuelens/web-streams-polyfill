@@ -5,11 +5,13 @@
   "main": "dist/polyfill",
   "browser": "dist/polyfill.min.js",
   "module": "dist/polyfill.mjs",
-  "types": "types/polyfill.d.ts",
+  "types": "dist/types/polyfill.d.ts",
   "scripts": {
     "test": "node --expose_gc run-web-platform-tests.js",
     "lint": "eslint \"*.js\" \"src/**/*.js\"",
-    "build": "rollup -c",
+    "build": "npm run build:types && npm run build:bundle",
+    "build:bundle": "rollup -c",
+    "build:types": "rollup -c rollup-types.config.js",
     "prebuild": "git submodule update --init --recursive",
     "prepare": "npm run build"
   },
@@ -40,13 +42,11 @@
     "url": "https://github.com/MattiasBuelens/web-streams-polyfill/issues"
   },
   "homepage": "https://github.com/MattiasBuelens/web-streams-polyfill#readme",
-  "dependencies": {
-    "@types/whatwg-streams": "^0.0.7"
-  },
   "devDependencies": {
     "eslint": "^5.12.0",
     "micromatch": "^3.1.10",
     "rollup": "^1.1.0",
+    "rollup-plugin-dts": "^0.11.0",
     "rollup-plugin-inject": "^2.2.0",
     "rollup-plugin-strip": "^1.2.1",
     "rollup-plugin-terser": "^4.0.2",
