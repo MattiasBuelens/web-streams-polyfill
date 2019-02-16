@@ -326,12 +326,12 @@ function IsReadableStreamLocked(stream: ReadableStream): boolean {
   return true;
 }
 
-function ReadableStreamPipeTo<R, W>(source: ReadableStream<R>,
-                                    dest: WritableStream<W>,
-                                    preventClose: boolean,
-                                    preventAbort: boolean,
-                                    preventCancel: boolean,
-                                    signal: AbortSignal | undefined): Promise<void> {
+function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
+                                 dest: WritableStream<T>,
+                                 preventClose: boolean,
+                                 preventAbort: boolean,
+                                 preventCancel: boolean,
+                                 signal: AbortSignal | undefined): Promise<void> {
   assert(IsReadableStream(source) === true);
   assert(IsWritableStream(dest) === true);
   assert(typeof preventClose === 'boolean');
@@ -341,8 +341,8 @@ function ReadableStreamPipeTo<R, W>(source: ReadableStream<R>,
   assert(IsReadableStreamLocked(source) === false);
   assert(IsWritableStreamLocked(dest) === false);
 
-  const reader = AcquireReadableStreamDefaultReader(source);
-  const writer = AcquireWritableStreamDefaultWriter(dest);
+  const reader = AcquireReadableStreamDefaultReader<T>(source);
+  const writer = AcquireWritableStreamDefaultWriter<T>(dest);
 
   let shuttingDown = false;
 
@@ -410,7 +410,7 @@ function ReadableStreamPipeTo<R, W>(source: ReadableStream<R>,
             return true;
           }
 
-          currentWrite = WritableStreamDefaultWriterWrite(writer, value).catch(() => {});
+          currentWrite = WritableStreamDefaultWriterWrite(writer, value!).catch(() => {});
           return false;
         });
       });
