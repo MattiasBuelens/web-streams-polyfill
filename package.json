@@ -42,14 +42,14 @@
   },
   "homepage": "https://github.com/MattiasBuelens/web-streams-polyfill#readme",
   "devDependencies": {
-    "eslint": "^5.12.0",
+    "eslint": "^5.14.0",
     "micromatch": "^3.1.10",
-    "rollup": "^1.1.0",
+    "rollup": "^1.1.2",
     "rollup-plugin-dts": "^0.11.0",
     "rollup-plugin-inject": "^2.2.0",
     "rollup-plugin-strip": "^1.2.1",
-    "rollup-plugin-terser": "^4.0.2",
-    "typescript": "^3.2.2",
+    "rollup-plugin-terser": "^4.0.4",
+    "typescript": "^3.3.3",
     "wpt-runner": "^2.7.0"
   }
 }
