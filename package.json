@@ -7,7 +7,7 @@
   "module": "dist/polyfill.mjs",
   "types": "dist/types/polyfill.d.ts",
   "scripts": {
-    "test": "npm run test:wpt",
+    "test": "npm run test:types && npm run test:wpt",
     "test:wpt": "node --expose_gc run-web-platform-tests.js",
     "pretest:wpt": "git submodule update --init --recursive",
     "test:types": "tsc -p ./test/types/tsconfig.json",
