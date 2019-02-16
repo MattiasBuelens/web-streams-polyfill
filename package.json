@@ -8,11 +8,11 @@
   "types": "dist/types/polyfill.d.ts",
   "scripts": {
     "test": "node --expose_gc run-web-platform-tests.js",
+    "pretest": "git submodule update --init --recursive",
     "lint": "eslint \"*.js\" \"src/**/*.js\"",
     "build": "npm run build:types && npm run build:bundle",
     "build:bundle": "rollup -c",
     "build:types": "rollup -c rollup-types.config.js",
-    "prebuild": "git submodule update --init --recursive",
     "prepare": "npm run build"
   },
   "files": [
