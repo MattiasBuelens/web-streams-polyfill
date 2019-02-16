@@ -1,6 +1,6 @@
 const path = require('path');
 
-const rollupTypescript = require('rollup-plugin-typescript');
+const rollupDts = require('rollup-plugin-dts');
 const rollupInject = require('rollup-plugin-inject');
 const rollupStrip = require('rollup-plugin-strip');
 const { terser: rollupTerser } = require('rollup-plugin-terser');
@@ -25,7 +25,7 @@ function buildConfig(entry, { esm = false, minify = false, es6 = false } = {}) {
       } : undefined
     ].filter(Boolean),
     plugins: [
-      rollupTypescript({
+      rollupDts.js({
         tsconfig: 'src/tsconfig.json',
         target: es6 ? 'es2015' : 'es5'
       }),

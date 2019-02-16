@@ -1,4 +1,4 @@
-const { default: rollupDts } = require('rollup-plugin-dts');
+const rollupDts = require('rollup-plugin-dts');
 
 module.exports = {
   input: 'src/polyfill.ts',
@@ -7,7 +7,7 @@ module.exports = {
     format: 'es'
   },
   plugins: [
-    rollupDts({
+    rollupDts.dts({
       tsconfig: 'src/tsconfig.json'
     })
   ]
