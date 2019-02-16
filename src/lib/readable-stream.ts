@@ -1126,6 +1126,7 @@ class ReadableStreamDefaultController<R> {
   /** @internal */
   _cancelAlgorithm!: (reason: any) => Promise<void>;
 
+  /** @internal */
   constructor() {
     throw new TypeError();
   }
@@ -1170,6 +1171,7 @@ class ReadableStreamDefaultController<R> {
     ReadableStreamDefaultControllerError(this, e);
   }
 
+  /** @internal */
   [CancelSteps](reason: any): Promise<void> {
     ResetQueue(this);
     const result = this._cancelAlgorithm(reason);
@@ -1177,6 +1179,7 @@ class ReadableStreamDefaultController<R> {
     return result;
   }
 
+  /** @internal */
   [PullSteps](forAuthorCode: boolean): Promise<ReadResult<R>> {
     const stream = this._controlledReadableStream;
 
@@ -1438,6 +1441,7 @@ class ReadableStreamBYOBRequest {
   /** @internal */
   _view!: ArrayBufferView;
 
+  /** @internal */
   constructor() {
     throw new TypeError('ReadableStreamBYOBRequest cannot be used directly');
   }
@@ -1553,6 +1557,7 @@ class ReadableByteStreamController {
   /** @internal */
   _pendingPullIntos!: PullIntoDescriptor[];
 
+  /** @internal */
   constructor() {
     throw new TypeError('ReadableByteStreamController constructor cannot be used directly');
   }
@@ -1634,6 +1639,7 @@ class ReadableByteStreamController {
     ReadableByteStreamControllerError(this, e);
   }
 
+  /** @internal */
   [CancelSteps](reason: any): Promise<void> {
     if (this._pendingPullIntos.length > 0) {
       const firstDescriptor = this._pendingPullIntos[0];
@@ -1647,6 +1653,7 @@ class ReadableByteStreamController {
     return result;
   }
 
+  /** @internal */
   [PullSteps](forAuthorCode: boolean): Promise<ReadResult<ArrayBufferView>> {
     const stream = this._controlledReadableByteStream;
     assert(ReadableStreamHasDefaultReader(stream) === true);

@@ -19,13 +19,13 @@ const verbose = debug('streams:writable-stream:verbose');
 const AbortSteps = Symbol('[[AbortSteps]]');
 const ErrorSteps = Symbol('[[ErrorSteps]]');
 
-type WritableStreamDefaultControllerStartCallback<W> = (controller: WritableStreamDefaultController<W>) => void | PromiseLike<void>;
-type WritableStreamDefaultControllerWriteCallback<W> = (chunk: W, controller: WritableStreamDefaultController<W>) => void | PromiseLike<void>;
+type WritableStreamDefaultControllerStartCallback = (controller: WritableStreamDefaultController) => void | PromiseLike<void>;
+type WritableStreamDefaultControllerWriteCallback<W> = (chunk: W, controller: WritableStreamDefaultController) => void | PromiseLike<void>;
 type WritableStreamDefaultControllerCloseCallback = () => void | PromiseLike<void>;
 type WritableStreamErrorCallback = (reason: any) => void | PromiseLike<void>;
 
 export interface UnderlyingSink<W = any> {
-  start?: WritableStreamDefaultControllerStartCallback<W>;
+  start?: WritableStreamDefaultControllerStartCallback;
   write?: WritableStreamDefaultControllerWriteCallback<W>;
   close?: WritableStreamDefaultControllerCloseCallback;
   abort?: WritableStreamErrorCallback;
@@ -778,7 +778,7 @@ interface WriteRecord<W> {
 
 type QueueRecord<W> = WriteRecord<W> | 'close';
 
-class WritableStreamDefaultController<W> {
+class WritableStreamDefaultController<W = any> {
   /** @internal */
   _controlledWritableStream!: WritableStream<W>;
   /** @internal */
@@ -798,6 +798,7 @@ class WritableStreamDefaultController<W> {
   /** @internal */
   _abortAlgorithm!: (reason: any) => Promise<void>;
 
+  /** @internal */
   constructor() {
     throw new TypeError('WritableStreamDefaultController cannot be constructed explicitly');
   }
@@ -817,12 +818,14 @@ class WritableStreamDefaultController<W> {
     WritableStreamDefaultControllerError(this, e);
   }
 
+  /** @internal */
   [AbortSteps](reason: any) {
     const result = this._abortAlgorithm(reason);
     WritableStreamDefaultControllerClearAlgorithms(this);
     return result;
   }
 
+  /** @internal */
   [ErrorSteps]() {
     ResetQueue(this);
   }

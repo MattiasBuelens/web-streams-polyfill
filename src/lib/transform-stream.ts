@@ -251,6 +251,7 @@ class TransformStreamDefaultController<O> {
   /** @internal */
   _flushAlgorithm: () => Promise<void>;
 
+  /** @internal */
   constructor() {
     throw new TypeError('TransformStreamDefaultController instances cannot be created directly');
   }
