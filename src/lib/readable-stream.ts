@@ -96,7 +96,7 @@ class ReadableStream<R = any> {
       }
       highWaterMark = ValidateAndNormalizeHighWaterMark(highWaterMark);
 
-      SetUpReadableByteStreamControllerFromUnderlyingSource(this,
+      SetUpReadableByteStreamControllerFromUnderlyingSource(this as unknown as ReadableByteStream,
                                                             underlyingSource as UnderlyingByteSource,
                                                             highWaterMark);
     } else if (type === undefined) {
@@ -150,7 +150,7 @@ class ReadableStream<R = any> {
     mode = String(mode) as 'byob';
 
     if (mode === 'byob') {
-      return AcquireReadableStreamBYOBReader(this);
+      return AcquireReadableStreamBYOBReader(this as unknown as ReadableByteStream);
     }
 
     throw new RangeError('Invalid mode is specified');
@@ -1108,7 +1108,7 @@ function ReadableStreamDefaultReaderRead<R>(reader: ReadableStreamDefaultReader<
 
   assert(stream._state === 'readable');
 
-  return stream._readableStreamController[PullSteps](forAuthorCode);
+  return stream._readableStreamController[PullSteps](forAuthorCode) as unknown as Promise<ReadResult<R>>;
 }
 
 // Controllers
