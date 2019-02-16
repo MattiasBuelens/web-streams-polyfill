@@ -497,8 +497,7 @@ function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
         action().then(
           () => finalize(originalIsError, originalError),
           newError => finalize(true, newError)
-        )
-          .catch(rethrowAssertionErrorRejection);
+        ).catch(rethrowAssertionErrorRejection);
       }
     }
 
@@ -1247,8 +1246,7 @@ function ReadableStreamDefaultControllerCallPullIfNeeded(controller: ReadableStr
     e => {
       ReadableStreamDefaultControllerError(controller, e);
     }
-  )
-    .catch(rethrowAssertionErrorRejection);
+  ).catch(rethrowAssertionErrorRejection);
 
   return undefined;
 }
@@ -1414,8 +1412,7 @@ function SetUpReadableStreamDefaultController<R>(stream: ReadableStream<R>,
     r => {
       ReadableStreamDefaultControllerError(controller, r);
     }
-  )
-    .catch(rethrowAssertionErrorRejection);
+  ).catch(rethrowAssertionErrorRejection);
 }
 
 function SetUpReadableStreamDefaultControllerFromUnderlyingSource<R>(stream: ReadableStream<R>,
@@ -1766,8 +1763,7 @@ function ReadableByteStreamControllerCallPullIfNeeded(controller: ReadableByteSt
     e => {
       ReadableByteStreamControllerError(controller, e);
     }
-  )
-    .catch(rethrowAssertionErrorRejection);
+  ).catch(rethrowAssertionErrorRejection);
 
   return undefined;
 }
@@ -2255,8 +2251,7 @@ function SetUpReadableByteStreamController(stream: ReadableByteStream,
     r => {
       ReadableByteStreamControllerError(controller, r);
     }
-  )
-    .catch(rethrowAssertionErrorRejection);
+  ).catch(rethrowAssertionErrorRejection);
 }
 
 function SetUpReadableByteStreamControllerFromUnderlyingSource(stream: ReadableByteStream,

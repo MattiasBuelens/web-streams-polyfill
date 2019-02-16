@@ -417,16 +417,15 @@ function TransformStreamDefaultSinkWriteAlgorithm<I, O>(stream: TransformStream<
   if (stream._backpressure === true) {
     const backpressureChangePromise = stream._backpressureChangePromise;
     assert(backpressureChangePromise !== undefined);
-    return backpressureChangePromise
-      .then(() => {
-        const writable = stream._writable;
-        const state = writable._state;
-        if (state === 'erroring') {
-          throw writable._storedError;
-        }
-        assert(state === 'writable');
-        return TransformStreamDefaultControllerPerformTransform<I, O>(controller, chunk);
-      });
+    return backpressureChangePromise.then(() => {
+      const writable = stream._writable;
+      const state = writable._state;
+      if (state === 'erroring') {
+        throw writable._storedError;
+      }
+      assert(state === 'writable');
+      return TransformStreamDefaultControllerPerformTransform<I, O>(controller, chunk);
+    });
   }
 
   return TransformStreamDefaultControllerPerformTransform<I, O>(controller, chunk);
