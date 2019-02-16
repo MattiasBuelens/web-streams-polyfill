@@ -1,11 +1,12 @@
 import { createDataProperty } from './helpers';
+import { QueuingStrategy } from './queuing-strategy';
 
-export default class ByteLengthQueuingStrategy {
-  constructor({ highWaterMark }) {
+export default class ByteLengthQueuingStrategy implements QueuingStrategy<ArrayBufferView> {
+  constructor({ highWaterMark }: { highWaterMark: number }) {
     createDataProperty(this, 'highWaterMark', highWaterMark);
   }
 
-  size(chunk) {
+  size(chunk: ArrayBufferView): number {
     return chunk.byteLength;
   }
 }
