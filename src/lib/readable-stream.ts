@@ -229,6 +229,7 @@ export {
   CreateReadableStream,
   ReadableStream,
   IsReadableStreamDisturbed,
+  ReadableStreamDefaultControllerType as ReadableStreamDefaultController,
   ReadableStreamDefaultControllerClose,
   ReadableStreamDefaultControllerEnqueue,
   ReadableStreamDefaultControllerError,
@@ -1097,6 +1098,8 @@ function ReadableStreamDefaultReaderRead<R>(reader: ReadableStreamDefaultReader<
 }
 
 // Controllers
+
+type ReadableStreamDefaultControllerType<R> = ReadableStreamDefaultController<R>;
 
 class ReadableStreamDefaultController<R> {
 
