@@ -470,6 +470,8 @@ function WritableStreamUpdateBackpressure(stream: WritableStream, backpressure: 
   stream._backpressure = backpressure;
 }
 
+export type WritableStreamDefaultWriterType<W> = WritableStreamDefaultWriter<W>;
+
 class WritableStreamDefaultWriter<W> {
   /** @internal */
   _ownerWritableStream: WritableStream<W>;
@@ -777,6 +779,8 @@ interface WriteRecord<W> {
 }
 
 type QueueRecord<W> = WriteRecord<W> | 'close';
+
+export type WritableStreamDefaultControllerType<W> = WritableStreamDefaultController<W>;
 
 class WritableStreamDefaultController<W = any> {
   /** @internal */

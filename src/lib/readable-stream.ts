@@ -229,7 +229,6 @@ export {
   CreateReadableStream,
   ReadableStream,
   IsReadableStreamDisturbed,
-  ReadableStreamDefaultControllerType as ReadableStreamDefaultController,
   ReadableStreamDefaultControllerClose,
   ReadableStreamDefaultControllerEnqueue,
   ReadableStreamDefaultControllerError,
@@ -821,6 +820,8 @@ interface ReadRequest<R> {
   _forAuthorCode: boolean;
 }
 
+export type ReadableStreamDefaultReaderType<R> = ReadableStreamDefaultReader<R>;
+
 class ReadableStreamDefaultReader<R> {
   /** @internal */
   _ownerReadableStream!: ReadableStream<R>;
@@ -900,6 +901,8 @@ interface ReadIntoRequest<T extends ArrayBufferView> {
   _reject: (reason: any) => void;
   _forAuthorCode: boolean;
 }
+
+export type ReadableStreamBYOBReaderType = ReadableStreamBYOBReader;
 
 class ReadableStreamBYOBReader {
   /** @internal */
@@ -1099,7 +1102,7 @@ function ReadableStreamDefaultReaderRead<R>(reader: ReadableStreamDefaultReader<
 
 // Controllers
 
-type ReadableStreamDefaultControllerType<R> = ReadableStreamDefaultController<R>;
+export type ReadableStreamDefaultControllerType<R> = ReadableStreamDefaultController<R>;
 
 class ReadableStreamDefaultController<R> {
 
@@ -1435,6 +1438,8 @@ function SetUpReadableStreamDefaultControllerFromUnderlyingSource<R>(stream: Rea
     highWaterMark, sizeAlgorithm);
 }
 
+export type ReadableStreamBYOBRequestType = ReadableStreamBYOBRequest;
+
 class ReadableStreamBYOBRequest {
   /** @internal */
   _associatedReadableByteStreamController!: ReadableByteStreamController;
@@ -1527,6 +1532,8 @@ interface BYOBPullIntoDescriptor<T extends ArrayBufferView = ArrayBufferView> {
   ctor: ArrayBufferViewConstructor<T>;
   readerType: 'byob';
 }
+
+export type ReadableByteStreamControllerType = ReadableByteStreamController;
 
 class ReadableByteStreamController {
 

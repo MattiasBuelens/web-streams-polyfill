@@ -12,13 +12,13 @@ import {
 import {
   CreateReadableStream,
   ReadableStream,
-  ReadableStreamDefaultController,
   ReadableStreamDefaultControllerCanCloseOrEnqueue,
   ReadableStreamDefaultControllerClose,
   ReadableStreamDefaultControllerEnqueue,
   ReadableStreamDefaultControllerError,
   ReadableStreamDefaultControllerGetDesiredSize,
-  ReadableStreamDefaultControllerHasBackpressure
+  ReadableStreamDefaultControllerHasBackpressure,
+  ReadableStreamDefaultControllerType as ReadableStreamDefaultController
 } from './readable-stream';
 import { QueuingStrategy, QueuingStrategySizeCallback } from './queuing-strategy';
 import { CreateWritableStream, WritableStream, WritableStreamDefaultControllerErrorIfNeeded } from './writable-stream';
@@ -27,10 +27,10 @@ import { CreateWritableStream, WritableStream, WritableStreamDefaultControllerEr
 // and do not appear in the standard text.
 const verbose = debug('streams:transform-stream:verbose');
 
-type TransformStreamDefaultControllerCallback<O> = (controller: TransformStreamDefaultController<O>) => void | PromiseLike<void>;
-type TransformStreamDefaultControllerTransformCallback<I, O> = (chunk: I, controller: TransformStreamDefaultController<O>) => void | PromiseLike<void>;
+export type TransformStreamDefaultControllerCallback<O> = (controller: TransformStreamDefaultController<O>) => void | PromiseLike<void>;
+export type TransformStreamDefaultControllerTransformCallback<I, O> = (chunk: I, controller: TransformStreamDefaultController<O>) => void | PromiseLike<void>;
 
-interface Transformer<I = any, O = any> {
+export interface Transformer<I = any, O = any> {
   start?: TransformStreamDefaultControllerCallback<O>;
   transform?: TransformStreamDefaultControllerTransformCallback<I, O>;
   flush?: TransformStreamDefaultControllerCallback<O>;
@@ -242,6 +242,8 @@ function TransformStreamSetBackpressure(stream: TransformStream, backpressure: b
 }
 
 // Class TransformStreamDefaultController
+
+export type TransformStreamDefaultControllerType<O> = TransformStreamDefaultController<O>;
 
 class TransformStreamDefaultController<O> {
   /** @internal */
