@@ -151,7 +151,7 @@ class ReadableStream<R = any> {
     throw new RangeError('Invalid mode is specified');
   }
 
-  pipeThrough<T>({ writable, readable }: { writable: any, readable: ReadableStream<T> },
+  pipeThrough<T>({ writable, readable }: { writable: WritableStream<R>, readable: ReadableStream<T> },
                  { preventClose, preventAbort, preventCancel, signal }: PipeOptions = {}): ReadableStream<T> {
     if (IsReadableStream(this) === false) {
       throw streamBrandCheckException('pipeThrough');
