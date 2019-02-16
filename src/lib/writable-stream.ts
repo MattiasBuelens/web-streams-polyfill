@@ -144,7 +144,7 @@ function AcquireWritableStreamDefaultWriter<W>(stream: WritableStream<W>): Writa
 }
 
 // Throws if and only if startAlgorithm throws.
-function CreateWritableStream<W>(startAlgorithm: () => void | Promise<void>,
+function CreateWritableStream<W>(startAlgorithm: () => void | PromiseLike<void>,
                                  writeAlgorithm: (chunk: W) => Promise<void>,
                                  closeAlgorithm: () => Promise<void>,
                                  abortAlgorithm: (reason: any) => Promise<void>,
@@ -852,7 +852,7 @@ function IsWritableStreamDefaultController<W>(x: any): x is WritableStreamDefaul
 
 function SetUpWritableStreamDefaultController<W>(stream: WritableStream<W>,
                                                  controller: WritableStreamDefaultController<W>,
-                                                 startAlgorithm: () => void | Promise<void>,
+                                                 startAlgorithm: () => void | PromiseLike<void>,
                                                  writeAlgorithm: (chunk: W) => Promise<void>,
                                                  closeAlgorithm: () => Promise<void>,
                                                  abortAlgorithm: (reason: any) => Promise<void>,
@@ -906,12 +906,18 @@ function SetUpWritableStreamDefaultControllerFromUnderlyingSink<W>(stream: Writa
   const controller = Object.create(WritableStreamDefaultController.prototype);
 
   function startAlgorithm() {
-    return InvokeOrNoop(underlyingSink, 'start', [controller]);
+    return InvokeOrNoop<typeof underlyingSink, 'start'>(underlyingSink, 'start', [controller]);
   }
 
-  const writeAlgorithm = CreateAlgorithmFromUnderlyingMethod(underlyingSink, 'write', 1, [controller]);
-  const closeAlgorithm = CreateAlgorithmFromUnderlyingMethod(underlyingSink, 'close', 0, []);
-  const abortAlgorithm = CreateAlgorithmFromUnderlyingMethod(underlyingSink, 'abort', 1, []);
+  const writeAlgorithm = CreateAlgorithmFromUnderlyingMethod<typeof underlyingSink, 'write'>(
+    underlyingSink, 'write', 1, [controller]
+  );
+  const closeAlgorithm = CreateAlgorithmFromUnderlyingMethod<typeof underlyingSink, 'close'>(
+    underlyingSink, 'close', 0, []
+  );
+  const abortAlgorithm = CreateAlgorithmFromUnderlyingMethod<typeof underlyingSink, 'abort'>(
+    underlyingSink, 'abort', 1, []
+  );
 
   SetUpWritableStreamDefaultController(stream, controller, startAlgorithm, writeAlgorithm, closeAlgorithm,
                                        abortAlgorithm, highWaterMark, sizeAlgorithm);

@@ -254,7 +254,7 @@ function AcquireReadableStreamDefaultReader<R>(stream: ReadableStream): Readable
 }
 
 // Throws if and only if startAlgorithm throws.
-function CreateReadableStream<R>(startAlgorithm: () => void | Promise<void>,
+function CreateReadableStream<R>(startAlgorithm: () => void | PromiseLike<void>,
                                  pullAlgorithm: () => Promise<void>,
                                  cancelAlgorithm: (reason: any) => Promise<void>,
                                  highWaterMark: number = 1,
@@ -274,7 +274,7 @@ function CreateReadableStream<R>(startAlgorithm: () => void | Promise<void>,
 }
 
 // Throws if and only if startAlgorithm throws.
-function CreateReadableByteStream(startAlgorithm: () => void | Promise<void>,
+function CreateReadableByteStream(startAlgorithm: () => void | PromiseLike<void>,
                                   pullAlgorithm: () => Promise<void>,
                                   cancelAlgorithm: (reason: any) => Promise<void>,
                                   highWaterMark: number = 0,
@@ -927,11 +927,11 @@ class ReadableStreamBYOBReader {
   constructor(stream: ReadableByteStream) {
     if (!IsReadableStream(stream)) {
       throw new TypeError('ReadableStreamBYOBReader can only be constructed with a ReadableStream instance given a ' +
-        'byte source');
+                            'byte source');
     }
     if (IsReadableByteStreamController(stream._readableStreamController) === false) {
       throw new TypeError('Cannot construct a ReadableStreamBYOBReader for a stream not constructed with a byte ' +
-        'source');
+                            'source');
     }
     if (IsReadableStreamLocked(stream)) {
       throw new TypeError('This stream has already been locked for exclusive reading by another reader');
@@ -1385,7 +1385,7 @@ function ReadableStreamDefaultControllerCanCloseOrEnqueue(controller: ReadableSt
 
 function SetUpReadableStreamDefaultController<R>(stream: ReadableStream<R>,
                                                  controller: ReadableStreamDefaultController<R>,
-                                                 startAlgorithm: () => void | Promise<void>,
+                                                 startAlgorithm: () => void | PromiseLike<void>,
                                                  pullAlgorithm: () => Promise<void>,
                                                  cancelAlgorithm: (reason: any) => Promise<void>,
                                                  highWaterMark: number,
@@ -1436,11 +1436,15 @@ function SetUpReadableStreamDefaultControllerFromUnderlyingSource<R>(stream: Rea
   const controller: ReadableStreamDefaultController<R> = Object.create(ReadableStreamDefaultController.prototype);
 
   function startAlgorithm() {
-    return InvokeOrNoop(underlyingSource, 'start', [controller]);
+    return InvokeOrNoop<typeof underlyingSource, 'start'>(underlyingSource, 'start', [controller]);
   }
 
-  const pullAlgorithm = CreateAlgorithmFromUnderlyingMethod(underlyingSource, 'pull', 0, [controller]);
-  const cancelAlgorithm = CreateAlgorithmFromUnderlyingMethod(underlyingSource, 'cancel', 1, []);
+  const pullAlgorithm = CreateAlgorithmFromUnderlyingMethod<typeof underlyingSource, 'pull'>(
+    underlyingSource, 'pull', 0, [controller]
+  );
+  const cancelAlgorithm = CreateAlgorithmFromUnderlyingMethod<typeof underlyingSource, 'cancel'>(
+    underlyingSource, 'cancel', 1, []
+  );
 
   SetUpReadableStreamDefaultController(stream, controller, startAlgorithm, pullAlgorithm, cancelAlgorithm,
                                        highWaterMark, sizeAlgorithm);
@@ -2215,7 +2219,7 @@ function ReadableByteStreamControllerRespondWithNewView(controller: ReadableByte
 
 function SetUpReadableByteStreamController(stream: ReadableByteStream,
                                            controller: ReadableByteStreamController,
-                                           startAlgorithm: () => void | Promise<void>,
+                                           startAlgorithm: () => void | PromiseLike<void>,
                                            pullAlgorithm: () => Promise<void>,
                                            cancelAlgorithm: (reason: any) => Promise<void>,
                                            highWaterMark: number,
@@ -2275,11 +2279,15 @@ function SetUpReadableByteStreamControllerFromUnderlyingSource(stream: ReadableB
   const controller: ReadableByteStreamController = Object.create(ReadableByteStreamController.prototype);
 
   function startAlgorithm() {
-    return InvokeOrNoop(underlyingByteSource, 'start', [controller]);
+    return InvokeOrNoop<typeof underlyingByteSource, 'start'>(underlyingByteSource, 'start', [controller]);
   }
 
-  const pullAlgorithm = CreateAlgorithmFromUnderlyingMethod(underlyingByteSource, 'pull', 0, [controller]);
-  const cancelAlgorithm = CreateAlgorithmFromUnderlyingMethod(underlyingByteSource, 'cancel', 1, []);
+  const pullAlgorithm = CreateAlgorithmFromUnderlyingMethod<typeof underlyingByteSource, 'pull'>(
+    underlyingByteSource, 'pull', 0, [controller]
+  );
+  const cancelAlgorithm = CreateAlgorithmFromUnderlyingMethod<typeof underlyingByteSource, 'cancel'>(
+    underlyingByteSource, 'cancel', 1, []
+  );
 
   let autoAllocateChunkSize = underlyingByteSource.autoAllocateChunkSize;
   if (autoAllocateChunkSize !== undefined) {

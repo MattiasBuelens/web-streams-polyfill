@@ -1,6 +1,6 @@
 import assert from '../stub/better-assert';
 import NumberIsNaN from '../stub/number-isnan';
-import { FunctionPropertyNames, InferFirst, InferFunction, InferRest } from '../util/type-utils';
+import { FunctionPropertyNames, InferFirst, InferFunction, InferRest, Promisify } from '../util/type-utils';
 
 function IsPropertyKey(argument: any): argument is string | symbol {
   return typeof argument === 'string' || typeof argument === 'symbol';
@@ -62,19 +62,17 @@ export function Call<T, A extends any[], R>(F: (this: T, ...args: A) => R, V: T,
 }
 
 export function CreateAlgorithmFromUnderlyingMethod<T,
-  Key extends FunctionPropertyNames<T>,
-  Fn extends InferFunction<T[Key]>,
-  Args extends Parameters<Fn>>(underlyingObject: T,
+  Key extends FunctionPropertyNames<Required<T>> = FunctionPropertyNames<Required<T>>>(
+  underlyingObject: T,
   methodName: Key,
   algoArgCount: 0,
-  extraArgs: Args): () => ReturnType<Fn>;
+  extraArgs: Parameters<InferFunction<T[Key]>>): () => Promisify<ReturnType<InferFunction<T[Key]>>>;
 export function CreateAlgorithmFromUnderlyingMethod<T,
-  Key extends FunctionPropertyNames<T>,
-  Fn extends InferFunction<T[Key]>,
-  Args extends Parameters<Fn>>(underlyingObject: T,
+  Key extends FunctionPropertyNames<Required<T>> = FunctionPropertyNames<Required<T>>>(
+  underlyingObject: T,
   methodName: Key,
   algoArgCount: 1,
-  extraArgs: InferRest<Args>): (arg: InferFirst<Args>) => ReturnType<Fn>;
+  extraArgs: InferRest<Parameters<InferFunction<T[Key]>>>): (arg: InferFirst<Parameters<InferFunction<T[Key]>>>) => Promisify<ReturnType<InferFunction<T[Key]>>>;
 export function CreateAlgorithmFromUnderlyingMethod(underlyingObject: any,
                                                     methodName: any,
                                                     algoArgCount: 0 | 1,
@@ -106,14 +104,15 @@ export function CreateAlgorithmFromUnderlyingMethod(underlyingObject: any,
   return () => Promise.resolve();
 }
 
-export function InvokeOrNoop<T,
-  Key extends FunctionPropertyNames<T>,
-  Fn extends InferFunction<T[Key]>>(O: T, P: Key, args: Parameters<Fn>): ReturnType<Fn> | undefined {
+export function InvokeOrNoop<T, Key extends FunctionPropertyNames<Required<T>> = FunctionPropertyNames<Required<T>>>(
+  O: T,
+  P: Key,
+  args: Parameters<InferFunction<T[Key]>>): ReturnType<InferFunction<T[Key]>> | undefined {
   assert(O !== undefined);
   assert(IsPropertyKey(P));
   assert(Array.isArray(args));
 
-  const method = O[P] as Fn | undefined; // TODO Fix type?
+  const method = O[P] as InferFunction<T[Key]> | undefined;
   if (method === undefined) {
     return undefined;
   }

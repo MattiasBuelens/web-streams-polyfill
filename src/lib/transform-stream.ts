@@ -87,7 +87,7 @@ class TransformStream<I = any, O = any> {
     }
     readableHighWaterMark = ValidateAndNormalizeHighWaterMark(readableHighWaterMark);
 
-    let startPromise_resolve!: (value: void | Promise<void>) => void;
+    let startPromise_resolve!: (value: void | PromiseLike<void>) => void;
     const startPromise = new Promise<void>(resolve => {
       startPromise_resolve = resolve;
     });
@@ -96,7 +96,9 @@ class TransformStream<I = any, O = any> {
                               readableSizeAlgorithm);
     SetUpTransformStreamDefaultControllerFromTransformer(this, transformer);
 
-    const startResult = InvokeOrNoop(transformer, 'start', [this._transformStreamController]);
+    const startResult = InvokeOrNoop<typeof transformer, 'start'>(
+      transformer, 'start', [this._transformStreamController]
+    );
     startPromise_resolve(startResult);
   }
 
@@ -119,7 +121,7 @@ class TransformStream<I = any, O = any> {
 
 // Transform Stream Abstract Operations
 
-function CreateTransformStream<I, O>(startAlgorithm: () => void | Promise<void>,
+function CreateTransformStream<I, O>(startAlgorithm: () => void | PromiseLike<void>,
                                      transformAlgorithm: (chunk: I) => Promise<void>,
                                      flushAlgorithm: () => Promise<void>,
                                      writableHighWaterMark: number = 1,
@@ -131,7 +133,7 @@ function CreateTransformStream<I, O>(startAlgorithm: () => void | Promise<void>,
 
   const stream: TransformStream<I, O> = Object.create(TransformStream.prototype);
 
-  let startPromise_resolve!: (value: void | Promise<void>) => void;
+  let startPromise_resolve!: (value: void | PromiseLike<void>) => void;
   const startPromise = new Promise<void>(resolve => {
     startPromise_resolve = resolve;
   });
@@ -327,11 +329,11 @@ function SetUpTransformStreamDefaultControllerFromTransformer<I, O>(stream: Tran
                                                                     transformer: Transformer<I, O>) {
   assert(transformer !== undefined);
 
-  const controller = Object.create(TransformStreamDefaultController.prototype);
+  const controller: TransformStreamDefaultController<O> = Object.create(TransformStreamDefaultController.prototype);
 
   let transformAlgorithm = (chunk: I) => {
     try {
-      TransformStreamDefaultControllerEnqueue(controller, chunk);
+      TransformStreamDefaultControllerEnqueue(controller, chunk as unknown as O);
       return Promise.resolve();
     } catch (transformResultE) {
       return Promise.reject(transformResultE);
@@ -345,7 +347,9 @@ function SetUpTransformStreamDefaultControllerFromTransformer<I, O>(stream: Tran
     transformAlgorithm = chunk => PromiseCall(transformMethod, transformer, [chunk, controller]);
   }
 
-  const flushAlgorithm = CreateAlgorithmFromUnderlyingMethod(transformer, 'flush', 0, [controller]);
+  const flushAlgorithm = CreateAlgorithmFromUnderlyingMethod<typeof transformer, 'flush'>(
+    transformer, 'flush', 0, [controller]
+  );
 
   SetUpTransformStreamDefaultController(stream, controller, transformAlgorithm, flushAlgorithm);
 }

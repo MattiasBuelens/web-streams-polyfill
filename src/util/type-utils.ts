@@ -10,3 +10,5 @@ export type InferRest<T extends any[]> =
     : T extends [infer S2] ? []
       : T extends [] ? []
         : never;
+
+export type Promisify<T> = T extends PromiseLike<infer U> ? Promise<U> : Promise<T>;
