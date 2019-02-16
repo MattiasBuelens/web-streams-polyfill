@@ -7,8 +7,10 @@
   "module": "dist/polyfill.mjs",
   "types": "dist/types/polyfill.d.ts",
   "scripts": {
-    "test": "node --expose_gc run-web-platform-tests.js",
-    "pretest": "git submodule update --init --recursive",
+    "test": "npm run test:wpt",
+    "test:wpt": "node --expose_gc run-web-platform-tests.js",
+    "pretest:wpt": "git submodule update --init --recursive",
+    "test:types": "tsc -p ./test/types/tsconfig.json",
     "lint": "eslint \"src/**/*.ts\"",
     "build": "npm run build:types && npm run build:bundle",
     "build:bundle": "rollup -c",
