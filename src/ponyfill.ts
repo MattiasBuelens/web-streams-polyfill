@@ -1,7 +1,9 @@
 import {
   PipeOptions,
+  ReadableByteStreamControllerType,
   ReadableStream,
   ReadableStreamBYOBReaderType,
+  ReadableStreamBYOBRequestType,
   ReadableStreamDefaultControllerType,
   ReadableStreamDefaultReaderType,
   ReadResult,
@@ -26,6 +28,8 @@ export {
   PipeOptions,
   ReadResult,
   ReadableStreamDefaultControllerType as ReadableStreamDefaultController,
+  ReadableByteStreamControllerType as ReadableByteStreamController,
+  ReadableStreamBYOBRequestType as ReadableStreamBYOBRequest,
   ReadableStreamDefaultReaderType as ReadableStreamDefaultReader,
   ReadableStreamBYOBReaderType as ReadableStreamBYOBReader,
 

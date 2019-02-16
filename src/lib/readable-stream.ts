@@ -62,7 +62,11 @@ export interface PipeOptions {
   signal?: AbortSignal;
 }
 
-export type ReadResult<T = any> = { done: true; value: undefined } | { done: false; value: T };
+// TODO Fix ReadableStreamReadResult<R> in TypeScript DOM types
+export interface ReadResult<T = any> {
+  done: boolean;
+  value: T;
+}
 
 type ReadableStreamState = 'readable' | 'closed' | 'errored';
 
@@ -78,6 +82,8 @@ class ReadableStream<R = any> {
   /** @internal */
   _readableStreamController!: ReadableStreamDefaultController<R> | ReadableByteStreamController;
 
+  constructor(underlyingSource: UnderlyingByteSource, strategy?: { highWaterMark?: number; size?: undefined });
+  constructor(underlyingSource?: UnderlyingSource<R>, strategy?: QueuingStrategy<R>);
   constructor(underlyingSource: UnderlyingSource<R> | UnderlyingByteSource = {}, strategy: QueuingStrategy<R> = {}) {
     InitializeReadableStream(this);
 

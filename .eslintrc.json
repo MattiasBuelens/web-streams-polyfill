@@ -233,7 +233,7 @@
     "no-new-symbol": "error",
     "no-this-before-super": "error",
     "no-useless-computed-key": "error",
-    "no-useless-constructor": "error",
+    "no-useless-constructor": "off", // handled by @typescript-eslint/no-useless-constructor
     "no-var": "error",
     "object-shorthand": "error",
     "prefer-arrow-callback": "error",
@@ -262,6 +262,7 @@
     }],
     "@typescript-eslint/no-explicit-any": "off",
     "@typescript-eslint/no-non-null-assertion": "off",
-    "@typescript-eslint/no-use-before-define": "off"
+    "@typescript-eslint/no-use-before-define": "off",
+    "@typescript-eslint/no-useless-constructor": "error"
   }
 }

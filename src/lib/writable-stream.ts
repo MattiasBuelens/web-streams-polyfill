@@ -781,7 +781,7 @@ interface WriteRecord<W> {
 
 type QueueRecord<W> = WriteRecord<W> | 'close';
 
-export type WritableStreamDefaultControllerType<W> = WritableStreamDefaultController<W>;
+export type WritableStreamDefaultControllerType = WritableStreamDefaultController<any>;
 
 class WritableStreamDefaultController<W = any> {
   /** @internal */
