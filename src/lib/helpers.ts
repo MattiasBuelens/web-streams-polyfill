@@ -64,12 +64,21 @@ export function Call<T, A extends any[], R>(F: (this: T, ...args: A) => R, V: T,
 export function CreateAlgorithmFromUnderlyingMethod<T,
   Key extends FunctionPropertyNames<T>,
   Fn extends InferFunction<T[Key]>,
-  Args extends Parameters<Fn>>(underlyingObject: T, methodName: Key, algoArgCount: 0, extraArgs: Args): () => ReturnType<Fn>;
+  Args extends Parameters<Fn>>(underlyingObject: T,
+  methodName: Key,
+  algoArgCount: 0,
+  extraArgs: Args): () => ReturnType<Fn>;
 export function CreateAlgorithmFromUnderlyingMethod<T,
   Key extends FunctionPropertyNames<T>,
   Fn extends InferFunction<T[Key]>,
-  Args extends Parameters<Fn>>(underlyingObject: T, methodName: Key, algoArgCount: 1, extraArgs: InferRest<Args>): (arg: InferFirst<Args>) => ReturnType<Fn>;
-export function CreateAlgorithmFromUnderlyingMethod(underlyingObject: any, methodName: any, algoArgCount: 0 | 1, extraArgs: any[]): (...args: any[]) => any {
+  Args extends Parameters<Fn>>(underlyingObject: T,
+  methodName: Key,
+  algoArgCount: 1,
+  extraArgs: InferRest<Args>): (arg: InferFirst<Args>) => ReturnType<Fn>;
+export function CreateAlgorithmFromUnderlyingMethod(underlyingObject: any,
+                                                    methodName: any,
+                                                    algoArgCount: 0 | 1,
+                                                    extraArgs: any[]): (...args: any[]) => any {
   assert(underlyingObject !== undefined);
   assert(IsPropertyKey(methodName));
   assert(algoArgCount === 0 || algoArgCount === 1);
@@ -112,7 +121,9 @@ export function InvokeOrNoop<T,
   return Call(method, O, args);
 }
 
-export function PromiseCall<T, A extends any[], R>(F: (this: T, ...args: A) => R | PromiseLike<R>, V: T, args: A): Promise<R> {
+export function PromiseCall<T, A extends any[], R>(F: (this: T, ...args: A) => R | PromiseLike<R>,
+                                                   V: T,
+                                                   args: A): Promise<R> {
   assert(typeof F === 'function');
   assert(V !== undefined);
   assert(Array.isArray(args));
@@ -152,13 +163,17 @@ export function MakeSizeAlgorithmFromSizeFunction<T>(size?: (chunk: T) => number
   return chunk => size(chunk);
 }
 
-export function PerformPromiseThen<T>(promise: Promise<T>, onFulfilled: (result: T) => any, onRejected: (reason: any) => any) {
+export function PerformPromiseThen<T>(promise: Promise<T>,
+                                      onFulfilled: (result: T) => any,
+                                      onRejected: (reason: any) => any) {
   // There doesn't appear to be any way to correctly emulate the behaviour from JavaScript, so this is just an
   // approximation.
   return Promise.prototype.then.call(promise, onFulfilled, onRejected);
 }
 
-export function WaitForAll<T>(promises: Array<Promise<T>>, successSteps: (results: T[]) => void, failureSteps: (reason: any) => void) {
+export function WaitForAll<T>(promises: Array<Promise<T>>,
+                              successSteps: (results: T[]) => void,
+                              failureSteps: (reason: any) => void) {
   let rejected = false;
   const rejectionHandler = (arg: any) => {
     if (rejected === false) {

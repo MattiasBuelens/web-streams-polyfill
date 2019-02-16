@@ -96,7 +96,9 @@ class ReadableStream<R = any> {
       }
       highWaterMark = ValidateAndNormalizeHighWaterMark(highWaterMark);
 
-      SetUpReadableByteStreamControllerFromUnderlyingSource(this, underlyingSource as UnderlyingByteSource, highWaterMark);
+      SetUpReadableByteStreamControllerFromUnderlyingSource(this,
+                                                            underlyingSource as UnderlyingByteSource,
+                                                            highWaterMark);
     } else if (type === undefined) {
       const sizeAlgorithm = MakeSizeAlgorithmFromSizeFunction(size);
 
@@ -105,7 +107,10 @@ class ReadableStream<R = any> {
       }
       highWaterMark = ValidateAndNormalizeHighWaterMark(highWaterMark);
 
-      SetUpReadableStreamDefaultControllerFromUnderlyingSource(this, underlyingSource as UnderlyingSource<R>, highWaterMark, sizeAlgorithm);
+      SetUpReadableStreamDefaultControllerFromUnderlyingSource(this,
+                                                               underlyingSource as UnderlyingSource<R>,
+                                                               highWaterMark,
+                                                               sizeAlgorithm);
     } else {
       throw new RangeError('Invalid type is specified');
     }
@@ -187,7 +192,8 @@ class ReadableStream<R = any> {
     return readable;
   }
 
-  pipeTo(dest: WritableStream<R>, { preventClose, preventAbort, preventCancel, signal }: PipeOptions = {}): Promise<void> {
+  pipeTo(dest: WritableStream<R>,
+         { preventClose, preventAbort, preventCancel, signal }: PipeOptions = {}): Promise<void> {
     if (IsReadableStream(this) === false) {
       return Promise.reject(streamBrandCheckException('pipeTo'));
     }
@@ -465,7 +471,9 @@ function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
       return currentWrite.then(() => oldCurrentWrite !== currentWrite ? waitForWritesToFinish() : undefined);
     }
 
-    function isOrBecomesErrored(stream: ReadableStream | WritableStream, promise: Promise<void>, action: (reason: any) => void) {
+    function isOrBecomesErrored(stream: ReadableStream | WritableStream,
+                                promise: Promise<void>,
+                                action: (reason: any) => void) {
       if (stream._state === 'errored') {
         action(stream._storedError);
       } else {
@@ -530,7 +538,8 @@ function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
   });
 }
 
-function ReadableStreamTee<R>(stream: ReadableStream<R>, cloneForBranch2: boolean): [ReadableStream<R>, ReadableStream<R>] {
+function ReadableStreamTee<R>(stream: ReadableStream<R>,
+                              cloneForBranch2: boolean): [ReadableStream<R>, ReadableStream<R>] {
   assert(IsReadableStream(stream) === true);
   assert(typeof cloneForBranch2 === 'boolean');
 
@@ -1076,10 +1085,13 @@ function ReadableStreamBYOBReaderRead<T extends ArrayBufferView>(reader: Readabl
   }
 
   // Controllers must implement this.
-  return ReadableByteStreamControllerPullInto(stream._readableStreamController as ReadableByteStreamController, view, forAuthorCode);
+  return ReadableByteStreamControllerPullInto(stream._readableStreamController as ReadableByteStreamController,
+                                              view,
+                                              forAuthorCode);
 }
 
-function ReadableStreamDefaultReaderRead<R>(reader: ReadableStreamDefaultReader<R>, forAuthorCode = false): Promise<ReadResult<R>> {
+function ReadableStreamDefaultReaderRead<R>(reader: ReadableStreamDefaultReader<R>,
+                                            forAuthorCode = false): Promise<ReadResult<R>> {
   const stream = reader._ownerReadableStream;
 
   assert(stream !== undefined);
@@ -2183,7 +2195,8 @@ function ReadableByteStreamControllerRespond(controller: ReadableByteStreamContr
   ReadableByteStreamControllerRespondInternal(controller, bytesWritten);
 }
 
-function ReadableByteStreamControllerRespondWithNewView(controller: ReadableByteStreamController, view: ArrayBufferView) {
+function ReadableByteStreamControllerRespondWithNewView(controller: ReadableByteStreamController,
+                                                        view: ArrayBufferView) {
   assert(controller._pendingPullIntos.length > 0);
 
   const firstDescriptor = controller._pendingPullIntos[0];

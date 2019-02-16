@@ -28,7 +28,8 @@ import { CreateWritableStream, WritableStream, WritableStreamDefaultControllerEr
 const verbose = debug('streams:transform-stream:verbose');
 
 export type TransformStreamDefaultControllerCallback<O> = (controller: TransformStreamDefaultController<O>) => void | PromiseLike<void>;
-export type TransformStreamDefaultControllerTransformCallback<I, O> = (chunk: I, controller: TransformStreamDefaultController<O>) => void | PromiseLike<void>;
+export type TransformStreamDefaultControllerTransformCallback<I, O> = (chunk: I,
+  controller: TransformStreamDefaultController<O>) => void | PromiseLike<void>;
 
 export interface Transformer<I = any, O = any> {
   start?: TransformStreamDefaultControllerCallback<O>;
@@ -54,7 +55,9 @@ class TransformStream<I = any, O = any> {
   /** @internal */
   _transformStreamController!: TransformStreamDefaultController<O>;
 
-  constructor(transformer: Transformer<I, O> = {}, writableStrategy: QueuingStrategy<I> = {}, readableStrategy: QueuingStrategy<O> = {}) {
+  constructor(transformer: Transformer<I, O> = {},
+              writableStrategy: QueuingStrategy<I> = {},
+              readableStrategy: QueuingStrategy<O> = {}) {
     const writableSizeFunction = writableStrategy.size;
     let writableHighWaterMark = writableStrategy.highWaterMark;
     const readableSizeFunction = readableStrategy.size;
@@ -208,7 +211,8 @@ function IsTransformStream<I, O>(x: any): x is TransformStream<I, O> {
 function TransformStreamError(stream: TransformStream, e: any) {
   verbose('TransformStreamError()');
 
-  ReadableStreamDefaultControllerError(stream._readable._readableStreamController as ReadableStreamDefaultController<any>, e);
+  ReadableStreamDefaultControllerError(stream._readable._readableStreamController as ReadableStreamDefaultController<any>,
+                                       e);
   TransformStreamErrorWritableAndUnblockWrite(stream, e);
 }
 
@@ -383,7 +387,8 @@ function TransformStreamDefaultControllerError(controller: TransformStreamDefaul
   TransformStreamError(controller._controlledTransformStream, e);
 }
 
-function TransformStreamDefaultControllerPerformTransform<I, O>(controller: TransformStreamDefaultController<O>, chunk: I) {
+function TransformStreamDefaultControllerPerformTransform<I, O>(controller: TransformStreamDefaultController<O>,
+                                                                chunk: I) {
   const transformPromise = controller._transformAlgorithm(chunk);
   return transformPromise.catch(r => {
     TransformStreamError(controller._controlledTransformStream, r);
