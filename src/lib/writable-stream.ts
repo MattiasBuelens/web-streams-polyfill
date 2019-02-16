@@ -157,7 +157,7 @@ function CreateWritableStream<W>(startAlgorithm: () => void | Promise<void>,
   const controller: WritableStreamDefaultController<W> = Object.create(WritableStreamDefaultController.prototype);
 
   SetUpWritableStreamDefaultController(stream, controller, startAlgorithm, writeAlgorithm, closeAlgorithm,
-    abortAlgorithm, highWaterMark, sizeAlgorithm);
+                                       abortAlgorithm, highWaterMark, sizeAlgorithm);
   return stream;
 }
 
@@ -914,7 +914,7 @@ function SetUpWritableStreamDefaultControllerFromUnderlyingSink<W>(stream: Writa
   const abortAlgorithm = CreateAlgorithmFromUnderlyingMethod(underlyingSink, 'abort', 1, []);
 
   SetUpWritableStreamDefaultController(stream, controller, startAlgorithm, writeAlgorithm, closeAlgorithm,
-    abortAlgorithm, highWaterMark, sizeAlgorithm);
+                                       abortAlgorithm, highWaterMark, sizeAlgorithm);
 }
 
 // ClearAlgorithms may be called twice. Erroring the same stream in multiple ways will often result in redundant calls.

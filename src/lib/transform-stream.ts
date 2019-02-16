@@ -41,7 +41,6 @@ export interface Transformer<I = any, O = any> {
 // Class TransformStream
 
 class TransformStream<I = any, O = any> {
-
   /** @internal */
   _writable!: WritableStream<I>;
   /** @internal */
@@ -91,7 +90,7 @@ class TransformStream<I = any, O = any> {
     });
 
     InitializeTransformStream(this, startPromise, writableHighWaterMark, writableSizeAlgorithm, readableHighWaterMark,
-      readableSizeAlgorithm);
+                              readableSizeAlgorithm);
     SetUpTransformStreamDefaultControllerFromTransformer(this, transformer);
 
     const startResult = InvokeOrNoop(transformer, 'start', [this._transformStreamController]);
@@ -135,7 +134,7 @@ function CreateTransformStream<I, O>(startAlgorithm: () => void | Promise<void>,
   });
 
   InitializeTransformStream(stream, startPromise, writableHighWaterMark, writableSizeAlgorithm, readableHighWaterMark,
-    readableSizeAlgorithm);
+                            readableSizeAlgorithm);
 
   const controller: TransformStreamDefaultController<O> = Object.create(TransformStreamDefaultController.prototype);
 
@@ -169,7 +168,7 @@ function InitializeTransformStream<I, O>(stream: TransformStream<I, O>,
   }
 
   stream._writable = CreateWritableStream(startAlgorithm, writeAlgorithm, closeAlgorithm, abortAlgorithm,
-    writableHighWaterMark, writableSizeAlgorithm);
+                                          writableHighWaterMark, writableSizeAlgorithm);
 
   function pullAlgorithm(): Promise<void> {
     return TransformStreamDefaultSourcePullAlgorithm(stream);
@@ -181,7 +180,7 @@ function InitializeTransformStream<I, O>(stream: TransformStream<I, O>,
   }
 
   stream._readable = CreateReadableStream(startAlgorithm, pullAlgorithm, cancelAlgorithm, readableHighWaterMark,
-    readableSizeAlgorithm);
+                                          readableSizeAlgorithm);
 
   // The [[backpressure]] slot is set to undefined so that it can be initialised by TransformStreamSetBackpressure.
   stream._backpressure = undefined!;

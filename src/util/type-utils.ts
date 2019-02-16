@@ -8,5 +8,5 @@ export type InferFirst<T extends any[]> = T extends [infer First, ...any[]] ? Fi
 export type InferRest<T extends any[]> =
   ((...args: T) => void) extends ((first: any, ...rest: infer S1) => void) ? S1
     : T extends [infer S2] ? []
-    : T extends [] ? []
-      : never;
+      : T extends [] ? []
+        : never;

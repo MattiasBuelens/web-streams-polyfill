@@ -62,7 +62,7 @@ export interface PipeOptions {
   signal?: AbortSignal;
 }
 
-export type ReadResult<T = any> = { done: true, value: undefined } | { done: false, value: T };
+export type ReadResult<T = any> = { done: true; value: undefined } | { done: false; value: T };
 
 type ReadableStreamState = 'readable' | 'closed' | 'errored';
 
@@ -151,7 +151,7 @@ class ReadableStream<R = any> {
     throw new RangeError('Invalid mode is specified');
   }
 
-  pipeThrough<T>({ writable, readable }: { writable: WritableStream<R>, readable: ReadableStream<T> },
+  pipeThrough<T>({ writable, readable }: { writable: WritableStream<R>; readable: ReadableStream<T> },
                  { preventClose, preventAbort, preventCancel, signal }: PipeOptions = {}): ReadableStream<T> {
     if (IsReadableStream(this) === false) {
       throw streamBrandCheckException('pipeThrough');
@@ -285,7 +285,7 @@ function CreateReadableByteStream(startAlgorithm: () => void | Promise<void>,
   const controller: ReadableByteStreamController = Object.create(ReadableByteStreamController.prototype);
 
   SetUpReadableByteStreamController(stream, controller, startAlgorithm, pullAlgorithm, cancelAlgorithm, highWaterMark,
-    autoAllocateChunkSize);
+                                    autoAllocateChunkSize);
 
   return stream;
 }
@@ -1105,7 +1105,6 @@ function ReadableStreamDefaultReaderRead<R>(reader: ReadableStreamDefaultReader<
 export type ReadableStreamDefaultControllerType<R> = ReadableStreamDefaultController<R>;
 
 class ReadableStreamDefaultController<R> {
-
   /** @internal */
   _controlledReadableStream!: ReadableStream<R>;
   /** @internal */
@@ -1435,7 +1434,7 @@ function SetUpReadableStreamDefaultControllerFromUnderlyingSource<R>(stream: Rea
   const cancelAlgorithm = CreateAlgorithmFromUnderlyingMethod(underlyingSource, 'cancel', 1, []);
 
   SetUpReadableStreamDefaultController(stream, controller, startAlgorithm, pullAlgorithm, cancelAlgorithm,
-    highWaterMark, sizeAlgorithm);
+                                       highWaterMark, sizeAlgorithm);
 }
 
 export type ReadableStreamBYOBRequestType = ReadableStreamBYOBRequest;
@@ -1536,7 +1535,6 @@ interface BYOBPullIntoDescriptor<T extends ArrayBufferView = ArrayBufferView> {
 export type ReadableByteStreamControllerType = ReadableByteStreamController;
 
 class ReadableByteStreamController {
-
   /** @internal */
   _controlledReadableByteStream!: ReadableByteStream;
   /** @internal */
@@ -1577,8 +1575,8 @@ class ReadableByteStreamController {
     if (this._byobRequest === undefined && this._pendingPullIntos.length > 0) {
       const firstDescriptor = this._pendingPullIntos[0];
       const view = new Uint8Array(firstDescriptor.buffer,
-        firstDescriptor.byteOffset + firstDescriptor.bytesFilled,
-        firstDescriptor.byteLength - firstDescriptor.bytesFilled);
+                                  firstDescriptor.byteOffset + firstDescriptor.bytesFilled,
+                                  firstDescriptor.byteLength - firstDescriptor.bytesFilled);
 
       const byobRequest: ReadableStreamBYOBRequest = Object.create(ReadableStreamBYOBRequest.prototype);
       SetUpReadableStreamBYOBRequest(byobRequest, this, view);
@@ -1824,7 +1822,7 @@ function ReadableByteStreamControllerFillPullIntoDescriptorFromQueue(controller:
   const currentAlignedBytes = pullIntoDescriptor.bytesFilled - pullIntoDescriptor.bytesFilled % elementSize;
 
   const maxBytesToCopy = Math.min(controller._queueTotalSize,
-    pullIntoDescriptor.byteLength - pullIntoDescriptor.bytesFilled);
+                                  pullIntoDescriptor.byteLength - pullIntoDescriptor.bytesFilled);
   const maxBytesFilled = pullIntoDescriptor.bytesFilled + maxBytesToCopy;
   const maxAlignedBytes = maxBytesFilled - maxBytesFilled % elementSize;
 
@@ -2284,7 +2282,7 @@ function SetUpReadableByteStreamControllerFromUnderlyingSource(stream: ReadableB
   }
 
   SetUpReadableByteStreamController(stream, controller, startAlgorithm, pullAlgorithm, cancelAlgorithm, highWaterMark,
-    autoAllocateChunkSize);
+                                    autoAllocateChunkSize);
 }
 
 function SetUpReadableStreamBYOBRequest(request: ReadableStreamBYOBRequest,
