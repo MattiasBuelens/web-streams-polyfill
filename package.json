@@ -9,7 +9,7 @@
   "scripts": {
     "test": "node --expose_gc run-web-platform-tests.js",
     "pretest": "git submodule update --init --recursive",
-    "lint": "eslint \"*.js\" \"src/**/*.js\"",
+    "lint": "eslint \"src/**/*.ts\"",
     "build": "npm run build:types && npm run build:bundle",
     "build:bundle": "rollup -c",
     "build:types": "rollup -c rollup-types.config.js",
@@ -42,6 +42,7 @@
   },
   "homepage": "https://github.com/MattiasBuelens/web-streams-polyfill#readme",
   "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^1.3.0",
     "eslint": "^5.14.0",
     "micromatch": "^3.1.10",
     "rollup": "^1.1.2",

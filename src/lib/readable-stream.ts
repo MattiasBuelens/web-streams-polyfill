@@ -713,7 +713,7 @@ function ReadableStreamClose<R>(stream: ReadableStream<R>): void {
 }
 
 function ReadableStreamCreateReadResult<T>(value: T | undefined, done: boolean, forAuthorCode: boolean): ReadResult<T> {
-  let prototype: Object | null = null;
+  let prototype: object | null = null;
   if (forAuthorCode === true) {
     prototype = Object.prototype;
   }
