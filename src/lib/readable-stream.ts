@@ -30,7 +30,6 @@ import {
   WritableStreamDefaultWriterWrite
 } from './writable-stream';
 import NumberIsInteger from '../stub/number-isinteger';
-import Symbol from '../stub/symbol';
 
 const CancelSteps = Symbol('[[CancelSteps]]');
 const PullSteps = Symbol('[[PullSteps]]');

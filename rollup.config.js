@@ -1,4 +1,7 @@
+const path = require('path');
+
 const rollupTypescript = require('rollup-plugin-typescript');
+const rollupInject = require('rollup-plugin-inject');
 const rollupStrip = require('rollup-plugin-strip');
 const { terser: rollupTerser } = require('rollup-plugin-terser');
 
@@ -26,8 +29,15 @@ function buildConfig(entry, { esm = false, minify = false, es6 = false } = {}) {
         tsconfig: 'src/tsconfig.json',
         target: es6 ? 'es2015' : 'es5'
       }),
+      rollupInject({
+        include: 'src/**/*.ts',
+        exclude: 'src/stub/symbol.ts',
+        modules: {
+          Symbol: path.resolve(__dirname, './src/stub/symbol.ts')
+        }
+      }),
       rollupStrip({
-        include: '**/*.ts',
+        include: 'src/**/*.ts',
         functions: ['assert', 'debug', 'verbose'],
         sourceMap: true
       }),
