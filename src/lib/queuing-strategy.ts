@@ -1,4 +1,6 @@
-export interface QueuingStrategy<T> {
+export type QueuingStrategySizeCallback<T = any> = (chunk: T) => number;
+
+export interface QueuingStrategy<T = any> {
   highWaterMark?: number;
-  size?: (chunk: T) => number;
+  size?: QueuingStrategySizeCallback;
 }

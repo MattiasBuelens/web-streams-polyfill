@@ -19,7 +19,7 @@ const verbose = debug('streams:writable-stream:verbose');
 const AbortSteps = Symbol('[[AbortSteps]]');
 const ErrorSteps = Symbol('[[ErrorSteps]]');
 
-class WritableStream {
+class WritableStream<W = any> {
   constructor(underlyingSink = {}, strategy = {}) {
     InitializeWritableStream(this);
 

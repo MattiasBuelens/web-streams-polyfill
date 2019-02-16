@@ -2,7 +2,7 @@ import assert from '../stub/better-assert';
 import { IsFiniteNonNegativeNumber } from './helpers';
 
 export interface QueueContainer<T> {
-  _queue: Array<QueuePair<T>>;
+  _queue: T[];
   _queueTotalSize: number;
 }
 
@@ -11,7 +11,7 @@ export interface QueuePair<T> {
   size: number;
 }
 
-export function DequeueValue<T>(container: QueueContainer<T>): T {
+export function DequeueValue<T>(container: QueueContainer<QueuePair<T>>): T {
   assert('_queue' in container && '_queueTotalSize' in container);
   assert(container._queue.length > 0);
 
@@ -24,7 +24,7 @@ export function DequeueValue<T>(container: QueueContainer<T>): T {
   return pair.value;
 }
 
-export function EnqueueValueWithSize<T>(container: QueueContainer<T>, value: T, size: number) {
+export function EnqueueValueWithSize<T>(container: QueueContainer<QueuePair<T>>, value: T, size: number) {
   assert('_queue' in container && '_queueTotalSize' in container);
 
   size = Number(size);
@@ -36,7 +36,7 @@ export function EnqueueValueWithSize<T>(container: QueueContainer<T>, value: T, 
   container._queueTotalSize += size;
 }
 
-export function PeekQueueValue<T>(container: QueueContainer<T>): T {
+export function PeekQueueValue<T>(container: QueueContainer<QueuePair<T>>): T {
   assert('_queue' in container && '_queueTotalSize' in container);
   assert(container._queue.length > 0);
 
