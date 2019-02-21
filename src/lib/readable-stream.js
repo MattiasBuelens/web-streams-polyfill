@@ -928,7 +928,6 @@ function ReadableStreamReaderGenericInitialize(reader, stream) {
     assert(stream._state === 'errored');
 
     defaultReaderClosedPromiseInitializeAsRejected(reader, stream._storedError);
-    reader._closedPromise.catch(() => {});
   }
 }
 
