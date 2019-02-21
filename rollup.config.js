@@ -1,11 +1,14 @@
-const rollupBabel = require('rollup-plugin-babel');
+const path = require('path');
+
+const rollupDts = require('rollup-plugin-dts');
+const rollupInject = require('rollup-plugin-inject');
 const rollupStrip = require('rollup-plugin-strip');
 const { terser: rollupTerser } = require('rollup-plugin-terser');
 
 function buildConfig(entry, { esm = false, minify = false, es6 = false } = {}) {
   const outname = `${entry}${es6 ? '.es6' : ''}`;
   return {
-    input: `src/${entry}.js`,
+    input: `src/${entry}.ts`,
     output: [
       {
         file: `dist/${outname}${minify ? '.min' : ''}.js`,
@@ -22,13 +25,22 @@ function buildConfig(entry, { esm = false, minify = false, es6 = false } = {}) {
       } : undefined
     ].filter(Boolean),
     plugins: [
+      rollupDts.js({
+        tsconfig: 'src/tsconfig.json',
+        target: es6 ? 'es2015' : 'es5'
+      }),
+      rollupInject({
+        include: 'src/**/*.ts',
+        exclude: 'src/stub/symbol.ts',
+        modules: {
+          Symbol: path.resolve(__dirname, './src/stub/symbol.ts')
+        }
+      }),
       rollupStrip({
+        include: 'src/**/*.ts',
         functions: ['assert', 'debug', 'verbose'],
         sourceMap: true
       }),
-      !es6 ? rollupBabel({
-        sourceMap: true
-      }) : undefined,
       minify ? rollupTerser({
         keep_classnames: true, // needed for WPT
         mangle: {

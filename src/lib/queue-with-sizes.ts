@@ -1,20 +1,30 @@
-import assert from '../stub/better-assert.js';
-import { IsFiniteNonNegativeNumber } from './helpers.js';
+import assert from '../stub/better-assert';
+import { IsFiniteNonNegativeNumber } from './helpers';
 
-export const DequeueValue = container => {
+export interface QueueContainer<T> {
+  _queue: T[];
+  _queueTotalSize: number;
+}
+
+export interface QueuePair<T> {
+  value: T;
+  size: number;
+}
+
+export function DequeueValue<T>(container: QueueContainer<QueuePair<T>>): T {
   assert('_queue' in container && '_queueTotalSize' in container);
   assert(container._queue.length > 0);
 
-  const pair = container._queue.shift();
+  const pair = container._queue.shift()!;
   container._queueTotalSize -= pair.size;
   if (container._queueTotalSize < 0) {
     container._queueTotalSize = 0;
   }
 
   return pair.value;
-};
+}
 
-export const EnqueueValueWithSize = (container, value, size) => {
+export function EnqueueValueWithSize<T>(container: QueueContainer<QueuePair<T>>, value: T, size: number) {
   assert('_queue' in container && '_queueTotalSize' in container);
 
   size = Number(size);
@@ -24,19 +34,19 @@ export const EnqueueValueWithSize = (container, value, size) => {
 
   container._queue.push({ value, size });
   container._queueTotalSize += size;
-};
+}
 
-export const PeekQueueValue = container => {
+export function PeekQueueValue<T>(container: QueueContainer<QueuePair<T>>): T {
   assert('_queue' in container && '_queueTotalSize' in container);
   assert(container._queue.length > 0);
 
   const pair = container._queue[0];
   return pair.value;
-};
+}
 
-export const ResetQueue = container => {
+export function ResetQueue<T>(container: QueueContainer<T>) {
   assert('_queue' in container && '_queueTotalSize' in container);
 
   container._queue = [];
   container._queueTotalSize = 0;
-};
+}

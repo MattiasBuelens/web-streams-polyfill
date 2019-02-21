@@ -2,5 +2,5 @@
   "name": "@mattiasbuelens/web-streams-ponyfill",
   "main": "../dist/ponyfill",
   "module": "../dist/ponyfill.mjs",
-  "types": "../types/polyfill.d.ts"
+  "types": "../dist/types/polyfill.d.ts"
 }
