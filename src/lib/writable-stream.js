@@ -1022,6 +1022,7 @@ function defaultWriterClosedPromiseResolve(writer) {
 }
 
 function defaultWriterReadyPromiseInitialize(writer) {
+  verbose('defaultWriterReadyPromiseInitialize()');
   writer._readyPromise = new Promise((resolve, reject) => {
     writer._readyPromise_resolve = resolve;
     writer._readyPromise_reject = reject;
@@ -1030,16 +1031,19 @@ function defaultWriterReadyPromiseInitialize(writer) {
 }
 
 function defaultWriterReadyPromiseInitializeAsRejected(writer, reason) {
+  verbose('defaultWriterReadyPromiseInitializeAsRejected(writer, %o)', reason);
   defaultWriterReadyPromiseInitialize(writer);
   defaultWriterReadyPromiseReject(writer, reason);
 }
 
 function defaultWriterReadyPromiseInitializeAsResolved(writer) {
+  verbose('defaultWriterReadyPromiseInitializeAsResolved()');
   defaultWriterReadyPromiseInitialize(writer);
   defaultWriterReadyPromiseResolve(writer);
 }
 
 function defaultWriterReadyPromiseReject(writer, reason) {
+  verbose('defaultWriterReadyPromiseReject(writer, %o)', reason);
   assert(writer._readyPromise_resolve !== undefined);
   assert(writer._readyPromise_reject !== undefined);
 
@@ -1051,6 +1055,7 @@ function defaultWriterReadyPromiseReject(writer, reason) {
 }
 
 function defaultWriterReadyPromiseReset(writer) {
+  verbose('defaultWriterReadyPromiseReset()');
   assert(writer._readyPromise_resolve === undefined);
   assert(writer._readyPromise_reject === undefined);
 
@@ -1058,6 +1063,7 @@ function defaultWriterReadyPromiseReset(writer) {
 }
 
 function defaultWriterReadyPromiseResetToRejected(writer, reason) {
+  verbose('defaultWriterReadyPromiseResetToRejected(writer, %o)', reason);
   assert(writer._readyPromise_resolve === undefined);
   assert(writer._readyPromise_reject === undefined);
 
@@ -1065,6 +1071,7 @@ function defaultWriterReadyPromiseResetToRejected(writer, reason) {
 }
 
 function defaultWriterReadyPromiseResolve(writer) {
+  verbose('defaultWriterReadyPromiseResolve()');
   assert(writer._readyPromise_resolve !== undefined);
   assert(writer._readyPromise_reject !== undefined);
 
