@@ -12,6 +12,7 @@
 ## Unreleased
 
 * 🚀 Add `polyfill/es6` variant
+* 🐛 Fix memory leak when using streams in a microtask loop in Node.js ([#8](https://github.com/MattiasBuelens/web-streams-polyfill/pull/8))
 * 🏠 Switch to TypeScript ([#7](https://github.com/MattiasBuelens/web-streams-polyfill/pull/7))
 * 💅 Improve type definitions ([#7](https://github.com/MattiasBuelens/web-streams-polyfill/pull/7))
 
