@@ -8,8 +8,9 @@ Web Streams, based on the WHATWG spec reference implementation.
 [![Join the chat at https://gitter.im/web-streams-polyfill/Lobby](https://badges.gitter.im/web-streams-polyfill/Lobby.svg)](https://gitter.im/web-streams-polyfill/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 ## Links
- - [Official spec](https://streams.spec.whatwg.org/)
- - [Reference implementation](https://github.com/whatwg/streams)
+
+ - [Official spec][spec]
+ - [Reference implementation][ref-impl]
 
 ## Usage
 
@@ -24,7 +25,7 @@ This library comes in four variants:
 * `@mattiasbuelens/web-streams-polyfill/ponyfill/es6`: a ponyfill targeting ES2015+ environments.
   Recommended for use in modern Node applications, or in web libraries targeting modern browsers.
 
-Each variant also includes the [type definitions for WHATWG streams from DefinitelyTyped][types-streams].  
+Each variant also includes TypeScript type definitions, compatible with the DOM type definitions for streams included in TypeScript.
 
 Usage as a polyfill:
 ```html
@@ -57,6 +58,12 @@ If you need to support older browsers or Node versions that do not have a native
 
 The `polyfill/es6` and `ponyfill/es6` variants work in any ES2015-compatible environment.
 
+### Compliance
+
+The polyfill implements [version `1116de06e9` (29 Nov 2018)](https://streams.spec.whatwg.org/commit-snapshots/1116de06e94bf4406c60b1e766111dfd8bc7bfcd/) of the streams specification.
+
+The type definitions are compatible with the built-in stream types of TypeScript 3.3.
+
 ### Contributors
 
 Thanks to these people for their work on [the original polyfill][creatorrr-polyfill]:
@@ -64,9 +71,9 @@ Thanks to these people for their work on [the original polyfill][creatorrr-polyf
  - Diwank Singh Tomer ([creatorrr](https://github.com/creatorrr))
  - Anders Riutta ([ariutta](https://github.com/ariutta))
 
-
+[spec]: https://streams.spec.whatwg.org
+[ref-impl]: https://github.com/whatwg/streams
 [ponyfill]: https://github.com/sindresorhus/ponyfill
-[types-streams]: https://www.npmjs.com/package/@types/whatwg-streams
 [promise-support]: https://kangax.github.io/compat-table/es6/#test-Promise
 [promise-polyfill]: https://www.npmjs.com/package/promise-polyfill
 [creatorrr-polyfill]: https://github.com/creatorrr/web-streams-polyfill
