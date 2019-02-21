@@ -392,7 +392,6 @@ function WritableStreamRejectCloseAndClosedPromiseIfNeeded(stream) {
   const writer = stream._writer;
   if (writer !== undefined) {
     defaultWriterClosedPromiseReject(writer, stream._storedError);
-    writer._closedPromise.catch(() => {});
   }
 }
 
@@ -438,7 +437,6 @@ class WritableStreamDefaultWriter {
       defaultWriterClosedPromiseInitialize(this);
     } else if (state === 'erroring') {
       defaultWriterReadyPromiseInitializeAsRejected(this, stream._storedError);
-      this._readyPromise.catch(() => {});
       defaultWriterClosedPromiseInitialize(this);
     } else if (state === 'closed') {
       defaultWriterReadyPromiseInitializeAsResolved(this);
@@ -448,9 +446,7 @@ class WritableStreamDefaultWriter {
 
       const storedError = stream._storedError;
       defaultWriterReadyPromiseInitializeAsRejected(this, storedError);
-      this._readyPromise.catch(() => {});
       defaultWriterClosedPromiseInitializeAsRejected(this, storedError);
-      this._closedPromise.catch(() => {});
     }
   }
 
@@ -623,7 +619,6 @@ function WritableStreamDefaultWriterEnsureClosedPromiseRejected(writer, error) {
   } else {
     defaultWriterClosedPromiseResetToRejected(writer, error);
   }
-  writer._closedPromise.catch(() => {});
 }
 
 function WritableStreamDefaultWriterEnsureReadyPromiseRejected(writer, error) {
@@ -633,7 +628,6 @@ function WritableStreamDefaultWriterEnsureReadyPromiseRejected(writer, error) {
   } else {
     defaultWriterReadyPromiseResetToRejected(writer, error);
   }
-  writer._readyPromise.catch(() => {});
 }
 
 function WritableStreamDefaultWriterGetDesiredSize(writer) {
@@ -987,17 +981,13 @@ function defaultWriterClosedPromiseInitialize(writer) {
 }
 
 function defaultWriterClosedPromiseInitializeAsRejected(writer, reason) {
-  writer._closedPromise = Promise.reject(reason);
-  writer._closedPromise_resolve = undefined;
-  writer._closedPromise_reject = undefined;
-  writer._closedPromiseState = 'rejected';
+  defaultWriterClosedPromiseInitialize(writer);
+  defaultWriterClosedPromiseReject(writer, reason);
 }
 
 function defaultWriterClosedPromiseInitializeAsResolved(writer) {
-  writer._closedPromise = Promise.resolve(undefined);
-  writer._closedPromise_resolve = undefined;
-  writer._closedPromise_reject = undefined;
-  writer._closedPromiseState = 'resolved';
+  defaultWriterClosedPromiseInitialize(writer);
+  defaultWriterClosedPromiseResolve(writer);
 }
 
 function defaultWriterClosedPromiseReject(writer, reason) {
@@ -1005,6 +995,7 @@ function defaultWriterClosedPromiseReject(writer, reason) {
   assert(writer._closedPromise_reject !== undefined);
   assert(writer._closedPromiseState === 'pending');
 
+  writer._closedPromise.catch(() => {});
   writer._closedPromise_reject(reason);
   writer._closedPromise_resolve = undefined;
   writer._closedPromise_reject = undefined;
@@ -1016,8 +1007,7 @@ function defaultWriterClosedPromiseResetToRejected(writer, reason) {
   assert(writer._closedPromise_reject === undefined);
   assert(writer._closedPromiseState !== 'pending');
 
-  writer._closedPromise = Promise.reject(reason);
-  writer._closedPromiseState = 'rejected';
+  defaultWriterClosedPromiseInitializeAsRejected(writer, reason);
 }
 
 function defaultWriterClosedPromiseResolve(writer) {
@@ -1032,7 +1022,6 @@ function defaultWriterClosedPromiseResolve(writer) {
 }
 
 function defaultWriterReadyPromiseInitialize(writer) {
-  verbose('defaultWriterReadyPromiseInitialize()');
   writer._readyPromise = new Promise((resolve, reject) => {
     writer._readyPromise_resolve = resolve;
     writer._readyPromise_reject = reject;
@@ -1041,26 +1030,20 @@ function defaultWriterReadyPromiseInitialize(writer) {
 }
 
 function defaultWriterReadyPromiseInitializeAsRejected(writer, reason) {
-  verbose('defaultWriterReadyPromiseInitializeAsRejected(writer, %o)', reason);
-  writer._readyPromise = Promise.reject(reason);
-  writer._readyPromise_resolve = undefined;
-  writer._readyPromise_reject = undefined;
-  writer._readyPromiseState = 'rejected';
+  defaultWriterReadyPromiseInitialize(writer);
+  defaultWriterReadyPromiseReject(writer, reason);
 }
 
 function defaultWriterReadyPromiseInitializeAsResolved(writer) {
-  verbose('defaultWriterReadyPromiseInitializeAsResolved()');
-  writer._readyPromise = Promise.resolve(undefined);
-  writer._readyPromise_resolve = undefined;
-  writer._readyPromise_reject = undefined;
-  writer._readyPromiseState = 'fulfilled';
+  defaultWriterReadyPromiseInitialize(writer);
+  defaultWriterReadyPromiseResolve(writer);
 }
 
 function defaultWriterReadyPromiseReject(writer, reason) {
-  verbose('defaultWriterReadyPromiseReject(writer, %o)', reason);
   assert(writer._readyPromise_resolve !== undefined);
   assert(writer._readyPromise_reject !== undefined);
 
+  writer._readyPromise.catch(() => {});
   writer._readyPromise_reject(reason);
   writer._readyPromise_resolve = undefined;
   writer._readyPromise_reject = undefined;
@@ -1068,28 +1051,20 @@ function defaultWriterReadyPromiseReject(writer, reason) {
 }
 
 function defaultWriterReadyPromiseReset(writer) {
-  verbose('defaultWriterReadyPromiseReset()');
   assert(writer._readyPromise_resolve === undefined);
   assert(writer._readyPromise_reject === undefined);
 
-  writer._readyPromise = new Promise((resolve, reject) => {
-    writer._readyPromise_resolve = resolve;
-    writer._readyPromise_reject = reject;
-  });
-  writer._readyPromiseState = 'pending';
+  defaultWriterReadyPromiseInitialize(writer);
 }
 
 function defaultWriterReadyPromiseResetToRejected(writer, reason) {
-  verbose('defaultWriterReadyPromiseResetToRejected(writer, %o)', reason);
   assert(writer._readyPromise_resolve === undefined);
   assert(writer._readyPromise_reject === undefined);
 
-  writer._readyPromise = Promise.reject(reason);
-  writer._readyPromiseState = 'rejected';
+  defaultWriterReadyPromiseInitializeAsRejected(writer, reason);
 }
 
 function defaultWriterReadyPromiseResolve(writer) {
-  verbose('defaultWriterReadyPromiseResolve()');
   assert(writer._readyPromise_resolve !== undefined);
   assert(writer._readyPromise_reject !== undefined);
 
