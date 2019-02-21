@@ -12,6 +12,8 @@
 ## Unreleased
 
 * 🚀 Add `polyfill/es6` variant
+* 🏠 Switch to TypeScript ([#7](https://github.com/MattiasBuelens/web-streams-polyfill/pull/7))
+* 💅 Improve type definitions ([#7](https://github.com/MattiasBuelens/web-streams-polyfill/pull/7))
 
 ## v0.2.1 (2018-12-31)
 
