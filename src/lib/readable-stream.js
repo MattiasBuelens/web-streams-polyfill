@@ -689,7 +689,6 @@ function ReadableStreamError(stream, e) {
   }
 
   defaultReaderClosedPromiseReject(reader, e);
-  reader._closedPromise.catch(() => {});
 }
 
 function ReadableStreamFulfillReadIntoRequest(stream, chunk, done) {
@@ -929,7 +928,6 @@ function ReadableStreamReaderGenericInitialize(reader, stream) {
     assert(stream._state === 'errored');
 
     defaultReaderClosedPromiseInitializeAsRejected(reader, stream._storedError);
-    reader._closedPromise.catch(() => {});
   }
 }
 
@@ -955,7 +953,6 @@ function ReadableStreamReaderGenericRelease(reader) {
       reader,
       new TypeError('Reader was released and can no longer be used to monitor the stream\'s closedness'));
   }
-  reader._closedPromise.catch(() => {});
 
   reader._ownerReadableStream._reader = undefined;
   reader._ownerReadableStream = undefined;
@@ -2101,21 +2098,20 @@ function defaultReaderClosedPromiseInitialize(reader) {
 }
 
 function defaultReaderClosedPromiseInitializeAsRejected(reader, reason) {
-  reader._closedPromise = Promise.reject(reason);
-  reader._closedPromise_resolve = undefined;
-  reader._closedPromise_reject = undefined;
+  defaultReaderClosedPromiseInitialize(reader);
+  defaultReaderClosedPromiseReject(reader, reason);
 }
 
 function defaultReaderClosedPromiseInitializeAsResolved(reader) {
-  reader._closedPromise = Promise.resolve(undefined);
-  reader._closedPromise_resolve = undefined;
-  reader._closedPromise_reject = undefined;
+  defaultReaderClosedPromiseInitialize(reader);
+  defaultReaderClosedPromiseResolve(reader);
 }
 
 function defaultReaderClosedPromiseReject(reader, reason) {
   assert(reader._closedPromise_resolve !== undefined);
   assert(reader._closedPromise_reject !== undefined);
 
+  reader._closedPromise.catch(() => {});
   reader._closedPromise_reject(reason);
   reader._closedPromise_resolve = undefined;
   reader._closedPromise_reject = undefined;
@@ -2125,7 +2121,7 @@ function defaultReaderClosedPromiseResetToRejected(reader, reason) {
   assert(reader._closedPromise_resolve === undefined);
   assert(reader._closedPromise_reject === undefined);
 
-  reader._closedPromise = Promise.reject(reason);
+  defaultReaderClosedPromiseInitializeAsRejected(reader, reason);
 }
 
 function defaultReaderClosedPromiseResolve(reader) {
