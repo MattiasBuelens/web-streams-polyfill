@@ -1,8 +1,15 @@
 {
-  "extends": "../../src/tsconfig.json",
   "compilerOptions": {
+    "target": "es5",
+    "module": "es2015",
     "moduleResolution": "node",
-    "noEmit": true
+    "strict": true,
+    "noEmit": true,
+    "lib": [
+      "dom",
+      "es5",
+      "es2015.promise"
+    ]
   },
   "include": [
     "**/*.ts"
