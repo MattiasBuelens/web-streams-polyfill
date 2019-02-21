@@ -29,7 +29,7 @@ function buildConfig(entry, { esm = false, minify = false, es6 = false } = {}) {
       rollupDts.js({
         tsconfig: 'src/tsconfig.json',
         compilerOptions: {
-          target: es6 ? ts.ScriptTarget.ES2015 : ts.ScriptTarget.ES5
+          // target: es6 ? ts.ScriptTarget.ES2015 : ts.ScriptTarget.ES5 // FIXME
         }
       }),
       rollupInject({
@@ -39,11 +39,12 @@ function buildConfig(entry, { esm = false, minify = false, es6 = false } = {}) {
           Symbol: path.resolve(__dirname, './src/stub/symbol.ts')
         }
       }),
-      rollupStrip({
-        include: 'src/**/*.ts',
-        functions: ['assert', 'debug', 'verbose'],
-        sourceMap: true
-      }),
+      // FIXME
+      // rollupStrip({
+      //   include: 'src/**/*.ts',
+      //   functions: ['assert', 'debug', 'verbose'],
+      //   sourceMap: true
+      // }),
       minify ? rollupTerser({
         keep_classnames: true, // needed for WPT
         mangle: {

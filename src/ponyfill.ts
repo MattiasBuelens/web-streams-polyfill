@@ -2,6 +2,7 @@ import {
   PipeOptions,
   ReadableByteStreamControllerType,
   ReadableStream,
+  ReadableStreamAsyncIterator,
   ReadableStreamBYOBReaderType,
   ReadableStreamBYOBRequestType,
   ReadableStreamDefaultControllerType,
@@ -32,6 +33,7 @@ export {
   ReadableStreamBYOBRequestType as ReadableStreamBYOBRequest,
   ReadableStreamDefaultReaderType as ReadableStreamDefaultReader,
   ReadableStreamBYOBReaderType as ReadableStreamBYOBReader,
+  ReadableStreamAsyncIterator,
 
   WritableStream,
   UnderlyingSink,
