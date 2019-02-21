@@ -11,6 +11,7 @@
 
 ## Unreleased
 
+* 💥 **Breaking change:** The type of `TransformStream<R, W>` is changed to `TransformStream<I, O>` and the meaning of the two type parameters is flipped, to align the polyfill with the built-in type definitions of TypeScript 3.2.
 * 🚀 Add `polyfill/es6` variant
 * 🐛 Fix memory leak when using streams in a microtask loop in Node.js ([#8](https://github.com/MattiasBuelens/web-streams-polyfill/pull/8))
 * 🏠 Switch to TypeScript ([#7](https://github.com/MattiasBuelens/web-streams-polyfill/pull/7))
