@@ -9,7 +9,7 @@
 > - 🏠 Internal
 > - 💅 Polish
 
-## Unreleased
+## v0.3.0 (2019-02-21)
 
 * 💥 **Breaking change:** The type of `TransformStream<R, W>` is changed to `TransformStream<I, O>` and the meaning of the two type parameters is flipped, to align the polyfill with the built-in type definitions of TypeScript 3.2.
 * 🚀 Add `polyfill/es6` variant
