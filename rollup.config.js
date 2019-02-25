@@ -1,5 +1,6 @@
 const path = require('path');
 
+const ts = require('typescript');
 const rollupDts = require('rollup-plugin-dts');
 const rollupInject = require('rollup-plugin-inject');
 const rollupStrip = require('rollup-plugin-strip');
@@ -27,7 +28,9 @@ function buildConfig(entry, { esm = false, minify = false, es6 = false } = {}) {
     plugins: [
       rollupDts.js({
         tsconfig: 'src/tsconfig.json',
-        target: es6 ? 'es2015' : 'es5'
+        compilerOptions: {
+          target: es6 ? ts.ScriptTarget.ES2015 : ts.ScriptTarget.ES5
+        }
       }),
       rollupInject({
         include: 'src/**/*.ts',
