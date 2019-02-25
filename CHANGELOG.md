@@ -9,6 +9,10 @@
 > - 🏠 Internal
 > - 💅 Polish
 
+## v0.3.1 (2019-02-25)
+
+* 🐛 Fix ES5 build target ([#9](https://github.com/MattiasBuelens/web-streams-polyfill/pull/9))
+
 ## v0.3.0 (2019-02-21)
 
 * 💥 **Breaking change:** The type of `TransformStream<R, W>` is changed to `TransformStream<I, O>` and the meaning of the two type parameters is flipped, to align the polyfill with the built-in type definitions of TypeScript 3.2.
