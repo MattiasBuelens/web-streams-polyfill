@@ -3,9 +3,12 @@ workflow "Build and test" {
   resolves = ["Test"]
 }
 
+# GitHub Actions run as root, but by default `npm install` does not run lifecycle scripts when run as root
+# Add --unsafe-perm option to allow it to lifecycle scripts
+# See https://github.com/actions/npm/issues/27
 action "Build" {
   uses = "actions/npm@master"
-  args = "install"
+  args = ["install", "--unsafe-perm"]
 }
 
 action "Test" {
