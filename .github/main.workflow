@@ -1,4 +1,4 @@
-workflow "Build and test" {
+workflow "Test on push" {
   on = "push"
   resolves = ["Test"]
 }
@@ -14,5 +14,27 @@ action "Build" {
 action "Test" {
   uses = "actions/npm@master"
   needs = ["Build"]
+  args = "test"
+}
+
+workflow "Test on pull request" {
+  on = "pull_request"
+  resolves = ["Test pull request"]
+}
+
+action "Check out pull request merge" {
+  uses = "MattiasBuelens/checkout-pull-request-merge@v0.0.1"
+  secrets = ["GITHUB_TOKEN"]
+}
+
+action "Build pull request" {
+  uses = "actions/npm@master"
+  needs = ["Check out pull request merge"]
+  args = ["install", "--unsafe-perm"]
+}
+
+action "Test pull request" {
+  uses = "actions/npm@master"
+  needs = ["Build pull request"]
   args = "test"
 }
