@@ -20,6 +20,7 @@
   "files": [
     "dist",
     "es6",
+    "es2018",
     "ponyfill"
   ],
   "engines": {
