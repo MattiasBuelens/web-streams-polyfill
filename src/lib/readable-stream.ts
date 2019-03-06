@@ -30,6 +30,7 @@ import {
   WritableStreamDefaultWriterWrite
 } from './writable-stream';
 import NumberIsInteger from '../stub/number-isinteger';
+import { AsyncIteratorPrototype } from '@target/stub/async-iterator-prototype';
 
 const CancelSteps = Symbol('[[CancelSteps]]');
 const PullSteps = Symbol('[[PullSteps]]');
@@ -266,8 +267,7 @@ declare class ReadableStreamAsyncIteratorImpl<R> implements ReadableStreamAsyncI
   return(value?: any): Promise<IteratorResult<any>>;
 }
 
-const AsyncIteratorPrototype: AsyncIterator<any> = Object.getPrototypeOf(Object.getPrototypeOf(async function* (): AsyncIterableIterator<any> {}).prototype);
-const ReadableStreamAsyncIteratorPrototype: ReadableStreamAsyncIteratorImpl<any> = Object.setPrototypeOf({
+const ReadableStreamAsyncIteratorPrototype: ReadableStreamAsyncIteratorImpl<any> = {
   next(): Promise<IteratorResult<any>> {
     if (IsReadableStreamAsyncIterator(this) === false) {
       return Promise.reject(streamAsyncIteratorBrandCheckException('next'));
@@ -308,7 +308,10 @@ const ReadableStreamAsyncIteratorPrototype: ReadableStreamAsyncIteratorImpl<any>
     ReadableStreamReaderGenericRelease(reader);
     return Promise.resolve(ReadableStreamCreateReadResult(value, true, true));
   }
-}, AsyncIteratorPrototype);
+} as any;
+if (AsyncIteratorPrototype !== undefined) {
+  Object.setPrototypeOf(ReadableStreamAsyncIteratorPrototype, AsyncIteratorPrototype);
+}
 Object.defineProperty(ReadableStreamAsyncIteratorPrototype, 'next', { enumerable: false });
 Object.defineProperty(ReadableStreamAsyncIteratorPrototype, 'return', { enumerable: false });
 

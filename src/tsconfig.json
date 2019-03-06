@@ -1,13 +1,19 @@
 {
   "compilerOptions": {
-    "target": "esnext",
+    "target": "es5",
     "module": "es2015",
     "lib": [
       "dom",
-      "es2018",
+      "es2015",
       "esnext.asynciterable"
     ],
     "strict": true,
-    "stripInternal": true
+    "stripInternal": true,
+    "baseUrl": ".",
+    "paths": {
+      "@target/*": [
+        "./target/es5/*"
+      ]
+    }
   }
 }
