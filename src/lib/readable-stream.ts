@@ -315,12 +315,14 @@ if (AsyncIteratorPrototype !== undefined) {
 Object.defineProperty(ReadableStreamAsyncIteratorPrototype, 'next', { enumerable: false });
 Object.defineProperty(ReadableStreamAsyncIteratorPrototype, 'return', { enumerable: false });
 
-Object.defineProperty(ReadableStream.prototype, Symbol.asyncIterator, {
-  value: ReadableStream.prototype.getIterator,
-  enumerable: false,
-  writable: true,
-  configurable: true
-});
+if (typeof Symbol.asyncIterator === 'symbol') {
+  Object.defineProperty(ReadableStream.prototype, Symbol.asyncIterator, {
+    value: ReadableStream.prototype.getIterator,
+    enumerable: false,
+    writable: true,
+    configurable: true
+  });
+}
 
 export {
   CreateReadableByteStream,
