@@ -30,7 +30,7 @@ import {
   WritableStreamDefaultWriterWrite
 } from './writable-stream';
 import NumberIsInteger from '../stub/number-isinteger';
-import { AsyncIteratorPrototype } from '@target/stub/async-iterator-prototype';
+import { AsyncIteratorPrototype } from '@@target/stub/async-iterator-prototype';
 
 const CancelSteps = Symbol('[[CancelSteps]]');
 const PullSteps = Symbol('[[PullSteps]]');
