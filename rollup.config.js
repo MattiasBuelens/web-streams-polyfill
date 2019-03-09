@@ -36,12 +36,11 @@ function buildConfig(entry, { esm = false, minify = false, target = 'es5' } = {}
           Symbol: path.resolve(__dirname, './src/stub/symbol.ts')
         }
       }),
-      // FIXME
-      // rollupStrip({
-      //   include: 'src/**/*.ts',
-      //   functions: ['assert', 'debug', 'verbose'],
-      //   sourceMap: true
-      // }),
+      rollupStrip({
+        include: 'src/**/*.ts',
+        functions: ['assert', 'debug', 'verbose'],
+        sourceMap: true
+      }),
       minify ? rollupTerser({
         keep_classnames: true, // needed for WPT
         mangle: {

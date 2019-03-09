@@ -236,7 +236,7 @@ class ReadableStream<R = any> {
     return createArrayFromList(branches);
   }
 
-  getIterator({ preventCancel = false }: { preventCancel?: boolean } = {}): ReadableStreamAsyncIterator<R> {
+  getIterator({ preventCancel }: { preventCancel?: boolean } = {}): ReadableStreamAsyncIterator<R> {
     if (IsReadableStream(this) === false) {
       throw streamBrandCheckException('getIterator');
     }
