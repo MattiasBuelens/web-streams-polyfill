@@ -14,16 +14,20 @@ Web Streams, based on the WHATWG spec reference implementation.
 
 ## Usage
 
-This library comes in four variants:
+This library comes in multiple variants:
 * `@mattiasbuelens/web-streams-polyfill`: a polyfill that replaces the native stream implementations.
-  Recommended for use in web apps through a `<script>` tag.
+  Recommended for use in web apps supporting older browsers through a `<script>` tag.
 * `@mattiasbuelens/web-streams-polyfill/es6`: a polyfill targeting ES2015+ environments.
-  Recommended for use in web apps targeting modern browsers through a `<script>` tag.
+  Recommended for use in web apps supporting modern browsers through a `<script>` tag.
+* `@mattiasbuelens/web-streams-polyfill/es2018`: a polyfill targeting ES2018+ environments.
+  Required for [`ReadableStream` async iterable support][rs-asynciterator].
 * `@mattiasbuelens/web-streams-polyfill/ponyfill`: a [ponyfill] that provides
   the stream implementations without replacing any globals.
-  Recommended for use in Node applications or web libraries.
+  Recommended for use in legacy Node applications, or in web libraries supporting older browsers.
 * `@mattiasbuelens/web-streams-polyfill/ponyfill/es6`: a ponyfill targeting ES2015+ environments.
-  Recommended for use in modern Node applications, or in web libraries targeting modern browsers.
+  Recommended for use in Node 6+ applications, or in web libraries supporting modern browsers.
+* `@mattiasbuelens/web-streams-polyfill/ponyfill/es2018`: a ponyfill targeting ES2018+ environments.
+  Recommended for use in Node 10+ applications.
 
 Each variant also includes TypeScript type definitions, compatible with the DOM type definitions for streams included in TypeScript.
 
@@ -58,9 +62,11 @@ If you need to support older browsers or Node versions that do not have a native
 
 The `polyfill/es6` and `ponyfill/es6` variants work in any ES2015-compatible environment.
 
+The `polyfill/es2018` and `ponyfill/es2018` variants work in any ES2018-compatible environment.
+
 ### Compliance
 
-The polyfill implements [version `1116de06e9` (29 Nov 2018)](https://streams.spec.whatwg.org/commit-snapshots/1116de06e94bf4406c60b1e766111dfd8bc7bfcd/) of the streams specification.
+The polyfill implements [version `bf2cac8` (6 Feb 2019)](https://streams.spec.whatwg.org/commit-snapshots/bf2cac8a52664df3e6da7a48755890e87b00953a/) of the streams specification.
 
 The type definitions are compatible with the built-in stream types of TypeScript 3.3.
 
@@ -74,6 +80,7 @@ Thanks to these people for their work on [the original polyfill][creatorrr-polyf
 [spec]: https://streams.spec.whatwg.org
 [ref-impl]: https://github.com/whatwg/streams
 [ponyfill]: https://github.com/sindresorhus/ponyfill
+[rs-asynciterator]: https://streams.spec.whatwg.org/#rs-asynciterator
 [promise-support]: https://kangax.github.io/compat-table/es6/#test-Promise
 [promise-polyfill]: https://www.npmjs.com/package/promise-polyfill
 [creatorrr-polyfill]: https://github.com/creatorrr/web-streams-polyfill

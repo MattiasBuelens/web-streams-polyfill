@@ -1,17 +1,16 @@
 {
+  "extends": "./tsconfig.json",
   "compilerOptions": {
-    "target": "es5",
-    "module": "es2015",
+    "target": "esnext",
     "lib": [
       "dom",
-      "es2015",
+      "es2018",
       "esnext.asynciterable"
     ],
-    "strict": true,
-    "stripInternal": true,
-    "baseUrl": ".",
     "paths": {
       "@@target/*": [
+        "./target/es2018/*",
+        "./target/es6/*",
         "./target/es5/*"
       ]
     }

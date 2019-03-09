@@ -6,8 +6,8 @@ const rollupInject = require('rollup-plugin-inject');
 const rollupStrip = require('rollup-plugin-strip');
 const { terser: rollupTerser } = require('rollup-plugin-terser');
 
-function buildConfig(entry, { esm = false, minify = false, es6 = false } = {}) {
-  const outname = `${entry}${es6 ? '.es6' : ''}`;
+function buildConfig(entry, { esm = false, minify = false, target = 'es5' } = {}) {
+  const outname = `${entry}${target === 'es5' ? '' : `.${target}`}`;
   return {
     input: `src/${entry}.ts`,
     output: [
@@ -27,10 +27,7 @@ function buildConfig(entry, { esm = false, minify = false, es6 = false } = {}) {
     ].filter(Boolean),
     plugins: [
       rollupDts.js({
-        tsconfig: 'src/tsconfig.json',
-        compilerOptions: {
-          target: es6 ? ts.ScriptTarget.ES2015 : ts.ScriptTarget.ES5
-        }
+        tsconfig: `src/tsconfig${target === 'es5' ? '' : `-${target}`}.json`
       }),
       rollupInject({
         include: 'src/**/*.ts',
@@ -63,10 +60,15 @@ module.exports = [
   buildConfig('polyfill', { esm: true }),
   buildConfig('polyfill', { minify: true }),
   // polyfill/es6
-  buildConfig('polyfill', { es6: true, esm: true }),
-  buildConfig('polyfill', { es6: true, minify: true }),
+  buildConfig('polyfill', { target: 'es6', esm: true }),
+  buildConfig('polyfill', { target: 'es6', minify: true }),
+  // polyfill/es2018
+  buildConfig('polyfill', { target: 'es2018', esm: true }),
+  buildConfig('polyfill', { target: 'es2018', minify: true }),
   // ponyfill
   buildConfig('ponyfill', { esm: true }),
   // ponyfill/es6
-  buildConfig('ponyfill', { es6: true, esm: true })
+  buildConfig('ponyfill', { target: 'es6', esm: true }),
+  // ponyfill/es2018
+  buildConfig('ponyfill', { target: 'es2018', esm: true })
 ];

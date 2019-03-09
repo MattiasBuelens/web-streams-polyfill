@@ -9,6 +9,12 @@
 > - 🏠 Internal
 > - 💅 Polish
 
+## Unreleased
+
+* 🚀 Add `@@asyncIterator` to `ReadableStream` ([#11](https://github.com/MattiasBuelens/web-streams-polyfill/pull/11))
+* 🚀 Add `polyfill/es2018` and `ponyfill/es2018` variants ([#11](https://github.com/MattiasBuelens/web-streams-polyfill/pull/11))
+* 👓 Align with [spec version `bf2cac8a52`](https://github.com/whatwg/streams/tree/bf2cac8a52664df3e6da7a48755890e87b00953a/) ([#11](https://github.com/MattiasBuelens/web-streams-polyfill/pull/11))
+
 ## v0.3.1 (2019-02-25)
 
 * 🐛 Fix ES5 build target ([#9](https://github.com/MattiasBuelens/web-streams-polyfill/pull/9))

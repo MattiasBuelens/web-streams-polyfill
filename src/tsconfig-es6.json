@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "target": "es2015",
+    "paths": {
+      "@@target/*": [
+        "./target/es6/*",
+        "./target/es5/*"
+      ]
+    }
+  }
+}

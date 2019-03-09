@@ -96,6 +96,18 @@ const pipeThroughStream: ReadableStream<Uint8Array> = readableStream
     signal: undefined
   });
 
+const getIteratorResult: polyfill.ReadableStreamAsyncIterator<string> = readableStream.getIterator({ preventCancel: true });
+
+const asyncIterator: polyfill.ReadableStreamAsyncIterator<string> = readableStream[Symbol.asyncIterator]();
+const asyncIteratorNextResult: Promise<IteratorResult<string>> = asyncIterator.next();
+const asyncIteratorReturnResult: Promise<IteratorResult<any>> = asyncIterator.return('returned');
+
+(async () => {
+  for await (const chunk of readableStream) {
+    const chunkAsString: string = chunk;
+  }
+})();
+
 // Compatibility with stream types from DOM
 const domUnderlyingSource: UnderlyingSource<string> = underlyingSource;
 const domUnderlyingByteSource: UnderlyingByteSource = underlyingByteSource;
