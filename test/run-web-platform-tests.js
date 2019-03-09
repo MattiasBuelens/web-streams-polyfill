@@ -5,8 +5,10 @@
 const path = require('path');
 const fs = require('fs');
 const { promisify } = require('util');
-const wptRunner = require('wpt-runner');
 const micromatch = require('micromatch');
+const wptRunner = require('wpt-runner');
+const consoleReporter = require('wpt-runner/lib/console-reporter.js');
+const { FilteringReporter } = require('./wpt-util/filtering-reporter.js');
 
 const readFileAsync = promisify(fs.readFile);
 
@@ -28,7 +30,22 @@ main().catch(e => {
 });
 
 async function main() {
-  const entryPath = path.resolve(__dirname, '../dist/polyfill.es2018.min.js');
+  const ignoredFailuresES6 = {
+    'readable-streams/async-iterator.any.html': [
+      // ES6 build will not use correct %AsyncIteratorPrototype%
+      'Async iterator instances should have the correct list of properties'
+    ]
+  };
+
+  let failures = 0;
+  failures += await runTests('polyfill.es2018.min.js');
+  failures += await runTests('polyfill.es6.min.js', ignoredFailuresES6);
+
+  process.exitCode = failures;
+}
+
+async function runTests(entryFile, ignoredFailures) {
+  const entryPath = path.resolve(__dirname, `../dist/${entryFile}`);
   const testsPath = path.resolve(__dirname, './web-platform-tests/streams');
 
   const includeGlobs = process.argv.length >= 3 ? process.argv.slice(2) : ['**/*.html'];
@@ -41,10 +58,15 @@ async function main() {
   const excludeMatcher = micromatch.matcher(excludeGlobs);
   const workerTestPattern = /\.(?:dedicated|shared|service)worker(?:\.https)?\.html$/;
 
+  const reporter = new FilteringReporter(consoleReporter, ignoredFailures);
+
   const bundledJS = await readFileAsync(entryPath, { encoding: 'utf8' });
 
-  const failures = await wptRunner(testsPath, {
+  console.log(`>>> ${entryFile}`);
+
+  let failures = await wptRunner(testsPath, {
     rootURL: 'streams/',
+    reporter,
     setup(window) {
       window.gc = gc;
       window.eval(bundledJS);
@@ -55,16 +77,24 @@ async function main() {
           !excludeMatcher(testPath);
     }
   });
+  const results = reporter.getResults();
 
-  process.exitCode = failures;
+  console.log();
+  console.log(`${results.passed} tests passed, ${results.failed} failed, ${results.ignored} ignored`);
+
+  failures -= results.ignored;
 
   if (rejections.size > 0) {
     if (failures === 0) {
-      process.exitCode = 1;
+      failures = 1;
     }
 
     for (const reason of rejections.values()) {
       console.error('Unhandled promise rejection: ', reason.stack);
     }
   }
+
+  console.log();
+
+  return failures;
 }
