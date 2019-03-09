@@ -30,32 +30,53 @@ main().catch(e => {
 });
 
 async function main() {
-  const ignoredFailuresES6 = {
-    'readable-streams/async-iterator.any.html': [
-      // ES6 build will not use correct %AsyncIteratorPrototype%
-      'Async iterator instances should have the correct list of properties'
-    ]
-  };
+  const supportsES2018 = runtimeSupportsAsyncGenerators();
+
+  const excludedTests = [
+    // We cannot polyfill TransferArrayBuffer yet, so disable tests for detached array buffers
+    // See https://github.com/MattiasBuelens/web-streams-polyfill/issues/3
+    'readable-byte-streams/detached-buffers.any.html'
+  ];
+  const ignoredFailures = {};
+
+  if (!supportsES2018) {
+    excludedTests.push([
+      // Skip tests that use async generators or for-await-of
+      'readable-streams/async-iterator.any.html',
+      'readable-streams/patched-global.any.html'
+    ]);
+    ignoredFailures['readable-streams/general.any.html'] = [
+      // Symbol.asyncIterator does not exist
+      'ReadableStream instances should have the correct list of properties'
+    ];
+  }
 
   let failures = 0;
-  failures += await runTests('polyfill.es2018.min.js');
-  failures += await runTests('polyfill.es6.min.js', ignoredFailuresES6);
+  if (supportsES2018) {
+    failures += await runTests('polyfill.es2018.min.js', { excludedTests, ignoredFailures });
+  }
+  failures += await runTests('polyfill.es6.min.js', {
+    excludedTests,
+    ignoredFailures: {
+      ...ignoredFailures,
+      'readable-streams/async-iterator.any.html': [
+        ...(ignoredFailures['readable-streams/async-iterator.any.html'] || []),
+        // ES6 build will not use correct %AsyncIteratorPrototype%
+        'Async iterator instances should have the correct list of properties'
+      ]
+    }
+  });
 
   process.exitCode = failures;
 }
 
-async function runTests(entryFile, ignoredFailures) {
+async function runTests(entryFile, { excludedTests = [], ignoredFailures = {} } = {}) {
   const entryPath = path.resolve(__dirname, `../dist/${entryFile}`);
   const testsPath = path.resolve(__dirname, './web-platform-tests/streams');
 
-  const includeGlobs = process.argv.length >= 3 ? process.argv.slice(2) : ['**/*.html'];
-  const excludeGlobs = [
-    // We cannot polyfill TransferArrayBuffer yet, so disable tests for detached array buffers
-    // See https://github.com/MattiasBuelens/web-streams-polyfill/issues/3
-    'readable-byte-streams/detached-buffers.*.html'
-  ];
-  const includeMatcher = micromatch.matcher(includeGlobs);
-  const excludeMatcher = micromatch.matcher(excludeGlobs);
+  const includedTests = process.argv.length >= 3 ? process.argv.slice(2) : ['**/*.html'];
+  const includeMatcher = micromatch.matcher(includedTests);
+  const excludeMatcher = micromatch.matcher(excludedTests);
   const workerTestPattern = /\.(?:dedicated|shared|service)worker(?:\.https)?\.html$/;
 
   const reporter = new FilteringReporter(consoleReporter, ignoredFailures);
@@ -97,4 +118,14 @@ async function runTests(entryFile, ignoredFailures) {
   console.log();
 
   return failures;
+}
+
+function runtimeSupportsAsyncGenerators() {
+  try {
+    // eslint-disable-next-line no-new-func
+    Function('(async function* f() {})')();
+    return true;
+  } catch (e) {
+    return false;
+  }
 }
