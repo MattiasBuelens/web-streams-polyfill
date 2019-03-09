@@ -19,14 +19,14 @@ This library comes in multiple variants:
   Recommended for use in web apps through a `<script>` tag.
 * `@mattiasbuelens/web-streams-polyfill/es6`: a polyfill targeting ES2015+ environments.
   Recommended for use in web apps targeting modern browsers through a `<script>` tag.
+* `@mattiasbuelens/web-streams-polyfill/es2018`: a polyfill targeting ES2018+ environments.
 * `@mattiasbuelens/web-streams-polyfill/ponyfill`: a [ponyfill] that provides
   the stream implementations without replacing any globals.
   Recommended for use in Node applications or web libraries.
 * `@mattiasbuelens/web-streams-polyfill/ponyfill/es6`: a ponyfill targeting ES2015+ environments.
   Recommended for use in modern Node applications, or in web libraries targeting modern browsers.
-* `@mattiasbuelens/web-streams-polyfill/es2018`: a polyfill targeting ES2018+ environments.
   Required for [`ReadableStream.prototype[Symbol.asyncIterator]()`][rs-asynciterator].
-* `@mattiasbuelens/web-streams-polyfill/ponyfill/es2018`: a ponyfill targeting ES2015+ environments.
+* `@mattiasbuelens/web-streams-polyfill/ponyfill/es2018`: a ponyfill targeting ES2018+ environments.
 
 Each variant also includes TypeScript type definitions, compatible with the DOM type definitions for streams included in TypeScript.
 
