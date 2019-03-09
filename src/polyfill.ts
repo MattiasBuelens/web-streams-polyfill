@@ -6,6 +6,7 @@ import {
   WritableStream
 } from './ponyfill';
 import { globals } from './utils';
+import ObjectAssign from './stub/object-assign';
 
 // Export
 export * from './ponyfill';
@@ -20,5 +21,5 @@ const exports = {
 
 // Add classes to global scope
 if (typeof globals !== 'undefined') {
-  Object.assign(globals, exports);
+  ObjectAssign(globals, exports);
 }
