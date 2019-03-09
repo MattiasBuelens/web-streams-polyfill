@@ -2,6 +2,10 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "target": "es2015",
+    "lib": [
+      "es2015",
+      "esnext.asynciterable"
+    ],
     "paths": {
       "@@target/*": [
         "./target/es6/*",

@@ -1,3 +1,5 @@
+/// <reference lib="dom" />
+
 export function noop() {
   // do nothing
 }

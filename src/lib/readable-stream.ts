@@ -1,3 +1,4 @@
+/// <reference lib="dom" />
 /* global AbortSignal:false */
 
 import assert from '../stub/better-assert';
