@@ -14,7 +14,7 @@
 * 🚀 Add `@@asyncIterator` to `ReadableStream` ([#11](https://github.com/MattiasBuelens/web-streams-polyfill/pull/11))
 * 🚀 Add `polyfill/es2018` and `ponyfill/es2018` variants ([#11](https://github.com/MattiasBuelens/web-streams-polyfill/pull/11))
 * 🐛 Fix using unsupported `Object.assign` on Internet Explorer
-* 👓 Align with [spec version `bf2cac8`](https://github.com/whatwg/streams/tree/bf2cac8a52664df3e6da7a48755890e87b00953a/) ([#11](https://github.com/MattiasBuelens/web-streams-polyfill/pull/11))
+* 👓 Align with [spec version `2c8f35e`](https://github.com/whatwg/streams/tree/2c8f35ed23451ffc9b32ec37b56def4a5349abb1/) ([#11](https://github.com/MattiasBuelens/web-streams-polyfill/pull/11), [#12](https://github.com/MattiasBuelens/web-streams-polyfill/pull/12))
 
 ## v0.3.1 (2019-02-25)
 
