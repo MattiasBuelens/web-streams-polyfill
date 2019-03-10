@@ -2333,7 +2333,6 @@ function SetUpReadableByteStreamController(stream: ReadableByteStream,
   controller._pulling = false;
 
   controller._byobRequest = undefined;
-  ReadableByteStreamControllerClearPendingPullIntos(controller);
 
   // Need to set the slots so that the assert doesn't fire. In the spec the slots already exist implicitly.
   controller._queue = controller._queueTotalSize = undefined!;
