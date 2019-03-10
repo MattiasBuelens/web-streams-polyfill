@@ -1,4 +1,4 @@
-export let AsyncIteratorPrototype: AsyncIterable<any> | undefined = undefined;
+export let AsyncIteratorPrototype: AsyncIterable<any> | undefined;
 
 if (typeof Symbol.asyncIterator === 'symbol') {
   // We're running inside a ES2018+ environment, but we're compiling to an older syntax.
