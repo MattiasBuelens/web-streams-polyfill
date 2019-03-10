@@ -1,4 +1,4 @@
-import assert from '../stub/better-assert';
+import assert from '../stub/assert';
 import debug from '../stub/debug';
 import {
   CreateAlgorithmFromUnderlyingMethod,
@@ -986,9 +986,7 @@ function WritableStreamDefaultControllerAdvanceQueueIfNeeded<W>(controller: Writ
   }
 
   const state = stream._state;
-  if (state === 'closed' || state === 'errored') {
-    return;
-  }
+  assert(state !== 'closed' && state !== 'errored');
   if (state === 'erroring') {
     WritableStreamFinishErroring(stream);
     return;

@@ -66,7 +66,7 @@ The `polyfill/es2018` and `ponyfill/es2018` variants work in any ES2018-compatib
 
 ### Compliance
 
-The polyfill implements [version `bf2cac8` (6 Feb 2019)](https://streams.spec.whatwg.org/commit-snapshots/bf2cac8a52664df3e6da7a48755890e87b00953a/) of the streams specification.
+The polyfill implements [version `2c8f35e` (21 Feb 2019)](https://streams.spec.whatwg.org/commit-snapshots/2c8f35ed23451ffc9b32ec37b56def4a5349abb1/) of the streams specification.
 
 The type definitions are compatible with the built-in stream types of TypeScript 3.3.
 

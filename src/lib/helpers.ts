@@ -1,4 +1,4 @@
-import assert from '../stub/better-assert';
+import assert from '../stub/assert';
 import NumberIsNaN from '../stub/number-isnan';
 import { FunctionPropertyNames, InferFirst, InferFunction, InferRest, Promisify } from '../util/type-utils';
 
