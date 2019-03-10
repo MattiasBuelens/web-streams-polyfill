@@ -35,9 +35,9 @@
     "whatwg",
     "polyfill"
   ],
-  "author": "Diwank Singh <diwank.singh@gmail.com>",
+  "author": "Mattias Buelens <mattias@buelens.com>",
   "contributors": [
-    "Mattias Buelens <mattias@buelens.com>"
+    "Diwank Singh <diwank.singh@gmail.com>"
   ],
   "license": "MIT",
   "bugs": {
