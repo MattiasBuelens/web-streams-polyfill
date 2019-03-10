@@ -1,5 +1,5 @@
 {
-  "name": "@mattiasbuelens/web-streams-polyfill-es6",
+  "name": "web-streams-polyfill-es6",
   "main": "../dist/polyfill.es6",
   "browser": "../dist/polyfill.es6.min.js",
   "module": "../dist/polyfill.es6.mjs",
