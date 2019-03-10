@@ -1,5 +1,5 @@
 {
-  "name": "@mattiasbuelens/web-streams-polyfill",
+  "name": "web-streams-polyfill",
   "version": "0.3.2",
   "description": "Web Streams, based on the WHATWG spec reference implementation",
   "main": "dist/polyfill",

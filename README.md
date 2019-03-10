@@ -3,8 +3,8 @@
 Web Streams, based on the WHATWG spec reference implementation.  
 
 [![build status](https://api.travis-ci.com/MattiasBuelens/web-streams-polyfill.svg?branch=master)](https://travis-ci.com/MattiasBuelens/web-streams-polyfill)
-[![npm version](https://img.shields.io/npm/v/@mattiasbuelens/web-streams-polyfill.svg)](https://www.npmjs.com/package/@mattiasbuelens/web-streams-polyfill)
-[![license](https://img.shields.io/npm/l/@mattiasbuelens/web-streams-polyfill.svg)](https://github.com/MattiasBuelens/web-streams-polyfill/blob/master/LICENSE)
+[![npm version](https://img.shields.io/npm/v/web-streams-polyfill.svg)](https://www.npmjs.com/package/web-streams-polyfill)
+[![license](https://img.shields.io/npm/l/web-streams-polyfill.svg)](https://github.com/MattiasBuelens/web-streams-polyfill/blob/master/LICENSE)
 [![Join the chat at https://gitter.im/web-streams-polyfill/Lobby](https://badges.gitter.im/web-streams-polyfill/Lobby.svg)](https://gitter.im/web-streams-polyfill/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 ## Links
@@ -15,18 +15,18 @@ Web Streams, based on the WHATWG spec reference implementation.
 ## Usage
 
 This library comes in multiple variants:
-* `@mattiasbuelens/web-streams-polyfill`: a polyfill that replaces the native stream implementations.
+* `web-streams-polyfill`: a polyfill that replaces the native stream implementations.
   Recommended for use in web apps supporting older browsers through a `<script>` tag.
-* `@mattiasbuelens/web-streams-polyfill/es6`: a polyfill targeting ES2015+ environments.
+* `web-streams-polyfill/es6`: a polyfill targeting ES2015+ environments.
   Recommended for use in web apps supporting modern browsers through a `<script>` tag.
-* `@mattiasbuelens/web-streams-polyfill/es2018`: a polyfill targeting ES2018+ environments.
+* `web-streams-polyfill/es2018`: a polyfill targeting ES2018+ environments.
   Required for [`ReadableStream` async iterable support][rs-asynciterator].
-* `@mattiasbuelens/web-streams-polyfill/ponyfill`: a [ponyfill] that provides
+* `web-streams-polyfill/ponyfill`: a [ponyfill] that provides
   the stream implementations without replacing any globals.
   Recommended for use in legacy Node applications, or in web libraries supporting older browsers.
-* `@mattiasbuelens/web-streams-polyfill/ponyfill/es6`: a ponyfill targeting ES2015+ environments.
+* `web-streams-polyfill/ponyfill/es6`: a ponyfill targeting ES2015+ environments.
   Recommended for use in Node 6+ applications, or in web libraries supporting modern browsers.
-* `@mattiasbuelens/web-streams-polyfill/ponyfill/es2018`: a ponyfill targeting ES2018+ environments.
+* `web-streams-polyfill/ponyfill/es2018`: a ponyfill targeting ES2018+ environments.
   Recommended for use in Node 10+ applications.
 
 Each variant also includes TypeScript type definitions, compatible with the DOM type definitions for streams included in TypeScript.
@@ -34,7 +34,7 @@ Each variant also includes TypeScript type definitions, compatible with the DOM 
 Usage as a polyfill:
 ```html
 <!-- option 1: hosted by unpkg CDN -->
-<script src="https://unpkg.com/@mattiasbuelens/web-streams-polyfill/dist/polyfill.min.js"></script>
+<script src="https://unpkg.com/web-streams-polyfill/dist/polyfill.min.js"></script>
 <!-- option 2: self hosted -->
 <script src="/path/to/web-streams-polyfill/dist/polyfill.min.js"></script>
 <script>
@@ -43,12 +43,12 @@ var readable = new ReadableStream();
 ```
 Usage as a Node module:
 ```js
-var streams = require("@mattiasbuelens/web-streams-polyfill/ponyfill");
+var streams = require("web-streams-polyfill/ponyfill");
 var readable = new streams.ReadableStream();
 ```
 Usage as a ES2015 module:
 ```js
-import { ReadableStream } from "@mattiasbuelens/web-streams-polyfill/ponyfill";
+import { ReadableStream } from "web-streams-polyfill/ponyfill";
 const readable = new ReadableStream();
 ```
 
