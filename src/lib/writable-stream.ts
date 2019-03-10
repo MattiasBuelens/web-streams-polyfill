@@ -1,5 +1,4 @@
 import assert from '../stub/assert';
-import debug from '../stub/debug';
 import {
   CreateAlgorithmFromUnderlyingMethod,
   InvokeOrNoop,
@@ -11,10 +10,6 @@ import {
 import { rethrowAssertionErrorRejection } from './utils';
 import { DequeueValue, EnqueueValueWithSize, PeekQueueValue, QueuePair, ResetQueue } from './queue-with-sizes';
 import { QueuingStrategy, QueuingStrategySizeCallback } from './queuing-strategy';
-
-// Calls to verbose() are purely for debugging the reference implementation and tests. They are not part of the standard
-// and do not appear in the standard text.
-const verbose = debug('streams:writable-stream:verbose');
 
 const AbortSteps = Symbol('[[AbortSteps]]');
 const ErrorSteps = Symbol('[[ErrorSteps]]');
@@ -275,7 +270,6 @@ function WritableStreamAddWriteRequest(stream: WritableStream): Promise<void> {
 }
 
 function WritableStreamDealWithRejection(stream: WritableStream, error: any) {
-  verbose('WritableStreamDealWithRejection(stream, %o)', error);
   const state = stream._state;
 
   if (state === 'writable') {
@@ -288,7 +282,6 @@ function WritableStreamDealWithRejection(stream: WritableStream, error: any) {
 }
 
 function WritableStreamStartErroring(stream: WritableStream, reason: any) {
-  verbose('WritableStreamStartErroring(stream, %o)', reason);
   assert(stream._storedError === undefined);
   assert(stream._state === 'writable');
 
@@ -308,7 +301,6 @@ function WritableStreamStartErroring(stream: WritableStream, reason: any) {
 }
 
 function WritableStreamFinishErroring(stream: WritableStream) {
-  verbose('WritableStreamFinishErroring()');
   assert(stream._state === 'erroring');
   assert(WritableStreamHasOperationMarkedInFlight(stream) === false);
   stream._state = 'errored';
@@ -417,11 +409,9 @@ function WritableStreamCloseQueuedOrInFlight(stream: WritableStream): boolean {
 
 function WritableStreamHasOperationMarkedInFlight(stream: WritableStream): boolean {
   if (stream._inFlightWriteRequest === undefined && stream._inFlightCloseRequest === undefined) {
-    verbose('WritableStreamHasOperationMarkedInFlight() is false');
     return false;
   }
 
-  verbose('WritableStreamHasOperationMarkedInFlight() is true');
   return true;
 }
 
@@ -439,7 +429,6 @@ function WritableStreamMarkFirstWriteRequestInFlight(stream: WritableStream) {
 }
 
 function WritableStreamRejectCloseAndClosedPromiseIfNeeded(stream: WritableStream) {
-  verbose('WritableStreamRejectCloseAndClosedPromiseIfNeeded()');
   assert(stream._state === 'errored');
   if (stream._closeRequest !== undefined) {
     assert(stream._inFlightCloseRequest === undefined);
@@ -701,7 +690,6 @@ function WritableStreamDefaultWriterEnsureClosedPromiseRejected(writer: Writable
 }
 
 function WritableStreamDefaultWriterEnsureReadyPromiseRejected(writer: WritableStreamDefaultWriter<any>, error: any) {
-  verbose('WritableStreamDefaultWriterEnsureReadyPromiseRejected(writer, %o)', error);
   if (writer._readyPromiseState === 'pending') {
     defaultWriterReadyPromiseReject(writer, error);
   } else {
@@ -974,7 +962,6 @@ function WritableStreamDefaultControllerWrite<W>(controller: WritableStreamDefau
 // Abstract operations for the WritableStreamDefaultController.
 
 function WritableStreamDefaultControllerAdvanceQueueIfNeeded<W>(controller: WritableStreamDefaultController<W>) {
-  verbose('WritableStreamDefaultControllerAdvanceQueueIfNeeded()');
   const stream = controller._controlledWritableStream;
 
   if (controller._started === false) {
@@ -1144,7 +1131,6 @@ function defaultWriterClosedPromiseResolve(writer: WritableStreamDefaultWriter<a
 }
 
 function defaultWriterReadyPromiseInitialize(writer: WritableStreamDefaultWriter<any>) {
-  verbose('defaultWriterReadyPromiseInitialize()');
   writer._readyPromise = new Promise((resolve, reject) => {
     writer._readyPromise_resolve = resolve;
     writer._readyPromise_reject = reject;
@@ -1153,19 +1139,16 @@ function defaultWriterReadyPromiseInitialize(writer: WritableStreamDefaultWriter
 }
 
 function defaultWriterReadyPromiseInitializeAsRejected(writer: WritableStreamDefaultWriter<any>, reason: any) {
-  verbose('defaultWriterReadyPromiseInitializeAsRejected(writer, %o)', reason);
   defaultWriterReadyPromiseInitialize(writer);
   defaultWriterReadyPromiseReject(writer, reason);
 }
 
 function defaultWriterReadyPromiseInitializeAsResolved(writer: WritableStreamDefaultWriter<any>) {
-  verbose('defaultWriterReadyPromiseInitializeAsResolved()');
   defaultWriterReadyPromiseInitialize(writer);
   defaultWriterReadyPromiseResolve(writer);
 }
 
 function defaultWriterReadyPromiseReject(writer: WritableStreamDefaultWriter<any>, reason: any) {
-  verbose('defaultWriterReadyPromiseReject(writer, %o)', reason);
   assert(writer._readyPromise_resolve !== undefined);
   assert(writer._readyPromise_reject !== undefined);
 
@@ -1177,7 +1160,6 @@ function defaultWriterReadyPromiseReject(writer: WritableStreamDefaultWriter<any
 }
 
 function defaultWriterReadyPromiseReset(writer: WritableStreamDefaultWriter<any>) {
-  verbose('defaultWriterReadyPromiseReset()');
   assert(writer._readyPromise_resolve === undefined);
   assert(writer._readyPromise_reject === undefined);
 
@@ -1185,7 +1167,6 @@ function defaultWriterReadyPromiseReset(writer: WritableStreamDefaultWriter<any>
 }
 
 function defaultWriterReadyPromiseResetToRejected(writer: WritableStreamDefaultWriter<any>, reason: any) {
-  verbose('defaultWriterReadyPromiseResetToRejected(writer, %o)', reason);
   assert(writer._readyPromise_resolve === undefined);
   assert(writer._readyPromise_reject === undefined);
 
@@ -1193,7 +1174,6 @@ function defaultWriterReadyPromiseResetToRejected(writer: WritableStreamDefaultW
 }
 
 function defaultWriterReadyPromiseResolve(writer: WritableStreamDefaultWriter<any>) {
-  verbose('defaultWriterReadyPromiseResolve()');
   assert(writer._readyPromise_resolve !== undefined);
   assert(writer._readyPromise_reject !== undefined);
 

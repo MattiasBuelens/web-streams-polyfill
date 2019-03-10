@@ -38,7 +38,7 @@ function buildConfig(entry, { esm = false, minify = false, target = 'es5' } = {}
       }),
       rollupStrip({
         include: 'src/**/*.ts',
-        functions: ['assert', 'debug', 'verbose'],
+        functions: ['assert'],
         sourceMap: true
       }),
       minify ? rollupTerser({

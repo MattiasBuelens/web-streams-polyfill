@@ -1,5 +1,4 @@
 import assert from '../stub/assert';
-import debug from '../stub/debug';
 import {
   CreateAlgorithmFromUnderlyingMethod,
   InvokeOrNoop,
@@ -22,10 +21,6 @@ import {
 } from './readable-stream';
 import { QueuingStrategy, QueuingStrategySizeCallback } from './queuing-strategy';
 import { CreateWritableStream, WritableStream, WritableStreamDefaultControllerErrorIfNeeded } from './writable-stream';
-
-// Calls to verbose() are purely for debugging the reference implementation and tests. They are not part of the standard
-// and do not appear in the standard text.
-const verbose = debug('streams:transform-stream:verbose');
 
 export type TransformStreamDefaultControllerCallback<O> = (controller: TransformStreamDefaultController<O>) => void | PromiseLike<void>;
 export type TransformStreamDefaultControllerTransformCallback<I, O> = (chunk: I,
@@ -211,8 +206,6 @@ function IsTransformStream<I, O>(x: any): x is TransformStream<I, O> {
 
 // This is a no-op if both sides are already errored.
 function TransformStreamError(stream: TransformStream, e: any) {
-  verbose('TransformStreamError()');
-
   ReadableStreamDefaultControllerError(stream._readable._readableStreamController as ReadableStreamDefaultController<any>,
                                        e);
   TransformStreamErrorWritableAndUnblockWrite(stream, e);
@@ -230,8 +223,6 @@ function TransformStreamErrorWritableAndUnblockWrite(stream: TransformStream, e:
 }
 
 function TransformStreamSetBackpressure(stream: TransformStream, backpressure: boolean) {
-  verbose(`TransformStreamSetBackpressure() [backpressure = ${backpressure}]`);
-
   // Passes also when called during construction.
   assert(stream._backpressure !== backpressure);
 
@@ -360,8 +351,6 @@ function TransformStreamDefaultControllerClearAlgorithms(controller: TransformSt
 }
 
 function TransformStreamDefaultControllerEnqueue<O>(controller: TransformStreamDefaultController<O>, chunk: O) {
-  verbose('TransformStreamDefaultControllerEnqueue()');
-
   const stream = controller._controlledTransformStream;
   const readableController = stream._readable._readableStreamController as ReadableStreamDefaultController<O>;
   if (ReadableStreamDefaultControllerCanCloseOrEnqueue(readableController) === false) {
@@ -401,8 +390,6 @@ function TransformStreamDefaultControllerPerformTransform<I, O>(controller: Tran
 }
 
 function TransformStreamDefaultControllerTerminate<O>(controller: TransformStreamDefaultController<O>) {
-  verbose('TransformStreamDefaultControllerTerminate()');
-
   const stream = controller._controlledTransformStream;
   const readableController = stream._readable._readableStreamController as ReadableStreamDefaultController<O>;
 
@@ -417,8 +404,6 @@ function TransformStreamDefaultControllerTerminate<O>(controller: TransformStrea
 // TransformStreamDefaultSink Algorithms
 
 function TransformStreamDefaultSinkWriteAlgorithm<I, O>(stream: TransformStream<I, O>, chunk: I): Promise<void> {
-  verbose('TransformStreamDefaultSinkWriteAlgorithm()');
-
   assert(stream._writable._state === 'writable');
 
   const controller = stream._transformStreamController;
@@ -448,8 +433,6 @@ function TransformStreamDefaultSinkAbortAlgorithm(stream: TransformStream, reaso
 }
 
 function TransformStreamDefaultSinkCloseAlgorithm<I, O>(stream: TransformStream<I, O>): Promise<void> {
-  verbose('TransformStreamDefaultSinkCloseAlgorithm()');
-
   // stream._readable cannot change after construction, so caching it across a call to user code is safe.
   const readable = stream._readable;
 
@@ -475,8 +458,6 @@ function TransformStreamDefaultSinkCloseAlgorithm<I, O>(stream: TransformStream<
 // TransformStreamDefaultSource Algorithms
 
 function TransformStreamDefaultSourcePullAlgorithm(stream: TransformStream): Promise<void> {
-  verbose('TransformStreamDefaultSourcePullAlgorithm()');
-
   // Invariant. Enforced by the promises returned by start() and pull().
   assert(stream._backpressure === true);
 
