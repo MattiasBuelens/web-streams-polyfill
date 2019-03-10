@@ -46,9 +46,6 @@ function buildConfig(entry, { esm = false, minify = false, target = 'es5' } = {}
         mangle: {
           toplevel: true
         },
-        compress: {
-          inline: 1 // TODO re-enable when this is fixed: https://github.com/mishoo/UglifyJS2/issues/2842
-        },
         sourcemap: true
       }) : undefined
     ].filter(Boolean)
