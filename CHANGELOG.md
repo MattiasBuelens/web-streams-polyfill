@@ -9,7 +9,7 @@
 > - 🏠 Internal
 > - 💅 Polish
 
-## Unreleased
+## v0.3.2 (2019-03-10)
 
 * 🚀 Add `@@asyncIterator` to `ReadableStream` ([#11](https://github.com/MattiasBuelens/web-streams-polyfill/pull/11))
 * 🚀 Add `polyfill/es2018` and `ponyfill/es2018` variants ([#11](https://github.com/MattiasBuelens/web-streams-polyfill/pull/11))
