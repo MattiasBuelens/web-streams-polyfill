@@ -1,4 +1,4 @@
-import assert from '../stub/better-assert';
+import assert from '../stub/assert';
 import debug from '../stub/debug';
 import {
   CreateAlgorithmFromUnderlyingMethod,

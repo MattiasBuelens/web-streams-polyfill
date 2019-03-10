@@ -1,7 +1,7 @@
 /// <reference lib="dom" />
 /* global AbortSignal:false */
 
-import assert from '../stub/better-assert';
+import assert from '../stub/assert';
 import {
   ArrayBufferCopy,
   CreateAlgorithmFromUnderlyingMethod,

@@ -1,4 +1,4 @@
-import assert from '../stub/better-assert';
+import assert from '../stub/assert';
 import { IsFiniteNonNegativeNumber } from './helpers';
 
 export interface QueueContainer<T> {
