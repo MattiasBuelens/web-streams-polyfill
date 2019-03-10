@@ -655,7 +655,7 @@ function ReadableStreamTee<R>(stream: ReadableStream<R>,
 
   const reader = AcquireReadableStreamDefaultReader<R>(stream);
 
-  let closedOrErrored = false;
+  let closed = false;
   let canceled1 = false;
   let canceled2 = false;
   let reason1: any;
@@ -670,27 +670,28 @@ function ReadableStreamTee<R>(stream: ReadableStream<R>,
 
   function pullAlgorithm(): Promise<void> {
     return ReadableStreamDefaultReaderRead(reader).then(result => {
+      if (closed === true) {
+        return;
+      }
+
       assert(typeIsObject(result));
-      const value = result.value;
       const done = result.done;
       assert(typeof done === 'boolean');
 
-      if (done === true && closedOrErrored === false) {
+      if (done === true) {
         if (canceled1 === false) {
           ReadableStreamDefaultControllerClose(branch1._readableStreamController as ReadableStreamDefaultController<R>);
         }
         if (canceled2 === false) {
           ReadableStreamDefaultControllerClose(branch2._readableStreamController as ReadableStreamDefaultController<R>);
         }
-        closedOrErrored = true;
-      }
-
-      if (closedOrErrored === true) {
+        closed = true;
         return;
       }
 
-      const value1 = value!;
-      const value2 = value!;
+      const value = result.value!;
+      const value1 = value;
+      const value2 = value;
 
       // There is no way to access the cloning code right now in the reference implementation.
       // If we add one then we'll need an implementation for serializable objects.
@@ -742,13 +743,8 @@ function ReadableStreamTee<R>(stream: ReadableStream<R>,
   branch2 = CreateReadableStream(startAlgorithm, pullAlgorithm, cancel2Algorithm);
 
   reader._closedPromise.catch((r: any) => {
-    if (closedOrErrored === true) {
-      return;
-    }
-
     ReadableStreamDefaultControllerError(branch1._readableStreamController as ReadableStreamDefaultController<R>, r);
     ReadableStreamDefaultControllerError(branch2._readableStreamController as ReadableStreamDefaultController<R>, r);
-    closedOrErrored = true;
   });
 
   return [branch1, branch2];
