@@ -1,8 +1,9 @@
 import assert from '../stub/assert';
 import { IsFiniteNonNegativeNumber } from './helpers';
+import { SimpleQueue } from './simple-queue';
 
 export interface QueueContainer<T> {
-  _queue: T[];
+  _queue: SimpleQueue<T>;
   _queueTotalSize: number;
 }
 
@@ -40,13 +41,13 @@ export function PeekQueueValue<T>(container: QueueContainer<QueuePair<T>>): T {
   assert('_queue' in container && '_queueTotalSize' in container);
   assert(container._queue.length > 0);
 
-  const pair = container._queue[0];
+  const pair = container._queue.peek();
   return pair.value;
 }
 
 export function ResetQueue<T>(container: QueueContainer<T>) {
   assert('_queue' in container && '_queueTotalSize' in container);
 
-  container._queue = [];
+  container._queue = new SimpleQueue<T>();
   container._queueTotalSize = 0;
 }
