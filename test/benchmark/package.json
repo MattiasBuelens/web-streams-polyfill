@@ -1,0 +1,13 @@
+{
+  "name": "web-streams-polyfill-benchmark",
+  "version": "0.0.0",
+  "private": true,
+  "main": "index.js",
+  "scripts": {
+    "benchmark": "node --prof index.js"
+  },
+  "devDependencies": {
+    "@stardazed/streams": "^3.0.0",
+    "benchmark": "^2.1.4"
+  }
+}
