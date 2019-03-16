@@ -829,8 +829,8 @@ function ReadableStreamCreateReadResult<T>(value: T | undefined, done: boolean, 
   }
   assert(typeof done === 'boolean');
   const obj: ReadResult<T> = Object.create(prototype);
-  Object.defineProperty(obj, 'value', { value, enumerable: true, writable: true, configurable: true });
-  Object.defineProperty(obj, 'done', { value: done, enumerable: true, writable: true, configurable: true });
+  obj.value = value!;
+  obj.done = done;
   return obj;
 }
 
