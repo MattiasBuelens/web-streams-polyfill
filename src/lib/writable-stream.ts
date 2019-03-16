@@ -10,6 +10,7 @@ import {
 import { rethrowAssertionErrorRejection } from './utils';
 import { DequeueValue, EnqueueValueWithSize, PeekQueueValue, QueuePair, ResetQueue } from './queue-with-sizes';
 import { QueuingStrategy, QueuingStrategySizeCallback } from './queuing-strategy';
+import { SimpleQueue } from './simple-queue';
 
 const AbortSteps = Symbol('[[AbortSteps]]');
 const ErrorSteps = Symbol('[[ErrorSteps]]');
@@ -775,7 +776,7 @@ class WritableStreamDefaultController<W = any> {
   /** @internal */
   _controlledWritableStream!: WritableStream<W>;
   /** @internal */
-  _queue!: Array<QueuePair<QueueRecord<W>>>;
+  _queue!: SimpleQueue<QueuePair<QueueRecord<W>>>;
   /** @internal */
   _queueTotalSize!: number;
   /** @internal */

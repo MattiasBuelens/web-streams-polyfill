@@ -32,6 +32,7 @@ import {
 } from './writable-stream';
 import NumberIsInteger from '../stub/number-isinteger';
 import { AsyncIteratorPrototype } from '@@target/stub/async-iterator-prototype';
+import { SimpleQueue } from './simple-queue';
 
 const CancelSteps = Symbol('[[CancelSteps]]');
 const PullSteps = Symbol('[[PullSteps]]');
@@ -1220,7 +1221,7 @@ class ReadableStreamDefaultController<R> {
   /** @internal */
   _controlledReadableStream!: ReadableStream<R>;
   /** @internal */
-  _queue!: Array<QueuePair<R>>;
+  _queue!: SimpleQueue<QueuePair<R>>;
   /** @internal */
   _queueTotalSize!: number;
   /** @internal */
@@ -1647,7 +1648,7 @@ class ReadableByteStreamController {
   /** @internal */
   _controlledReadableByteStream!: ReadableByteStream;
   /** @internal */
-  _queue!: ByteQueueElement[];
+  _queue!: SimpleQueue<ByteQueueElement>;
   /** @internal */
   _queueTotalSize!: number;
   /** @internal */
@@ -1942,7 +1943,7 @@ function ReadableByteStreamControllerFillPullIntoDescriptorFromQueue(controller:
   const queue = controller._queue;
 
   while (totalBytesToCopyRemaining > 0) {
-    const headOfQueue = queue[0];
+    const headOfQueue = queue.peek();
 
     const bytesToCopy = Math.min(totalBytesToCopyRemaining, headOfQueue.byteLength);
 
