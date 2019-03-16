@@ -20,7 +20,6 @@ This library comes in multiple variants:
 * `web-streams-polyfill/es6`: a polyfill targeting ES2015+ environments.
   Recommended for use in web apps supporting modern browsers through a `<script>` tag.
 * `web-streams-polyfill/es2018`: a polyfill targeting ES2018+ environments.
-  Required for [`ReadableStream` async iterable support][rs-asynciterator].
 * `web-streams-polyfill/ponyfill`: a [ponyfill] that provides
   the stream implementations without replacing any globals.
   Recommended for use in legacy Node applications, or in web libraries supporting older browsers.
@@ -63,6 +62,8 @@ The `polyfill/es6` and `ponyfill/es6` variants work in any ES2015-compatible env
 
 The `polyfill/es2018` and `ponyfill/es2018` variants work in any ES2018-compatible environment.
 
+[Async iterable support for `ReadableStream`][rs-asynciterator] is available in all variants, but requires an ES2018-compatible environment or a polyfill for `Symbol.asyncIterator`.
+
 ### Compliance
 
 The polyfill implements [version `2c8f35e` (21 Feb 2019)](https://streams.spec.whatwg.org/commit-snapshots/2c8f35ed23451ffc9b32ec37b56def4a5349abb1/) of the streams specification.
@@ -79,7 +80,7 @@ Thanks to these people for their work on [the original polyfill][creatorrr-polyf
 [spec]: https://streams.spec.whatwg.org
 [ref-impl]: https://github.com/whatwg/streams
 [ponyfill]: https://github.com/sindresorhus/ponyfill
-[rs-asynciterator]: https://streams.spec.whatwg.org/#rs-asynciterator
 [promise-support]: https://kangax.github.io/compat-table/es6/#test-Promise
 [promise-polyfill]: https://www.npmjs.com/package/promise-polyfill
+[rs-asynciterator]: https://streams.spec.whatwg.org/#rs-asynciterator
 [creatorrr-polyfill]: https://github.com/creatorrr/web-streams-polyfill
