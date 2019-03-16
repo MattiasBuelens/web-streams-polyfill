@@ -813,8 +813,8 @@ function ReadableStreamClose<R>(stream: ReadableStream<R>): void {
   }
 
   if (IsReadableStreamDefaultReader<R>(reader)) {
-    reader._readRequests.forEach(({ _resolve }) => {
-      _resolve(ReadableStreamCreateReadResult<R>(undefined, true, reader._forAuthorCode));
+    reader._readRequests.forEach(readRequest => {
+      readRequest._resolve(ReadableStreamCreateReadResult<R>(undefined, true, reader._forAuthorCode));
     });
     reader._readRequests = new SimpleQueue();
   }
