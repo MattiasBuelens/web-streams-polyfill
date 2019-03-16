@@ -9,6 +9,8 @@
 > - 🏠 Internal
 > - 💅 Polish
 
+## Unreleased
+
 ## v2.0.1 (2019-03-16)
 
 * 🐛 Fix performance issue with large queues ([#15](https://github.com/MattiasBuelens/web-streams-polyfill/pull/15), [#16](https://github.com/MattiasBuelens/web-streams-polyfill/pull/16))
