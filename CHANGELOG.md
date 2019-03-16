@@ -11,6 +11,8 @@
 
 ## Unreleased
 
+* 💅 Improve performance of `ReadableStreamDefaultReader.read()` ([#17](https://github.com/MattiasBuelens/web-streams-polyfill/pull/17))
+
 ## v2.0.1 (2019-03-16)
 
 * 🐛 Fix performance issue with large queues ([#15](https://github.com/MattiasBuelens/web-streams-polyfill/pull/15), [#16](https://github.com/MattiasBuelens/web-streams-polyfill/pull/16))
