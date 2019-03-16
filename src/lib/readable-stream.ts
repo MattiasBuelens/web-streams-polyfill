@@ -813,10 +813,10 @@ function ReadableStreamClose<R>(stream: ReadableStream<R>): void {
   }
 
   if (IsReadableStreamDefaultReader<R>(reader)) {
-    for (const { _resolve } of reader._readRequests) {
+    reader._readRequests.forEach(({ _resolve }) => {
       _resolve(ReadableStreamCreateReadResult<R>(undefined, true, reader._forAuthorCode));
-    }
-    reader._readRequests = [];
+    });
+    reader._readRequests = new SimpleQueue();
   }
 
   defaultReaderClosedPromiseResolve(reader);
@@ -848,19 +848,19 @@ function ReadableStreamError<R>(stream: ReadableStream<R>, e: any): void {
   }
 
   if (IsReadableStreamDefaultReader<R>(reader)) {
-    for (const readRequest of reader._readRequests) {
+    reader._readRequests.forEach(readRequest => {
       readRequest._reject(e);
-    }
+    });
 
-    reader._readRequests = [];
+    reader._readRequests = new SimpleQueue();
   } else {
     assert(IsReadableStreamBYOBReader(reader));
 
-    for (const readIntoRequest of reader._readIntoRequests) {
+    reader._readIntoRequests.forEach(readIntoRequest => {
       readIntoRequest._reject(e);
-    }
+    });
 
-    reader._readIntoRequests = [];
+    reader._readIntoRequests = new SimpleQueue();
   }
 
   defaultReaderClosedPromiseReject(reader, e);
@@ -943,7 +943,7 @@ class ReadableStreamDefaultReader<R> {
   /** @internal */
   _closedPromise_reject?: (reason: any) => void;
   /** @internal */
-  _readRequests: Array<ReadRequest<R>>;
+  _readRequests: SimpleQueue<ReadRequest<R>>;
 
   constructor(stream: ReadableStream<R>) {
     if (IsReadableStream(stream) === false) {
@@ -955,7 +955,7 @@ class ReadableStreamDefaultReader<R> {
 
     ReadableStreamReaderGenericInitialize(this, stream);
 
-    this._readRequests = [];
+    this._readRequests = new SimpleQueue();
   }
 
   get closed(): Promise<void> {
@@ -1026,7 +1026,7 @@ class ReadableStreamBYOBReader {
   /** @internal */
   _closedPromise_reject?: (reason: any) => void;
   /** @internal */
-  _readIntoRequests: Array<ReadIntoRequest<any>>;
+  _readIntoRequests: SimpleQueue<ReadIntoRequest<any>>;
 
   constructor(stream: ReadableByteStream) {
     if (!IsReadableStream(stream)) {
@@ -1043,7 +1043,7 @@ class ReadableStreamBYOBReader {
 
     ReadableStreamReaderGenericInitialize(this, stream);
 
-    this._readIntoRequests = [];
+    this._readIntoRequests = new SimpleQueue();
   }
 
   get closed(): Promise<void> {
@@ -1670,7 +1670,7 @@ class ReadableByteStreamController {
   /** @internal */
   _byobRequest: ReadableStreamBYOBRequest | undefined;
   /** @internal */
-  _pendingPullIntos!: PullIntoDescriptor[];
+  _pendingPullIntos!: SimpleQueue<PullIntoDescriptor>;
 
   /** @internal */
   constructor() {
@@ -1683,7 +1683,7 @@ class ReadableByteStreamController {
     }
 
     if (this._byobRequest === undefined && this._pendingPullIntos.length > 0) {
-      const firstDescriptor = this._pendingPullIntos[0];
+      const firstDescriptor = this._pendingPullIntos.peek();
       const view = new Uint8Array(firstDescriptor.buffer,
                                   firstDescriptor.byteOffset + firstDescriptor.bytesFilled,
                                   firstDescriptor.byteLength - firstDescriptor.bytesFilled);
@@ -1757,7 +1757,7 @@ class ReadableByteStreamController {
   /** @internal */
   [CancelSteps](reason: any): Promise<void> {
     if (this._pendingPullIntos.length > 0) {
-      const firstDescriptor = this._pendingPullIntos[0];
+      const firstDescriptor = this._pendingPullIntos.peek();
       firstDescriptor.bytesFilled = 0;
     }
 
@@ -1881,7 +1881,7 @@ function ReadableByteStreamControllerCallPullIfNeeded(controller: ReadableByteSt
 
 function ReadableByteStreamControllerClearPendingPullIntos(controller: ReadableByteStreamController) {
   ReadableByteStreamControllerInvalidateBYOBRequest(controller);
-  controller._pendingPullIntos = [];
+  controller._pendingPullIntos = new SimpleQueue();
 }
 
 function ReadableByteStreamControllerCommitPullIntoDescriptor<T extends ArrayBufferView>(stream: ReadableByteStream,
@@ -1975,7 +1975,7 @@ function ReadableByteStreamControllerFillPullIntoDescriptorFromQueue(controller:
 function ReadableByteStreamControllerFillHeadPullIntoDescriptor(controller: ReadableByteStreamController,
                                                                 size: number,
                                                                 pullIntoDescriptor: PullIntoDescriptor) {
-  assert(controller._pendingPullIntos.length === 0 || controller._pendingPullIntos[0] === pullIntoDescriptor);
+  assert(controller._pendingPullIntos.length === 0 || controller._pendingPullIntos.peek() === pullIntoDescriptor);
 
   ReadableByteStreamControllerInvalidateBYOBRequest(controller);
   pullIntoDescriptor.bytesFilled += size;
@@ -2010,7 +2010,7 @@ function ReadableByteStreamControllerProcessPullIntoDescriptorsUsingQueue(contro
       return;
     }
 
-    const pullIntoDescriptor = controller._pendingPullIntos[0];
+    const pullIntoDescriptor = controller._pendingPullIntos.peek();
 
     if (ReadableByteStreamControllerFillPullIntoDescriptorFromQueue(controller, pullIntoDescriptor) === true) {
       ReadableByteStreamControllerShiftPendingPullInto(controller);
@@ -2132,7 +2132,7 @@ function ReadableByteStreamControllerRespondInReadableState(controller: Readable
 }
 
 function ReadableByteStreamControllerRespondInternal(controller: ReadableByteStreamController, bytesWritten: number) {
-  const firstDescriptor = controller._pendingPullIntos[0];
+  const firstDescriptor = controller._pendingPullIntos.peek();
 
   const stream = controller._controlledReadableByteStream;
 
@@ -2209,7 +2209,7 @@ function ReadableByteStreamControllerClose(controller: ReadableByteStreamControl
   }
 
   if (controller._pendingPullIntos.length > 0) {
-    const firstPendingPullInto = controller._pendingPullIntos[0];
+    const firstPendingPullInto = controller._pendingPullIntos.peek();
     if (firstPendingPullInto.bytesFilled > 0) {
       const e = new TypeError('Insufficient bytes to fill elements in the given buffer');
       ReadableByteStreamControllerError(controller, e);
@@ -2297,7 +2297,7 @@ function ReadableByteStreamControllerRespondWithNewView(controller: ReadableByte
                                                         view: ArrayBufferView) {
   assert(controller._pendingPullIntos.length > 0);
 
-  const firstDescriptor = controller._pendingPullIntos[0];
+  const firstDescriptor = controller._pendingPullIntos.peek();
 
   if (firstDescriptor.byteOffset + firstDescriptor.bytesFilled !== view.byteOffset) {
     throw new RangeError('The region specified by view does not match byobRequest');
@@ -2345,7 +2345,7 @@ function SetUpReadableByteStreamController(stream: ReadableByteStream,
 
   controller._autoAllocateChunkSize = autoAllocateChunkSize;
 
-  controller._pendingPullIntos = [];
+  controller._pendingPullIntos = new SimpleQueue();
 
   stream._readableStreamController = controller;
 

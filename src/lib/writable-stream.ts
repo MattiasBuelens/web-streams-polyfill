@@ -57,7 +57,7 @@ class WritableStream<W = any> {
   /** @internal */
   _writableStreamController!: WritableStreamDefaultController<W>;
   /** @internal */
-  _writeRequests!: WriteRequest[];
+  _writeRequests!: SimpleQueue<WriteRequest>;
   /** @internal */
   _inFlightWriteRequest: WriteRequest | undefined;
   /** @internal */
@@ -173,7 +173,7 @@ function InitializeWritableStream<W>(stream: WritableStream<W>) {
 
   // This queue is placed here instead of the writer class in order to allow for passing a writer to the next data
   // producer without waiting for the queued writes to finish.
-  stream._writeRequests = [];
+  stream._writeRequests = new SimpleQueue();
 
   // Write requests are removed from _writeRequests when write() is called on the underlying sink. This prevents
   // them from being erroneously rejected on error. If a write() call is in-flight, the request is stored here.
@@ -308,10 +308,10 @@ function WritableStreamFinishErroring(stream: WritableStream) {
   stream._writableStreamController[ErrorSteps]();
 
   const storedError = stream._storedError;
-  for (const writeRequest of stream._writeRequests) {
+  stream._writeRequests.forEach(writeRequest => {
     writeRequest._reject(storedError);
-  }
-  stream._writeRequests = [];
+  });
+  stream._writeRequests = new SimpleQueue();
 
   if (stream._pendingAbortRequest === undefined) {
     WritableStreamRejectCloseAndClosedPromiseIfNeeded(stream);
