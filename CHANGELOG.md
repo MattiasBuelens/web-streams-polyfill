@@ -11,7 +11,7 @@
 
 ## Unreleased
 
-* 💅 Improve performance of `ReadableStreamDefaultReader.read()` ([#17](https://github.com/MattiasBuelens/web-streams-polyfill/pull/17))
+* 💅 Improve performance of `reader.read()` and `writer.write()` ([#17](https://github.com/MattiasBuelens/web-streams-polyfill/pull/17), [#18](https://github.com/MattiasBuelens/web-streams-polyfill/pull/18))
 
 ## v2.0.1 (2019-03-16)
 
