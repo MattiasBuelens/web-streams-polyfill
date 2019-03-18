@@ -4,7 +4,10 @@ const rollupDts = require('rollup-plugin-dts');
 const banner = `
 /**
  * Type definitions for ${pkg.name} v${pkg.version}
- */`.trim();
+ */
+/// <reference lib="dom" />
+/// <reference lib="esnext.asynciterable" />
+`.trim() + '\n';
 
 module.exports = {
   input: 'src/polyfill.ts',
@@ -15,7 +18,8 @@ module.exports = {
   },
   plugins: [
     rollupDts.dts({
-      tsconfig: 'src/tsconfig.json'
+      tsconfig: 'src/tsconfig.json',
+      banner: false
     })
   ]
 };
