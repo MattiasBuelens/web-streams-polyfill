@@ -1,12 +1,11 @@
 const path = require('path');
 
-const ts = require('typescript');
-const rollupDts = require('rollup-plugin-dts');
-const rollupInject = require('rollup-plugin-inject');
-const rollupStrip = require('rollup-plugin-strip');
-const { terser: rollupTerser } = require('rollup-plugin-terser');
+const { js, dts } = require('rollup-plugin-dts');
+const inject = require('rollup-plugin-inject');
+const strip = require('rollup-plugin-strip');
+const { terser } = require('rollup-plugin-terser');
 
-function buildConfig(entry, { esm = false, minify = false, target = 'es5' } = {}) {
+function bundle(entry, { esm = false, minify = false, target = 'es5' } = {}) {
   const outname = `${entry}${target === 'es5' ? '' : `.${target}`}`;
   return {
     input: `src/${entry}.ts`,
@@ -26,22 +25,22 @@ function buildConfig(entry, { esm = false, minify = false, target = 'es5' } = {}
       } : undefined
     ].filter(Boolean),
     plugins: [
-      rollupDts.js({
+      js({
         tsconfig: `src/tsconfig${target === 'es5' ? '' : `-${target}`}.json`
       }),
-      rollupInject({
+      inject({
         include: 'src/**/*.ts',
         exclude: 'src/stub/symbol.ts',
         modules: {
           Symbol: path.resolve(__dirname, './src/stub/symbol.ts')
         }
       }),
-      rollupStrip({
+      strip({
         include: 'src/**/*.ts',
         functions: ['assert'],
         sourceMap: true
       }),
-      minify ? rollupTerser({
+      minify ? terser({
         keep_classnames: true, // needed for WPT
         mangle: {
           toplevel: true
@@ -61,7 +60,7 @@ const bannerDts = `
 /// <reference lib="esnext.asynciterable" />
 `.trim() + '\n';
 
-function typesConfig(entry) {
+function types(entry) {
   return {
     input: `src/${entry}.ts`,
     output: {
@@ -70,7 +69,7 @@ function typesConfig(entry) {
       banner: bannerDts
     },
     plugins: [
-      rollupDts.dts({
+      dts({
         tsconfig: 'src/tsconfig.json',
         banner: false
       })
@@ -80,20 +79,20 @@ function typesConfig(entry) {
 
 module.exports = [
   // types
-  typesConfig('polyfill'),
+  types('polyfill'),
   // polyfill
-  buildConfig('polyfill', { esm: true }),
-  buildConfig('polyfill', { minify: true }),
+  bundle('polyfill', { esm: true }),
+  bundle('polyfill', { minify: true }),
   // polyfill/es6
-  buildConfig('polyfill', { target: 'es6', esm: true }),
-  buildConfig('polyfill', { target: 'es6', minify: true }),
+  bundle('polyfill', { target: 'es6', esm: true }),
+  bundle('polyfill', { target: 'es6', minify: true }),
   // polyfill/es2018
-  buildConfig('polyfill', { target: 'es2018', esm: true }),
-  buildConfig('polyfill', { target: 'es2018', minify: true }),
+  bundle('polyfill', { target: 'es2018', esm: true }),
+  bundle('polyfill', { target: 'es2018', minify: true }),
   // ponyfill
-  buildConfig('ponyfill', { esm: true }),
+  bundle('ponyfill', { esm: true }),
   // ponyfill/es6
-  buildConfig('ponyfill', { target: 'es6', esm: true }),
+  bundle('ponyfill', { target: 'es6', esm: true }),
   // ponyfill/es2018
-  buildConfig('ponyfill', { target: 'es2018', esm: true })
+  bundle('ponyfill', { target: 'es2018', esm: true })
 ];
