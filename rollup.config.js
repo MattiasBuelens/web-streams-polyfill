@@ -52,7 +52,35 @@ function buildConfig(entry, { esm = false, minify = false, target = 'es5' } = {}
   };
 }
 
+const pkg = require('./package.json');
+const bannerDts = `
+/**
+ * Type definitions for ${pkg.name} v${pkg.version}
+ */
+/// <reference lib="dom" />
+/// <reference lib="esnext.asynciterable" />
+`.trim() + '\n';
+
+function typesConfig(entry) {
+  return {
+    input: `src/${entry}.ts`,
+    output: {
+      file: `dist/types/${entry}.d.ts`,
+      format: 'es',
+      banner: bannerDts
+    },
+    plugins: [
+      rollupDts.dts({
+        tsconfig: 'src/tsconfig.json',
+        banner: false
+      })
+    ]
+  };
+}
+
 module.exports = [
+  // types
+  typesConfig('polyfill'),
   // polyfill
   buildConfig('polyfill', { esm: true }),
   buildConfig('polyfill', { minify: true }),

@@ -12,9 +12,7 @@
     "pretest:wpt": "git submodule update --init --recursive",
     "test:types": "tsc -p ./test/types/tsconfig.json",
     "lint": "eslint \"src/**/*.ts\"",
-    "build": "npm run build:types && npm run build:bundle",
-    "build:bundle": "rollup -c",
-    "build:types": "rollup -c rollup-types.config.js",
+    "build": "rollup -c",
     "prepare": "npm run build"
   },
   "files": [
