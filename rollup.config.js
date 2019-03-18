@@ -5,6 +5,20 @@ const inject = require('rollup-plugin-inject');
 const strip = require('rollup-plugin-strip');
 const { terser } = require('rollup-plugin-terser');
 
+const pkg = require('./package.json');
+const banner = `
+/**
+ * ${pkg.name} v${pkg.version}
+ */
+`.trim();
+const bannerDts = `
+/**
+ * Type definitions for ${pkg.name} v${pkg.version}
+ */
+/// <reference lib="dom" />
+/// <reference lib="esnext.asynciterable" />
+`.trim() + '\n';
+
 function bundle(entry, { esm = false, minify = false, target = 'es5' } = {}) {
   const outname = `${entry}${target === 'es5' ? '' : `.${target}`}`;
   return {
@@ -13,13 +27,15 @@ function bundle(entry, { esm = false, minify = false, target = 'es5' } = {}) {
       {
         file: `dist/${outname}${minify ? '.min' : ''}.js`,
         format: 'umd',
+        name: 'WebStreamsPolyfill',
+        banner,
         freeze: false,
-        sourcemap: true,
-        name: 'WebStreamsPolyfill'
+        sourcemap: true
       },
       esm ? {
         file: `dist/${outname}${minify ? '.min' : ''}.mjs`,
         format: 'es',
+        banner,
         freeze: false,
         sourcemap: true
       } : undefined
@@ -50,15 +66,6 @@ function bundle(entry, { esm = false, minify = false, target = 'es5' } = {}) {
     ].filter(Boolean)
   };
 }
-
-const pkg = require('./package.json');
-const bannerDts = `
-/**
- * Type definitions for ${pkg.name} v${pkg.version}
- */
-/// <reference lib="dom" />
-/// <reference lib="esnext.asynciterable" />
-`.trim() + '\n';
 
 function types(entry) {
   return {
