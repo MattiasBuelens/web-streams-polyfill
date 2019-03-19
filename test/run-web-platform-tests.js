@@ -133,7 +133,7 @@ async function runTests(entryFile, { excludedTests = [], ignoredFailures = {} } 
 
   console.log(`>>> ${entryFile}`);
 
-  let failures = await wptRunner(testsPath, {
+  const wptFailures = await wptRunner(testsPath, {
     rootURL: 'streams/',
     reporter,
     setup(window) {
@@ -151,7 +151,7 @@ async function runTests(entryFile, { excludedTests = [], ignoredFailures = {} } 
   console.log();
   console.log(`${results.passed} tests passed, ${results.failed} failed, ${results.ignored} ignored`);
 
-  failures -= results.ignored;
+  let failures = Math.max(results.failed, wptFailures - results.ignored);
 
   if (rejections.size > 0) {
     if (failures === 0) {
