@@ -68,13 +68,21 @@ The `polyfill/es2018` and `ponyfill/es2018` variants work in any ES2018-compatib
 
 The polyfill implements [version `2c8f35e` (21 Feb 2019)][spec-snapshot] of the streams specification.
 
-The polyfill is tested against the same [web platform tests][wpt] that are used by browsers to test their native implementations. The polyfill aims to pass all tests, although it allows some exceptions for practical reasons:
+The polyfill is tested against the same [web platform tests][wpt] that are used by browsers to test their native implementations.
+The polyfill aims to pass all tests, although it allows some exceptions for practical reasons:
 * The `es2018` variant passes all of the tests, except for the [detached buffer tests for readable byte streams][wpt-detached-buffer].
   These tests require the implementation to synchronously transfer the contents of an `ArrayBuffer`, which is not yet possible from JavaScript (although there is a [proposal][proposal-arraybuffer-transfer] to make it possible).
   The reference implementation "cheats" on these tests [by making a copy instead][ref-impl-transferarraybuffer], but that is unacceptable for the polyfill's performance ([#3][issue-3]).
 * The `es6` variant passes the same tests as the `es2018` variant, except for the [test for the prototype of `ReadableStream`'s async iterator][wpt-async-iterator-prototype].
   Retrieving the correct `%AsyncIteratorPrototype%` requires using an async generator (`async function* () {}`), which is invalid syntax before ES2018.
   Instead, the polyfill [creates its own version][stub-async-iterator-prototype] which is functionally equivalent to the real prototype.
+* The `es5` variant passes the same tests as the `es6` variant, except for various tests about specific characteristics of the constructors, properties and methods.
+  These test failures do not affect the run-time behavior of the polyfill.
+  For example:
+  * The `name` property of down-leveled constructors is incorrect.
+  * The `length` property of down-leveled constructors and methods with optional arguments is incorrect.
+  * Not all properties and methods are correctly marked as non-enumerable.
+  * Down-leveled class methods are not correctly marked as non-constructable.
 
 The type definitions are compatible with the built-in stream types of TypeScript 3.3.
 
