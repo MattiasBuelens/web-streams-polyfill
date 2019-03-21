@@ -11,6 +11,8 @@
 
 ## Unreleased
 
+* 🏠 Run web platform tests on ES5 variant ([#19](https://github.com/MattiasBuelens/web-streams-polyfill/pull/19))
+
 ## v2.0.2 (2019-03-17)
 
 * 💅 Improve performance of `reader.read()` and `writer.write()` ([#17](https://github.com/MattiasBuelens/web-streams-polyfill/pull/17), [#18](https://github.com/MattiasBuelens/web-streams-polyfill/pull/18))
