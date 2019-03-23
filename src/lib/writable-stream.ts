@@ -29,7 +29,7 @@ export interface UnderlyingSink<W = any> {
   type?: undefined;
 }
 
-type WritableStreamState = 'writable' | 'closed' | 'erroring' | 'errored';
+export type WritableStreamState = 'writable' | 'closed' | 'erroring' | 'errored';
 
 interface WriteOrCloseRequest {
   _resolve: (value?: undefined) => void;

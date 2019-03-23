@@ -70,7 +70,7 @@ export interface ReadResult<T = any> {
   value: T;
 }
 
-type ReadableStreamState = 'readable' | 'closed' | 'errored';
+export type ReadableStreamState = 'readable' | 'closed' | 'errored';
 
 class ReadableStream<R = any> {
   /** @internal */
