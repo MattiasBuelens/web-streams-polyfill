@@ -3,7 +3,10 @@ const path = require('path');
 const { js, dts } = require('rollup-plugin-dts');
 const inject = require('rollup-plugin-inject');
 const strip = require('rollup-plugin-strip');
+const replace = require('rollup-plugin-replace');
 const { terser } = require('rollup-plugin-terser');
+
+const debug = false;
 
 const pkg = require('./package.json');
 const banner = `
@@ -51,11 +54,17 @@ function bundle(entry, { esm = false, minify = false, target = 'es5' } = {}) {
           Symbol: path.resolve(__dirname, './src/stub/symbol.ts')
         }
       }),
-      strip({
+      replace({
+        include: 'src/**/*.ts',
+        values: {
+          DEBUG: debug
+        }
+      }),
+      !debug ? strip({
         include: 'src/**/*.ts',
         functions: ['assert'],
         sourceMap: true
-      }),
+      }) : undefined,
       minify ? terser({
         keep_classnames: true, // needed for WPT
         mangle: {
