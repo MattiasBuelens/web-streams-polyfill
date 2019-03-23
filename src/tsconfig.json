@@ -2,6 +2,7 @@
   "compilerOptions": {
     "target": "es5",
     "module": "es2015",
+    "moduleResolution": "node",
     "lib": [
       "es5",
       "es2015.promise",
@@ -9,6 +10,7 @@
     ],
     "strict": true,
     "stripInternal": true,
+    "importHelpers": true,
     "baseUrl": ".",
     "paths": {
       "@@target/*": [
