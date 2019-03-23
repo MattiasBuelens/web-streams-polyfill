@@ -21,13 +21,18 @@ class FilteringReporter {
 
   fail(message) {
     const ignoredFailures = this._ignoredFailures[this._currentSuite];
-    if (ignoredFailures && ignoredFailures.includes(message.trim())) {
-      this._ignored++;
-      this._reporter.fail(`${message.trim()} (ignored)\n`);
-    } else {
-      this._failed++;
-      this._reporter.fail(message);
+    if (ignoredFailures) {
+      message = message.trim();
+      for (const ignoredFailure of ignoredFailures) {
+        if (matches(ignoredFailure, message)) {
+          this._ignored++;
+          this._reporter.fail(`${message} (ignored)\n`);
+          return;
+        }
+      }
     }
+    this._failed++;
+    this._reporter.fail(message);
   }
 
   reportStack(stack) {
@@ -41,6 +46,16 @@ class FilteringReporter {
       ignored: this._ignored
     };
   }
+}
+
+function matches(test, input) {
+  if (typeof test === 'string') {
+    return input.includes(test);
+  }
+  if (test instanceof RegExp) {
+    return test.test(input);
+  }
+  return false;
 }
 
 module.exports = {

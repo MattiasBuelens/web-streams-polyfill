@@ -51,20 +51,68 @@ async function main() {
     ];
   }
 
+  const ignoredFailuresES6 = {
+    ...ignoredFailures,
+    'readable-streams/async-iterator.any.html': [
+      // ES6 build will not use correct %AsyncIteratorPrototype%
+      'Async iterator instances should have the correct list of properties'
+    ]
+  };
+
+  const ignoredFailuresES5 = {
+    ...ignoredFailuresES6,
+    // ES5 build does not set correct function name on constructors and methods
+    // ES5 build does not set correct length on constructors and methods with optional arguments
+    // ES5 build does not set correct 'enumerable' flag on properties and methods
+    // ES5 build cannot mark methods as non-constructable
+    'byte-length-queuing-strategy.any.html': [
+      'ByteLengthQueuingStrategy.name is correct'
+    ],
+    'count-queuing-strategy.any.html': [
+      'CountQueuingStrategy.name is correct'
+    ],
+    'readable-byte-streams/brand-checks.any.html': [
+      'Can get the ReadableStreamBYOBReader constructor indirectly', // checks name
+      'Can get the ReadableByteStreamController constructor indirectly' // checks name
+    ],
+    'readable-byte-streams/properties.any.html': [
+      'ReadableStreamBYOBReader instances should have the correct list of properties',
+      'ReadableByteStreamController instances should have the correct list of properties',
+      'ReadableStreamBYOBRequest instances should have the correct list of properties'
+    ],
+    'readable-streams/default-reader.any.html': [
+      'ReadableStreamDefaultReader instances should have the correct list of properties'
+    ],
+    'readable-streams/general.any.html': [
+      'ReadableStream instances should have the correct list of properties',
+      'ReadableStream start should be called with the proper parameters'
+    ],
+    'transform-streams/general.any.html': [
+      'TransformStream instances must have writable and readable properties of the correct types'
+    ],
+    'transform-streams/properties.any.html': [
+      /should be a constructor/,
+      /should be a method/,
+      /should have standard properties/
+    ],
+    'writable-streams/properties.any.html': [
+      /should be a constructor/,
+      /should be a method/,
+      /should have standard properties/
+    ]
+  };
+
   let failures = 0;
   if (supportsES2018) {
     failures += await runTests('polyfill.es2018.min.js', { excludedTests, ignoredFailures });
   }
   failures += await runTests('polyfill.es6.min.js', {
     excludedTests,
-    ignoredFailures: {
-      ...ignoredFailures,
-      'readable-streams/async-iterator.any.html': [
-        ...(ignoredFailures['readable-streams/async-iterator.any.html'] || []),
-        // ES6 build will not use correct %AsyncIteratorPrototype%
-        'Async iterator instances should have the correct list of properties'
-      ]
-    }
+    ignoredFailures: ignoredFailuresES6
+  });
+  failures += await runTests('polyfill.min.js', {
+    excludedTests,
+    ignoredFailures: ignoredFailuresES5
   });
 
   process.exitCode = failures;
@@ -85,7 +133,7 @@ async function runTests(entryFile, { excludedTests = [], ignoredFailures = {} } 
 
   console.log(`>>> ${entryFile}`);
 
-  let failures = await wptRunner(testsPath, {
+  const wptFailures = await wptRunner(testsPath, {
     rootURL: 'streams/',
     reporter,
     setup(window) {
@@ -103,7 +151,7 @@ async function runTests(entryFile, { excludedTests = [], ignoredFailures = {} } 
   console.log();
   console.log(`${results.passed} tests passed, ${results.failed} failed, ${results.ignored} ignored`);
 
-  failures -= results.ignored;
+  let failures = Math.max(results.failed, wptFailures - results.ignored);
 
   if (rejections.size > 0) {
     if (failures === 0) {
