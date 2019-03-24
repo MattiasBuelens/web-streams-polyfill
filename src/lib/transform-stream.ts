@@ -551,10 +551,12 @@ function ReadableStreamDefaultControllerClose(stream: TransformStream<any, any>)
   stream._readableCloseRequested = true;
 
   stream._readableController.close();
+  ReadableStreamAssertState(stream);
 }
 
 function ReadableStreamDefaultControllerEnqueue<R>(stream: TransformStream<any, any>, chunk: R): void {
   stream._readableController.enqueue(chunk);
+  ReadableStreamAssertState(stream);
 }
 
 function ReadableStreamDefaultControllerError(stream: TransformStream<any, any>, e: any) {
@@ -563,6 +565,7 @@ function ReadableStreamDefaultControllerError(stream: TransformStream<any, any>,
   }
 
   stream._readableController.error(e);
+  ReadableStreamAssertState(stream);
 }
 
 function ReadableStreamDefaultControllerGetDesiredSize(stream: TransformStream<any, any>): number | null {
@@ -573,8 +576,20 @@ function ReadableStreamDefaultControllerHasBackpressure(stream: TransformStream<
   return ReadableStreamDefaultControllerGetDesiredSize(stream)! <= 0;
 }
 
+function ReadableStreamAssertState(stream: TransformStream<any, any>): void {
+  if (DEBUG && stream._readable._state !== undefined) {
+    assert(stream._readable._state === stream._readableState,
+           `TransformStream readable state: ${stream._readable._state} !== ${stream._readableState}`);
+    assert(stream._readable._storedError === stream._readableStoredError,
+           `TransformStream readable storedError: ${stream._readable._storedError} !== ${stream._readableStoredError}`);
+    assert(stream._readableController._closeRequested === stream._readableCloseRequested,
+           `TransformStream readable closeRequested: ${stream._readableController._closeRequested} !== ${stream._readableCloseRequested}`);
+  }
+}
+
 function WritableStreamDefaultControllerErrorIfNeeded(stream: TransformStream<any, any>, error: any) {
   stream._writableController.error(error);
+  WritableStreamAssertState(stream);
 }
 
 function CreateWritableStream<W>(stream: TransformStream<W, any>,
@@ -613,11 +628,13 @@ function WritableStreamDealWithRejection(stream: TransformStream<any, any>, erro
 
   if (state === 'writable') {
     WritableStreamStartErroring(stream, error);
+    WritableStreamAssertState(stream);
     return;
   }
 
   assert(state === 'erroring');
   WritableStreamFinishErroring(stream);
+  WritableStreamAssertState(stream);
 }
 
 function WritableStreamStartErroring(stream: TransformStream<any, any>, reason: any) {
@@ -631,11 +648,14 @@ function WritableStreamStartErroring(stream: TransformStream<any, any>, reason: 
   // if (WritableStreamHasOperationMarkedInFlight(stream) === false && controller._started === true) {
   //   WritableStreamFinishErroring(stream);
   // }
+
+  WritableStreamAssertState(stream);
 }
 
 function WritableStreamFinishErroring(stream: TransformStream<any, any>) {
   assert(stream._writableState === 'erroring');
   stream._writableStoredError = 'errored';
+  WritableStreamAssertState(stream);
 }
 
 function WritableStreamFinishInFlightClose(stream: TransformStream<any, any>) {
@@ -651,6 +671,7 @@ function WritableStreamFinishInFlightClose(stream: TransformStream<any, any>) {
   stream._writableState = 'closed';
 
   assert(stream._writableStoredError === undefined);
+  WritableStreamAssertState(stream);
 }
 
 function WritableStreamFinishInFlightCloseWithError(stream: TransformStream<any, any>, error: any) {
@@ -659,4 +680,14 @@ function WritableStreamFinishInFlightCloseWithError(stream: TransformStream<any,
   assert(state === 'writable' || state === 'erroring');
 
   WritableStreamDealWithRejection(stream, error);
+  WritableStreamAssertState(stream);
+}
+
+function WritableStreamAssertState(stream: TransformStream<any, any>): void {
+  if (DEBUG && stream._writable._state !== undefined) {
+    assert(stream._writable._state === stream._writableState,
+           `TransformStream writable state: ${stream._writable._state} !== ${stream._writableState}`);
+    assert(stream._writable._storedError === stream._writableStoredError,
+           `TransformStream writable storedError: ${stream._writable._storedError} !== ${stream._writableStoredError}`);
+  }
 }
