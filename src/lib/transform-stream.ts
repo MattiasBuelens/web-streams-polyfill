@@ -548,6 +548,7 @@ function ReadableStreamDefaultControllerCanCloseOrEnqueue(stream: TransformStrea
 function ReadableStreamDefaultControllerClose(stream: TransformStream<any, any>): void {
   assert(stream._readableState === 'readable');
   assert(stream._readableCloseRequested === false);
+  stream._readableState = 'closed'; // TODO Incorrect if there are still queued chunks
   stream._readableCloseRequested = true;
 
   stream._readableController.close();
@@ -555,13 +556,20 @@ function ReadableStreamDefaultControllerClose(stream: TransformStream<any, any>)
 }
 
 function ReadableStreamDefaultControllerEnqueue<R>(stream: TransformStream<any, any>, chunk: R): void {
-  stream._readableController.enqueue(chunk);
-  ReadableStreamAssertState(stream);
+  try {
+    stream._readableController.enqueue(chunk);
+    ReadableStreamAssertState(stream);
+  } catch (e) {
+    ReadableStreamDefaultControllerError(stream, e);
+    ReadableStreamAssertState(stream);
+    throw e;
+  }
 }
 
 function ReadableStreamDefaultControllerError(stream: TransformStream<any, any>, e: any) {
   if (stream._readableState === 'readable') {
     stream._readableState = 'errored';
+    stream._readableStoredError = e;
   }
 
   stream._readableController.error(e);
