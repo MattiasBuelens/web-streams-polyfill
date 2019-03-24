@@ -44,6 +44,10 @@ class TransformStream<I = any, O = any> {
   /** @internal */
   _writableStoredError!: any;
   /** @internal */
+  _writableHasInFlightOperation!: boolean;
+  /** @internal */
+  _writableStarted!: boolean;
+  /** @internal */
   _readable!: ReadableStream<O>;
   /** @internal */
   _readableController!: ReadableStreamDefaultController<O>;
@@ -181,6 +185,8 @@ function InitializeTransformStream<I, O>(stream: TransformStream<I, O>,
 
   stream._writableState = 'writable';
   stream._writableStoredError = undefined;
+  stream._writableHasInFlightOperation = false;
+  stream._writableStarted = false;
   stream._writable = CreateWritableStream(stream,
                                           startAlgorithm,
                                           writeAlgorithm,
@@ -613,22 +619,47 @@ function CreateWritableStream<W>(stream: TransformStream<W, any>,
   return new WritableStream({
     start(controller) {
       stream._writableController = controller;
-      // TODO Handle errors
-      return startAlgorithm();
+      return startAlgorithm().then(
+        () => {
+          assert(stream._writableState === 'writable' || stream._writableState === 'erroring',
+                 `TransformStream writable state: ${stream._writableState} !== writable or erroring`);
+          stream._writableStarted = true;
+          WritableStreamDefaultControllerAdvanceQueueIfNeeded(stream);
+        },
+        r => {
+          assert(stream._writableState === 'writable' || stream._writableState === 'erroring',
+                 `TransformStream writable state: ${stream._writableState} !== writable or erroring`);
+          stream._writableStarted = true;
+          WritableStreamDealWithRejection(stream, r);
+          throw r;
+        }
+      );
     },
     write(chunk) {
-      // TODO Handle errors
-      return writeAlgorithm(chunk);
+      WritableStreamMarkFirstWriteRequestInFlight(stream);
+      return writeAlgorithm(chunk).then(
+        () => {
+          WritableStreamFinishInFlightWrite(stream);
+          assert(stream._writableState === 'writable' || stream._writableState === 'erroring',
+                 `TransformStream writable state: ${stream._writableState} !== writable or erroring`);
+          WritableStreamDefaultControllerAdvanceQueueIfNeeded(stream);
+        },
+        reason => {
+          WritableStreamFinishInFlightWriteWithError(stream, reason);
+          throw reason;
+        });
     },
     close() {
+      WritableStreamMarkCloseRequestInFlight(stream);
       return closeAlgorithm().then(() => {
         WritableStreamFinishInFlightClose(stream);
       }, e => {
         WritableStreamFinishInFlightCloseWithError(stream, e);
+        throw e;
       });
     },
     abort(reason) {
-      // TODO Handle errors
+      WritableStreamDealWithRejection(stream, reason);
       return abortAlgorithm(reason);
     }
   }, { highWaterMark, size: sizeAlgorithm });
@@ -639,40 +670,60 @@ function WritableStreamDealWithRejection(stream: TransformStream<any, any>, erro
 
   if (state === 'writable') {
     WritableStreamStartErroring(stream, error);
-    WritableStreamAssertState(stream);
     return;
   }
 
-  assert(state === 'erroring');
+  assert(state === 'erroring', `TransformStream writable state: ${state} !== erroring`);
   WritableStreamFinishErroring(stream);
-  WritableStreamAssertState(stream);
 }
 
 function WritableStreamStartErroring(stream: TransformStream<any, any>, reason: any) {
-  assert(stream._writableStoredError === undefined);
-  assert(stream._writableState === 'writable');
+  assert(stream._writableStoredError === undefined,
+         `TransformStream writable storedError: ${stream._writableStoredError} !== undefined`);
+  assert(stream._writableState === 'writable',
+         `TransformStream writable state: ${stream._writableState} !== undefined`);
 
   stream._writableState = 'erroring';
   stream._writableStoredError = reason;
 
-  // TODO
-  // if (WritableStreamHasOperationMarkedInFlight(stream) === false && controller._started === true) {
-  //   WritableStreamFinishErroring(stream);
-  // }
+  if (WritableStreamHasOperationMarkedInFlight(stream) === false && stream._writableStarted === true) {
+    WritableStreamFinishErroring(stream);
+  }
 
   WritableStreamAssertState(stream);
 }
 
 function WritableStreamFinishErroring(stream: TransformStream<any, any>) {
-  assert(stream._writableState === 'erroring');
-  stream._writableStoredError = 'errored';
+  assert(stream._writableState === 'erroring',
+         `TransformStream writable state: ${stream._writableState} !== erroring`);
+  assert(WritableStreamHasOperationMarkedInFlight(stream) === false);
+  stream._writableState = 'errored';
+
   WritableStreamAssertState(stream);
 }
 
-function WritableStreamFinishInFlightClose(stream: TransformStream<any, any>) {
-  const state = stream._writableState;
+function WritableStreamFinishInFlightWrite(stream: TransformStream<any, any>) {
+  assert(stream._writableHasInFlightOperation === true);
+  stream._writableHasInFlightOperation = false;
+}
 
-  assert(state === 'writable' || state === 'erroring');
+function WritableStreamFinishInFlightWriteWithError(stream: TransformStream<any, any>, error: any) {
+  assert(stream._writableHasInFlightOperation === true);
+  stream._writableHasInFlightOperation = false;
+
+  assert(stream._writableState === 'writable' || stream._writableState === 'erroring',
+         `TransformStream writable state: ${stream._writableState} !== writable or erroring`);
+
+  WritableStreamDealWithRejection(stream, error);
+}
+
+function WritableStreamFinishInFlightClose(stream: TransformStream<any, any>) {
+  assert(stream._writableHasInFlightOperation === true);
+  stream._writableHasInFlightOperation = false;
+
+  const state = stream._writableState;
+  assert(state === 'writable' || state === 'erroring',
+         `TransformStream writable state: ${state} !== writable or erroring`);
 
   if (state === 'erroring') {
     // The error was too late to do anything, so it is ignored.
@@ -686,24 +737,59 @@ function WritableStreamFinishInFlightClose(stream: TransformStream<any, any>) {
 }
 
 function WritableStreamFinishInFlightCloseWithError(stream: TransformStream<any, any>, error: any) {
+  assert(stream._writableHasInFlightOperation === true);
+  stream._writableHasInFlightOperation = false;
+
   const state = stream._writableState;
 
-  assert(state === 'writable' || state === 'erroring');
+  assert(state === 'writable' || state === 'erroring',
+         `TransformStream writable state: ${state} !== writable or erroring`);
 
   WritableStreamDealWithRejection(stream, error);
   WritableStreamAssertState(stream);
 }
 
+function WritableStreamHasOperationMarkedInFlight(stream: TransformStream<any, any>): boolean {
+  return stream._writableHasInFlightOperation;
+}
+
+function WritableStreamMarkCloseRequestInFlight(stream: TransformStream<any, any>) {
+  assert(stream._writableHasInFlightOperation === false);
+  stream._writableHasInFlightOperation = true;
+}
+
+function WritableStreamMarkFirstWriteRequestInFlight(stream: TransformStream<any, any>) {
+  assert(stream._writableHasInFlightOperation === false);
+  stream._writableHasInFlightOperation = true;
+}
+
+function WritableStreamDefaultControllerAdvanceQueueIfNeeded(stream: TransformStream<any, any>) {
+  const state = stream._writableState;
+  assert(state !== 'closed' && state !== 'errored',
+         `TransformStream writable state: ${state} === closed or errored`);
+  if (state === 'erroring') {
+    WritableStreamFinishErroring(stream);
+  }
+  WritableStreamAssertState(stream);
+}
+
 function WritableStreamDefaultControllerErrorIfNeeded(stream: TransformStream<any, any>, error: any) {
   stream._writableController.error(error);
-  WritableStreamAssertState(stream);
+
+  const state = stream._writableState;
+  if (state === 'writable') {
+    WritableStreamStartErroring(stream, error);
+  }
 }
 
 function WritableStreamAssertState(stream: TransformStream<any, any>): void {
   if (DEBUG && stream._writable._state !== undefined) {
-    assert(stream._writable._state === stream._writableState,
-           `TransformStream writable state: ${stream._writable._state} !== ${stream._writableState}`);
-    assert(stream._writable._storedError === stream._writableStoredError,
-           `TransformStream writable storedError: ${stream._writable._storedError} !== ${stream._writableStoredError}`);
+    // Check state asynchronously, because we update our state before we update the actual writable stream.
+    setTimeout(() => {
+      assert(stream._writable._state === stream._writableState,
+             `TransformStream writable state: ${stream._writable._state} !== ${stream._writableState}`);
+      assert(stream._writable._storedError === stream._writableStoredError,
+             `TransformStream writable storedError: ${stream._writable._storedError} !== ${stream._writableStoredError}`);
+    }, 0);
   }
 }
