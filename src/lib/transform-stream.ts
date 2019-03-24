@@ -529,6 +529,7 @@ function CreateReadableStream<R>(stream: TransformStream<any, R>,
     cancel(reason) {
       assert(stream._readableState === 'readable');
       stream._readableState = 'closed';
+      ReadableStreamAssertState(stream);
 
       return cancelAlgorithm(reason);
     }
@@ -548,7 +549,10 @@ function ReadableStreamDefaultControllerCanCloseOrEnqueue(stream: TransformStrea
 function ReadableStreamDefaultControllerClose(stream: TransformStream<any, any>): void {
   assert(stream._readableState === 'readable');
   assert(stream._readableCloseRequested === false);
-  stream._readableState = 'closed'; // TODO Incorrect if there are still queued chunks
+
+  // This is incorrect: if there are still queued chunks, the stream remains 'readable' until they have been read.
+  // Luckily, this does not matter for ReadableStreamDefaultControllerCanCloseOrEnqueue.
+  stream._readableState = 'closed';
   stream._readableCloseRequested = true;
 
   stream._readableController.close();
@@ -586,8 +590,12 @@ function ReadableStreamDefaultControllerHasBackpressure(stream: TransformStream<
 
 function ReadableStreamAssertState(stream: TransformStream<any, any>): void {
   if (DEBUG && stream._readable._state !== undefined) {
-    assert(stream._readable._state === stream._readableState,
-           `TransformStream readable state: ${stream._readable._state} !== ${stream._readableState}`);
+    // If closeRequested = true, we cannot know if the stream is 'readable' or 'closed'.
+    // Luckily, this does not matter for ReadableStreamDefaultControllerCanCloseOrEnqueue.
+    if (!(stream._readableController._closeRequested && stream._readableCloseRequested)) {
+      assert(stream._readable._state === stream._readableState,
+             `TransformStream readable state: ${stream._readable._state} !== ${stream._readableState}`);
+    }
     assert(stream._readable._storedError === stream._readableStoredError,
            `TransformStream readable storedError: ${stream._readable._storedError} !== ${stream._readableStoredError}`);
     assert(stream._readableController._closeRequested === stream._readableCloseRequested,
