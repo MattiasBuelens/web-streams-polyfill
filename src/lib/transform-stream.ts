@@ -595,11 +595,6 @@ function ReadableStreamAssertState(stream: TransformStream<any, any>): void {
   }
 }
 
-function WritableStreamDefaultControllerErrorIfNeeded(stream: TransformStream<any, any>, error: any) {
-  stream._writableController.error(error);
-  WritableStreamAssertState(stream);
-}
-
 function CreateWritableStream<W>(stream: TransformStream<W, any>,
                                  startAlgorithm: () => Promise<void>,
                                  writeAlgorithm: (chunk: W) => Promise<void>,
@@ -688,6 +683,11 @@ function WritableStreamFinishInFlightCloseWithError(stream: TransformStream<any,
   assert(state === 'writable' || state === 'erroring');
 
   WritableStreamDealWithRejection(stream, error);
+  WritableStreamAssertState(stream);
+}
+
+function WritableStreamDefaultControllerErrorIfNeeded(stream: TransformStream<any, any>, error: any) {
+  stream._writableController.error(error);
   WritableStreamAssertState(stream);
 }
 
