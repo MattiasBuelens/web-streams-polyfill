@@ -681,7 +681,7 @@ function WritableStreamStartErroring(stream: TransformStream<any, any>, reason: 
   assert(stream._writableStoredError === undefined,
          `TransformStream writable storedError: ${stream._writableStoredError} !== undefined`);
   assert(stream._writableState === 'writable',
-         `TransformStream writable state: ${stream._writableState} !== undefined`);
+         `TransformStream writable state: ${stream._writableState} !== writable`);
 
   stream._writableState = 'erroring';
   stream._writableStoredError = reason;
