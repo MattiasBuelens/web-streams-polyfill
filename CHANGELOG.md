@@ -11,7 +11,7 @@
 
 ## v2.0.3 (2019-04-04)
 
-* 👓 Align with [spec version `6f94580`](https://github.com/whatwg/streams/tree/6f94580f6731d1e017c516af097d47c45aad1f56/)
+* 👓 Align with [spec version `6f94580`](https://github.com/whatwg/streams/tree/6f94580f6731d1e017c516af097d47c45aad1f56/) ([#21](https://github.com/MattiasBuelens/web-streams-polyfill/pull/21))
 * 🏠 Run web platform tests on ES5 variant ([#19](https://github.com/MattiasBuelens/web-streams-polyfill/pull/19))
 
 ## v2.0.2 (2019-03-17)
