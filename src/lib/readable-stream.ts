@@ -656,7 +656,7 @@ function ReadableStreamTee<R>(stream: ReadableStream<R>,
 
   const reader = AcquireReadableStreamDefaultReader<R>(stream);
 
-  let closed = false;
+  let reading = false;
   let canceled1 = false;
   let canceled2 = false;
   let reason1: any;
@@ -670,10 +670,14 @@ function ReadableStreamTee<R>(stream: ReadableStream<R>,
   });
 
   function pullAlgorithm(): Promise<void> {
-    return ReadableStreamDefaultReaderRead(reader).then(result => {
-      if (closed === true) {
-        return;
-      }
+    if (reading === true) {
+      return Promise.resolve();
+    }
+
+    reading = true;
+
+    const readPromise = ReadableStreamDefaultReaderRead(reader).then(result => {
+      reading = false;
 
       assert(typeIsObject(result));
       const done = result.done;
@@ -686,7 +690,6 @@ function ReadableStreamTee<R>(stream: ReadableStream<R>,
         if (canceled2 === false) {
           ReadableStreamDefaultControllerClose(branch2._readableStreamController as ReadableStreamDefaultController<R>);
         }
-        closed = true;
         return;
       }
 
@@ -714,6 +717,10 @@ function ReadableStreamTee<R>(stream: ReadableStream<R>,
         );
       }
     });
+
+    readPromise.catch(rethrowAssertionErrorRejection);
+
+    return Promise.resolve();
   }
 
   function cancel1Algorithm(reason: any): Promise<void> {
