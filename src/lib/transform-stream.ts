@@ -20,7 +20,8 @@ import {
   WritableStreamState
 } from './writable-stream';
 
-export type TransformStreamDefaultControllerCallback<O> = (controller: TransformStreamDefaultController<O>) => void | PromiseLike<void>;
+export type TransformStreamDefaultControllerCallback<O> = (
+  controller: TransformStreamDefaultController<O>) => void | PromiseLike<void>;
 export type TransformStreamDefaultControllerTransformCallback<I, O> = (chunk: I,
   controller: TransformStreamDefaultController<O>) => void | PromiseLike<void>;
 
@@ -595,17 +596,19 @@ function ReadableStreamDefaultControllerHasBackpressure(stream: TransformStream<
 
 function ReadableStreamAssertState(stream: TransformStream<any, any>): void {
   if (DEBUG && stream._readable._state !== undefined) {
+    const readable = stream._readable;
+    const controller = stream._readableController;
     // If closeRequested = true, we cannot know if the readable stream's state is 'readable' or 'closed'.
     // This also means we cannot know whether readable.cancel() can still change the state to 'errored' or not.
     // Luckily, this does not matter for ReadableStreamDefaultControllerCanCloseOrEnqueue.
-    if (!(stream._readableController._closeRequested && stream._readableCloseRequested)) {
-      assert(stream._readable._state === stream._readableState,
-             `[TS] readable state: ${stream._readable._state} !== ${stream._readableState}`);
-      assert(stream._readable._storedError === stream._readableStoredError,
-             `[TS] readable storedError: ${stream._readable._storedError} !== ${stream._readableStoredError}`);
+    if (!(controller._closeRequested && stream._readableCloseRequested)) {
+      assert(readable._state === stream._readableState,
+             `[TS] readable state: ${readable._state} !== ${stream._readableState}`);
+      assert(readable._storedError === stream._readableStoredError,
+             `[TS] readable storedError: ${readable._storedError} !== ${stream._readableStoredError}`);
     }
-    assert(stream._readableController._closeRequested === stream._readableCloseRequested,
-           `[TS] readable closeRequested: ${stream._readableController._closeRequested} !== ${stream._readableCloseRequested}`);
+    assert(controller._closeRequested === stream._readableCloseRequested,
+           `[TS] readable closeRequested: ${controller._closeRequested} !== ${stream._readableCloseRequested}`);
   }
 }
 
@@ -788,10 +791,11 @@ function WritableStreamAssertState(stream: TransformStream<any, any>): void {
   if (DEBUG && stream._writable._state !== undefined) {
     // Check state asynchronously, because we update our state before we update the actual writable stream.
     setTimeout(() => {
-      assert(stream._writable._state === stream._writableState,
-             `[TS] writable state: ${stream._writable._state} !== ${stream._writableState}`);
-      assert(stream._writable._storedError === stream._writableStoredError,
-             `[TS] writable storedError: ${stream._writable._storedError} !== ${stream._writableStoredError}`);
+      const writable = stream._writable;
+      assert(writable._state === stream._writableState,
+             `[TS] writable state: ${writable._state} !== ${stream._writableState}`);
+      assert(writable._storedError === stream._writableStoredError,
+             `[TS] writable storedError: ${writable._storedError} !== ${stream._writableStoredError}`);
     }, 0);
   }
 }
