@@ -536,7 +536,6 @@ function CreateReadableStream<R>(stream: TransformStream<any, R>,
       assert(stream._readableState === 'readable');
       stream._readableState = 'closed';
       ReadableStreamAssertState(stream);
-
       return cancelAlgorithm(reason);
     }
   }, { highWaterMark, size: sizeAlgorithm });
