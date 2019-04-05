@@ -659,7 +659,9 @@ function CreateWritableStream<W>(stream: TransformStream<W, any>,
       });
     },
     abort(reason) {
-      WritableStreamDealWithRejection(stream, reason);
+      stream._writableState = 'errored';
+      stream._writableStoredError = reason;
+      WritableStreamAssertState(stream);
       return abortAlgorithm(reason);
     }
   }, { highWaterMark, size: sizeAlgorithm });
