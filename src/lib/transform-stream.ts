@@ -596,14 +596,15 @@ function ReadableStreamDefaultControllerHasBackpressure(stream: TransformStream<
 
 function ReadableStreamAssertState(stream: TransformStream<any, any>): void {
   if (DEBUG && stream._readable._state !== undefined) {
-    // If closeRequested = true, we cannot know if the stream is 'readable' or 'closed'.
+    // If closeRequested = true, we cannot know if the readable stream's state is 'readable' or 'closed'.
+    // This also means we cannot know whether readable.cancel() can still change the state to 'errored' or not.
     // Luckily, this does not matter for ReadableStreamDefaultControllerCanCloseOrEnqueue.
     if (!(stream._readableController._closeRequested && stream._readableCloseRequested)) {
       assert(stream._readable._state === stream._readableState,
              `TransformStream readable state: ${stream._readable._state} !== ${stream._readableState}`);
+      assert(stream._readable._storedError === stream._readableStoredError,
+             `TransformStream readable storedError: ${stream._readable._storedError} !== ${stream._readableStoredError}`);
     }
-    assert(stream._readable._storedError === stream._readableStoredError,
-           `TransformStream readable storedError: ${stream._readable._storedError} !== ${stream._readableStoredError}`);
     assert(stream._readableController._closeRequested === stream._readableCloseRequested,
            `TransformStream readable closeRequested: ${stream._readableController._closeRequested} !== ${stream._readableCloseRequested}`);
   }
