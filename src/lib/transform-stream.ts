@@ -519,8 +519,8 @@ function CreateReadableStream<R>(stream: TransformStream<any, R>,
                                  startAlgorithm: () => Promise<void>,
                                  pullAlgorithm: () => Promise<void>,
                                  cancelAlgorithm: (reason: any) => Promise<void>,
-                                 highWaterMark: number = 1,
-                                 sizeAlgorithm: QueuingStrategySizeCallback<R> = () => 1): ReadableStream<R> {
+                                 highWaterMark: number,
+                                 sizeAlgorithm: QueuingStrategySizeCallback<R>): ReadableStream<R> {
   return new ReadableStream<R>({
     start(controller) {
       stream._readableController = controller;
@@ -617,8 +617,8 @@ function CreateWritableStream<W>(stream: TransformStream<W, any>,
                                  writeAlgorithm: (chunk: W) => Promise<void>,
                                  closeAlgorithm: () => Promise<void>,
                                  abortAlgorithm: (reason: any) => Promise<void>,
-                                 highWaterMark: number = 1,
-                                 sizeAlgorithm: QueuingStrategySizeCallback<W> = () => 1): WritableStream<W> {
+                                 highWaterMark: number,
+                                 sizeAlgorithm: QueuingStrategySizeCallback<W>): WritableStream<W> {
   return new WritableStream({
     start(controller) {
       stream._writableController = controller;
