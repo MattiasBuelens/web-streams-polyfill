@@ -218,7 +218,7 @@
     "space-in-parens": ["error", "never"],
     "space-infix-ops": "error",
     "space-unary-ops": ["error", { "words": true, "nonwords": false }],
-    "spaced-comment": ["error", "always", { "markers": ["///"] }],
+    "spaced-comment": ["error", "always", { "markers": ["/"] }],
     "wrap-regex": "off",
 
     // ECMAScript 6
