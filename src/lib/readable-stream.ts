@@ -1,5 +1,4 @@
 /// <reference lib="dom" />
-/* global AbortSignal:false */
 
 import assert from '../stub/assert';
 import {

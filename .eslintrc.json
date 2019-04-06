@@ -16,6 +16,8 @@
     "TransformStream": false,
     "ByteLengthQueuingStrategy": false,
     "CountQueuingStrategy": false,
+    "AbortSignal": false,
+    "DEBUG": false,
     "GCController": false,
     "gc": false
   },

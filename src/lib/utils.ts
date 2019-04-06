@@ -1,4 +1,3 @@
-/* global DEBUG */
 import { noop } from '../utils';
 import { AssertionError } from '../stub/assert';
 

@@ -1,4 +1,3 @@
-/* global DEBUG */
 import { noop } from '../utils';
 
 export const AssertionError = /* @__PURE__*/ class AssertionError extends Error {
