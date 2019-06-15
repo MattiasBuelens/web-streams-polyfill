@@ -17,11 +17,15 @@ import {
 import { rethrowAssertionErrorRejection } from './utils';
 import { DequeueValue, EnqueueValueWithSize, QueuePair, ResetQueue } from './queue-with-sizes';
 import { QueuingStrategy, QueuingStrategySizeCallback } from './queuing-strategy';
+import {
+  ReadableStreamAsyncIterator,
+  ReadableStreamAsyncIteratorImpl,
+  ReadableStreamAsyncIteratorPrototype
+} from './readable-stream/async-iterator';
 import { ReadableStreamPipeTo } from './readable-stream/pipe';
 import { ReadableStreamTee } from './readable-stream/tee';
 import { IsWritableStream, IsWritableStreamLocked, WritableStream } from './writable-stream';
 import NumberIsInteger from '../stub/number-isinteger';
-import { AsyncIteratorPrototype } from '@@target/stub/async-iterator-prototype';
 import { SimpleQueue } from './simple-queue';
 import { noop } from '../utils';
 
@@ -243,70 +247,6 @@ class ReadableStream<R = any> {
   [Symbol.asyncIterator]: (options?: { preventCancel?: boolean }) => ReadableStreamAsyncIterator<R>;
 }
 
-export interface ReadableStreamAsyncIterator<R> extends AsyncIterator<R> {
-  next(): Promise<IteratorResult<R>>;
-
-  return(value?: any): Promise<IteratorResult<any>>;
-}
-
-declare class ReadableStreamAsyncIteratorImpl<R> implements ReadableStreamAsyncIterator<R> {
-  /** @internal */
-  _asyncIteratorReader: ReadableStreamDefaultReader<R>;
-  /** @internal */
-  _preventCancel: boolean;
-
-  next(): Promise<IteratorResult<R>>;
-
-  return(value?: any): Promise<IteratorResult<any>>;
-}
-
-const ReadableStreamAsyncIteratorPrototype: ReadableStreamAsyncIteratorImpl<any> = {
-  next(): Promise<IteratorResult<any>> {
-    if (IsReadableStreamAsyncIterator(this) === false) {
-      return Promise.reject(streamAsyncIteratorBrandCheckException('next'));
-    }
-    const reader = this._asyncIteratorReader;
-    if (reader._ownerReadableStream === undefined) {
-      return Promise.reject(readerLockException('iterate'));
-    }
-    return ReadableStreamDefaultReaderRead(reader).then(result => {
-      assert(typeIsObject(result));
-      const done = result.done;
-      assert(typeof done === 'boolean');
-      if (done) {
-        ReadableStreamReaderGenericRelease(reader);
-      }
-      const value = result.value;
-      return ReadableStreamCreateReadResult(value, done, true);
-    });
-  },
-
-  return(value: any): Promise<IteratorResult<any>> {
-    if (IsReadableStreamAsyncIterator(this) === false) {
-      return Promise.reject(streamAsyncIteratorBrandCheckException('next'));
-    }
-    const reader = this._asyncIteratorReader;
-    if (reader._ownerReadableStream === undefined) {
-      return Promise.reject(readerLockException('finish iterating'));
-    }
-    if (reader._readRequests.length > 0) {
-      return Promise.reject(new TypeError(
-        'Tried to release a reader lock when that reader has pending read() calls un-settled'));
-    }
-    if (this._preventCancel === false) {
-      const result = ReadableStreamReaderGenericCancel(reader, value);
-      ReadableStreamReaderGenericRelease(reader);
-      return result.then(() => ReadableStreamCreateReadResult(value, true, true));
-    }
-    ReadableStreamReaderGenericRelease(reader);
-    return Promise.resolve(ReadableStreamCreateReadResult(value, true, true));
-  }
-} as any;
-if (AsyncIteratorPrototype !== undefined) {
-  Object.setPrototypeOf(ReadableStreamAsyncIteratorPrototype, AsyncIteratorPrototype);
-}
-Object.defineProperty(ReadableStreamAsyncIteratorPrototype, 'next', { enumerable: false });
-Object.defineProperty(ReadableStreamAsyncIteratorPrototype, 'return', { enumerable: false });
 
 if (typeof Symbol.asyncIterator === 'symbol') {
   Object.defineProperty(ReadableStream.prototype, Symbol.asyncIterator, {
@@ -326,7 +266,9 @@ export {
   IsReadableStreamLocked,
   IsReadableStreamDisturbed,
   ReadableStream,
+  ReadableStreamAsyncIterator,
   ReadableStreamCancel,
+  ReadableStreamCreateReadResult,
   ReadableStreamDefaultController,
   ReadableStreamDefaultControllerClose,
   ReadableStreamDefaultControllerEnqueue,
@@ -334,8 +276,11 @@ export {
   ReadableStreamDefaultControllerGetDesiredSize,
   ReadableStreamDefaultControllerHasBackpressure,
   ReadableStreamDefaultControllerCanCloseOrEnqueue,
+  ReadableStreamDefaultReader,
   ReadableStreamDefaultReaderRead,
-  ReadableStreamReaderGenericRelease
+  ReadableStreamReaderGenericCancel,
+  ReadableStreamReaderGenericRelease,
+  readerLockException
 };
 
 // Abstract operations for the ReadableStream.
@@ -426,18 +371,6 @@ function IsReadableStreamLocked(stream: ReadableStream): boolean {
   assert(IsReadableStream(stream) === true);
 
   if (stream._reader === undefined) {
-    return false;
-  }
-
-  return true;
-}
-
-function IsReadableStreamAsyncIterator<R>(x: any): x is ReadableStreamAsyncIterator<R> {
-  if (!typeIsObject(x)) {
-    return false;
-  }
-
-  if (!Object.prototype.hasOwnProperty.call(x, '_asyncIteratorReader')) {
     return false;
   }
 
@@ -2118,10 +2051,6 @@ function isAbortSignal(value: any): value is AbortSignal {
 
 function streamBrandCheckException(name: string): TypeError {
   return new TypeError(`ReadableStream.prototype.${name} can only be used on a ReadableStream`);
-}
-
-function streamAsyncIteratorBrandCheckException(name: string): TypeError {
-  return new TypeError(`ReadableStreamAsyncIterator.${name} can only be used on a ReadableSteamAsyncIterator`);
 }
 
 // Helper functions for the readers.
