@@ -22,6 +22,7 @@ import {
 import assert from '../../stub/assert';
 import { WaitForAllPromise } from '../helpers';
 import { rethrowAssertionErrorRejection } from '../utils';
+import { noop } from '../../utils';
 
 export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
                                         dest: WritableStream<T>,
@@ -107,7 +108,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
             return true;
           }
 
-          currentWrite = WritableStreamDefaultWriterWrite(writer, value!).catch(() => {});
+          currentWrite = WritableStreamDefaultWriterWrite(writer, value!).catch(noop);
           return false;
         });
       });

@@ -23,6 +23,7 @@ import { IsWritableStream, IsWritableStreamLocked, WritableStream } from './writ
 import NumberIsInteger from '../stub/number-isinteger';
 import { AsyncIteratorPrototype } from '@@target/stub/async-iterator-prototype';
 import { SimpleQueue } from './simple-queue';
+import { noop } from '../utils';
 
 const CancelSteps = Symbol('[[CancelSteps]]');
 const PullSteps = Symbol('[[PullSteps]]');
@@ -186,7 +187,7 @@ class ReadableStream<R = any> {
 
     const promise = ReadableStreamPipeTo(this, writable, preventClose, preventAbort, preventCancel, signal);
 
-    promise.catch(() => {});
+    promise.catch(noop);
 
     return readable;
   }
@@ -2157,7 +2158,7 @@ function defaultReaderClosedPromiseReject(reader: ReadableStreamReader<any>, rea
   assert(reader._closedPromise_resolve !== undefined);
   assert(reader._closedPromise_reject !== undefined);
 
-  reader._closedPromise.catch(() => {});
+  reader._closedPromise.catch(noop);
   reader._closedPromise_reject!(reason);
   reader._closedPromise_resolve = undefined;
   reader._closedPromise_reject = undefined;
