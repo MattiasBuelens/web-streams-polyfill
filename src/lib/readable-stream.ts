@@ -17,11 +17,7 @@ import {
 import { rethrowAssertionErrorRejection } from './utils';
 import { DequeueValue, EnqueueValueWithSize, QueuePair, ResetQueue } from './queue-with-sizes';
 import { QueuingStrategy, QueuingStrategySizeCallback } from './queuing-strategy';
-import {
-  ReadableStreamAsyncIterator,
-  ReadableStreamAsyncIteratorImpl,
-  ReadableStreamAsyncIteratorPrototype
-} from './readable-stream/async-iterator';
+import { AcquireReadableStreamAsyncIterator, ReadableStreamAsyncIterator } from './readable-stream/async-iterator';
 import { ReadableStreamPipeTo } from './readable-stream/pipe';
 import { ReadableStreamTee } from './readable-stream/tee';
 import { IsWritableStream, IsWritableStreamLocked, WritableStream } from './writable-stream';
@@ -237,16 +233,11 @@ class ReadableStream<R = any> {
     if (IsReadableStream(this) === false) {
       throw streamBrandCheckException('getIterator');
     }
-    const reader = AcquireReadableStreamDefaultReader<R>(this);
-    const iterator: ReadableStreamAsyncIteratorImpl<R> = Object.create(ReadableStreamAsyncIteratorPrototype);
-    iterator._asyncIteratorReader = reader;
-    iterator._preventCancel = Boolean(preventCancel);
-    return iterator;
+    return AcquireReadableStreamAsyncIterator<R>(this, preventCancel);
   }
 
   [Symbol.asyncIterator]: (options?: { preventCancel?: boolean }) => ReadableStreamAsyncIterator<R>;
 }
-
 
 if (typeof Symbol.asyncIterator === 'symbol') {
   Object.defineProperty(ReadableStream.prototype, Symbol.asyncIterator, {

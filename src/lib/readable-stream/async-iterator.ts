@@ -1,4 +1,6 @@
 import {
+  AcquireReadableStreamDefaultReader,
+  ReadableStream,
   ReadableStreamCreateReadResult,
   ReadableStreamDefaultReader,
   ReadableStreamDefaultReaderRead,
@@ -16,7 +18,7 @@ export interface ReadableStreamAsyncIterator<R> extends AsyncIterator<R> {
   return(value?: any): Promise<IteratorResult<any>>;
 }
 
-export declare class ReadableStreamAsyncIteratorImpl<R> implements ReadableStreamAsyncIterator<R> {
+declare class ReadableStreamAsyncIteratorImpl<R> implements ReadableStreamAsyncIterator<R> {
   /** @internal */
   _asyncIteratorReader: ReadableStreamDefaultReader<R>;
   /** @internal */
@@ -27,7 +29,7 @@ export declare class ReadableStreamAsyncIteratorImpl<R> implements ReadableStrea
   return(value?: any): Promise<IteratorResult<any>>;
 }
 
-export const ReadableStreamAsyncIteratorPrototype: ReadableStreamAsyncIteratorImpl<any> = {
+const ReadableStreamAsyncIteratorPrototype: ReadableStreamAsyncIteratorImpl<any> = {
   next(): Promise<IteratorResult<any>> {
     if (IsReadableStreamAsyncIterator(this) === false) {
       return Promise.reject(streamAsyncIteratorBrandCheckException('next'));
@@ -76,6 +78,15 @@ Object.defineProperty(ReadableStreamAsyncIteratorPrototype, 'next', { enumerable
 Object.defineProperty(ReadableStreamAsyncIteratorPrototype, 'return', { enumerable: false });
 
 // Abstract operations for the ReadableStream.
+
+export function AcquireReadableStreamAsyncIterator<R>(stream: ReadableStream<R>,
+                                                      preventCancel: boolean = false): ReadableStreamAsyncIterator<R> {
+  const reader = AcquireReadableStreamDefaultReader<R>(stream);
+  const iterator: ReadableStreamAsyncIteratorImpl<R> = Object.create(ReadableStreamAsyncIteratorPrototype);
+  iterator._asyncIteratorReader = reader;
+  iterator._preventCancel = Boolean(preventCancel);
+  return iterator;
+}
 
 function IsReadableStreamAsyncIterator<R>(x: any): x is ReadableStreamAsyncIterator<R> {
   if (!typeIsObject(x)) {
