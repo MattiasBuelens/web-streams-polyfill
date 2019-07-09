@@ -65,6 +65,12 @@ export function ReadableStreamReaderGenericRelease(reader: ReadableStreamReader<
   reader._ownerReadableStream = undefined!;
 }
 
+// Helper functions for the readers.
+
+export function readerLockException(name: string): TypeError {
+  return new TypeError('Cannot ' + name + ' a stream using a released reader');
+}
+
 // Helper functions for the ReadableStreamDefaultReader.
 
 export function defaultReaderClosedPromiseInitialize(reader: ReadableStreamReader<any>) {

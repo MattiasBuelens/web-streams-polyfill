@@ -6,15 +6,10 @@ import {
   ReadableStreamReaderGenericCancel,
   ReadableStreamReaderGenericInitialize,
   ReadableStreamReaderGenericRelease,
+  readerLockException,
   ReadResult
 } from './generic-reader';
-import {
-  IsReadableStream,
-  IsReadableStreamLocked,
-  PullSteps,
-  ReadableStream,
-  readerLockException
-} from '../readable-stream';
+import { IsReadableStream, IsReadableStreamLocked, PullSteps, ReadableStream } from '../readable-stream';
 
 // Abstract operations for the ReadableStream.
 

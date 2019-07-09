@@ -25,6 +25,7 @@ import {
   ReadableStreamReaderGenericCancel,
   ReadableStreamReaderGenericInitialize,
   ReadableStreamReaderGenericRelease,
+  readerLockException,
   ReadResult
 } from './readable-stream/generic-reader';
 import {
@@ -1841,12 +1842,6 @@ function isAbortSignal(value: any): value is AbortSignal {
 
 function streamBrandCheckException(name: string): TypeError {
   return new TypeError(`ReadableStream.prototype.${name} can only be used on a ReadableStream`);
-}
-
-// Helper functions for the readers.
-
-function readerLockException(name: string): TypeError {
-  return new TypeError('Cannot ' + name + ' a stream using a released reader');
 }
 
 // Helper functions for the ReadableStreamBYOBReader.
