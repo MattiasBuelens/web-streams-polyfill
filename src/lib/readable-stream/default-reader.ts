@@ -65,6 +65,8 @@ export function ReadableStreamHasDefaultReader(stream: ReadableStream): boolean 
   return true;
 }
 
+// Readers
+
 export interface ReadRequest<R> {
   _resolve: (value: ReadResult<R>) => void;
   _reject: (reason: any) => void;

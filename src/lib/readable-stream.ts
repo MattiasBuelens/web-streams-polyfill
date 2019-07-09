@@ -23,7 +23,6 @@ import {
   defaultReaderClosedPromiseResolve,
   ReadableStreamCreateReadResult,
   ReadableStreamReaderGenericCancel,
-  ReadableStreamReaderGenericInitialize,
   ReadableStreamReaderGenericRelease,
   readerLockException,
   ReadResult
@@ -44,6 +43,15 @@ import { IsWritableStream, IsWritableStreamLocked, WritableStream } from './writ
 import NumberIsInteger from '../stub/number-isinteger';
 import { SimpleQueue } from './simple-queue';
 import { noop } from '../utils';
+import {
+  AcquireReadableStreamBYOBReader,
+  IsReadableStreamBYOBReader,
+  ReadableStreamAddReadIntoRequest,
+  ReadableStreamBYOBReader,
+  ReadableStreamFulfillReadIntoRequest,
+  ReadableStreamGetNumReadIntoRequests,
+  ReadableStreamHasBYOBReader
+} from './readable-stream/byob-reader';
 
 const CancelSteps = Symbol('[[CancelSteps]]');
 export const PullSteps = Symbol('[[PullSteps]]');
@@ -294,13 +302,6 @@ export {
 
 // Abstract operations for the ReadableStream.
 
-function AcquireReadableStreamBYOBReader(stream: ReadableStream<Uint8Array>,
-                                         forAuthorCode: boolean = false): ReadableStreamBYOBReader {
-  const reader = new ReadableStreamBYOBReader(stream);
-  reader._forAuthorCode = forAuthorCode;
-  return reader;
-}
-
 // Throws if and only if startAlgorithm throws.
 function CreateReadableStream<R>(startAlgorithm: () => void | PromiseLike<void>,
                                  pullAlgorithm: () => Promise<void>,
@@ -381,22 +382,6 @@ function IsReadableStreamLocked(stream: ReadableStream): boolean {
 
 // ReadableStream API exposed for controllers.
 
-function ReadableStreamAddReadIntoRequest<T extends ArrayBufferView>(stream: ReadableByteStream): Promise<ReadResult<T>> {
-  assert(IsReadableStreamBYOBReader(stream._reader) === true);
-  assert(stream._state === 'readable' || stream._state === 'closed');
-
-  const promise = new Promise<ReadResult<T>>((resolve, reject) => {
-    const readIntoRequest: ReadIntoRequest<T> = {
-      _resolve: resolve,
-      _reject: reject
-    };
-
-    (stream._reader! as ReadableStreamBYOBReader)._readIntoRequests.push(readIntoRequest);
-  });
-
-  return promise;
-}
-
 function ReadableStreamCancel<R>(stream: ReadableStream<R>, reason: any): Promise<void> {
   stream._disturbed = true;
 
@@ -466,169 +451,15 @@ function ReadableStreamError<R>(stream: ReadableStream<R>, e: any): void {
   defaultReaderClosedPromiseReject(reader, e);
 }
 
-function ReadableStreamFulfillReadIntoRequest(stream: ReadableByteStream, chunk: ArrayBufferView, done: boolean) {
-  const reader = stream._reader as ReadableStreamBYOBReader;
-
-  assert(reader._readIntoRequests.length > 0);
-
-  const readIntoRequest = reader._readIntoRequests.shift()!;
-  readIntoRequest._resolve(ReadableStreamCreateReadResult(chunk, done, reader._forAuthorCode));
-}
-
-function ReadableStreamGetNumReadIntoRequests(stream: ReadableByteStream): number {
-  return (stream._reader as ReadableStreamBYOBReader)._readIntoRequests.length;
-}
-
-function ReadableStreamHasBYOBReader(stream: ReadableByteStream): boolean {
-  const reader = stream._reader;
-
-  if (reader === undefined) {
-    return false;
-  }
-
-  if (!IsReadableStreamBYOBReader(reader)) {
-    return false;
-  }
-
-  return true;
-}
-
 // Readers
 
 export type ReadableStreamReader<R> = ReadableStreamDefaultReader<R> | ReadableStreamBYOBReader;
 
 export type ReadableStreamDefaultReaderType<R> = ReadableStreamDefaultReader<R>;
 
-interface ReadIntoRequest<T extends ArrayBufferView> {
-  _resolve: (value: ReadResult<T>) => void;
-  _reject: (reason: any) => void;
-}
-
 export type ReadableStreamBYOBReaderType = ReadableStreamBYOBReader;
 
-class ReadableStreamBYOBReader {
-  /** @internal */
-  _forAuthorCode!: boolean;
-  /** @internal */
-  _ownerReadableStream!: ReadableByteStream;
-  /** @internal */
-  _closedPromise!: Promise<void>;
-  /** @internal */
-  _closedPromise_resolve?: (value?: undefined) => void;
-  /** @internal */
-  _closedPromise_reject?: (reason: any) => void;
-  /** @internal */
-  _readIntoRequests: SimpleQueue<ReadIntoRequest<any>>;
-
-  constructor(stream: ReadableByteStream) {
-    if (!IsReadableStream(stream)) {
-      throw new TypeError('ReadableStreamBYOBReader can only be constructed with a ReadableStream instance given a ' +
-                            'byte source');
-    }
-    if (IsReadableByteStreamController(stream._readableStreamController) === false) {
-      throw new TypeError('Cannot construct a ReadableStreamBYOBReader for a stream not constructed with a byte ' +
-                            'source');
-    }
-    if (IsReadableStreamLocked(stream)) {
-      throw new TypeError('This stream has already been locked for exclusive reading by another reader');
-    }
-
-    ReadableStreamReaderGenericInitialize(this, stream);
-
-    this._readIntoRequests = new SimpleQueue();
-  }
-
-  get closed(): Promise<void> {
-    if (!IsReadableStreamBYOBReader(this)) {
-      return Promise.reject(byobReaderBrandCheckException('closed'));
-    }
-
-    return this._closedPromise;
-  }
-
-  cancel(reason: any): Promise<void> {
-    if (!IsReadableStreamBYOBReader(this)) {
-      return Promise.reject(byobReaderBrandCheckException('cancel'));
-    }
-
-    if (this._ownerReadableStream === undefined) {
-      return Promise.reject(readerLockException('cancel'));
-    }
-
-    return ReadableStreamReaderGenericCancel(this, reason);
-  }
-
-  read<T extends ArrayBufferView>(view: T): Promise<ReadResult<T>> {
-    if (!IsReadableStreamBYOBReader(this)) {
-      return Promise.reject(byobReaderBrandCheckException('read'));
-    }
-
-    if (this._ownerReadableStream === undefined) {
-      return Promise.reject(readerLockException('read from'));
-    }
-
-    if (!ArrayBuffer.isView(view)) {
-      return Promise.reject(new TypeError('view must be an array buffer view'));
-    }
-
-    if (IsDetachedBuffer(view.buffer) === true) {
-      return Promise.reject(new TypeError('Cannot read into a view onto a detached ArrayBuffer'));
-    }
-
-    if (view.byteLength === 0) {
-      return Promise.reject(new TypeError('view must have non-zero byteLength'));
-    }
-
-    return ReadableStreamBYOBReaderRead(this, view);
-  }
-
-  releaseLock(): void {
-    if (!IsReadableStreamBYOBReader(this)) {
-      throw byobReaderBrandCheckException('releaseLock');
-    }
-
-    if (this._ownerReadableStream === undefined) {
-      return;
-    }
-
-    if (this._readIntoRequests.length > 0) {
-      throw new TypeError('Tried to release a reader lock when that reader has pending read() calls un-settled');
-    }
-
-    ReadableStreamReaderGenericRelease(this);
-  }
-}
-
 // Abstract operations for the readers.
-
-function IsReadableStreamBYOBReader(x: any): x is ReadableStreamBYOBReader {
-  if (!typeIsObject(x)) {
-    return false;
-  }
-
-  if (!Object.prototype.hasOwnProperty.call(x, '_readIntoRequests')) {
-    return false;
-  }
-
-  return true;
-}
-
-function ReadableStreamBYOBReaderRead<T extends ArrayBufferView>(reader: ReadableStreamBYOBReader,
-                                                                 view: T): Promise<ReadResult<T>> {
-  const stream = reader._ownerReadableStream;
-
-  assert(stream !== undefined);
-
-  stream._disturbed = true;
-
-  if (stream._state === 'errored') {
-    return Promise.reject(stream._storedError);
-  }
-
-  // Controllers must implement this.
-  return ReadableByteStreamControllerPullInto(stream._readableStreamController as ReadableByteStreamController,
-                                              view);
-}
 
 // Controllers
 
@@ -1240,7 +1071,7 @@ class ReadableByteStreamController {
 
 // Abstract operations for the ReadableByteStreamController.
 
-function IsReadableByteStreamController(x: any): x is ReadableByteStreamController {
+export function IsReadableByteStreamController(x: any): x is ReadableByteStreamController {
   if (!typeIsObject(x)) {
     return false;
   }
@@ -1440,8 +1271,8 @@ function ReadableByteStreamControllerProcessPullIntoDescriptorsUsingQueue(contro
   }
 }
 
-function ReadableByteStreamControllerPullInto<T extends ArrayBufferView>(controller: ReadableByteStreamController,
-                                                                         view: T): Promise<ReadResult<T>> {
+export function ReadableByteStreamControllerPullInto<T extends ArrayBufferView>(controller: ReadableByteStreamController,
+                                                                                view: T): Promise<ReadResult<T>> {
   const stream = controller._controlledReadableByteStream;
 
   let elementSize = 1;
@@ -1842,13 +1673,6 @@ function isAbortSignal(value: any): value is AbortSignal {
 
 function streamBrandCheckException(name: string): TypeError {
   return new TypeError(`ReadableStream.prototype.${name} can only be used on a ReadableStream`);
-}
-
-// Helper functions for the ReadableStreamBYOBReader.
-
-function byobReaderBrandCheckException(name: string): TypeError {
-  return new TypeError(
-    `ReadableStreamBYOBReader.prototype.${name} can only be used on a ReadableStreamBYOBReader`);
 }
 
 // Helper functions for the ReadableStreamDefaultController.
