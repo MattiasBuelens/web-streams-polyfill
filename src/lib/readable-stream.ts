@@ -27,6 +27,16 @@ import {
   ReadableStreamReaderGenericRelease,
   ReadResult
 } from './readable-stream/generic-reader';
+import {
+  AcquireReadableStreamDefaultReader,
+  IsReadableStreamDefaultReader,
+  ReadableStreamAddReadRequest,
+  ReadableStreamDefaultReader,
+  ReadableStreamDefaultReaderRead,
+  ReadableStreamFulfillReadRequest,
+  ReadableStreamGetNumReadRequests,
+  ReadableStreamHasDefaultReader
+} from './readable-stream/default-reader';
 import { ReadableStreamPipeTo } from './readable-stream/pipe';
 import { ReadableStreamTee } from './readable-stream/tee';
 import { IsWritableStream, IsWritableStreamLocked, WritableStream } from './writable-stream';
@@ -35,7 +45,7 @@ import { SimpleQueue } from './simple-queue';
 import { noop } from '../utils';
 
 const CancelSteps = Symbol('[[CancelSteps]]');
-const PullSteps = Symbol('[[PullSteps]]');
+export const PullSteps = Symbol('[[PullSteps]]');
 
 export type ReadableByteStream = ReadableStream<Uint8Array>;
 
@@ -290,13 +300,6 @@ function AcquireReadableStreamBYOBReader(stream: ReadableStream<Uint8Array>,
   return reader;
 }
 
-function AcquireReadableStreamDefaultReader<R>(stream: ReadableStream,
-                                               forAuthorCode: boolean = false): ReadableStreamDefaultReader<R> {
-  const reader = new ReadableStreamDefaultReader(stream);
-  reader._forAuthorCode = forAuthorCode;
-  return reader;
-}
-
 // Throws if and only if startAlgorithm throws.
 function CreateReadableStream<R>(startAlgorithm: () => void | PromiseLike<void>,
                                  pullAlgorithm: () => Promise<void>,
@@ -393,22 +396,6 @@ function ReadableStreamAddReadIntoRequest<T extends ArrayBufferView>(stream: Rea
   return promise;
 }
 
-function ReadableStreamAddReadRequest<R>(stream: ReadableStream<R>): Promise<ReadResult<R>> {
-  assert(IsReadableStreamDefaultReader(stream._reader) === true);
-  assert(stream._state === 'readable');
-
-  const promise = new Promise<ReadResult<R>>((resolve, reject) => {
-    const readRequest: ReadRequest<R> = {
-      _resolve: resolve,
-      _reject: reject
-    };
-
-    (stream._reader! as ReadableStreamDefaultReader<R>)._readRequests.push(readRequest);
-  });
-
-  return promise;
-}
-
 function ReadableStreamCancel<R>(stream: ReadableStream<R>, reason: any): Promise<void> {
   stream._disturbed = true;
 
@@ -487,21 +474,8 @@ function ReadableStreamFulfillReadIntoRequest(stream: ReadableByteStream, chunk:
   readIntoRequest._resolve(ReadableStreamCreateReadResult(chunk, done, reader._forAuthorCode));
 }
 
-function ReadableStreamFulfillReadRequest<R>(stream: ReadableStream<R>, chunk: R | undefined, done: boolean) {
-  const reader = stream._reader as ReadableStreamDefaultReader<R>;
-
-  assert(reader._readRequests.length > 0);
-
-  const readRequest = reader._readRequests.shift()!;
-  readRequest._resolve(ReadableStreamCreateReadResult(chunk, done, reader._forAuthorCode));
-}
-
 function ReadableStreamGetNumReadIntoRequests(stream: ReadableByteStream): number {
   return (stream._reader as ReadableStreamBYOBReader)._readIntoRequests.length;
-}
-
-function ReadableStreamGetNumReadRequests<R>(stream: ReadableStream<R>): number {
-  return (stream._reader as ReadableStreamDefaultReader<R>)._readRequests.length;
 }
 
 function ReadableStreamHasBYOBReader(stream: ReadableByteStream): boolean {
@@ -518,106 +492,11 @@ function ReadableStreamHasBYOBReader(stream: ReadableByteStream): boolean {
   return true;
 }
 
-function ReadableStreamHasDefaultReader(stream: ReadableStream): boolean {
-  const reader = stream._reader;
-
-  if (reader === undefined) {
-    return false;
-  }
-
-  if (!IsReadableStreamDefaultReader(reader)) {
-    return false;
-  }
-
-  return true;
-}
-
 // Readers
 
 export type ReadableStreamReader<R> = ReadableStreamDefaultReader<R> | ReadableStreamBYOBReader;
 
-interface ReadRequest<R> {
-  _resolve: (value: ReadResult<R>) => void;
-  _reject: (reason: any) => void;
-}
-
 export type ReadableStreamDefaultReaderType<R> = ReadableStreamDefaultReader<R>;
-
-class ReadableStreamDefaultReader<R> {
-  /** @internal */
-  _forAuthorCode!: boolean;
-  /** @internal */
-  _ownerReadableStream!: ReadableStream<R>;
-  /** @internal */
-  _closedPromise!: Promise<void>;
-  /** @internal */
-  _closedPromise_resolve?: (value?: undefined) => void;
-  /** @internal */
-  _closedPromise_reject?: (reason: any) => void;
-  /** @internal */
-  _readRequests: SimpleQueue<ReadRequest<R>>;
-
-  constructor(stream: ReadableStream<R>) {
-    if (IsReadableStream(stream) === false) {
-      throw new TypeError('ReadableStreamDefaultReader can only be constructed with a ReadableStream instance');
-    }
-    if (IsReadableStreamLocked(stream) === true) {
-      throw new TypeError('This stream has already been locked for exclusive reading by another reader');
-    }
-
-    ReadableStreamReaderGenericInitialize(this, stream);
-
-    this._readRequests = new SimpleQueue();
-  }
-
-  get closed(): Promise<void> {
-    if (!IsReadableStreamDefaultReader(this)) {
-      return Promise.reject(defaultReaderBrandCheckException('closed'));
-    }
-
-    return this._closedPromise;
-  }
-
-  cancel(reason: any): Promise<void> {
-    if (!IsReadableStreamDefaultReader(this)) {
-      return Promise.reject(defaultReaderBrandCheckException('cancel'));
-    }
-
-    if (this._ownerReadableStream === undefined) {
-      return Promise.reject(readerLockException('cancel'));
-    }
-
-    return ReadableStreamReaderGenericCancel(this, reason);
-  }
-
-  read(): Promise<ReadResult<R>> {
-    if (!IsReadableStreamDefaultReader(this)) {
-      return Promise.reject(defaultReaderBrandCheckException('read'));
-    }
-
-    if (this._ownerReadableStream === undefined) {
-      return Promise.reject(readerLockException('read from'));
-    }
-
-    return ReadableStreamDefaultReaderRead<R>(this);
-  }
-
-  releaseLock(): void {
-    if (!IsReadableStreamDefaultReader(this)) {
-      throw defaultReaderBrandCheckException('releaseLock');
-    }
-
-    if (this._ownerReadableStream === undefined) {
-      return;
-    }
-
-    if (this._readRequests.length > 0) {
-      throw new TypeError('Tried to release a reader lock when that reader has pending read() calls un-settled');
-    }
-
-    ReadableStreamReaderGenericRelease(this);
-  }
-}
 
 interface ReadIntoRequest<T extends ArrayBufferView> {
   _resolve: (value: ReadResult<T>) => void;
@@ -733,18 +612,6 @@ function IsReadableStreamBYOBReader(x: any): x is ReadableStreamBYOBReader {
   return true;
 }
 
-function IsReadableStreamDefaultReader<R>(x: any): x is ReadableStreamDefaultReader<R> {
-  if (!typeIsObject(x)) {
-    return false;
-  }
-
-  if (!Object.prototype.hasOwnProperty.call(x, '_readRequests')) {
-    return false;
-  }
-
-  return true;
-}
-
 function ReadableStreamBYOBReaderRead<T extends ArrayBufferView>(reader: ReadableStreamBYOBReader,
                                                                  view: T): Promise<ReadResult<T>> {
   const stream = reader._ownerReadableStream;
@@ -760,26 +627,6 @@ function ReadableStreamBYOBReaderRead<T extends ArrayBufferView>(reader: Readabl
   // Controllers must implement this.
   return ReadableByteStreamControllerPullInto(stream._readableStreamController as ReadableByteStreamController,
                                               view);
-}
-
-function ReadableStreamDefaultReaderRead<R>(reader: ReadableStreamDefaultReader<R>): Promise<ReadResult<R>> {
-  const stream = reader._ownerReadableStream;
-
-  assert(stream !== undefined);
-
-  stream._disturbed = true;
-
-  if (stream._state === 'closed') {
-    return Promise.resolve(ReadableStreamCreateReadResult<R>(undefined, true, reader._forAuthorCode));
-  }
-
-  if (stream._state === 'errored') {
-    return Promise.reject(stream._storedError);
-  }
-
-  assert(stream._state === 'readable');
-
-  return stream._readableStreamController[PullSteps]() as unknown as Promise<ReadResult<R>>;
 }
 
 // Controllers
@@ -2000,13 +1847,6 @@ function streamBrandCheckException(name: string): TypeError {
 
 function readerLockException(name: string): TypeError {
   return new TypeError('Cannot ' + name + ' a stream using a released reader');
-}
-
-// Helper functions for the ReadableStreamDefaultReader.
-
-function defaultReaderBrandCheckException(name: string): TypeError {
-  return new TypeError(
-    `ReadableStreamDefaultReader.prototype.${name} can only be used on a ReadableStreamDefaultReader`);
 }
 
 // Helper functions for the ReadableStreamBYOBReader.
