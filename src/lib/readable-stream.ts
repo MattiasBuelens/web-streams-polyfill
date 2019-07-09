@@ -2009,7 +2009,7 @@ function defaultReaderBrandCheckException(name: string): TypeError {
     `ReadableStreamDefaultReader.prototype.${name} can only be used on a ReadableStreamDefaultReader`);
 }
 
-// Helper functions for the ReadableStreamDefaultReader.
+// Helper functions for the ReadableStreamBYOBReader.
 
 function byobReaderBrandCheckException(name: string): TypeError {
   return new TypeError(
