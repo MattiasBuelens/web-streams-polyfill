@@ -18,6 +18,15 @@ import { rethrowAssertionErrorRejection } from './utils';
 import { DequeueValue, EnqueueValueWithSize, QueuePair, ResetQueue } from './queue-with-sizes';
 import { QueuingStrategy, QueuingStrategySizeCallback } from './queuing-strategy';
 import { AcquireReadableStreamAsyncIterator, ReadableStreamAsyncIterator } from './readable-stream/async-iterator';
+import {
+  defaultReaderClosedPromiseReject,
+  defaultReaderClosedPromiseResolve,
+  ReadableStreamCreateReadResult,
+  ReadableStreamReaderGenericCancel,
+  ReadableStreamReaderGenericInitialize,
+  ReadableStreamReaderGenericRelease,
+  ReadResult
+} from './readable-stream/generic-reader';
 import { ReadableStreamPipeTo } from './readable-stream/pipe';
 import { ReadableStreamTee } from './readable-stream/tee';
 import { IsWritableStream, IsWritableStreamLocked, WritableStream } from './writable-stream';
@@ -56,11 +65,9 @@ export interface PipeOptions {
   signal?: AbortSignal;
 }
 
-// TODO Fix ReadableStreamReadResult<R> in TypeScript DOM types
-export interface ReadResult<T = any> {
-  done: boolean;
-  value: T;
-}
+export {
+  ReadResult
+};
 
 type ReadableStreamState = 'readable' | 'closed' | 'errored';
 
@@ -439,18 +446,6 @@ function ReadableStreamClose<R>(stream: ReadableStream<R>): void {
   defaultReaderClosedPromiseResolve(reader);
 }
 
-function ReadableStreamCreateReadResult<T>(value: T | undefined, done: boolean, forAuthorCode: boolean): ReadResult<T> {
-  let prototype: object | null = null;
-  if (forAuthorCode === true) {
-    prototype = Object.prototype;
-  }
-  assert(typeof done === 'boolean');
-  const obj: ReadResult<T> = Object.create(prototype);
-  obj.value = value!;
-  obj.done = done;
-  return obj;
-}
-
 function ReadableStreamError<R>(stream: ReadableStream<R>, e: any): void {
   assert(IsReadableStream(stream) === true);
   assert(stream._state === 'readable');
@@ -539,7 +534,7 @@ function ReadableStreamHasDefaultReader(stream: ReadableStream): boolean {
 
 // Readers
 
-type ReadableStreamReader<R> = ReadableStreamDefaultReader<R> | ReadableStreamBYOBReader;
+export type ReadableStreamReader<R> = ReadableStreamDefaultReader<R> | ReadableStreamBYOBReader;
 
 interface ReadRequest<R> {
   _resolve: (value: ReadResult<R>) => void;
@@ -748,49 +743,6 @@ function IsReadableStreamDefaultReader<R>(x: any): x is ReadableStreamDefaultRea
   }
 
   return true;
-}
-
-function ReadableStreamReaderGenericInitialize<R>(reader: ReadableStreamReader<R>, stream: ReadableStream<R>) {
-  reader._forAuthorCode = true;
-  reader._ownerReadableStream = stream;
-  stream._reader = reader;
-
-  if (stream._state === 'readable') {
-    defaultReaderClosedPromiseInitialize(reader);
-  } else if (stream._state === 'closed') {
-    defaultReaderClosedPromiseInitializeAsResolved(reader);
-  } else {
-    assert(stream._state === 'errored');
-
-    defaultReaderClosedPromiseInitializeAsRejected(reader, stream._storedError);
-  }
-}
-
-// A client of ReadableStreamDefaultReader and ReadableStreamBYOBReader may use these functions directly to bypass state
-// check.
-
-function ReadableStreamReaderGenericCancel(reader: ReadableStreamReader<any>, reason: any): Promise<void> {
-  const stream = reader._ownerReadableStream;
-  assert(stream !== undefined);
-  return ReadableStreamCancel(stream, reason);
-}
-
-function ReadableStreamReaderGenericRelease(reader: ReadableStreamReader<any>) {
-  assert(reader._ownerReadableStream !== undefined);
-  assert(reader._ownerReadableStream._reader === reader);
-
-  if (reader._ownerReadableStream._state === 'readable') {
-    defaultReaderClosedPromiseReject(
-      reader,
-      new TypeError('Reader was released and can no longer be used to monitor the stream\'s closedness'));
-  } else {
-    defaultReaderClosedPromiseResetToRejected(
-      reader,
-      new TypeError('Reader was released and can no longer be used to monitor the stream\'s closedness'));
-  }
-
-  reader._ownerReadableStream._reader = undefined;
-  reader._ownerReadableStream = undefined!;
 }
 
 function ReadableStreamBYOBReaderRead<T extends ArrayBufferView>(reader: ReadableStreamBYOBReader,
@@ -2055,49 +2007,6 @@ function readerLockException(name: string): TypeError {
 function defaultReaderBrandCheckException(name: string): TypeError {
   return new TypeError(
     `ReadableStreamDefaultReader.prototype.${name} can only be used on a ReadableStreamDefaultReader`);
-}
-
-function defaultReaderClosedPromiseInitialize(reader: ReadableStreamReader<any>) {
-  reader._closedPromise = new Promise((resolve, reject) => {
-    reader._closedPromise_resolve = resolve;
-    reader._closedPromise_reject = reject;
-  });
-}
-
-function defaultReaderClosedPromiseInitializeAsRejected(reader: ReadableStreamReader<any>, reason: any) {
-  defaultReaderClosedPromiseInitialize(reader);
-  defaultReaderClosedPromiseReject(reader, reason);
-}
-
-function defaultReaderClosedPromiseInitializeAsResolved(reader: ReadableStreamReader<any>) {
-  defaultReaderClosedPromiseInitialize(reader);
-  defaultReaderClosedPromiseResolve(reader);
-}
-
-function defaultReaderClosedPromiseReject(reader: ReadableStreamReader<any>, reason: any) {
-  assert(reader._closedPromise_resolve !== undefined);
-  assert(reader._closedPromise_reject !== undefined);
-
-  reader._closedPromise.catch(noop);
-  reader._closedPromise_reject!(reason);
-  reader._closedPromise_resolve = undefined;
-  reader._closedPromise_reject = undefined;
-}
-
-function defaultReaderClosedPromiseResetToRejected(reader: ReadableStreamReader<any>, reason: any) {
-  assert(reader._closedPromise_resolve === undefined);
-  assert(reader._closedPromise_reject === undefined);
-
-  defaultReaderClosedPromiseInitializeAsRejected(reader, reason);
-}
-
-function defaultReaderClosedPromiseResolve(reader: ReadableStreamReader<any>) {
-  assert(reader._closedPromise_resolve !== undefined);
-  assert(reader._closedPromise_reject !== undefined);
-
-  reader._closedPromise_resolve!(undefined);
-  reader._closedPromise_resolve = undefined;
-  reader._closedPromise_reject = undefined;
 }
 
 // Helper functions for the ReadableStreamDefaultReader.
