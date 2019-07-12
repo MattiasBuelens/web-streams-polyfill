@@ -184,6 +184,10 @@ export function WaitForAll<T>(promises: Array<Promise<T>>,
   let fulfilledCount = 0;
   const total = promises.length;
   const result = new Array<T>(total);
+  if (total === 0) {
+    successSteps(result);
+    return;
+  }
   for (const promise of promises) {
     const promiseIndex = index;
     const fulfillmentHandler = (arg: T) => {
