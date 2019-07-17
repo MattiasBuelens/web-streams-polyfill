@@ -11,6 +11,9 @@
     "strict": true,
     "stripInternal": true,
     "importHelpers": true,
+    "declaration": true,
+    "declarationMap": true,
+    "outDir": "../lib",
     "baseUrl": ".",
     "paths": {
       "@@target/*": [

@@ -13,6 +13,7 @@
     "test:types": "tsc -p ./test/types/tsconfig.json",
     "lint": "eslint \"src/**/*.ts\"",
     "build": "rollup -c",
+    "build:types": "tsc --project src --emitDeclarationOnly && api-extractor run --local",
     "prepare": "npm run build"
   },
   "files": [
