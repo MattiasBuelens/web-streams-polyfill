@@ -1,6 +1,6 @@
 const path = require('path');
 
-const { js, dts } = require('rollup-plugin-dts');
+const { js } = require('rollup-plugin-dts');
 const inject = require('rollup-plugin-inject');
 const strip = require('rollup-plugin-strip');
 const replace = require('rollup-plugin-replace');
@@ -14,13 +14,6 @@ const banner = `
  * ${pkg.name} v${pkg.version}
  */
 `.trim();
-const bannerDts = `
-/**
- * Type definitions for ${pkg.name} v${pkg.version}
- */
-/// <reference lib="dom" />
-/// <reference lib="esnext.asynciterable" />
-`.trim() + '\n';
 
 function bundle(entry, { esm = false, minify = false, target = 'es5' } = {}) {
   const outname = `${entry}${target === 'es5' ? '' : `.${target}`}`;
@@ -76,26 +69,7 @@ function bundle(entry, { esm = false, minify = false, target = 'es5' } = {}) {
   };
 }
 
-function types(entry) {
-  return {
-    input: `src/${entry}.ts`,
-    output: {
-      file: `dist/types/${entry}.d.ts`,
-      format: 'es',
-      banner: bannerDts
-    },
-    plugins: [
-      dts({
-        tsconfig: 'src/tsconfig.json',
-        banner: false
-      })
-    ]
-  };
-}
-
 module.exports = [
-  // types
-  types('polyfill'),
   // polyfill
   bundle('polyfill', { esm: true }),
   bundle('polyfill', { minify: true }),
