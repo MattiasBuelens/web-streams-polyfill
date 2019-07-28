@@ -1,3 +1,5 @@
+/// <reference lib="es2015.core" />
+
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/assign#Polyfill
 const ObjectAssign: typeof Object.assign = Object.assign || function (target: object, ...sources: any[]): any {
   const to = Object(target);
