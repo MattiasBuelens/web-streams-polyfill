@@ -47,6 +47,7 @@
   "devDependencies": {
     "@microsoft/api-extractor": "^7.3.4",
     "@typescript-eslint/eslint-plugin": "^1.13.0",
+    "@typescript-eslint/parser": "^1.13.0",
     "eslint": "^6.1.0",
     "micromatch": "^4.0.2",
     "rollup": "^1.17.0",
