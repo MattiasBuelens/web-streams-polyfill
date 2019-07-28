@@ -27,14 +27,13 @@ import {
 } from './byob-reader';
 import NumberIsInteger from '../../stub/number-isinteger';
 import {
-  CancelSteps,
   IsReadableStreamLocked,
-  PullSteps,
   ReadableByteStream,
   ReadableStreamClose,
   ReadableStreamError,
   UnderlyingByteSource
 } from '../readable-stream';
+import { CancelSteps, PullSteps } from './symbols';
 
 export class ReadableStreamBYOBRequest {
   /** @internal */

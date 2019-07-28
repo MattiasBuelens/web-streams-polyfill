@@ -9,7 +9,8 @@ import {
   readerLockException,
   ReadResult
 } from './generic-reader';
-import { IsReadableStream, IsReadableStreamLocked, PullSteps, ReadableStream } from '../readable-stream';
+import { IsReadableStream, IsReadableStreamLocked, ReadableStream } from '../readable-stream';
+import { PullSteps } from './symbols';
 
 // Abstract operations for the ReadableStream.
 

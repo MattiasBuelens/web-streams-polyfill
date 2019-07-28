@@ -49,9 +49,7 @@ import {
   SetUpReadableByteStreamController,
   SetUpReadableByteStreamControllerFromUnderlyingSource
 } from './readable-stream/byte-stream-controller';
-
-export const CancelSteps = Symbol('[[CancelSteps]]');
-export const PullSteps = Symbol('[[PullSteps]]');
+import { CancelSteps, PullSteps } from './readable-stream/symbols';
 
 export type ReadableByteStream = ReadableStream<Uint8Array>;
 
