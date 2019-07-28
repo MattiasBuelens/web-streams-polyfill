@@ -9,15 +9,12 @@ import {
   readerLockException,
   ReadResult
 } from './generic-reader';
+import { IsReadableStream, IsReadableStreamLocked, ReadableByteStream, ReadableStream } from '../readable-stream';
 import {
   IsReadableByteStreamController,
-  IsReadableStream,
-  IsReadableStreamLocked,
-  ReadableByteStream,
-  ReadableByteStreamControllerPullInto,
-  ReadableByteStreamControllerType as ReadableByteStreamController,
-  ReadableStream
-} from '../readable-stream';
+  ReadableByteStreamController,
+  ReadableByteStreamControllerPullInto
+} from './byte-stream-controller';
 
 // Abstract operations for the ReadableStream.
 
