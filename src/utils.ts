@@ -5,7 +5,6 @@ export function noop() {
 }
 
 function getGlobals() {
-  /* global self, window, global */
   if (typeof self !== 'undefined') {
     return self;
   } else if (typeof window !== 'undefined') {
