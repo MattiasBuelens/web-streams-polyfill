@@ -1,13 +1,12 @@
 import {
-  AcquireReadableStreamDefaultReader,
   isAbortSignal,
   IsReadableStream,
   IsReadableStreamLocked,
   ReadableStream,
-  ReadableStreamCancel,
-  ReadableStreamDefaultReaderRead,
-  ReadableStreamReaderGenericRelease
+  ReadableStreamCancel
 } from '../readable-stream';
+import { AcquireReadableStreamDefaultReader, ReadableStreamDefaultReaderRead } from './default-reader';
+import { ReadableStreamReaderGenericRelease } from './generic-reader';
 import {
   AcquireWritableStreamDefaultWriter,
   IsWritableStream,

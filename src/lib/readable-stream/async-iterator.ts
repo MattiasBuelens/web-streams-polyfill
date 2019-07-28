@@ -1,13 +1,15 @@
+import { ReadableStream } from '../readable-stream';
 import {
   AcquireReadableStreamDefaultReader,
-  ReadableStream,
-  ReadableStreamCreateReadResult,
   ReadableStreamDefaultReader,
-  ReadableStreamDefaultReaderRead,
+  ReadableStreamDefaultReaderRead
+} from './default-reader';
+import {
+  ReadableStreamCreateReadResult,
   ReadableStreamReaderGenericCancel,
   ReadableStreamReaderGenericRelease,
   readerLockException
-} from '../readable-stream';
+} from './generic-reader';
 import assert from '../../stub/assert';
 import { typeIsObject } from '../helpers';
 import { AsyncIteratorPrototype } from '@@target/stub/async-iterator-prototype';

@@ -1,5 +1,4 @@
 import {
-  AcquireReadableStreamDefaultReader,
   CreateReadableStream,
   IsReadableStream,
   ReadableStream,
@@ -7,9 +6,9 @@ import {
   ReadableStreamDefaultController,
   ReadableStreamDefaultControllerClose,
   ReadableStreamDefaultControllerEnqueue,
-  ReadableStreamDefaultControllerError,
-  ReadableStreamDefaultReaderRead
+  ReadableStreamDefaultControllerError
 } from '../readable-stream';
+import { AcquireReadableStreamDefaultReader, ReadableStreamDefaultReaderRead } from './default-reader';
 import assert from '../../stub/assert';
 import { createArrayFromList, typeIsObject } from '../helpers';
 import { rethrowAssertionErrorRejection } from '../utils';
