@@ -19,7 +19,6 @@ import {
   WritableStreamDefaultWriterWrite
 } from '../writable-stream';
 import assert from '../../stub/assert';
-import { WaitForAllPromise } from '../helpers';
 import { rethrowAssertionErrorRejection } from '../utils';
 import { noop } from '../../utils';
 
@@ -68,7 +67,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
             return Promise.resolve();
           });
         }
-        shutdownWithAction(() => WaitForAllPromise(actions.map(action => action()), results => results), true, error);
+        shutdownWithAction(() => Promise.all(actions.map(action => action())), true, error);
       };
 
       if (signal.aborted === true) {
