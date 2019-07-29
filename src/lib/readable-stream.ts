@@ -422,8 +422,6 @@ export {
   ReadableStreamBYOBReaderType
 };
 
-// Abstract operations for the readers.
-
 // Controllers
 
 export {
