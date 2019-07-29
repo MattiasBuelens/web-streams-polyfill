@@ -1,17 +1,14 @@
-import {
-  CreateReadableStream,
-  IsReadableStream,
-  ReadableStream,
-  ReadableStreamCancel,
-  ReadableStreamDefaultController,
-  ReadableStreamDefaultControllerClose,
-  ReadableStreamDefaultControllerEnqueue,
-  ReadableStreamDefaultControllerError
-} from '../readable-stream';
+import { CreateReadableStream, IsReadableStream, ReadableStream, ReadableStreamCancel } from '../readable-stream';
 import { AcquireReadableStreamDefaultReader, ReadableStreamDefaultReaderRead } from './default-reader';
 import assert from '../../stub/assert';
 import { createArrayFromList, typeIsObject } from '../helpers';
 import { rethrowAssertionErrorRejection } from '../utils';
+import {
+  ReadableStreamDefaultController,
+  ReadableStreamDefaultControllerClose,
+  ReadableStreamDefaultControllerEnqueue,
+  ReadableStreamDefaultControllerError
+} from './default-controller';
 
 export function ReadableStreamTee<R>(stream: ReadableStream<R>,
                                      cloneForBranch2: boolean): [ReadableStream<R>, ReadableStream<R>] {

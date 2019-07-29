@@ -11,14 +11,16 @@ import {
 import {
   CreateReadableStream,
   ReadableStream,
+  ReadableStreamDefaultControllerType as ReadableStreamDefaultController
+} from './readable-stream';
+import {
   ReadableStreamDefaultControllerCanCloseOrEnqueue,
   ReadableStreamDefaultControllerClose,
   ReadableStreamDefaultControllerEnqueue,
   ReadableStreamDefaultControllerError,
   ReadableStreamDefaultControllerGetDesiredSize,
-  ReadableStreamDefaultControllerHasBackpressure,
-  ReadableStreamDefaultControllerType as ReadableStreamDefaultController
-} from './readable-stream';
+  ReadableStreamDefaultControllerHasBackpressure
+} from './readable-stream/default-controller';
 import { QueuingStrategy, QueuingStrategySizeCallback } from './queuing-strategy';
 import { CreateWritableStream, WritableStream, WritableStreamDefaultControllerErrorIfNeeded } from './writable-stream';
 
