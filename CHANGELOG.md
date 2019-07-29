@@ -11,6 +11,9 @@
 
 ## Unreleased
 
+* 🐛 Fix pipe not aborting when both `preventAbort` and `preventCancel` are set ([#31](https://github.com/MattiasBuelens/web-streams-polyfill/pull/31))
+* 👓 Align with [spec version `e4d3b1a`](https://github.com/whatwg/streams/tree/e4d3b1a826e34d27a7cb5485a1cc4b078608c9ec/) ([#31](https://github.com/MattiasBuelens/web-streams-polyfill/pull/31))
+
 ## v2.0.3 (2019-04-04)
 
 * 👓 Align with [spec version `6f94580`](https://github.com/whatwg/streams/tree/6f94580f6731d1e017c516af097d47c45aad1f56/) ([#21](https://github.com/MattiasBuelens/web-streams-polyfill/pull/21))
