@@ -1,3 +1,5 @@
+/// <reference lib="es2018.asynciterable" />
+
 export let AsyncIteratorPrototype: AsyncIterable<any> | undefined;
 
 if (typeof Symbol.asyncIterator === 'symbol') {

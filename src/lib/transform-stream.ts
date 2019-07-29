@@ -11,20 +11,23 @@ import {
 import {
   CreateReadableStream,
   ReadableStream,
+  ReadableStreamDefaultControllerType as ReadableStreamDefaultController
+} from './readable-stream';
+import {
   ReadableStreamDefaultControllerCanCloseOrEnqueue,
   ReadableStreamDefaultControllerClose,
   ReadableStreamDefaultControllerEnqueue,
   ReadableStreamDefaultControllerError,
   ReadableStreamDefaultControllerGetDesiredSize,
-  ReadableStreamDefaultControllerHasBackpressure,
-  ReadableStreamDefaultControllerType as ReadableStreamDefaultController
-} from './readable-stream';
+  ReadableStreamDefaultControllerHasBackpressure
+} from './readable-stream/default-controller';
 import { QueuingStrategy, QueuingStrategySizeCallback } from './queuing-strategy';
 import { CreateWritableStream, WritableStream, WritableStreamDefaultControllerErrorIfNeeded } from './writable-stream';
 
-export type TransformStreamDefaultControllerCallback<O> = (controller: TransformStreamDefaultController<O>) => void | PromiseLike<void>;
-export type TransformStreamDefaultControllerTransformCallback<I, O> = (chunk: I,
-  controller: TransformStreamDefaultController<O>) => void | PromiseLike<void>;
+export type TransformStreamDefaultControllerCallback<O>
+  = (controller: TransformStreamDefaultControllerType<O>) => void | PromiseLike<void>;
+export type TransformStreamDefaultControllerTransformCallback<I, O>
+  = (chunk: I, controller: TransformStreamDefaultControllerType<O>) => void | PromiseLike<void>;
 
 export interface Transformer<I = any, O = any> {
   start?: TransformStreamDefaultControllerCallback<O>;
@@ -36,7 +39,7 @@ export interface Transformer<I = any, O = any> {
 
 // Class TransformStream
 
-class TransformStream<I = any, O = any> {
+export class TransformStream<I = any, O = any> {
   /** @internal */
   _writable!: WritableStream<I>;
   /** @internal */
@@ -116,13 +119,13 @@ class TransformStream<I = any, O = any> {
 
 // Transform Stream Abstract Operations
 
-function CreateTransformStream<I, O>(startAlgorithm: () => void | PromiseLike<void>,
-                                     transformAlgorithm: (chunk: I) => Promise<void>,
-                                     flushAlgorithm: () => Promise<void>,
-                                     writableHighWaterMark: number = 1,
-                                     writableSizeAlgorithm: QueuingStrategySizeCallback<I> = () => 1,
-                                     readableHighWaterMark: number = 0,
-                                     readableSizeAlgorithm: QueuingStrategySizeCallback<O> = () => 1) {
+export function CreateTransformStream<I, O>(startAlgorithm: () => void | PromiseLike<void>,
+                                            transformAlgorithm: (chunk: I) => Promise<void>,
+                                            flushAlgorithm: () => Promise<void>,
+                                            writableHighWaterMark: number = 1,
+                                            writableSizeAlgorithm: QueuingStrategySizeCallback<I> = () => 1,
+                                            readableHighWaterMark: number = 0,
+                                            readableSizeAlgorithm: QueuingStrategySizeCallback<O> = () => 1) {
   assert(IsNonNegativeNumber(writableHighWaterMark));
   assert(IsNonNegativeNumber(readableHighWaterMark));
 
@@ -468,8 +471,6 @@ function TransformStreamDefaultSourcePullAlgorithm(stream: TransformStream): Pro
   // Prevent the next pull() call until there is backpressure.
   return stream._backpressureChangePromise;
 }
-
-export { CreateTransformStream, TransformStream };
 
 // Helper functions for the TransformStreamDefaultController.
 

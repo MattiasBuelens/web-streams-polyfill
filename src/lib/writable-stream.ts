@@ -11,13 +11,15 @@ import { rethrowAssertionErrorRejection } from './utils';
 import { DequeueValue, EnqueueValueWithSize, PeekQueueValue, QueuePair, ResetQueue } from './queue-with-sizes';
 import { QueuingStrategy, QueuingStrategySizeCallback } from './queuing-strategy';
 import { SimpleQueue } from './simple-queue';
+import { noop } from '../utils';
 
 const AbortSteps = Symbol('[[AbortSteps]]');
 const ErrorSteps = Symbol('[[ErrorSteps]]');
 
-type WritableStreamDefaultControllerStartCallback = (controller: WritableStreamDefaultController) => void | PromiseLike<void>;
-type WritableStreamDefaultControllerWriteCallback<W> = (chunk: W,
-  controller: WritableStreamDefaultController) => void | PromiseLike<void>;
+type WritableStreamDefaultControllerStartCallback
+  = (controller: WritableStreamDefaultControllerType) => void | PromiseLike<void>;
+type WritableStreamDefaultControllerWriteCallback<W>
+  = (chunk: W, controller: WritableStreamDefaultControllerType) => void | PromiseLike<void>;
 type WritableStreamDefaultControllerCloseCallback = () => void | PromiseLike<void>;
 type WritableStreamErrorCallback = (reason: any) => void | PromiseLike<void>;
 
@@ -1105,7 +1107,7 @@ function defaultWriterClosedPromiseReject(writer: WritableStreamDefaultWriter<an
   assert(writer._closedPromise_reject !== undefined);
   assert(writer._closedPromiseState === 'pending');
 
-  writer._closedPromise.catch(() => {});
+  writer._closedPromise.catch(noop);
   writer._closedPromise_reject!(reason);
   writer._closedPromise_resolve = undefined;
   writer._closedPromise_reject = undefined;
@@ -1153,7 +1155,7 @@ function defaultWriterReadyPromiseReject(writer: WritableStreamDefaultWriter<any
   assert(writer._readyPromise_resolve !== undefined);
   assert(writer._readyPromise_reject !== undefined);
 
-  writer._readyPromise.catch(() => {});
+  writer._readyPromise.catch(noop);
   writer._readyPromise_reject!(reason);
   writer._readyPromise_resolve = undefined;
   writer._readyPromise_reject = undefined;
