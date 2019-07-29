@@ -38,7 +38,7 @@ export interface Transformer<I = any, O = any> {
 
 // Class TransformStream
 
-class TransformStream<I = any, O = any> {
+export class TransformStream<I = any, O = any> {
   /** @internal */
   _writable!: WritableStream<I>;
   /** @internal */
@@ -118,13 +118,13 @@ class TransformStream<I = any, O = any> {
 
 // Transform Stream Abstract Operations
 
-function CreateTransformStream<I, O>(startAlgorithm: () => void | PromiseLike<void>,
-                                     transformAlgorithm: (chunk: I) => Promise<void>,
-                                     flushAlgorithm: () => Promise<void>,
-                                     writableHighWaterMark: number = 1,
-                                     writableSizeAlgorithm: QueuingStrategySizeCallback<I> = () => 1,
-                                     readableHighWaterMark: number = 0,
-                                     readableSizeAlgorithm: QueuingStrategySizeCallback<O> = () => 1) {
+export function CreateTransformStream<I, O>(startAlgorithm: () => void | PromiseLike<void>,
+                                            transformAlgorithm: (chunk: I) => Promise<void>,
+                                            flushAlgorithm: () => Promise<void>,
+                                            writableHighWaterMark: number = 1,
+                                            writableSizeAlgorithm: QueuingStrategySizeCallback<I> = () => 1,
+                                            readableHighWaterMark: number = 0,
+                                            readableSizeAlgorithm: QueuingStrategySizeCallback<O> = () => 1) {
   assert(IsNonNegativeNumber(writableHighWaterMark));
   assert(IsNonNegativeNumber(readableHighWaterMark));
 
@@ -470,8 +470,6 @@ function TransformStreamDefaultSourcePullAlgorithm(stream: TransformStream): Pro
   // Prevent the next pull() call until there is backpressure.
   return stream._backpressureChangePromise;
 }
-
-export { CreateTransformStream, TransformStream };
 
 // Helper functions for the TransformStreamDefaultController.
 

@@ -14,16 +14,12 @@ import {
   defaultReaderClosedPromiseReject,
   defaultReaderClosedPromiseResolve,
   ReadableStreamCreateReadResult,
-  ReadableStreamReaderGenericCancel,
-  ReadableStreamReaderGenericRelease,
-  readerLockException,
   ReadResult
 } from './readable-stream/generic-reader';
 import {
   AcquireReadableStreamDefaultReader,
   IsReadableStreamDefaultReader,
-  ReadableStreamDefaultReader,
-  ReadableStreamDefaultReaderRead
+  ReadableStreamDefaultReader
 } from './readable-stream/default-reader';
 import { ReadableStreamPipeTo } from './readable-stream/pipe';
 import { ReadableStreamTee } from './readable-stream/tee';
@@ -67,7 +63,7 @@ export interface PipeOptions {
 
 type ReadableStreamState = 'readable' | 'closed' | 'errored';
 
-class ReadableStream<R = any> {
+export class ReadableStream<R = any> {
   /** @internal */
   _state!: ReadableStreamState;
   /** @internal */
@@ -252,27 +248,11 @@ if (typeof Symbol.asyncIterator === 'symbol') {
 }
 
 export {
-  AcquireReadableStreamDefaultReader,
-  CreateReadableByteStream,
-  CreateReadableStream,
-  isAbortSignal,
-  IsReadableStream,
-  IsReadableStreamLocked,
-  IsReadableStreamDisturbed,
   ReadableByteStreamControllerCallback,
-  ReadableStream,
   ReadableStreamAsyncIterator,
-  ReadableStreamCancel,
-  ReadableStreamClose,
-  ReadableStreamCreateReadResult,
   ReadableStreamDefaultControllerCallback,
   ReadableStreamDefaultReader,
-  ReadableStreamDefaultReaderRead,
-  ReadableStreamError,
   ReadableStreamErrorCallback,
-  ReadableStreamReaderGenericCancel,
-  ReadableStreamReaderGenericRelease,
-  readerLockException,
   ReadResult,
   UnderlyingByteSource,
   UnderlyingSource
@@ -281,11 +261,11 @@ export {
 // Abstract operations for the ReadableStream.
 
 // Throws if and only if startAlgorithm throws.
-function CreateReadableStream<R>(startAlgorithm: () => void | PromiseLike<void>,
-                                 pullAlgorithm: () => Promise<void>,
-                                 cancelAlgorithm: (reason: any) => Promise<void>,
-                                 highWaterMark: number = 1,
-                                 sizeAlgorithm: QueuingStrategySizeCallback<R> = () => 1): ReadableStream<R> {
+export function CreateReadableStream<R>(startAlgorithm: () => void | PromiseLike<void>,
+                                        pullAlgorithm: () => Promise<void>,
+                                        cancelAlgorithm: (reason: any) => Promise<void>,
+                                        highWaterMark: number = 1,
+                                        sizeAlgorithm: QueuingStrategySizeCallback<R> = () => 1): ReadableStream<R> {
   assert(IsNonNegativeNumber(highWaterMark) === true);
 
   const stream: ReadableStream<R> = Object.create(ReadableStream.prototype);
@@ -301,11 +281,11 @@ function CreateReadableStream<R>(startAlgorithm: () => void | PromiseLike<void>,
 }
 
 // Throws if and only if startAlgorithm throws.
-function CreateReadableByteStream(startAlgorithm: () => void | PromiseLike<void>,
-                                  pullAlgorithm: () => Promise<void>,
-                                  cancelAlgorithm: (reason: any) => Promise<void>,
-                                  highWaterMark: number = 0,
-                                  autoAllocateChunkSize: number | undefined = undefined): ReadableStream<Uint8Array> {
+export function CreateReadableByteStream(startAlgorithm: () => void | PromiseLike<void>,
+                                         pullAlgorithm: () => Promise<void>,
+                                         cancelAlgorithm: (reason: any) => Promise<void>,
+                                         highWaterMark: number = 0,
+                                         autoAllocateChunkSize: number | undefined = undefined): ReadableStream<Uint8Array> {
   assert(IsNonNegativeNumber(highWaterMark) === true);
   if (autoAllocateChunkSize !== undefined) {
     assert(NumberIsInteger(autoAllocateChunkSize) === true);
@@ -330,7 +310,7 @@ function InitializeReadableStream(stream: ReadableStream) {
   stream._disturbed = false;
 }
 
-function IsReadableStream(x: any): x is ReadableStream {
+export function IsReadableStream(x: any): x is ReadableStream {
   if (!typeIsObject(x)) {
     return false;
   }
@@ -342,13 +322,13 @@ function IsReadableStream(x: any): x is ReadableStream {
   return true;
 }
 
-function IsReadableStreamDisturbed(stream: ReadableStream): boolean {
+export function IsReadableStreamDisturbed(stream: ReadableStream): boolean {
   assert(IsReadableStream(stream) === true);
 
   return stream._disturbed;
 }
 
-function IsReadableStreamLocked(stream: ReadableStream): boolean {
+export function IsReadableStreamLocked(stream: ReadableStream): boolean {
   assert(IsReadableStream(stream) === true);
 
   if (stream._reader === undefined) {
@@ -360,7 +340,7 @@ function IsReadableStreamLocked(stream: ReadableStream): boolean {
 
 // ReadableStream API exposed for controllers.
 
-function ReadableStreamCancel<R>(stream: ReadableStream<R>, reason: any): Promise<void> {
+export function ReadableStreamCancel<R>(stream: ReadableStream<R>, reason: any): Promise<void> {
   stream._disturbed = true;
 
   if (stream._state === 'closed') {
@@ -376,7 +356,7 @@ function ReadableStreamCancel<R>(stream: ReadableStream<R>, reason: any): Promis
   return sourceCancelPromise.then(() => undefined);
 }
 
-function ReadableStreamClose<R>(stream: ReadableStream<R>): void {
+export function ReadableStreamClose<R>(stream: ReadableStream<R>): void {
   assert(stream._state === 'readable');
 
   stream._state = 'closed';
@@ -397,7 +377,7 @@ function ReadableStreamClose<R>(stream: ReadableStream<R>): void {
   defaultReaderClosedPromiseResolve(reader);
 }
 
-function ReadableStreamError<R>(stream: ReadableStream<R>, e: any): void {
+export function ReadableStreamError<R>(stream: ReadableStream<R>, e: any): void {
   assert(IsReadableStream(stream) === true);
   assert(stream._state === 'readable');
 
@@ -449,7 +429,7 @@ export type ReadableByteStreamControllerType = ReadableByteStreamController;
 
 // Helper functions for the ReadableStream.
 
-function isAbortSignal(value: any): value is AbortSignal {
+export function isAbortSignal(value: any): value is AbortSignal {
   if (typeof value !== 'object' || value === null) {
     return false;
   }
