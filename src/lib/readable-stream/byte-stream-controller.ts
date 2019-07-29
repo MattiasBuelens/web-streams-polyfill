@@ -35,6 +35,8 @@ import {
 import { CancelSteps, PullSteps } from './symbols';
 import { UnderlyingByteSource } from './underlying-source';
 
+export type ReadableStreamBYOBRequestType = ReadableStreamBYOBRequest;
+
 export class ReadableStreamBYOBRequest {
   /** @internal */
   _associatedReadableByteStreamController!: ReadableByteStreamController;
@@ -127,6 +129,8 @@ interface BYOBPullIntoDescriptor<T extends ArrayBufferView = ArrayBufferView> {
   ctor: ArrayBufferViewConstructor<T>;
   readerType: 'byob';
 }
+
+export type ReadableByteStreamControllerType = ReadableByteStreamController;
 
 export class ReadableByteStreamController {
   /** @internal */

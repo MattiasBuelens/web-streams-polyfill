@@ -19,7 +19,8 @@ import {
 import {
   AcquireReadableStreamDefaultReader,
   IsReadableStreamDefaultReader,
-  ReadableStreamDefaultReader
+  ReadableStreamDefaultReader,
+  ReadableStreamDefaultReaderType
 } from './readable-stream/default-reader';
 import { ReadableStreamPipeTo } from './readable-stream/pipe';
 import { ReadableStreamTee } from './readable-stream/tee';
@@ -30,17 +31,20 @@ import { noop } from '../utils';
 import {
   AcquireReadableStreamBYOBReader,
   IsReadableStreamBYOBReader,
-  ReadableStreamBYOBReader
+  ReadableStreamBYOBReader,
+  ReadableStreamBYOBReaderType
 } from './readable-stream/byob-reader';
 import {
   ReadableByteStreamController,
-  ReadableStreamBYOBRequest,
+  ReadableByteStreamControllerType,
+  ReadableStreamBYOBRequestType,
   SetUpReadableByteStreamController,
   SetUpReadableByteStreamControllerFromUnderlyingSource
 } from './readable-stream/byte-stream-controller';
 import { CancelSteps } from './readable-stream/symbols';
 import {
   ReadableStreamDefaultController,
+  ReadableStreamDefaultControllerType,
   SetUpReadableStreamDefaultController,
   SetUpReadableStreamDefaultControllerFromUnderlyingSource
 } from './readable-stream/default-controller';
@@ -413,19 +417,20 @@ export function ReadableStreamError<R>(stream: ReadableStream<R>, e: any): void 
 
 export type ReadableStreamReader<R> = ReadableStreamDefaultReader<R> | ReadableStreamBYOBReader;
 
-export type ReadableStreamDefaultReaderType<R> = ReadableStreamDefaultReader<R>;
-
-export type ReadableStreamBYOBReaderType = ReadableStreamBYOBReader;
+export {
+  ReadableStreamDefaultReaderType,
+  ReadableStreamBYOBReaderType
+};
 
 // Abstract operations for the readers.
 
 // Controllers
 
-export type ReadableStreamDefaultControllerType<R> = ReadableStreamDefaultController<R>;
-
-export type ReadableStreamBYOBRequestType = ReadableStreamBYOBRequest;
-
-export type ReadableByteStreamControllerType = ReadableByteStreamController;
+export {
+  ReadableStreamDefaultControllerType,
+  ReadableStreamBYOBRequestType,
+  ReadableByteStreamControllerType
+};
 
 // Helper functions for the ReadableStream.
 

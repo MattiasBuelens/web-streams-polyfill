@@ -79,6 +79,8 @@ interface ReadIntoRequest<T extends ArrayBufferView> {
   _reject: (reason: any) => void;
 }
 
+export type ReadableStreamBYOBReaderType = ReadableStreamBYOBReader;
+
 export class ReadableStreamBYOBReader {
   /** @internal */
   _forAuthorCode!: boolean;

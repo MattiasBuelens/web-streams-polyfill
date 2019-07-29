@@ -14,6 +14,8 @@ import { CreateAlgorithmFromUnderlyingMethod, InvokeOrNoop, typeIsObject } from 
 import { IsReadableStreamLocked, ReadableStream, ReadableStreamClose, ReadableStreamError } from '../readable-stream';
 import { UnderlyingSource } from './underlying-source';
 
+export type ReadableStreamDefaultControllerType<R> = ReadableStreamDefaultController<R>;
+
 export class ReadableStreamDefaultController<R> {
   /** @internal */
   _controlledReadableStream!: ReadableStream<R>;
