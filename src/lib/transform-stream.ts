@@ -24,9 +24,10 @@ import {
 import { QueuingStrategy, QueuingStrategySizeCallback } from './queuing-strategy';
 import { CreateWritableStream, WritableStream, WritableStreamDefaultControllerErrorIfNeeded } from './writable-stream';
 
-export type TransformStreamDefaultControllerCallback<O> = (controller: TransformStreamDefaultController<O>) => void | PromiseLike<void>;
-export type TransformStreamDefaultControllerTransformCallback<I, O> = (chunk: I,
-  controller: TransformStreamDefaultController<O>) => void | PromiseLike<void>;
+export type TransformStreamDefaultControllerCallback<O>
+  = (controller: TransformStreamDefaultControllerType<O>) => void | PromiseLike<void>;
+export type TransformStreamDefaultControllerTransformCallback<I, O>
+  = (chunk: I, controller: TransformStreamDefaultControllerType<O>) => void | PromiseLike<void>;
 
 export interface Transformer<I = any, O = any> {
   start?: TransformStreamDefaultControllerCallback<O>;

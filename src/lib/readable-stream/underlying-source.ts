@@ -1,8 +1,8 @@
-import { ReadableStreamDefaultController } from './default-controller';
-import { ReadableByteStreamController } from './byte-stream-controller';
+import { ReadableStreamDefaultControllerType } from './default-controller';
+import { ReadableByteStreamControllerType } from './byte-stream-controller';
 
-export type ReadableStreamDefaultControllerCallback<R> = (controller: ReadableStreamDefaultController<R>) => void | PromiseLike<void>;
-export type ReadableByteStreamControllerCallback = (controller: ReadableByteStreamController) => void | PromiseLike<void>;
+export type ReadableStreamDefaultControllerCallback<R> = (controller: ReadableStreamDefaultControllerType<R>) => void | PromiseLike<void>;
+export type ReadableByteStreamControllerCallback = (controller: ReadableByteStreamControllerType) => void | PromiseLike<void>;
 export type ReadableStreamErrorCallback = (reason: any) => void | PromiseLike<void>;
 
 export interface UnderlyingSource<R = any> {

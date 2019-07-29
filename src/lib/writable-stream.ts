@@ -16,9 +16,10 @@ import { noop } from '../utils';
 const AbortSteps = Symbol('[[AbortSteps]]');
 const ErrorSteps = Symbol('[[ErrorSteps]]');
 
-type WritableStreamDefaultControllerStartCallback = (controller: WritableStreamDefaultController) => void | PromiseLike<void>;
-type WritableStreamDefaultControllerWriteCallback<W> = (chunk: W,
-  controller: WritableStreamDefaultController) => void | PromiseLike<void>;
+type WritableStreamDefaultControllerStartCallback
+  = (controller: WritableStreamDefaultControllerType) => void | PromiseLike<void>;
+type WritableStreamDefaultControllerWriteCallback<W>
+  = (chunk: W, controller: WritableStreamDefaultControllerType) => void | PromiseLike<void>;
 type WritableStreamDefaultControllerCloseCallback = () => void | PromiseLike<void>;
 type WritableStreamErrorCallback = (reason: any) => void | PromiseLike<void>;
 
