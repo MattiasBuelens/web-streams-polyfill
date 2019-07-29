@@ -15,9 +15,9 @@ import {
   IsReadableStreamLocked,
   ReadableStream,
   ReadableStreamClose,
-  ReadableStreamError,
-  UnderlyingSource
+  ReadableStreamError
 } from '../readable-stream';
+import { UnderlyingSource } from './underlying-source';
 
 export class ReadableStreamDefaultController<R> {
   /** @internal */

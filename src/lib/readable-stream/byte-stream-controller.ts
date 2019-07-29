@@ -30,10 +30,10 @@ import {
   IsReadableStreamLocked,
   ReadableByteStream,
   ReadableStreamClose,
-  ReadableStreamError,
-  UnderlyingByteSource
+  ReadableStreamError
 } from '../readable-stream';
 import { CancelSteps, PullSteps } from './symbols';
+import { UnderlyingByteSource } from './underlying-source';
 
 export class ReadableStreamBYOBRequest {
   /** @internal */

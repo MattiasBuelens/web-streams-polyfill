@@ -48,27 +48,15 @@ import {
   SetUpReadableStreamDefaultController,
   SetUpReadableStreamDefaultControllerFromUnderlyingSource
 } from './readable-stream/default-controller';
+import {
+  ReadableByteStreamControllerCallback,
+  ReadableStreamDefaultControllerCallback,
+  ReadableStreamErrorCallback,
+  UnderlyingByteSource,
+  UnderlyingSource
+} from './readable-stream/underlying-source';
 
 export type ReadableByteStream = ReadableStream<Uint8Array>;
-
-export type ReadableStreamDefaultControllerCallback<R> = (controller: ReadableStreamDefaultController<R>) => void | PromiseLike<void>;
-export type ReadableByteStreamControllerCallback = (controller: ReadableByteStreamController) => void | PromiseLike<void>;
-export type ReadableStreamErrorCallback = (reason: any) => void | PromiseLike<void>;
-
-export interface UnderlyingSource<R = any> {
-  start?: ReadableStreamDefaultControllerCallback<R>;
-  pull?: ReadableStreamDefaultControllerCallback<R>;
-  cancel?: ReadableStreamErrorCallback;
-  type?: undefined;
-}
-
-export interface UnderlyingByteSource {
-  start?: ReadableByteStreamControllerCallback;
-  pull?: ReadableByteStreamControllerCallback;
-  cancel?: ReadableStreamErrorCallback;
-  type: 'bytes';
-  autoAllocateChunkSize?: number;
-}
 
 export interface PipeOptions {
   preventAbort?: boolean;
@@ -76,10 +64,6 @@ export interface PipeOptions {
   preventClose?: boolean;
   signal?: AbortSignal;
 }
-
-export {
-  ReadResult
-};
 
 type ReadableStreamState = 'readable' | 'closed' | 'errored';
 
@@ -275,17 +259,23 @@ export {
   IsReadableStream,
   IsReadableStreamLocked,
   IsReadableStreamDisturbed,
+  ReadableByteStreamControllerCallback,
   ReadableStream,
   ReadableStreamAsyncIterator,
   ReadableStreamCancel,
   ReadableStreamClose,
   ReadableStreamCreateReadResult,
+  ReadableStreamDefaultControllerCallback,
   ReadableStreamDefaultReader,
   ReadableStreamDefaultReaderRead,
   ReadableStreamError,
+  ReadableStreamErrorCallback,
   ReadableStreamReaderGenericCancel,
   ReadableStreamReaderGenericRelease,
-  readerLockException
+  readerLockException,
+  ReadResult,
+  UnderlyingByteSource,
+  UnderlyingSource
 };
 
 // Abstract operations for the ReadableStream.
