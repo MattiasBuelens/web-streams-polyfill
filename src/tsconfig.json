@@ -5,8 +5,7 @@
     "moduleResolution": "node",
     "lib": [
       "es5",
-      "es2015.promise",
-      "esnext.asynciterable"
+      "es2015.promise"
     ],
     "strict": true,
     "stripInternal": true,

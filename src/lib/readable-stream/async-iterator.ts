@@ -1,3 +1,5 @@
+/// <reference lib="es2018.asynciterable" />
+
 import { ReadableStream } from '../readable-stream';
 import {
   AcquireReadableStreamDefaultReader,
