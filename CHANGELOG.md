@@ -9,7 +9,7 @@
 > - 🏠 Internal
 > - 💅 Polish
 
-## Unreleased
+## v2.0.4 (2019-08-01)
 
 * 🐛 Fix pipe not aborting when both `preventAbort` and `preventCancel` are set ([#31](https://github.com/MattiasBuelens/web-streams-polyfill/pull/31))
 * 👓 Align with [spec version `e4d3b1a`](https://github.com/whatwg/streams/tree/e4d3b1a826e34d27a7cb5485a1cc4b078608c9ec/) ([#31](https://github.com/MattiasBuelens/web-streams-polyfill/pull/31))
