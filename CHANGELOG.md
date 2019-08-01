@@ -9,6 +9,8 @@
 > - 🏠 Internal
 > - 💅 Polish
 
+## Unreleased
+
 ## v2.0.4 (2019-08-01)
 
 * 🐛 Fix pipe not aborting when both `preventAbort` and `preventCancel` are set ([#31](https://github.com/MattiasBuelens/web-streams-polyfill/pull/31))
