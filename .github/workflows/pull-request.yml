@@ -1,6 +1,6 @@
-name: Build
+name: Build pull request
 
-on: [push, pull_request]
+on: [pull_request]
 
 jobs:
   build:
@@ -12,15 +12,8 @@ jobs:
         node-version: [8.x, 10.x, 12.x]
 
     steps:
-    - name: Check out commit
-      if: github.event_name == 'push'
-      uses: actions/checkout@v1
-      with:
-        fetch-depth: 1
-        submodules: true
     - name: Check out merge commit of pull request
-      if: github.event_name == 'pull_request'
-        && (github.event.action == 'opened' || github.event.action == 'reopened' || github.event.action == 'synchronize')
+      if: (github.event.action == 'opened' || github.event.action == 'reopened' || github.event.action == 'synchronize')
         && !github.event.pull_request.draft
         && !github.event.pull_request.merged
         && github.event.pull_request.merge_commit_sha != null
