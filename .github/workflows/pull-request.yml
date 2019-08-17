@@ -1,0 +1,35 @@
+name: Build pull request
+on: [pull_request]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [8.x, 10.x, 12.x]
+    steps:
+      - name: Check event
+        # Run only on non-merged non-draft mergeable pull requests
+        if: |
+          !(
+            (github.event.action == 'opened' || github.event.action == 'reopened' || github.event.action == 'synchronize')
+            && !github.event.pull_request.draft
+            && !github.event.pull_request.merged
+            && github.event.pull_request.merge_commit_sha != null
+          )
+        # Exit code stops the workflow with a neutral status
+        # https://developer.github.com/actions/creating-github-actions/accessing-the-runtime-environment/#exit-codes-and-statuses
+        run: exit 78
+      - name: Check out merge commit of pull request
+        uses: actions/checkout@v1
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
+          fetch-depth: 1
+          submodules: true
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: npm install and test
+        run: |
+          npm install
+          npm test
