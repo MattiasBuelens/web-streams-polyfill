@@ -1,0 +1,39 @@
+name: Build
+
+on: [push, pull_request]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [8.x, 10.x, 12.x]
+
+    steps:
+    - name: Check out commit
+      if: github.event_name == 'push'
+      uses: actions/checkout@v1
+      with:
+        fetch-depth: 1
+        submodules: true
+    - name: Check out merge commit of pull request
+      if: github.event_name == 'pull_request'
+        && (github.event.action == 'opened' || github.event.action == 'reopened' || github.event.action == 'synchronize')
+        && !github.event.pull_request.draft
+        && !github.event.pull_request.merged
+        && github.event.pull_request.merge_commit_sha != null
+      uses: actions/checkout@v1
+      with:
+        ref: ${{ github.event.pull_request.merge_commit_sha }}
+        fetch-depth: 1
+        submodules: true
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node-version }}
+    - name: npm install and test
+      run: |
+        npm install
+        npm test
