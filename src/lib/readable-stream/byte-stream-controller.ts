@@ -1,5 +1,4 @@
 import assert from '../../stub/assert';
-import { rethrowAssertionErrorRejection } from '../utils';
 import { SimpleQueue } from '../simple-queue';
 import {
   ArrayBufferCopy,
@@ -11,6 +10,7 @@ import {
   promiseResolvedWith,
   TransferArrayBuffer,
   typeIsObject,
+  uponPromise,
   ValidateAndNormalizeHighWaterMark
 } from '../helpers';
 import { ResetQueue } from '../queue-with-sizes';
@@ -354,7 +354,8 @@ function ReadableByteStreamControllerCallPullIfNeeded(controller: ReadableByteSt
 
   // TODO: Test controller argument
   const pullPromise = controller._pullAlgorithm();
-  pullPromise.then(
+  uponPromise(
+    pullPromise,
     () => {
       controller._pulling = false;
 
@@ -366,7 +367,7 @@ function ReadableByteStreamControllerCallPullIfNeeded(controller: ReadableByteSt
     e => {
       ReadableByteStreamControllerError(controller, e);
     }
-  ).catch(rethrowAssertionErrorRejection);
+  );
 }
 
 function ReadableByteStreamControllerClearPendingPullIntos(controller: ReadableByteStreamController) {
@@ -840,7 +841,8 @@ export function SetUpReadableByteStreamController(stream: ReadableByteStream,
   stream._readableStreamController = controller;
 
   const startResult = startAlgorithm();
-  promiseResolvedWith(startResult).then(
+  uponPromise(
+    promiseResolvedWith(startResult),
     () => {
       controller._started = true;
 
@@ -852,7 +854,7 @@ export function SetUpReadableByteStreamController(stream: ReadableByteStream,
     r => {
       ReadableByteStreamControllerError(controller, r);
     }
-  ).catch(rethrowAssertionErrorRejection);
+  );
 }
 
 export function SetUpReadableByteStreamControllerFromUnderlyingSource(stream: ReadableByteStream,

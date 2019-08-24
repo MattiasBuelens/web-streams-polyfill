@@ -7,7 +7,8 @@ import {
   promiseResolvedWith,
   setPromiseIsHandledToTrue,
   transformPromiseWith,
-  typeIsObject
+  typeIsObject,
+  uponRejection
 } from '../helpers';
 import {
   ReadableStreamDefaultController,
@@ -117,7 +118,7 @@ export function ReadableStreamTee<R>(stream: ReadableStream<R>,
   branch1 = CreateReadableStream(startAlgorithm, pullAlgorithm, cancel1Algorithm);
   branch2 = CreateReadableStream(startAlgorithm, pullAlgorithm, cancel2Algorithm);
 
-  reader._closedPromise.catch((r: any) => {
+  uponRejection(reader._closedPromise, (r: any) => {
     ReadableStreamDefaultControllerError(branch1._readableStreamController as ReadableStreamDefaultController<R>, r);
     ReadableStreamDefaultControllerError(branch2._readableStreamController as ReadableStreamDefaultController<R>, r);
   });

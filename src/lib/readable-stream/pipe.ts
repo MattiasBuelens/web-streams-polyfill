@@ -19,8 +19,15 @@ import {
   WritableStreamDefaultWriterWrite
 } from '../writable-stream';
 import assert from '../../stub/assert';
-import { rethrowAssertionErrorRejection } from '../utils';
-import { newPromise, promiseResolvedWith, setPromiseIsHandledToTrue, transformPromiseWith } from '../helpers';
+import {
+  newPromise,
+  promiseResolvedWith,
+  setPromiseIsHandledToTrue,
+  transformPromiseWith,
+  uponFulfillment,
+  uponPromise,
+  uponRejection
+} from '../helpers';
 
 export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
                                         dest: WritableStream<T>,
@@ -87,7 +94,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
           if (done) {
             resolveLoop();
           } else {
-            pipeStep().then(next, rejectLoop);
+            uponPromise(pipeStep(), next, rejectLoop);
           }
         }
 
@@ -168,7 +175,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
       if (stream._state === 'errored') {
         action(stream._storedError);
       } else {
-        promise.catch(action).catch(rethrowAssertionErrorRejection);
+        uponRejection(promise, action);
       }
     }
 
@@ -176,7 +183,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
       if (stream._state === 'closed') {
         action();
       } else {
-        promise.then(action).catch(rethrowAssertionErrorRejection);
+        uponFulfillment(promise, action);
       }
     }
 
@@ -187,16 +194,17 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
       shuttingDown = true;
 
       if (dest._state === 'writable' && WritableStreamCloseQueuedOrInFlight(dest) === false) {
-        waitForWritesToFinish().then(doTheRest);
+        uponFulfillment(waitForWritesToFinish(), doTheRest);
       } else {
         doTheRest();
       }
 
       function doTheRest() {
-        action().then(
+        uponPromise(
+          action(),
           () => finalize(originalIsError, originalError),
           newError => finalize(true, newError)
-        ).catch(rethrowAssertionErrorRejection);
+        );
       }
     }
 
@@ -207,7 +215,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
       shuttingDown = true;
 
       if (dest._state === 'writable' && WritableStreamCloseQueuedOrInFlight(dest) === false) {
-        waitForWritesToFinish().then(() => finalize(isError, error)).catch(rethrowAssertionErrorRejection);
+        uponFulfillment(waitForWritesToFinish(), () => finalize(isError, error));
       } else {
         finalize(isError, error);
       }

@@ -9,9 +9,9 @@ import {
   promiseResolvedWith,
   setPromiseIsHandledToTrue,
   typeIsObject,
+  uponPromise,
   ValidateAndNormalizeHighWaterMark
 } from './helpers';
-import { rethrowAssertionErrorRejection } from './utils';
 import { DequeueValue, EnqueueValueWithSize, PeekQueueValue, QueuePair, ResetQueue } from './queue-with-sizes';
 import { QueuingStrategy, QueuingStrategySizeCallback } from './queuing-strategy';
 import { SimpleQueue } from './simple-queue';
@@ -333,7 +333,8 @@ function WritableStreamFinishErroring(stream: WritableStream) {
   }
 
   const promise = stream._writableStreamController[AbortSteps](abortRequest._reason);
-  promise.then(
+  uponPromise(
+    promise,
     () => {
       abortRequest._resolve();
       WritableStreamRejectCloseAndClosedPromiseIfNeeded(stream);
@@ -877,7 +878,8 @@ function SetUpWritableStreamDefaultController<W>(stream: WritableStream<W>,
 
   const startResult = startAlgorithm();
   const startPromise = promiseResolvedWith(startResult);
-  startPromise.then(
+  uponPromise(
+    startPromise,
     () => {
       assert(stream._state === 'writable' || stream._state === 'erroring');
       controller._started = true;
@@ -888,7 +890,7 @@ function SetUpWritableStreamDefaultController<W>(stream: WritableStream<W>,
       controller._started = true;
       WritableStreamDealWithRejection(stream, r);
     }
-  ).catch(rethrowAssertionErrorRejection);
+  );
 }
 
 function SetUpWritableStreamDefaultControllerFromUnderlyingSink<W>(stream: WritableStream<W>,
@@ -1013,14 +1015,15 @@ function WritableStreamDefaultControllerProcessClose(controller: WritableStreamD
 
   const sinkClosePromise = controller._closeAlgorithm();
   WritableStreamDefaultControllerClearAlgorithms(controller);
-  sinkClosePromise.then(
+  uponPromise(
+    sinkClosePromise,
     () => {
       WritableStreamFinishInFlightClose(stream);
     },
     reason => {
       WritableStreamFinishInFlightCloseWithError(stream, reason);
     }
-  ).catch(rethrowAssertionErrorRejection);
+  );
 }
 
 function WritableStreamDefaultControllerProcessWrite<W>(controller: WritableStreamDefaultController<W>, chunk: W) {
@@ -1029,7 +1032,8 @@ function WritableStreamDefaultControllerProcessWrite<W>(controller: WritableStre
   WritableStreamMarkFirstWriteRequestInFlight(stream);
 
   const sinkWritePromise = controller._writeAlgorithm(chunk);
-  sinkWritePromise.then(
+  uponPromise(
+    sinkWritePromise,
     () => {
       WritableStreamFinishInFlightWrite(stream);
 
@@ -1051,7 +1055,7 @@ function WritableStreamDefaultControllerProcessWrite<W>(controller: WritableStre
       }
       WritableStreamFinishInFlightWriteWithError(stream, reason);
     }
-  ).catch(rethrowAssertionErrorRejection);
+  );
 }
 
 function WritableStreamDefaultControllerGetBackpressure(controller: WritableStreamDefaultController<any>): boolean {
