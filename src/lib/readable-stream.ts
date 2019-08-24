@@ -58,6 +58,7 @@ import {
   UnderlyingByteSource,
   UnderlyingSource
 } from './readable-stream/underlying-source';
+import { noop } from '../utils';
 
 export type ReadableByteStream = ReadableStream<Uint8Array>;
 
@@ -363,7 +364,7 @@ export function ReadableStreamCancel<R>(stream: ReadableStream<R>, reason: any):
   ReadableStreamClose(stream);
 
   const sourceCancelPromise = stream._readableStreamController[CancelSteps](reason);
-  return transformPromiseWith(sourceCancelPromise, () => undefined);
+  return transformPromiseWith(sourceCancelPromise, noop);
 }
 
 export function ReadableStreamClose<R>(stream: ReadableStream<R>): void {

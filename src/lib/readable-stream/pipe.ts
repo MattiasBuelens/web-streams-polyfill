@@ -28,6 +28,7 @@ import {
   uponPromise,
   uponRejection
 } from '../helpers';
+import { noop } from '../../utils';
 
 export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
                                         dest: WritableStream<T>,
@@ -115,7 +116,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
             return true;
           }
 
-          currentWrite = PerformPromiseThen(WritableStreamDefaultWriterWrite(writer, value), undefined, () => {});
+          currentWrite = PerformPromiseThen(WritableStreamDefaultWriterWrite(writer, value), undefined, noop);
           return false;
         });
       });
