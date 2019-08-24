@@ -8,6 +8,7 @@ import {
   promiseRejectedWith,
   promiseResolvedWith,
   setPromiseIsHandledToTrue,
+  transformPromiseWith,
   typeIsObject,
   ValidateAndNormalizeHighWaterMark
 } from './helpers';
@@ -362,7 +363,7 @@ export function ReadableStreamCancel<R>(stream: ReadableStream<R>, reason: any):
   ReadableStreamClose(stream);
 
   const sourceCancelPromise = stream._readableStreamController[CancelSteps](reason);
-  return sourceCancelPromise.then(() => undefined);
+  return transformPromiseWith(sourceCancelPromise, () => undefined);
 }
 
 export function ReadableStreamClose<R>(stream: ReadableStream<R>): void {

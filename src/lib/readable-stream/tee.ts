@@ -6,6 +6,7 @@ import {
   newPromise,
   promiseResolvedWith,
   setPromiseIsHandledToTrue,
+  transformPromiseWith,
   typeIsObject
 } from '../helpers';
 import {
@@ -42,7 +43,7 @@ export function ReadableStreamTee<R>(stream: ReadableStream<R>,
 
     reading = true;
 
-    const readPromise = ReadableStreamDefaultReaderRead(reader).then(result => {
+    const readPromise = transformPromiseWith(ReadableStreamDefaultReaderRead(reader), result => {
       reading = false;
 
       assert(typeIsObject(result));

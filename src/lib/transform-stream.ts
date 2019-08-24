@@ -8,6 +8,7 @@ import {
   PromiseCall,
   promiseRejectedWith,
   promiseResolvedWith,
+  transformPromiseWith,
   typeIsObject,
   ValidateAndNormalizeHighWaterMark
 } from './helpers';
@@ -389,7 +390,7 @@ function TransformStreamDefaultControllerError(controller: TransformStreamDefaul
 function TransformStreamDefaultControllerPerformTransform<I, O>(controller: TransformStreamDefaultController<O>,
                                                                 chunk: I) {
   const transformPromise = controller._transformAlgorithm(chunk);
-  return transformPromise.catch(r => {
+  return transformPromiseWith(transformPromise, undefined, r => {
     TransformStreamError(controller._controlledTransformStream, r);
     throw r;
   });
@@ -417,7 +418,7 @@ function TransformStreamDefaultSinkWriteAlgorithm<I, O>(stream: TransformStream<
   if (stream._backpressure === true) {
     const backpressureChangePromise = stream._backpressureChangePromise;
     assert(backpressureChangePromise !== undefined);
-    return backpressureChangePromise.then(() => {
+    return transformPromiseWith(backpressureChangePromise, () => {
       const writable = stream._writable;
       const state = writable._state;
       if (state === 'erroring') {
@@ -447,7 +448,7 @@ function TransformStreamDefaultSinkCloseAlgorithm<I, O>(stream: TransformStream<
   TransformStreamDefaultControllerClearAlgorithms(controller);
 
   // Return a promise that is fulfilled with undefined on success.
-  return flushPromise.then(() => {
+  return transformPromiseWith(flushPromise, () => {
     if (readable._state === 'errored') {
       throw readable._storedError;
     }

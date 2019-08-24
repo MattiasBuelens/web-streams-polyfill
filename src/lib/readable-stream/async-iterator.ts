@@ -13,7 +13,7 @@ import {
   readerLockException
 } from './generic-reader';
 import assert from '../../stub/assert';
-import { promiseRejectedWith, promiseResolvedWith, typeIsObject } from '../helpers';
+import { promiseRejectedWith, promiseResolvedWith, transformPromiseWith, typeIsObject } from '../helpers';
 import { AsyncIteratorPrototype } from '@@target/stub/async-iterator-prototype';
 
 export interface ReadableStreamAsyncIterator<R> extends AsyncIterator<R> {
@@ -42,7 +42,7 @@ const ReadableStreamAsyncIteratorPrototype: ReadableStreamAsyncIteratorImpl<any>
     if (reader._ownerReadableStream === undefined) {
       return promiseRejectedWith(readerLockException('iterate'));
     }
-    return ReadableStreamDefaultReaderRead(reader).then(result => {
+    return transformPromiseWith(ReadableStreamDefaultReaderRead(reader), result => {
       assert(typeIsObject(result));
       const done = result.done;
       assert(typeof done === 'boolean');
@@ -69,7 +69,7 @@ const ReadableStreamAsyncIteratorPrototype: ReadableStreamAsyncIteratorImpl<any>
     if (this._preventCancel === false) {
       const result = ReadableStreamReaderGenericCancel(reader, value);
       ReadableStreamReaderGenericRelease(reader);
-      return result.then(() => ReadableStreamCreateReadResult(value, true, true));
+      return transformPromiseWith(result, () => ReadableStreamCreateReadResult(value, true, true));
     }
     ReadableStreamReaderGenericRelease(reader);
     return promiseResolvedWith(ReadableStreamCreateReadResult(value, true, true));

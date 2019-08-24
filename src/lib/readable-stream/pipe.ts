@@ -20,8 +20,7 @@ import {
 } from '../writable-stream';
 import assert from '../../stub/assert';
 import { rethrowAssertionErrorRejection } from '../utils';
-import { newPromise, promiseResolvedWith, setPromiseIsHandledToTrue } from '../helpers';
-import { noop } from '../../utils';
+import { newPromise, promiseResolvedWith, setPromiseIsHandledToTrue, transformPromiseWith } from '../helpers';
 
 export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
                                         dest: WritableStream<T>,
@@ -101,13 +100,13 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
         return promiseResolvedWith(true);
       }
 
-      return writer._readyPromise.then(() => {
-        return ReadableStreamDefaultReaderRead(reader).then(({ value, done }) => {
+      return transformPromiseWith(writer._readyPromise, () => {
+        return transformPromiseWith(ReadableStreamDefaultReaderRead(reader), ({ value, done }) => {
           if (done === true) {
             return true;
           }
 
-          currentWrite = WritableStreamDefaultWriterWrite(writer, value!).catch(noop);
+          currentWrite = transformPromiseWith(WritableStreamDefaultWriterWrite(writer, value), undefined, () => {});
           return false;
         });
       });
@@ -157,7 +156,10 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
       // Another write may have started while we were waiting on this currentWrite, so we have to be sure to wait
       // for that too.
       const oldCurrentWrite = currentWrite;
-      return currentWrite.then(() => oldCurrentWrite !== currentWrite ? waitForWritesToFinish() : undefined);
+      return transformPromiseWith(
+        currentWrite,
+        () => oldCurrentWrite !== currentWrite ? waitForWritesToFinish() : undefined
+      );
     }
 
     function isOrBecomesErrored(stream: ReadableStream | WritableStream,
