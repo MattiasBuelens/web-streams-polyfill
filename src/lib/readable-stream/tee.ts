@@ -1,7 +1,7 @@
 import { CreateReadableStream, IsReadableStream, ReadableStream, ReadableStreamCancel } from '../readable-stream';
 import { AcquireReadableStreamDefaultReader, ReadableStreamDefaultReaderRead } from './default-reader';
 import assert from '../../stub/assert';
-import { createArrayFromList, typeIsObject } from '../helpers';
+import { createArrayFromList, promiseResolvedWith, typeIsObject } from '../helpers';
 import { rethrowAssertionErrorRejection } from '../utils';
 import {
   ReadableStreamDefaultController,
@@ -32,7 +32,7 @@ export function ReadableStreamTee<R>(stream: ReadableStream<R>,
 
   function pullAlgorithm(): Promise<void> {
     if (reading === true) {
-      return Promise.resolve();
+      return promiseResolvedWith(undefined);
     }
 
     reading = true;
@@ -81,7 +81,7 @@ export function ReadableStreamTee<R>(stream: ReadableStream<R>,
 
     readPromise.catch(rethrowAssertionErrorRejection);
 
-    return Promise.resolve();
+    return promiseResolvedWith(undefined);
   }
 
   function cancel1Algorithm(reason: any): Promise<void> {

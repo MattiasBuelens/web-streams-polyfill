@@ -1,4 +1,4 @@
-import { typeIsObject } from '../helpers';
+import { promiseResolvedWith, typeIsObject } from '../helpers';
 import assert from '../../stub/assert';
 import { SimpleQueue } from '../simple-queue';
 import {
@@ -173,7 +173,7 @@ export function ReadableStreamDefaultReaderRead<R>(reader: ReadableStreamDefault
   stream._disturbed = true;
 
   if (stream._state === 'closed') {
-    return Promise.resolve(ReadableStreamCreateReadResult<R>(undefined, true, reader._forAuthorCode));
+    return promiseResolvedWith(ReadableStreamCreateReadResult<R>(undefined, true, reader._forAuthorCode));
   }
 
   if (stream._state === 'errored') {

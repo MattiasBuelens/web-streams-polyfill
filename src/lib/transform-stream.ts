@@ -5,6 +5,7 @@ import {
   IsNonNegativeNumber,
   MakeSizeAlgorithmFromSizeFunction,
   PromiseCall,
+  promiseResolvedWith,
   typeIsObject,
   ValidateAndNormalizeHighWaterMark
 } from './helpers';
@@ -179,7 +180,7 @@ function InitializeTransformStream<I, O>(stream: TransformStream<I, O>,
 
   function cancelAlgorithm(reason: any): Promise<void> {
     TransformStreamErrorWritableAndUnblockWrite(stream, reason);
-    return Promise.resolve();
+    return promiseResolvedWith(undefined);
   }
 
   stream._readable = CreateReadableStream(startAlgorithm, pullAlgorithm, cancelAlgorithm, readableHighWaterMark,
@@ -328,7 +329,7 @@ function SetUpTransformStreamDefaultControllerFromTransformer<I, O>(stream: Tran
   let transformAlgorithm = (chunk: I) => {
     try {
       TransformStreamDefaultControllerEnqueue(controller, chunk as unknown as O);
-      return Promise.resolve();
+      return promiseResolvedWith<void>(undefined);
     } catch (transformResultE) {
       return Promise.reject(transformResultE);
     }
@@ -432,7 +433,7 @@ function TransformStreamDefaultSinkAbortAlgorithm(stream: TransformStream, reaso
   // abort() is not called synchronously, so it is possible for abort() to be called when the stream is already
   // errored.
   TransformStreamError(stream, reason);
-  return Promise.resolve();
+  return promiseResolvedWith(undefined);
 }
 
 function TransformStreamDefaultSinkCloseAlgorithm<I, O>(stream: TransformStream<I, O>): Promise<void> {

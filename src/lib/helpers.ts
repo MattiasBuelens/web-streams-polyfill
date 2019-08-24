@@ -102,7 +102,7 @@ export function CreateAlgorithmFromUnderlyingMethod(underlyingObject: any,
       }
     }
   }
-  return () => Promise.resolve();
+  return () => promiseResolvedWith(undefined);
 }
 
 export function InvokeOrNoop<T, Key extends FunctionPropertyNames<Required<T>> = FunctionPropertyNames<Required<T>>>(
@@ -128,7 +128,7 @@ export function PromiseCall<T, A extends any[], R>(F: (this: T, ...args: A) => R
   assert(V !== undefined);
   assert(Array.isArray(args));
   try {
-    return Promise.resolve(Call(F, V, args));
+    return promiseResolvedWith(Call(F, V, args));
   } catch (value) {
     return Promise.reject(value);
   }

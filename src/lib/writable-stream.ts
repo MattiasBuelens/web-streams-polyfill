@@ -4,6 +4,7 @@ import {
   InvokeOrNoop,
   IsNonNegativeNumber,
   MakeSizeAlgorithmFromSizeFunction,
+  promiseResolvedWith,
   typeIsObject,
   ValidateAndNormalizeHighWaterMark
 } from './helpers';
@@ -221,7 +222,7 @@ function IsWritableStreamLocked(stream: WritableStream): boolean {
 function WritableStreamAbort(stream: WritableStream, reason: any): Promise<void> {
   const state = stream._state;
   if (state === 'closed' || state === 'errored') {
-    return Promise.resolve(undefined);
+    return promiseResolvedWith(undefined);
   }
   if (stream._pendingAbortRequest !== undefined) {
     return stream._pendingAbortRequest._promise;
@@ -672,7 +673,7 @@ function WritableStreamDefaultWriterCloseWithErrorPropagation(writer: WritableSt
 
   const state = stream._state;
   if (WritableStreamCloseQueuedOrInFlight(stream) === true || state === 'closed') {
-    return Promise.resolve();
+    return promiseResolvedWith(undefined);
   }
 
   if (state === 'errored') {
@@ -873,7 +874,7 @@ function SetUpWritableStreamDefaultController<W>(stream: WritableStream<W>,
   WritableStreamUpdateBackpressure(stream, backpressure);
 
   const startResult = startAlgorithm();
-  const startPromise = Promise.resolve(startResult);
+  const startPromise = promiseResolvedWith(startResult);
   startPromise.then(
     () => {
       assert(stream._state === 'writable' || stream._state === 'erroring');

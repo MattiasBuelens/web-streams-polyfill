@@ -10,7 +10,7 @@ import {
 import { SimpleQueue } from '../simple-queue';
 import { CancelSteps, PullSteps } from './symbols';
 import { ReadableStreamCreateReadResult, ReadResult } from './generic-reader';
-import { CreateAlgorithmFromUnderlyingMethod, InvokeOrNoop, typeIsObject } from '../helpers';
+import { CreateAlgorithmFromUnderlyingMethod, InvokeOrNoop, promiseResolvedWith, typeIsObject } from '../helpers';
 import { IsReadableStreamLocked, ReadableStream, ReadableStreamClose, ReadableStreamError } from '../readable-stream';
 import { UnderlyingSource } from './underlying-source';
 
@@ -107,7 +107,7 @@ export class ReadableStreamDefaultController<R> {
         ReadableStreamDefaultControllerCallPullIfNeeded(this);
       }
 
-      return Promise.resolve(ReadableStreamCreateReadResult(chunk, false, stream._reader!._forAuthorCode));
+      return promiseResolvedWith(ReadableStreamCreateReadResult(chunk, false, stream._reader!._forAuthorCode));
     }
 
     const pendingPromise = ReadableStreamAddReadRequest(stream);
@@ -308,7 +308,7 @@ export function SetUpReadableStreamDefaultController<R>(stream: ReadableStream<R
   stream._readableStreamController = controller;
 
   const startResult = startAlgorithm();
-  Promise.resolve(startResult).then(
+  promiseResolvedWith(startResult).then(
     () => {
       controller._started = true;
 

@@ -5,6 +5,7 @@ import {
   createArrayFromList,
   IsNonNegativeNumber,
   MakeSizeAlgorithmFromSizeFunction,
+  promiseResolvedWith,
   typeIsObject,
   ValidateAndNormalizeHighWaterMark
 } from './helpers';
@@ -348,7 +349,7 @@ export function ReadableStreamCancel<R>(stream: ReadableStream<R>, reason: any):
   stream._disturbed = true;
 
   if (stream._state === 'closed') {
-    return Promise.resolve(undefined);
+    return promiseResolvedWith(undefined);
   }
   if (stream._state === 'errored') {
     return Promise.reject(stream._storedError);

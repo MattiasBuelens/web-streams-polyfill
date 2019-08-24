@@ -7,6 +7,7 @@ import {
   InvokeOrNoop,
   IsDetachedBuffer,
   IsFiniteNonNegativeNumber,
+  promiseResolvedWith,
   TransferArrayBuffer,
   typeIsObject,
   ValidateAndNormalizeHighWaterMark
@@ -276,7 +277,7 @@ export class ReadableByteStreamController {
         return Promise.reject(viewE);
       }
 
-      return Promise.resolve(ReadableStreamCreateReadResult(view, false, stream._reader!._forAuthorCode));
+      return promiseResolvedWith(ReadableStreamCreateReadResult(view, false, stream._reader!._forAuthorCode));
     }
 
     const autoAllocateChunkSize = this._autoAllocateChunkSize;
@@ -545,7 +546,7 @@ export function ReadableByteStreamControllerPullInto<T extends ArrayBufferView>(
 
   if (stream._state === 'closed') {
     const emptyView = new ctor(pullIntoDescriptor.buffer, pullIntoDescriptor.byteOffset, 0);
-    return Promise.resolve(ReadableStreamCreateReadResult(emptyView, true, stream._reader!._forAuthorCode));
+    return promiseResolvedWith(ReadableStreamCreateReadResult(emptyView, true, stream._reader!._forAuthorCode));
   }
 
   if (controller._queueTotalSize > 0) {
@@ -554,7 +555,7 @@ export function ReadableByteStreamControllerPullInto<T extends ArrayBufferView>(
 
       ReadableByteStreamControllerHandleQueueDrain(controller);
 
-      return Promise.resolve(ReadableStreamCreateReadResult(filledView, false, stream._reader!._forAuthorCode));
+      return promiseResolvedWith(ReadableStreamCreateReadResult(filledView, false, stream._reader!._forAuthorCode));
     }
 
     if (controller._closeRequested === true) {
@@ -838,7 +839,7 @@ export function SetUpReadableByteStreamController(stream: ReadableByteStream,
   stream._readableStreamController = controller;
 
   const startResult = startAlgorithm();
-  Promise.resolve(startResult).then(
+  promiseResolvedWith(startResult).then(
     () => {
       controller._started = true;
 

@@ -21,6 +21,7 @@ import {
 import assert from '../../stub/assert';
 import { rethrowAssertionErrorRejection } from '../utils';
 import { noop } from '../../utils';
+import { promiseResolvedWith } from '../helpers';
 
 export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
                                         dest: WritableStream<T>,
@@ -43,7 +44,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
   let shuttingDown = false;
 
   // This is used to keep track of the spec's requirement that we wait for ongoing writes during shutdown.
-  let currentWrite = Promise.resolve();
+  let currentWrite = promiseResolvedWith<void>(undefined);
 
   return new Promise((resolve, reject) => {
     let abortAlgorithm: () => void;
@@ -56,7 +57,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
             if (dest._state === 'writable') {
               return WritableStreamAbort(dest, error);
             }
-            return Promise.resolve();
+            return promiseResolvedWith(undefined);
           });
         }
         if (preventCancel === false) {
@@ -64,7 +65,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
             if (source._state === 'readable') {
               return ReadableStreamCancel(source, error);
             }
-            return Promise.resolve();
+            return promiseResolvedWith(undefined);
           });
         }
         shutdownWithAction(() => Promise.all(actions.map(action => action())), true, error);
@@ -97,7 +98,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
 
     function pipeStep(): Promise<boolean> {
       if (shuttingDown === true) {
-        return Promise.resolve(true);
+        return promiseResolvedWith(true);
       }
 
       return writer._readyPromise.then(() => {
