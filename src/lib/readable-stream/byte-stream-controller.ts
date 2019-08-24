@@ -7,6 +7,7 @@ import {
   InvokeOrNoop,
   IsDetachedBuffer,
   IsFiniteNonNegativeNumber,
+  promiseRejectedWith,
   promiseResolvedWith,
   TransferArrayBuffer,
   typeIsObject,
@@ -274,7 +275,7 @@ export class ReadableByteStreamController {
       try {
         view = new Uint8Array(entry.buffer, entry.byteOffset, entry.byteLength);
       } catch (viewE) {
-        return Promise.reject(viewE);
+        return promiseRejectedWith(viewE);
       }
 
       return promiseResolvedWith(ReadableStreamCreateReadResult(view, false, stream._reader!._forAuthorCode));
@@ -286,7 +287,7 @@ export class ReadableByteStreamController {
       try {
         buffer = new ArrayBuffer(autoAllocateChunkSize);
       } catch (bufferE) {
-        return Promise.reject(bufferE);
+        return promiseRejectedWith(bufferE);
       }
 
       const pullIntoDescriptor: DefaultPullIntoDescriptor = {
@@ -562,7 +563,7 @@ export function ReadableByteStreamControllerPullInto<T extends ArrayBufferView>(
       const e = new TypeError('Insufficient bytes to fill elements in the given buffer');
       ReadableByteStreamControllerError(controller, e);
 
-      return Promise.reject(e);
+      return promiseRejectedWith(e);
     }
   }
 

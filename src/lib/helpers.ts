@@ -130,7 +130,7 @@ export function PromiseCall<T, A extends any[], R>(F: (this: T, ...args: A) => R
   try {
     return promiseResolvedWith(Call(F, V, args));
   } catch (value) {
-    return Promise.reject(value);
+    return promiseRejectedWith(value);
   }
 }
 

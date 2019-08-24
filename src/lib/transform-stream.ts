@@ -5,6 +5,7 @@ import {
   IsNonNegativeNumber,
   MakeSizeAlgorithmFromSizeFunction,
   PromiseCall,
+  promiseRejectedWith,
   promiseResolvedWith,
   typeIsObject,
   ValidateAndNormalizeHighWaterMark
@@ -331,7 +332,7 @@ function SetUpTransformStreamDefaultControllerFromTransformer<I, O>(stream: Tran
       TransformStreamDefaultControllerEnqueue(controller, chunk as unknown as O);
       return promiseResolvedWith<void>(undefined);
     } catch (transformResultE) {
-      return Promise.reject(transformResultE);
+      return promiseRejectedWith(transformResultE);
     }
   };
   const transformMethod = transformer.transform;

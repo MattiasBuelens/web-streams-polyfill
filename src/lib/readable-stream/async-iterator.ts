@@ -13,7 +13,7 @@ import {
   readerLockException
 } from './generic-reader';
 import assert from '../../stub/assert';
-import { promiseResolvedWith, typeIsObject } from '../helpers';
+import { promiseRejectedWith, promiseResolvedWith, typeIsObject } from '../helpers';
 import { AsyncIteratorPrototype } from '@@target/stub/async-iterator-prototype';
 
 export interface ReadableStreamAsyncIterator<R> extends AsyncIterator<R> {
@@ -36,11 +36,11 @@ declare class ReadableStreamAsyncIteratorImpl<R> implements ReadableStreamAsyncI
 const ReadableStreamAsyncIteratorPrototype: ReadableStreamAsyncIteratorImpl<any> = {
   next(): Promise<IteratorResult<any>> {
     if (IsReadableStreamAsyncIterator(this) === false) {
-      return Promise.reject(streamAsyncIteratorBrandCheckException('next'));
+      return promiseRejectedWith(streamAsyncIteratorBrandCheckException('next'));
     }
     const reader = this._asyncIteratorReader;
     if (reader._ownerReadableStream === undefined) {
-      return Promise.reject(readerLockException('iterate'));
+      return promiseRejectedWith(readerLockException('iterate'));
     }
     return ReadableStreamDefaultReaderRead(reader).then(result => {
       assert(typeIsObject(result));
@@ -56,14 +56,14 @@ const ReadableStreamAsyncIteratorPrototype: ReadableStreamAsyncIteratorImpl<any>
 
   return(value: any): Promise<IteratorResult<any>> {
     if (IsReadableStreamAsyncIterator(this) === false) {
-      return Promise.reject(streamAsyncIteratorBrandCheckException('next'));
+      return promiseRejectedWith(streamAsyncIteratorBrandCheckException('next'));
     }
     const reader = this._asyncIteratorReader;
     if (reader._ownerReadableStream === undefined) {
-      return Promise.reject(readerLockException('finish iterating'));
+      return promiseRejectedWith(readerLockException('finish iterating'));
     }
     if (reader._readRequests.length > 0) {
-      return Promise.reject(new TypeError(
+      return promiseRejectedWith(new TypeError(
         'Tried to release a reader lock when that reader has pending read() calls un-settled'));
     }
     if (this._preventCancel === false) {

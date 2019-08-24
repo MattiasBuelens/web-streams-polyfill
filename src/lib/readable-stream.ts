@@ -5,6 +5,7 @@ import {
   createArrayFromList,
   IsNonNegativeNumber,
   MakeSizeAlgorithmFromSizeFunction,
+  promiseRejectedWith,
   promiseResolvedWith,
   typeIsObject,
   ValidateAndNormalizeHighWaterMark
@@ -130,11 +131,11 @@ export class ReadableStream<R = any> {
 
   cancel(reason: any): Promise<void> {
     if (IsReadableStream(this) === false) {
-      return Promise.reject(streamBrandCheckException('cancel'));
+      return promiseRejectedWith(streamBrandCheckException('cancel'));
     }
 
     if (IsReadableStreamLocked(this) === true) {
-      return Promise.reject(new TypeError('Cannot cancel a stream that already has a reader'));
+      return promiseRejectedWith(new TypeError('Cannot cancel a stream that already has a reader'));
     }
 
     return ReadableStreamCancel(this, reason);
@@ -199,10 +200,10 @@ export class ReadableStream<R = any> {
   pipeTo(dest: WritableStream<R>,
          { preventClose, preventAbort, preventCancel, signal }: PipeOptions = {}): Promise<void> {
     if (IsReadableStream(this) === false) {
-      return Promise.reject(streamBrandCheckException('pipeTo'));
+      return promiseRejectedWith(streamBrandCheckException('pipeTo'));
     }
     if (IsWritableStream(dest) === false) {
-      return Promise.reject(
+      return promiseRejectedWith(
         new TypeError('ReadableStream.prototype.pipeTo\'s first argument must be a WritableStream'));
     }
 
@@ -211,14 +212,17 @@ export class ReadableStream<R = any> {
     preventCancel = Boolean(preventCancel);
 
     if (signal !== undefined && !isAbortSignal(signal)) {
-      return Promise.reject(new TypeError('ReadableStream.prototype.pipeTo\'s signal option must be an AbortSignal'));
+      return promiseRejectedWith(
+        new TypeError('ReadableStream.prototype.pipeTo\'s signal option must be an AbortSignal'));
     }
 
     if (IsReadableStreamLocked(this) === true) {
-      return Promise.reject(new TypeError('ReadableStream.prototype.pipeTo cannot be used on a locked ReadableStream'));
+      return promiseRejectedWith(
+        new TypeError('ReadableStream.prototype.pipeTo cannot be used on a locked ReadableStream'));
     }
     if (IsWritableStreamLocked(dest) === true) {
-      return Promise.reject(new TypeError('ReadableStream.prototype.pipeTo cannot be used on a locked WritableStream'));
+      return promiseRejectedWith(
+        new TypeError('ReadableStream.prototype.pipeTo cannot be used on a locked WritableStream'));
     }
 
     return ReadableStreamPipeTo(this, dest, preventClose, preventAbort, preventCancel, signal);
@@ -352,7 +356,7 @@ export function ReadableStreamCancel<R>(stream: ReadableStream<R>, reason: any):
     return promiseResolvedWith(undefined);
   }
   if (stream._state === 'errored') {
-    return Promise.reject(stream._storedError);
+    return promiseRejectedWith(stream._storedError);
   }
 
   ReadableStreamClose(stream);
