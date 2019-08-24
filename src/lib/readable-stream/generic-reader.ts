@@ -1,6 +1,7 @@
 import assert from '../../stub/assert';
 import { noop } from '../../utils';
 import { ReadableStream, ReadableStreamCancel, ReadableStreamReader } from '../readable-stream';
+import { newPromise } from '../helpers';
 
 // TODO Fix ReadableStreamReadResult<R> in TypeScript DOM types
 export interface ReadResult<T = any> {
@@ -74,7 +75,7 @@ export function readerLockException(name: string): TypeError {
 // Helper functions for the ReadableStreamDefaultReader.
 
 export function defaultReaderClosedPromiseInitialize(reader: ReadableStreamReader<any>) {
-  reader._closedPromise = new Promise((resolve, reject) => {
+  reader._closedPromise = newPromise((resolve, reject) => {
     reader._closedPromise_resolve = resolve;
     reader._closedPromise_reject = reject;
   });

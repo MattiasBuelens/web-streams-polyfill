@@ -1,7 +1,7 @@
 import { CreateReadableStream, IsReadableStream, ReadableStream, ReadableStreamCancel } from '../readable-stream';
 import { AcquireReadableStreamDefaultReader, ReadableStreamDefaultReaderRead } from './default-reader';
 import assert from '../../stub/assert';
-import { createArrayFromList, promiseResolvedWith, typeIsObject } from '../helpers';
+import { createArrayFromList, newPromise, promiseResolvedWith, typeIsObject } from '../helpers';
 import { rethrowAssertionErrorRejection } from '../utils';
 import {
   ReadableStreamDefaultController,
@@ -26,7 +26,7 @@ export function ReadableStreamTee<R>(stream: ReadableStream<R>,
   let branch2: ReadableStream<R>;
 
   let resolveCancelPromise: (reason: any) => void;
-  const cancelPromise = new Promise<any>(resolve => {
+  const cancelPromise = newPromise<any>(resolve => {
     resolveCancelPromise = resolve;
   });
 

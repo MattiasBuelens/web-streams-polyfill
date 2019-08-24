@@ -1,4 +1,4 @@
-import { IsDetachedBuffer, promiseRejectedWith, typeIsObject } from '../helpers';
+import { IsDetachedBuffer, newPromise, promiseRejectedWith, typeIsObject } from '../helpers';
 import assert from '../../stub/assert';
 import { SimpleQueue } from '../simple-queue';
 import {
@@ -31,7 +31,7 @@ export function ReadableStreamAddReadIntoRequest<T extends ArrayBufferView>(stre
   assert(IsReadableStreamBYOBReader(stream._reader) === true);
   assert(stream._state === 'readable' || stream._state === 'closed');
 
-  const promise = new Promise<ReadResult<T>>((resolve, reject) => {
+  const promise = newPromise<ReadResult<T>>((resolve, reject) => {
     const readIntoRequest: ReadIntoRequest<T> = {
       _resolve: resolve,
       _reject: reject

@@ -4,6 +4,7 @@ import {
   InvokeOrNoop,
   IsNonNegativeNumber,
   MakeSizeAlgorithmFromSizeFunction,
+  newPromise,
   promiseRejectedWith,
   promiseResolvedWith,
   typeIsObject,
@@ -238,7 +239,7 @@ function WritableStreamAbort(stream: WritableStream, reason: any): Promise<void>
     reason = undefined;
   }
 
-  const promise = new Promise<void>((resolve, reject) => {
+  const promise = newPromise<void>((resolve, reject) => {
     stream._pendingAbortRequest = {
       _promise: undefined!,
       _resolve: resolve,
@@ -262,7 +263,7 @@ function WritableStreamAddWriteRequest(stream: WritableStream): Promise<void> {
   assert(IsWritableStreamLocked(stream) === true);
   assert(stream._state === 'writable');
 
-  const promise = new Promise<void>((resolve, reject) => {
+  const promise = newPromise<void>((resolve, reject) => {
     const writeRequest: WriteRequest = {
       _resolve: resolve,
       _reject: reject
@@ -648,7 +649,7 @@ function WritableStreamDefaultWriterClose(writer: WritableStreamDefaultWriter<an
   assert(state === 'writable' || state === 'erroring');
   assert(WritableStreamCloseQueuedOrInFlight(stream) === false);
 
-  const promise = new Promise<void>((resolve, reject) => {
+  const promise = newPromise<void>((resolve, reject) => {
     const closeRequest: CloseRequest = {
       _resolve: resolve,
       _reject: reject
@@ -1087,7 +1088,7 @@ function defaultWriterLockException(name: string): TypeError {
 }
 
 function defaultWriterClosedPromiseInitialize(writer: WritableStreamDefaultWriter<any>) {
-  writer._closedPromise = new Promise((resolve, reject) => {
+  writer._closedPromise = newPromise((resolve, reject) => {
     writer._closedPromise_resolve = resolve;
     writer._closedPromise_reject = reject;
     writer._closedPromiseState = 'pending';
@@ -1136,7 +1137,7 @@ function defaultWriterClosedPromiseResolve(writer: WritableStreamDefaultWriter<a
 }
 
 function defaultWriterReadyPromiseInitialize(writer: WritableStreamDefaultWriter<any>) {
-  writer._readyPromise = new Promise((resolve, reject) => {
+  writer._readyPromise = newPromise((resolve, reject) => {
     writer._readyPromise_resolve = resolve;
     writer._readyPromise_reject = reject;
   });

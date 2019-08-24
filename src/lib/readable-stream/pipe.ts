@@ -20,8 +20,8 @@ import {
 } from '../writable-stream';
 import assert from '../../stub/assert';
 import { rethrowAssertionErrorRejection } from '../utils';
+import { newPromise, promiseResolvedWith } from '../helpers';
 import { noop } from '../../utils';
-import { promiseResolvedWith } from '../helpers';
 
 export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
                                         dest: WritableStream<T>,
@@ -46,7 +46,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
   // This is used to keep track of the spec's requirement that we wait for ongoing writes during shutdown.
   let currentWrite = promiseResolvedWith<void>(undefined);
 
-  return new Promise((resolve, reject) => {
+  return newPromise((resolve, reject) => {
     let abortAlgorithm: () => void;
     if (signal !== undefined) {
       abortAlgorithm = () => {
@@ -83,7 +83,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
     // - Backpressure must be enforced
     // - Shutdown must stop all activity
     function pipeLoop() {
-      return new Promise<void>((resolveLoop, rejectLoop) => {
+      return newPromise<void>((resolveLoop, rejectLoop) => {
         function next(done: boolean) {
           if (done) {
             resolveLoop();

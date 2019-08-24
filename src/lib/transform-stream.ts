@@ -4,6 +4,7 @@ import {
   InvokeOrNoop,
   IsNonNegativeNumber,
   MakeSizeAlgorithmFromSizeFunction,
+  newPromise,
   PromiseCall,
   promiseRejectedWith,
   promiseResolvedWith,
@@ -88,7 +89,7 @@ export class TransformStream<I = any, O = any> {
     readableHighWaterMark = ValidateAndNormalizeHighWaterMark(readableHighWaterMark);
 
     let startPromise_resolve!: (value: void | PromiseLike<void>) => void;
-    const startPromise = new Promise<void>(resolve => {
+    const startPromise = newPromise<void>(resolve => {
       startPromise_resolve = resolve;
     });
 
@@ -134,7 +135,7 @@ export function CreateTransformStream<I, O>(startAlgorithm: () => void | Promise
   const stream: TransformStream<I, O> = Object.create(TransformStream.prototype);
 
   let startPromise_resolve!: (value: void | PromiseLike<void>) => void;
-  const startPromise = new Promise<void>(resolve => {
+  const startPromise = newPromise<void>(resolve => {
     startPromise_resolve = resolve;
   });
 
@@ -235,7 +236,7 @@ function TransformStreamSetBackpressure(stream: TransformStream, backpressure: b
     stream._backpressureChangePromise_resolve();
   }
 
-  stream._backpressureChangePromise = new Promise(resolve => {
+  stream._backpressureChangePromise = newPromise(resolve => {
     stream._backpressureChangePromise_resolve = resolve;
   });
 

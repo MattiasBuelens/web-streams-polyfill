@@ -1,4 +1,4 @@
-import { promiseRejectedWith, promiseResolvedWith, typeIsObject } from '../helpers';
+import { newPromise, promiseRejectedWith, promiseResolvedWith, typeIsObject } from '../helpers';
 import assert from '../../stub/assert';
 import { SimpleQueue } from '../simple-queue';
 import {
@@ -27,7 +27,7 @@ export function ReadableStreamAddReadRequest<R>(stream: ReadableStream<R>): Prom
   assert(IsReadableStreamDefaultReader(stream._reader) === true);
   assert(stream._state === 'readable');
 
-  const promise = new Promise<ReadResult<R>>((resolve, reject) => {
+  const promise = newPromise<ReadResult<R>>((resolve, reject) => {
     const readRequest: ReadRequest<R> = {
       _resolve: resolve,
       _reject: reject
