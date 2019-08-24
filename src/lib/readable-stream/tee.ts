@@ -1,8 +1,13 @@
 import { CreateReadableStream, IsReadableStream, ReadableStream, ReadableStreamCancel } from '../readable-stream';
 import { AcquireReadableStreamDefaultReader, ReadableStreamDefaultReaderRead } from './default-reader';
 import assert from '../../stub/assert';
-import { createArrayFromList, newPromise, promiseResolvedWith, typeIsObject } from '../helpers';
-import { rethrowAssertionErrorRejection } from '../utils';
+import {
+  createArrayFromList,
+  newPromise,
+  promiseResolvedWith,
+  setPromiseIsHandledToTrue,
+  typeIsObject
+} from '../helpers';
 import {
   ReadableStreamDefaultController,
   ReadableStreamDefaultControllerClose,
@@ -79,7 +84,7 @@ export function ReadableStreamTee<R>(stream: ReadableStream<R>,
       }
     });
 
-    readPromise.catch(rethrowAssertionErrorRejection);
+    setPromiseIsHandledToTrue(readPromise);
 
     return promiseResolvedWith(undefined);
   }

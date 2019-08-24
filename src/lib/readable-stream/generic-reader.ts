@@ -1,7 +1,6 @@
 import assert from '../../stub/assert';
-import { noop } from '../../utils';
 import { ReadableStream, ReadableStreamCancel, ReadableStreamReader } from '../readable-stream';
-import { newPromise } from '../helpers';
+import { newPromise, setPromiseIsHandledToTrue } from '../helpers';
 
 // TODO Fix ReadableStreamReadResult<R> in TypeScript DOM types
 export interface ReadResult<T = any> {
@@ -95,7 +94,7 @@ export function defaultReaderClosedPromiseReject(reader: ReadableStreamReader<an
   assert(reader._closedPromise_resolve !== undefined);
   assert(reader._closedPromise_reject !== undefined);
 
-  reader._closedPromise.catch(noop);
+  setPromiseIsHandledToTrue(reader._closedPromise);
   reader._closedPromise_reject!(reason);
   reader._closedPromise_resolve = undefined;
   reader._closedPromise_reject = undefined;

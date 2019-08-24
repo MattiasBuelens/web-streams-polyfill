@@ -7,6 +7,7 @@ import {
   MakeSizeAlgorithmFromSizeFunction,
   promiseRejectedWith,
   promiseResolvedWith,
+  setPromiseIsHandledToTrue,
   typeIsObject,
   ValidateAndNormalizeHighWaterMark
 } from './helpers';
@@ -29,7 +30,6 @@ import { ReadableStreamTee } from './readable-stream/tee';
 import { IsWritableStream, IsWritableStreamLocked, WritableStream } from './writable-stream';
 import NumberIsInteger from '../stub/number-isinteger';
 import { SimpleQueue } from './simple-queue';
-import { noop } from '../utils';
 import {
   AcquireReadableStreamBYOBReader,
   IsReadableStreamBYOBReader,
@@ -192,7 +192,7 @@ export class ReadableStream<R = any> {
 
     const promise = ReadableStreamPipeTo(this, writable, preventClose, preventAbort, preventCancel, signal);
 
-    promise.catch(noop);
+    setPromiseIsHandledToTrue(promise);
 
     return readable;
   }

@@ -20,7 +20,7 @@ import {
 } from '../writable-stream';
 import assert from '../../stub/assert';
 import { rethrowAssertionErrorRejection } from '../utils';
-import { newPromise, promiseResolvedWith } from '../helpers';
+import { newPromise, promiseResolvedWith, setPromiseIsHandledToTrue } from '../helpers';
 import { noop } from '../../utils';
 
 export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
@@ -151,7 +151,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
       }
     }
 
-    pipeLoop().catch(rethrowAssertionErrorRejection);
+    setPromiseIsHandledToTrue(pipeLoop());
 
     function waitForWritesToFinish(): Promise<void> {
       // Another write may have started while we were waiting on this currentWrite, so we have to be sure to wait
