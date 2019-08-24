@@ -5,6 +5,10 @@ import {
   createArrayFromList,
   IsNonNegativeNumber,
   MakeSizeAlgorithmFromSizeFunction,
+  promiseRejectedWith,
+  promiseResolvedWith,
+  setPromiseIsHandledToTrue,
+  transformPromiseWith,
   typeIsObject,
   ValidateAndNormalizeHighWaterMark
 } from './helpers';
@@ -27,7 +31,6 @@ import { ReadableStreamTee } from './readable-stream/tee';
 import { IsWritableStream, IsWritableStreamLocked, WritableStream } from './writable-stream';
 import NumberIsInteger from '../stub/number-isinteger';
 import { SimpleQueue } from './simple-queue';
-import { noop } from '../utils';
 import {
   AcquireReadableStreamBYOBReader,
   IsReadableStreamBYOBReader,
@@ -55,6 +58,7 @@ import {
   UnderlyingByteSource,
   UnderlyingSource
 } from './readable-stream/underlying-source';
+import { noop } from '../utils';
 
 export type ReadableByteStream = ReadableStream<Uint8Array>;
 
@@ -129,11 +133,11 @@ export class ReadableStream<R = any> {
 
   cancel(reason: any): Promise<void> {
     if (IsReadableStream(this) === false) {
-      return Promise.reject(streamBrandCheckException('cancel'));
+      return promiseRejectedWith(streamBrandCheckException('cancel'));
     }
 
     if (IsReadableStreamLocked(this) === true) {
-      return Promise.reject(new TypeError('Cannot cancel a stream that already has a reader'));
+      return promiseRejectedWith(new TypeError('Cannot cancel a stream that already has a reader'));
     }
 
     return ReadableStreamCancel(this, reason);
@@ -190,7 +194,7 @@ export class ReadableStream<R = any> {
 
     const promise = ReadableStreamPipeTo(this, writable, preventClose, preventAbort, preventCancel, signal);
 
-    promise.catch(noop);
+    setPromiseIsHandledToTrue(promise);
 
     return readable;
   }
@@ -198,10 +202,10 @@ export class ReadableStream<R = any> {
   pipeTo(dest: WritableStream<R>,
          { preventClose, preventAbort, preventCancel, signal }: PipeOptions = {}): Promise<void> {
     if (IsReadableStream(this) === false) {
-      return Promise.reject(streamBrandCheckException('pipeTo'));
+      return promiseRejectedWith(streamBrandCheckException('pipeTo'));
     }
     if (IsWritableStream(dest) === false) {
-      return Promise.reject(
+      return promiseRejectedWith(
         new TypeError('ReadableStream.prototype.pipeTo\'s first argument must be a WritableStream'));
     }
 
@@ -210,14 +214,17 @@ export class ReadableStream<R = any> {
     preventCancel = Boolean(preventCancel);
 
     if (signal !== undefined && !isAbortSignal(signal)) {
-      return Promise.reject(new TypeError('ReadableStream.prototype.pipeTo\'s signal option must be an AbortSignal'));
+      return promiseRejectedWith(
+        new TypeError('ReadableStream.prototype.pipeTo\'s signal option must be an AbortSignal'));
     }
 
     if (IsReadableStreamLocked(this) === true) {
-      return Promise.reject(new TypeError('ReadableStream.prototype.pipeTo cannot be used on a locked ReadableStream'));
+      return promiseRejectedWith(
+        new TypeError('ReadableStream.prototype.pipeTo cannot be used on a locked ReadableStream'));
     }
     if (IsWritableStreamLocked(dest) === true) {
-      return Promise.reject(new TypeError('ReadableStream.prototype.pipeTo cannot be used on a locked WritableStream'));
+      return promiseRejectedWith(
+        new TypeError('ReadableStream.prototype.pipeTo cannot be used on a locked WritableStream'));
     }
 
     return ReadableStreamPipeTo(this, dest, preventClose, preventAbort, preventCancel, signal);
@@ -348,16 +355,16 @@ export function ReadableStreamCancel<R>(stream: ReadableStream<R>, reason: any):
   stream._disturbed = true;
 
   if (stream._state === 'closed') {
-    return Promise.resolve(undefined);
+    return promiseResolvedWith(undefined);
   }
   if (stream._state === 'errored') {
-    return Promise.reject(stream._storedError);
+    return promiseRejectedWith(stream._storedError);
   }
 
   ReadableStreamClose(stream);
 
   const sourceCancelPromise = stream._readableStreamController[CancelSteps](reason);
-  return sourceCancelPromise.then(() => undefined);
+  return transformPromiseWith(sourceCancelPromise, noop);
 }
 
 export function ReadableStreamClose<R>(stream: ReadableStream<R>): void {

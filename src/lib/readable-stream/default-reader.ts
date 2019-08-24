@@ -1,4 +1,4 @@
-import { typeIsObject } from '../helpers';
+import { newPromise, promiseRejectedWith, promiseResolvedWith, typeIsObject } from '../helpers';
 import assert from '../../stub/assert';
 import { SimpleQueue } from '../simple-queue';
 import {
@@ -27,7 +27,7 @@ export function ReadableStreamAddReadRequest<R>(stream: ReadableStream<R>): Prom
   assert(IsReadableStreamDefaultReader(stream._reader) === true);
   assert(stream._state === 'readable');
 
-  const promise = new Promise<ReadResult<R>>((resolve, reject) => {
+  const promise = newPromise<ReadResult<R>>((resolve, reject) => {
     const readRequest: ReadRequest<R> = {
       _resolve: resolve,
       _reject: reject
@@ -104,7 +104,7 @@ export class ReadableStreamDefaultReader<R> {
 
   get closed(): Promise<void> {
     if (!IsReadableStreamDefaultReader(this)) {
-      return Promise.reject(defaultReaderBrandCheckException('closed'));
+      return promiseRejectedWith(defaultReaderBrandCheckException('closed'));
     }
 
     return this._closedPromise;
@@ -112,11 +112,11 @@ export class ReadableStreamDefaultReader<R> {
 
   cancel(reason: any): Promise<void> {
     if (!IsReadableStreamDefaultReader(this)) {
-      return Promise.reject(defaultReaderBrandCheckException('cancel'));
+      return promiseRejectedWith(defaultReaderBrandCheckException('cancel'));
     }
 
     if (this._ownerReadableStream === undefined) {
-      return Promise.reject(readerLockException('cancel'));
+      return promiseRejectedWith(readerLockException('cancel'));
     }
 
     return ReadableStreamReaderGenericCancel(this, reason);
@@ -124,11 +124,11 @@ export class ReadableStreamDefaultReader<R> {
 
   read(): Promise<ReadResult<R>> {
     if (!IsReadableStreamDefaultReader(this)) {
-      return Promise.reject(defaultReaderBrandCheckException('read'));
+      return promiseRejectedWith(defaultReaderBrandCheckException('read'));
     }
 
     if (this._ownerReadableStream === undefined) {
-      return Promise.reject(readerLockException('read from'));
+      return promiseRejectedWith(readerLockException('read from'));
     }
 
     return ReadableStreamDefaultReaderRead<R>(this);
@@ -173,11 +173,11 @@ export function ReadableStreamDefaultReaderRead<R>(reader: ReadableStreamDefault
   stream._disturbed = true;
 
   if (stream._state === 'closed') {
-    return Promise.resolve(ReadableStreamCreateReadResult<R>(undefined, true, reader._forAuthorCode));
+    return promiseResolvedWith(ReadableStreamCreateReadResult<R>(undefined, true, reader._forAuthorCode));
   }
 
   if (stream._state === 'errored') {
-    return Promise.reject(stream._storedError);
+    return promiseRejectedWith(stream._storedError);
   }
 
   assert(stream._state === 'readable');

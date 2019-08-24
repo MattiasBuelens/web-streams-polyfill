@@ -1,7 +1,6 @@
 import { QueuingStrategySizeCallback } from '../queuing-strategy';
 import assert from '../../stub/assert';
 import { DequeueValue, EnqueueValueWithSize, QueuePair, ResetQueue } from '../queue-with-sizes';
-import { rethrowAssertionErrorRejection } from '../utils';
 import {
   ReadableStreamAddReadRequest,
   ReadableStreamFulfillReadRequest,
@@ -10,7 +9,13 @@ import {
 import { SimpleQueue } from '../simple-queue';
 import { CancelSteps, PullSteps } from './symbols';
 import { ReadableStreamCreateReadResult, ReadResult } from './generic-reader';
-import { CreateAlgorithmFromUnderlyingMethod, InvokeOrNoop, typeIsObject } from '../helpers';
+import {
+  CreateAlgorithmFromUnderlyingMethod,
+  InvokeOrNoop,
+  promiseResolvedWith,
+  typeIsObject,
+  uponPromise
+} from '../helpers';
 import { IsReadableStreamLocked, ReadableStream, ReadableStreamClose, ReadableStreamError } from '../readable-stream';
 import { UnderlyingSource } from './underlying-source';
 
@@ -107,7 +112,7 @@ export class ReadableStreamDefaultController<R> {
         ReadableStreamDefaultControllerCallPullIfNeeded(this);
       }
 
-      return Promise.resolve(ReadableStreamCreateReadResult(chunk, false, stream._reader!._forAuthorCode));
+      return promiseResolvedWith(ReadableStreamCreateReadResult(chunk, false, stream._reader!._forAuthorCode));
     }
 
     const pendingPromise = ReadableStreamAddReadRequest(stream);
@@ -146,7 +151,8 @@ function ReadableStreamDefaultControllerCallPullIfNeeded(controller: ReadableStr
   controller._pulling = true;
 
   const pullPromise = controller._pullAlgorithm();
-  pullPromise.then(
+  uponPromise(
+    pullPromise,
     () => {
       controller._pulling = false;
 
@@ -158,7 +164,7 @@ function ReadableStreamDefaultControllerCallPullIfNeeded(controller: ReadableStr
     e => {
       ReadableStreamDefaultControllerError(controller, e);
     }
-  ).catch(rethrowAssertionErrorRejection);
+  );
 }
 
 function ReadableStreamDefaultControllerShouldCallPull(controller: ReadableStreamDefaultController<any>): boolean {
@@ -308,7 +314,8 @@ export function SetUpReadableStreamDefaultController<R>(stream: ReadableStream<R
   stream._readableStreamController = controller;
 
   const startResult = startAlgorithm();
-  Promise.resolve(startResult).then(
+  uponPromise(
+    promiseResolvedWith(startResult),
     () => {
       controller._started = true;
 
@@ -320,7 +327,7 @@ export function SetUpReadableStreamDefaultController<R>(stream: ReadableStream<R
     r => {
       ReadableStreamDefaultControllerError(controller, r);
     }
-  ).catch(rethrowAssertionErrorRejection);
+  );
 }
 
 export function SetUpReadableStreamDefaultControllerFromUnderlyingSource<R>(stream: ReadableStream<R>,

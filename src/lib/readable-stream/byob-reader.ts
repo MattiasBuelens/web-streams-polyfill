@@ -1,4 +1,4 @@
-import { IsDetachedBuffer, typeIsObject } from '../helpers';
+import { IsDetachedBuffer, newPromise, promiseRejectedWith, typeIsObject } from '../helpers';
 import assert from '../../stub/assert';
 import { SimpleQueue } from '../simple-queue';
 import {
@@ -31,7 +31,7 @@ export function ReadableStreamAddReadIntoRequest<T extends ArrayBufferView>(stre
   assert(IsReadableStreamBYOBReader(stream._reader) === true);
   assert(stream._state === 'readable' || stream._state === 'closed');
 
-  const promise = new Promise<ReadResult<T>>((resolve, reject) => {
+  const promise = newPromise<ReadResult<T>>((resolve, reject) => {
     const readIntoRequest: ReadIntoRequest<T> = {
       _resolve: resolve,
       _reject: reject
@@ -115,7 +115,7 @@ export class ReadableStreamBYOBReader {
 
   get closed(): Promise<void> {
     if (!IsReadableStreamBYOBReader(this)) {
-      return Promise.reject(byobReaderBrandCheckException('closed'));
+      return promiseRejectedWith(byobReaderBrandCheckException('closed'));
     }
 
     return this._closedPromise;
@@ -123,11 +123,11 @@ export class ReadableStreamBYOBReader {
 
   cancel(reason: any): Promise<void> {
     if (!IsReadableStreamBYOBReader(this)) {
-      return Promise.reject(byobReaderBrandCheckException('cancel'));
+      return promiseRejectedWith(byobReaderBrandCheckException('cancel'));
     }
 
     if (this._ownerReadableStream === undefined) {
-      return Promise.reject(readerLockException('cancel'));
+      return promiseRejectedWith(readerLockException('cancel'));
     }
 
     return ReadableStreamReaderGenericCancel(this, reason);
@@ -135,23 +135,23 @@ export class ReadableStreamBYOBReader {
 
   read<T extends ArrayBufferView>(view: T): Promise<ReadResult<T>> {
     if (!IsReadableStreamBYOBReader(this)) {
-      return Promise.reject(byobReaderBrandCheckException('read'));
+      return promiseRejectedWith(byobReaderBrandCheckException('read'));
     }
 
     if (this._ownerReadableStream === undefined) {
-      return Promise.reject(readerLockException('read from'));
+      return promiseRejectedWith(readerLockException('read from'));
     }
 
     if (!ArrayBuffer.isView(view)) {
-      return Promise.reject(new TypeError('view must be an array buffer view'));
+      return promiseRejectedWith(new TypeError('view must be an array buffer view'));
     }
 
     if (IsDetachedBuffer(view.buffer) === true) {
-      return Promise.reject(new TypeError('Cannot read into a view onto a detached ArrayBuffer'));
+      return promiseRejectedWith(new TypeError('Cannot read into a view onto a detached ArrayBuffer'));
     }
 
     if (view.byteLength === 0) {
-      return Promise.reject(new TypeError('view must have non-zero byteLength'));
+      return promiseRejectedWith(new TypeError('view must have non-zero byteLength'));
     }
 
     return ReadableStreamBYOBReaderRead(this, view);
@@ -197,7 +197,7 @@ function ReadableStreamBYOBReaderRead<T extends ArrayBufferView>(reader: Readabl
   stream._disturbed = true;
 
   if (stream._state === 'errored') {
-    return Promise.reject(stream._storedError);
+    return promiseRejectedWith(stream._storedError);
   }
 
   // Controllers must implement this.

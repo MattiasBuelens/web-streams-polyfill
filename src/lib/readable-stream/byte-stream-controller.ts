@@ -1,5 +1,4 @@
 import assert from '../../stub/assert';
-import { rethrowAssertionErrorRejection } from '../utils';
 import { SimpleQueue } from '../simple-queue';
 import {
   ArrayBufferCopy,
@@ -7,8 +6,11 @@ import {
   InvokeOrNoop,
   IsDetachedBuffer,
   IsFiniteNonNegativeNumber,
+  promiseRejectedWith,
+  promiseResolvedWith,
   TransferArrayBuffer,
   typeIsObject,
+  uponPromise,
   ValidateAndNormalizeHighWaterMark
 } from '../helpers';
 import { ResetQueue } from '../queue-with-sizes';
@@ -273,10 +275,10 @@ export class ReadableByteStreamController {
       try {
         view = new Uint8Array(entry.buffer, entry.byteOffset, entry.byteLength);
       } catch (viewE) {
-        return Promise.reject(viewE);
+        return promiseRejectedWith(viewE);
       }
 
-      return Promise.resolve(ReadableStreamCreateReadResult(view, false, stream._reader!._forAuthorCode));
+      return promiseResolvedWith(ReadableStreamCreateReadResult(view, false, stream._reader!._forAuthorCode));
     }
 
     const autoAllocateChunkSize = this._autoAllocateChunkSize;
@@ -285,7 +287,7 @@ export class ReadableByteStreamController {
       try {
         buffer = new ArrayBuffer(autoAllocateChunkSize);
       } catch (bufferE) {
-        return Promise.reject(bufferE);
+        return promiseRejectedWith(bufferE);
       }
 
       const pullIntoDescriptor: DefaultPullIntoDescriptor = {
@@ -352,7 +354,8 @@ function ReadableByteStreamControllerCallPullIfNeeded(controller: ReadableByteSt
 
   // TODO: Test controller argument
   const pullPromise = controller._pullAlgorithm();
-  pullPromise.then(
+  uponPromise(
+    pullPromise,
     () => {
       controller._pulling = false;
 
@@ -364,7 +367,7 @@ function ReadableByteStreamControllerCallPullIfNeeded(controller: ReadableByteSt
     e => {
       ReadableByteStreamControllerError(controller, e);
     }
-  ).catch(rethrowAssertionErrorRejection);
+  );
 }
 
 function ReadableByteStreamControllerClearPendingPullIntos(controller: ReadableByteStreamController) {
@@ -545,7 +548,7 @@ export function ReadableByteStreamControllerPullInto<T extends ArrayBufferView>(
 
   if (stream._state === 'closed') {
     const emptyView = new ctor(pullIntoDescriptor.buffer, pullIntoDescriptor.byteOffset, 0);
-    return Promise.resolve(ReadableStreamCreateReadResult(emptyView, true, stream._reader!._forAuthorCode));
+    return promiseResolvedWith(ReadableStreamCreateReadResult(emptyView, true, stream._reader!._forAuthorCode));
   }
 
   if (controller._queueTotalSize > 0) {
@@ -554,14 +557,14 @@ export function ReadableByteStreamControllerPullInto<T extends ArrayBufferView>(
 
       ReadableByteStreamControllerHandleQueueDrain(controller);
 
-      return Promise.resolve(ReadableStreamCreateReadResult(filledView, false, stream._reader!._forAuthorCode));
+      return promiseResolvedWith(ReadableStreamCreateReadResult(filledView, false, stream._reader!._forAuthorCode));
     }
 
     if (controller._closeRequested === true) {
       const e = new TypeError('Insufficient bytes to fill elements in the given buffer');
       ReadableByteStreamControllerError(controller, e);
 
-      return Promise.reject(e);
+      return promiseRejectedWith(e);
     }
   }
 
@@ -838,7 +841,8 @@ export function SetUpReadableByteStreamController(stream: ReadableByteStream,
   stream._readableStreamController = controller;
 
   const startResult = startAlgorithm();
-  Promise.resolve(startResult).then(
+  uponPromise(
+    promiseResolvedWith(startResult),
     () => {
       controller._started = true;
 
@@ -850,7 +854,7 @@ export function SetUpReadableByteStreamController(stream: ReadableByteStream,
     r => {
       ReadableByteStreamControllerError(controller, r);
     }
-  ).catch(rethrowAssertionErrorRejection);
+  );
 }
 
 export function SetUpReadableByteStreamControllerFromUnderlyingSource(stream: ReadableByteStream,

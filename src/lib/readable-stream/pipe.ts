@@ -19,7 +19,15 @@ import {
   WritableStreamDefaultWriterWrite
 } from '../writable-stream';
 import assert from '../../stub/assert';
-import { rethrowAssertionErrorRejection } from '../utils';
+import {
+  newPromise,
+  PerformPromiseThen,
+  promiseResolvedWith,
+  setPromiseIsHandledToTrue,
+  uponFulfillment,
+  uponPromise,
+  uponRejection
+} from '../helpers';
 import { noop } from '../../utils';
 
 export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
@@ -43,9 +51,9 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
   let shuttingDown = false;
 
   // This is used to keep track of the spec's requirement that we wait for ongoing writes during shutdown.
-  let currentWrite = Promise.resolve();
+  let currentWrite = promiseResolvedWith<void>(undefined);
 
-  return new Promise((resolve, reject) => {
+  return newPromise((resolve, reject) => {
     let abortAlgorithm: () => void;
     if (signal !== undefined) {
       abortAlgorithm = () => {
@@ -56,7 +64,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
             if (dest._state === 'writable') {
               return WritableStreamAbort(dest, error);
             }
-            return Promise.resolve();
+            return promiseResolvedWith(undefined);
           });
         }
         if (preventCancel === false) {
@@ -64,7 +72,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
             if (source._state === 'readable') {
               return ReadableStreamCancel(source, error);
             }
-            return Promise.resolve();
+            return promiseResolvedWith(undefined);
           });
         }
         shutdownWithAction(() => Promise.all(actions.map(action => action())), true, error);
@@ -82,12 +90,14 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
     // - Backpressure must be enforced
     // - Shutdown must stop all activity
     function pipeLoop() {
-      return new Promise<void>((resolveLoop, rejectLoop) => {
+      return newPromise<void>((resolveLoop, rejectLoop) => {
         function next(done: boolean) {
           if (done) {
             resolveLoop();
           } else {
-            pipeStep().then(next, rejectLoop);
+            // Use `PerformPromiseThen` instead of `uponPromise` to avoid
+            // adding unnecessary `.catch(rethrowAssertionErrorRejection)` handlers
+            PerformPromiseThen(pipeStep(), next, rejectLoop);
           }
         }
 
@@ -97,16 +107,16 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
 
     function pipeStep(): Promise<boolean> {
       if (shuttingDown === true) {
-        return Promise.resolve(true);
+        return promiseResolvedWith(true);
       }
 
-      return writer._readyPromise.then(() => {
-        return ReadableStreamDefaultReaderRead(reader).then(({ value, done }) => {
+      return PerformPromiseThen(writer._readyPromise, () => {
+        return PerformPromiseThen(ReadableStreamDefaultReaderRead(reader), ({ value, done }) => {
           if (done === true) {
             return true;
           }
 
-          currentWrite = WritableStreamDefaultWriterWrite(writer, value!).catch(noop);
+          currentWrite = PerformPromiseThen(WritableStreamDefaultWriterWrite(writer, value), undefined, noop);
           return false;
         });
       });
@@ -150,13 +160,16 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
       }
     }
 
-    pipeLoop().catch(rethrowAssertionErrorRejection);
+    setPromiseIsHandledToTrue(pipeLoop());
 
     function waitForWritesToFinish(): Promise<void> {
       // Another write may have started while we were waiting on this currentWrite, so we have to be sure to wait
       // for that too.
       const oldCurrentWrite = currentWrite;
-      return currentWrite.then(() => oldCurrentWrite !== currentWrite ? waitForWritesToFinish() : undefined);
+      return PerformPromiseThen(
+        currentWrite,
+        () => oldCurrentWrite !== currentWrite ? waitForWritesToFinish() : undefined
+      );
     }
 
     function isOrBecomesErrored(stream: ReadableStream | WritableStream,
@@ -165,7 +178,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
       if (stream._state === 'errored') {
         action(stream._storedError);
       } else {
-        promise.catch(action).catch(rethrowAssertionErrorRejection);
+        uponRejection(promise, action);
       }
     }
 
@@ -173,7 +186,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
       if (stream._state === 'closed') {
         action();
       } else {
-        promise.then(action).catch(rethrowAssertionErrorRejection);
+        uponFulfillment(promise, action);
       }
     }
 
@@ -184,16 +197,17 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
       shuttingDown = true;
 
       if (dest._state === 'writable' && WritableStreamCloseQueuedOrInFlight(dest) === false) {
-        waitForWritesToFinish().then(doTheRest);
+        uponFulfillment(waitForWritesToFinish(), doTheRest);
       } else {
         doTheRest();
       }
 
       function doTheRest() {
-        action().then(
+        uponPromise(
+          action(),
           () => finalize(originalIsError, originalError),
           newError => finalize(true, newError)
-        ).catch(rethrowAssertionErrorRejection);
+        );
       }
     }
 
@@ -204,7 +218,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
       shuttingDown = true;
 
       if (dest._state === 'writable' && WritableStreamCloseQueuedOrInFlight(dest) === false) {
-        waitForWritesToFinish().then(() => finalize(isError, error)).catch(rethrowAssertionErrorRejection);
+        uponFulfillment(waitForWritesToFinish(), () => finalize(isError, error));
       } else {
         finalize(isError, error);
       }

@@ -1,8 +1,15 @@
 import { CreateReadableStream, IsReadableStream, ReadableStream, ReadableStreamCancel } from '../readable-stream';
 import { AcquireReadableStreamDefaultReader, ReadableStreamDefaultReaderRead } from './default-reader';
 import assert from '../../stub/assert';
-import { createArrayFromList, typeIsObject } from '../helpers';
-import { rethrowAssertionErrorRejection } from '../utils';
+import {
+  createArrayFromList,
+  newPromise,
+  promiseResolvedWith,
+  setPromiseIsHandledToTrue,
+  transformPromiseWith,
+  typeIsObject,
+  uponRejection
+} from '../helpers';
 import {
   ReadableStreamDefaultController,
   ReadableStreamDefaultControllerClose,
@@ -26,18 +33,18 @@ export function ReadableStreamTee<R>(stream: ReadableStream<R>,
   let branch2: ReadableStream<R>;
 
   let resolveCancelPromise: (reason: any) => void;
-  const cancelPromise = new Promise<any>(resolve => {
+  const cancelPromise = newPromise<any>(resolve => {
     resolveCancelPromise = resolve;
   });
 
   function pullAlgorithm(): Promise<void> {
     if (reading === true) {
-      return Promise.resolve();
+      return promiseResolvedWith(undefined);
     }
 
     reading = true;
 
-    const readPromise = ReadableStreamDefaultReaderRead(reader).then(result => {
+    const readPromise = transformPromiseWith(ReadableStreamDefaultReaderRead(reader), result => {
       reading = false;
 
       assert(typeIsObject(result));
@@ -79,9 +86,9 @@ export function ReadableStreamTee<R>(stream: ReadableStream<R>,
       }
     });
 
-    readPromise.catch(rethrowAssertionErrorRejection);
+    setPromiseIsHandledToTrue(readPromise);
 
-    return Promise.resolve();
+    return promiseResolvedWith(undefined);
   }
 
   function cancel1Algorithm(reason: any): Promise<void> {
@@ -111,7 +118,7 @@ export function ReadableStreamTee<R>(stream: ReadableStream<R>,
   branch1 = CreateReadableStream(startAlgorithm, pullAlgorithm, cancel1Algorithm);
   branch2 = CreateReadableStream(startAlgorithm, pullAlgorithm, cancel2Algorithm);
 
-  reader._closedPromise.catch((r: any) => {
+  uponRejection(reader._closedPromise, (r: any) => {
     ReadableStreamDefaultControllerError(branch1._readableStreamController as ReadableStreamDefaultController<R>, r);
     ReadableStreamDefaultControllerError(branch2._readableStreamController as ReadableStreamDefaultController<R>, r);
   });
