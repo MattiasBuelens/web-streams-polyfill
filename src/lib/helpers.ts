@@ -183,7 +183,7 @@ export function promiseRejectedWith<T = never>(reason: any): Promise<T> {
   return originalPromiseReject(reason);
 }
 
-function PerformPromiseThen<T, TResult1 = T, TResult2 = never>(
+export function PerformPromiseThen<T, TResult1 = T, TResult2 = never>(
   promise: Promise<T>,
   onFulfilled?: (value: T) => TResult1 | PromiseLike<TResult1>,
   onRejected?: (reason: any) => TResult2 | PromiseLike<TResult2>): Promise<TResult1 | TResult2> {

@@ -21,9 +21,9 @@ import {
 import assert from '../../stub/assert';
 import {
   newPromise,
+  PerformPromiseThen,
   promiseResolvedWith,
   setPromiseIsHandledToTrue,
-  transformPromiseWith,
   uponFulfillment,
   uponPromise,
   uponRejection
@@ -94,7 +94,9 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
           if (done) {
             resolveLoop();
           } else {
-            uponPromise(pipeStep(), next, rejectLoop);
+            // Use `PerformPromiseThen` instead of `uponPromise` to avoid
+            // adding unnecessary `.catch(rethrowAssertionErrorRejection)` handlers
+            PerformPromiseThen(pipeStep(), next, rejectLoop);
           }
         }
 
@@ -107,13 +109,13 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
         return promiseResolvedWith(true);
       }
 
-      return transformPromiseWith(writer._readyPromise, () => {
-        return transformPromiseWith(ReadableStreamDefaultReaderRead(reader), ({ value, done }) => {
+      return PerformPromiseThen(writer._readyPromise, () => {
+        return PerformPromiseThen(ReadableStreamDefaultReaderRead(reader), ({ value, done }) => {
           if (done === true) {
             return true;
           }
 
-          currentWrite = transformPromiseWith(WritableStreamDefaultWriterWrite(writer, value), undefined, () => {});
+          currentWrite = PerformPromiseThen(WritableStreamDefaultWriterWrite(writer, value), undefined, () => {});
           return false;
         });
       });
@@ -163,7 +165,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
       // Another write may have started while we were waiting on this currentWrite, so we have to be sure to wait
       // for that too.
       const oldCurrentWrite = currentWrite;
-      return transformPromiseWith(
+      return PerformPromiseThen(
         currentWrite,
         () => oldCurrentWrite !== currentWrite ? waitForWritesToFinish() : undefined
       );
