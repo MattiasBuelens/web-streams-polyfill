@@ -456,7 +456,7 @@ function TransformStreamDefaultSinkCloseAlgorithm<I, O>(stream: TransformStream<
     if (ReadableStreamDefaultControllerCanCloseOrEnqueue(readableController) === true) {
       ReadableStreamDefaultControllerClose(readableController);
     }
-  }).catch(r => {
+  }, r => {
     TransformStreamError(stream, r);
     throw readable._storedError;
   });
