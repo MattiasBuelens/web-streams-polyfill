@@ -6,19 +6,15 @@ jobs:
     strategy:
       matrix:
         node-version: [8.x, 10.x, 12.x]
+    # Run only on non-merged non-draft mergeable pull requests
+    if: |
+      !(
+        (github.event.action == 'opened' || github.event.action == 'reopened' || github.event.action == 'synchronize')
+        && !github.event.pull_request.draft
+        && !github.event.pull_request.merged
+        && github.event.pull_request.merge_commit_sha != null
+      )
     steps:
-      - name: Check event
-        # Run only on non-merged non-draft mergeable pull requests
-        if: |
-          !(
-            (github.event.action == 'opened' || github.event.action == 'reopened' || github.event.action == 'synchronize')
-            && !github.event.pull_request.draft
-            && !github.event.pull_request.merged
-            && github.event.pull_request.merge_commit_sha != null
-          )
-        # Exit code stops the workflow with a neutral status
-        # https://developer.github.com/actions/creating-github-actions/accessing-the-runtime-environment/#exit-codes-and-statuses
-        run: exit 78
       - name: Check out merge commit of pull request
         uses: actions/checkout@v1
         with:
