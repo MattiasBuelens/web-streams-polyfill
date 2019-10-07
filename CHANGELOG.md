@@ -13,6 +13,7 @@
 
 * 👓 Align with [spec version `ae5e0cb`](https://github.com/whatwg/streams/tree/ae5e0cb41e9f72cdd97f3a6d47bc674c1f4049d1/) ([#33](https://github.com/MattiasBuelens/web-streams-polyfill/pull/33))
 * 💅 Accept polyfilled `AbortSignal`s. ([#36](https://github.com/MattiasBuelens/web-streams-polyfill/pull/36))
+* 💅 Polyfill `DOMException` if necessary. ([#37](https://github.com/MattiasBuelens/web-streams-polyfill/pull/37))
 
 ## v2.0.4 (2019-08-01)
 
