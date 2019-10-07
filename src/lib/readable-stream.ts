@@ -1,5 +1,3 @@
-/// <reference lib="dom" />
-
 import assert from '../stub/assert';
 import {
   createArrayFromList,
@@ -59,7 +57,7 @@ import {
   UnderlyingSource
 } from './readable-stream/underlying-source';
 import { noop } from '../utils';
-import { isAbortSignal } from './abort-signal';
+import { AbortSignal, isAbortSignal } from './abort-signal';
 
 export type ReadableByteStream = ReadableStream<Uint8Array>;
 

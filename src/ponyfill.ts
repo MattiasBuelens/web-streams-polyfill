@@ -21,6 +21,7 @@ import { QueuingStrategy } from './lib/queuing-strategy';
 import ByteLengthQueuingStrategy from './lib/byte-length-queuing-strategy';
 import CountQueuingStrategy from './lib/count-queuing-strategy';
 import { Transformer, TransformStream, TransformStreamDefaultControllerType } from './lib/transform-stream';
+import { AbortSignal } from './lib/abort-signal';
 
 export {
   ReadableStream,
@@ -46,5 +47,7 @@ export {
 
   TransformStream,
   Transformer,
-  TransformStreamDefaultControllerType as TransformStreamDefaultController
+  TransformStreamDefaultControllerType as TransformStreamDefaultController,
+
+  AbortSignal
 };

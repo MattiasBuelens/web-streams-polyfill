@@ -4,6 +4,16 @@
 
 ```ts
 
+// @public
+export interface AbortSignal {
+    // (undocumented)
+    readonly aborted: boolean;
+    // (undocumented)
+    addEventListener(type: 'abort', listener: () => void): void;
+    // (undocumented)
+    removeEventListener(type: 'abort', listener: () => void): void;
+}
+
 // @public (undocumented)
 export class ByteLengthQueuingStrategy implements QueuingStrategy<ArrayBufferView> {
     constructor({ highWaterMark }: {

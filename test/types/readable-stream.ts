@@ -108,6 +108,8 @@ const asyncIteratorReturnResult: Promise<IteratorResult<any>> = asyncIterator.re
   }
 })();
 
+const abortSignal: polyfill.AbortSignal = new AbortController().signal;
+
 // Compatibility with stream types from DOM
 const domUnderlyingSource: UnderlyingSource<string> = underlyingSource;
 const domUnderlyingByteSource: UnderlyingByteSource = underlyingByteSource;
