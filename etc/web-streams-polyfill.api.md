@@ -36,6 +36,16 @@ export class CountQueuingStrategy implements QueuingStrategy<any> {
     size(): 1;
 }
 
+// Warning: (ae-forgotten-export) The symbol "DOMExceptionClass" needs to be exported by the entry point polyfill.d.ts
+// 
+// @public (undocumented)
+export type DOMException = DOMExceptionClass;
+
+// Warning: (ae-forgotten-export) The symbol "DOMExceptionConstructor" needs to be exported by the entry point polyfill.d.ts
+// 
+// @public (undocumented)
+export const DOMException: DOMExceptionConstructor;
+
 // @public (undocumented)
 export interface PipeOptions {
     // (undocumented)

@@ -24,6 +24,7 @@ import {
 } from '../helpers';
 import { noop } from '../../utils';
 import { AbortSignal, isAbortSignal } from '../abort-signal';
+import { DOMException } from '../../stub/dom-exception';
 
 export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
                                         dest: WritableStream<T>,
