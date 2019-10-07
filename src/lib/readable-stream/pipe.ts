@@ -1,10 +1,4 @@
-import {
-  isAbortSignal,
-  IsReadableStream,
-  IsReadableStreamLocked,
-  ReadableStream,
-  ReadableStreamCancel
-} from '../readable-stream';
+import { IsReadableStream, IsReadableStreamLocked, ReadableStream, ReadableStreamCancel } from '../readable-stream';
 import { AcquireReadableStreamDefaultReader, ReadableStreamDefaultReaderRead } from './default-reader';
 import { ReadableStreamReaderGenericRelease } from './generic-reader';
 import {
@@ -29,6 +23,7 @@ import {
   uponRejection
 } from '../helpers';
 import { noop } from '../../utils';
+import { AbortSignal, isAbortSignal } from '../abort-signal';
 
 export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
                                         dest: WritableStream<T>,
