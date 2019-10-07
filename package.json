@@ -46,6 +46,7 @@
   "homepage": "https://github.com/MattiasBuelens/web-streams-polyfill#readme",
   "devDependencies": {
     "@microsoft/api-extractor": "^7.3.4",
+    "@types/node": "^12.7.11",
     "@typescript-eslint/eslint-plugin": "^1.13.0",
     "@typescript-eslint/parser": "^1.13.0",
     "eslint": "^6.1.0",
