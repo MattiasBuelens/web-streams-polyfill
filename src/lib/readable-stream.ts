@@ -59,6 +59,7 @@ import {
   UnderlyingSource
 } from './readable-stream/underlying-source';
 import { noop } from '../utils';
+import { isAbortSignal } from './abort-signal';
 
 export type ReadableByteStream = ReadableStream<Uint8Array>;
 
@@ -438,21 +439,6 @@ export {
 };
 
 // Helper functions for the ReadableStream.
-
-export function isAbortSignal(value: any): value is AbortSignal {
-  if (typeof value !== 'object' || value === null) {
-    return false;
-  }
-
-  // Use the brand check to distinguish a real AbortSignal from a fake one.
-  const aborted = Object.getOwnPropertyDescriptor(AbortSignal.prototype, 'aborted')!.get!;
-  try {
-    aborted.call(value);
-    return true;
-  } catch (e) {
-    return false;
-  }
-}
 
 function streamBrandCheckException(name: string): TypeError {
   return new TypeError(`ReadableStream.prototype.${name} can only be used on a ReadableStream`);
