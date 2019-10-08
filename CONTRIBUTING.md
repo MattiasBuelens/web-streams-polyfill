@@ -11,6 +11,7 @@
 - `npm test` runs the two test suites:
   - `npm run test:wpt` runs the [Web Platform Tests for Streams][wpt-streams] against the generated JavaScript bundle, to verify that the polyfill's run-time behavior matches the specification.
   - `npm run test:types` runs the TypeScript compiler against some reference code that uses the generated type definitions, to verify that the code successfully passes the type check.
+  - `npm run test:unit` runs a few unit tests in a Node environment, to verify that the polyfill also works without a browser environment.
 
 ## Miscellaneous
 
