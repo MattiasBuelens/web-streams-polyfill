@@ -6,6 +6,9 @@ jobs:
     strategy:
       matrix:
         node-version: [8.x, 10.x, 12.x]
+    # Skip job if commit message contains "[skip ci]"
+    if: |
+      !contains(github.event.head_commit.message, '[skip ci]')
     steps:
       - name: Check out commit
         uses: actions/checkout@v1
