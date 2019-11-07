@@ -1,4 +1,4 @@
-/// <reference lib="es2018.asynciterable" />
+/// <reference lib="esnext.asynciterable" />
 
 import { ReadableStream } from '../readable-stream';
 import {
