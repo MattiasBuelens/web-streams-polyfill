@@ -9,7 +9,7 @@
 > - 🏠 Internal
 > - 💅 Polish
 
-## Unreleased
+## v2.0.6 (2019-11-08)
 
 * 🐛 Fix type definitions to be compatible with TypeScript 3.3 and lower. ([#39](https://github.com/MattiasBuelens/web-streams-polyfill/issues/39), [#40](https://github.com/MattiasBuelens/web-streams-polyfill/pull/40))
 
