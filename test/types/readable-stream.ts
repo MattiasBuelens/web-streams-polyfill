@@ -88,7 +88,7 @@ const pipePromise: Promise<void> = readableStream
     preventClose: true,
     signal: new AbortController().signal
   });
-const pipeThroughStream: ReadableStream<Uint8Array> = readableStream
+const pipeThroughStream: polyfill.ReadableStream<Uint8Array> = readableStream
   .pipeThrough({ writable: writableStream, readable: readableByteStream }, {
     preventAbort: undefined,
     preventCancel: undefined,
