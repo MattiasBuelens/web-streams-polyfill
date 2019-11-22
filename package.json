@@ -6,6 +6,13 @@
   "browser": "dist/polyfill.min.js",
   "module": "dist/polyfill.mjs",
   "types": "dist/types/polyfill.d.ts",
+  "typesVersions": {
+    ">=3.6": {
+      "dist/types/*": [
+        "dist/types/ts3.6/*"
+      ]
+    }
+  },
   "scripts": {
     "test": "npm run test:types && npm run test:unit && npm run test:wpt",
     "test:wpt": "node --expose_gc ./test/run-web-platform-tests.js",
@@ -15,7 +22,7 @@
     "lint": "eslint \"src/**/*.ts\"",
     "build": "npm run build:bundle && npm run build:types",
     "build:bundle": "rollup -c",
-    "build:types": "tsc --project src --emitDeclarationOnly && api-extractor run --local",
+    "build:types": "tsc --project src --emitDeclarationOnly && api-extractor run --local && node ./build/downlevel-dts.js",
     "prepare": "npm run build"
   },
   "files": [
