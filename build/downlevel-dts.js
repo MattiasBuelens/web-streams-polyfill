@@ -17,6 +17,8 @@ for (const f of files) {
   // Create copy for TypeScript 3.6+
   f.copyToDirectory(ts36Dir, { overwrite: true });
   downlevelTS36(f);
+  downlevelTS34(f);
+  // Original file will be overwritten by down-leveled file when saved
 }
 project.saveSync();
 
@@ -38,6 +40,19 @@ function downlevelTS36(f) {
     const g = s.getGetAccessor();
     if (!g) {
       s.replaceWithText(`${s.getName()}: ${s.getType().getText(g)};`);
+    }
+  }
+}
+
+/**
+ * Down-level TypeScript 3.4 types in the given source file
+ */
+function downlevelTS34(f) {
+  // Replace "es2018.asynciterable" with "esnext.asynciterable" in lib references
+  const refs = f.getLibReferenceDirectives();
+  for (const r of refs) {
+    if (r.getFileName() === 'es2018.asynciterable') {
+      f.replaceText([r.getPos(), r.getEnd()], 'esnext.asynciterable');
     }
   }
 }
