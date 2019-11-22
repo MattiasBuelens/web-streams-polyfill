@@ -1,4 +1,4 @@
-/// <reference lib="esnext.asynciterable" />
+/// <reference lib="es2018.asynciterable" />
 
 export let AsyncIteratorPrototype: AsyncIterable<any> | undefined;
 
