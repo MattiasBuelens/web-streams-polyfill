@@ -1,3 +1,6 @@
+// Original from downlevel-dts (MIT licensed) by Nathan Shively-Sanders
+// https://github.com/sandersn/downlevel-dts/blob/e7d1cb5aced5686826fe8aac4d4af2f745a9ef60/index.js
+
 const { Project, ts } = require('ts-morph');
 const { cwd } = require('process');
 const path = require('path');
