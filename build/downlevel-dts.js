@@ -8,14 +8,22 @@ const project = new Project();
 const inputDir = project.addDirectoryAtPath(path.join(__dirname, '../dist/types/'));
 
 // Create output directory
-const outputDir = inputDir.createDirectory('ts3.4');
+const ts34Dir = inputDir.createDirectory('ts3.4');
 project.saveSync();
 
 // Down-level all *.d.ts files in input directory
 const files = inputDir.addSourceFilesAtPaths('*.d.ts');
 for (let f of files) {
   // Create copy for TypeScript 3.4
-  f = f.copyToDirectory(outputDir, { overwrite: true });
+  f = f.copyToDirectory(ts34Dir, { overwrite: true });
+  downlevelTS37(f);
+}
+project.saveSync();
+
+/**
+ * Down-level TypeScript 3.7 types in the given source file
+ */
+function downlevelTS37(f) {
   // Replace get/set accessors with (read-only) properties
   const gs = f.getDescendantsOfKind(ts.SyntaxKind.GetAccessor);
   for (const g of gs) {
@@ -33,4 +41,3 @@ for (let f of files) {
     }
   }
 }
-project.saveSync();
