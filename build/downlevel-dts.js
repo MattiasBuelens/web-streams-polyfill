@@ -13,23 +13,24 @@ project.saveSync();
 
 // Down-level all *.d.ts files in input directory
 const files = inputDir.addSourceFilesAtPaths('*.d.ts');
-for (const f of files) {
+for (let f of files) {
+  // Create copy for TypeScript 3.4
+  f = f.copyToDirectory(outputDir, { overwrite: true });
   // Replace get/set accessors with (read-only) properties
   const gs = f.getDescendantsOfKind(ts.SyntaxKind.GetAccessor);
   for (const g of gs) {
-    const s = g.getParent().getChildrenOfKind(ts.SyntaxKind.SetAccessor).find(s => s.getName() === g.getName());
-    g.replaceWithText(`${s ? '' : 'readonly '}${g.getName()}: ${g.getType().getText()}`);
+    const s = g.getSetAccessor();
+    g.replaceWithText(`${s ? '' : 'readonly '}${g.getName()}: ${g.getType().getText(g)};`);
     if (s) {
       s.remove();
     }
   }
   const ss = f.getDescendantsOfKind(ts.SyntaxKind.SetAccessor);
   for (const s of ss) {
-    const g = s.getParent().getChildrenOfKind(ts.SyntaxKind.GetAccessor).find(g => s.getName() === g.getName());
+    const g = s.getGetAccessor();
     if (!g) {
-      s.replaceWithText(`${s.getName()}: ${s.getType().getText()}`);
+      s.replaceWithText(`${s.getName()}: ${s.getType().getText(g)};`);
     }
   }
-  f.copyToDirectory(outputDir, { overwrite: true });
 }
 project.saveSync();
