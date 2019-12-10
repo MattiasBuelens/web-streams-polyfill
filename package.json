@@ -54,7 +54,7 @@
   "homepage": "https://github.com/MattiasBuelens/web-streams-polyfill#readme",
   "devDependencies": {
     "@microsoft/api-extractor": "^7.7.0",
-    "@types/node": "^12.12.16",
+    "@types/node": "^12.12.17",
     "@typescript-eslint/eslint-plugin": "^2.11.0",
     "@typescript-eslint/parser": "^2.11.0",
     "eslint": "^6.7.2",
@@ -65,8 +65,8 @@
     "rollup-plugin-replace": "^2.2.0",
     "rollup-plugin-strip": "^1.2.2",
     "rollup-plugin-terser": "^5.1.2",
-    "rollup-plugin-typescript2": "^0.22.1",
-    "ts-morph": "^5.0.0",
+    "rollup-plugin-typescript2": "^0.25.3",
+    "ts-morph": "^6.0.2",
     "tslib": "^1.10.0",
     "typescript": "^3.7.3",
     "wpt-runner": "^2.8.0"
