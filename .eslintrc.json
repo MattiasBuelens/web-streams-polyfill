@@ -249,7 +249,9 @@
     "yield-star-spacing": ["error", "after"],
 
     // TypeScript
-    "@typescript-eslint/array-type": ["error", "array-simple"],
+    "@typescript-eslint/array-type": ["error", {
+      "default": "array-simple"
+    }],
     "@typescript-eslint/camelcase": "off",
     "@typescript-eslint/explicit-function-return-type": "off", // FIXME
     "@typescript-eslint/explicit-member-accessibility": "off", // FIXME
