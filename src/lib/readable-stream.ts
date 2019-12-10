@@ -274,7 +274,7 @@ export {
 export function CreateReadableStream<R>(startAlgorithm: () => void | PromiseLike<void>,
                                         pullAlgorithm: () => Promise<void>,
                                         cancelAlgorithm: (reason: any) => Promise<void>,
-                                        highWaterMark: number = 1,
+                                        highWaterMark = 1,
                                         sizeAlgorithm: QueuingStrategySizeCallback<R> = () => 1): ReadableStream<R> {
   assert(IsNonNegativeNumber(highWaterMark) === true);
 
@@ -294,7 +294,7 @@ export function CreateReadableStream<R>(startAlgorithm: () => void | PromiseLike
 export function CreateReadableByteStream(startAlgorithm: () => void | PromiseLike<void>,
                                          pullAlgorithm: () => Promise<void>,
                                          cancelAlgorithm: (reason: any) => Promise<void>,
-                                         highWaterMark: number = 0,
+                                         highWaterMark = 0,
                                          autoAllocateChunkSize: number | undefined = undefined): ReadableStream<Uint8Array> {
   assert(IsNonNegativeNumber(highWaterMark) === true);
   if (autoAllocateChunkSize !== undefined) {

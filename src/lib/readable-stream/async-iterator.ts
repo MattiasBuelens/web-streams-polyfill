@@ -84,7 +84,7 @@ Object.defineProperty(ReadableStreamAsyncIteratorPrototype, 'return', { enumerab
 // Abstract operations for the ReadableStream.
 
 export function AcquireReadableStreamAsyncIterator<R>(stream: ReadableStream<R>,
-                                                      preventCancel: boolean = false): ReadableStreamAsyncIterator<R> {
+                                                      preventCancel = false): ReadableStreamAsyncIterator<R> {
   const reader = AcquireReadableStreamDefaultReader<R>(stream);
   const iterator: ReadableStreamAsyncIteratorImpl<R> = Object.create(ReadableStreamAsyncIteratorPrototype);
   iterator._asyncIteratorReader = reader;

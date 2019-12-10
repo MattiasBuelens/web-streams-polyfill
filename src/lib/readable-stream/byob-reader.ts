@@ -19,7 +19,7 @@ import {
 // Abstract operations for the ReadableStream.
 
 export function AcquireReadableStreamBYOBReader(stream: ReadableStream<Uint8Array>,
-                                                forAuthorCode: boolean = false): ReadableStreamBYOBReader {
+                                                forAuthorCode = false): ReadableStreamBYOBReader {
   const reader = new ReadableStreamBYOBReader(stream);
   reader._forAuthorCode = forAuthorCode;
   return reader;

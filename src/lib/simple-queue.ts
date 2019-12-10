@@ -19,8 +19,8 @@ interface Node<T> {
 export class SimpleQueue<T> {
   private _front: Node<T>;
   private _back: Node<T>;
-  private _cursor: number = 0;
-  private _size: number = 0;
+  private _cursor = 0;
+  private _size = 0;
 
   constructor() {
     // _front and _back are always defined.
