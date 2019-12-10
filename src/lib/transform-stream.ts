@@ -126,9 +126,9 @@ export class TransformStream<I = any, O = any> {
 export function CreateTransformStream<I, O>(startAlgorithm: () => void | PromiseLike<void>,
                                             transformAlgorithm: (chunk: I) => Promise<void>,
                                             flushAlgorithm: () => Promise<void>,
-                                            writableHighWaterMark: number = 1,
+                                            writableHighWaterMark = 1,
                                             writableSizeAlgorithm: QueuingStrategySizeCallback<I> = () => 1,
-                                            readableHighWaterMark: number = 0,
+                                            readableHighWaterMark = 0,
                                             readableSizeAlgorithm: QueuingStrategySizeCallback<O> = () => 1) {
   assert(IsNonNegativeNumber(writableHighWaterMark));
   assert(IsNonNegativeNumber(readableHighWaterMark));

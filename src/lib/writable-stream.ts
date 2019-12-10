@@ -149,7 +149,7 @@ function CreateWritableStream<W>(startAlgorithm: () => void | PromiseLike<void>,
                                  writeAlgorithm: (chunk: W) => Promise<void>,
                                  closeAlgorithm: () => Promise<void>,
                                  abortAlgorithm: (reason: any) => Promise<void>,
-                                 highWaterMark: number = 1,
+                                 highWaterMark = 1,
                                  sizeAlgorithm: QueuingStrategySizeCallback<W> = () => 1) {
   assert(IsNonNegativeNumber(highWaterMark) === true);
 

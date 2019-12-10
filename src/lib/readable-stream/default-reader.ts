@@ -15,7 +15,7 @@ import { PullSteps } from './symbols';
 // Abstract operations for the ReadableStream.
 
 export function AcquireReadableStreamDefaultReader<R>(stream: ReadableStream,
-                                                      forAuthorCode: boolean = false): ReadableStreamDefaultReader<R> {
+                                                      forAuthorCode = false): ReadableStreamDefaultReader<R> {
   const reader = new ReadableStreamDefaultReader(stream);
   reader._forAuthorCode = forAuthorCode;
   return reader;
