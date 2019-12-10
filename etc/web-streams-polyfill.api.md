@@ -73,7 +73,6 @@ export class ReadableStream<R = any> {
         highWaterMark?: number;
         size?: undefined;
     });
-    get locked(): boolean;
     constructor(underlyingSource?: UnderlyingSource<R>, strategy?: QueuingStrategy<R>);
     // (undocumented)
     cancel(reason: any): Promise<void>;
@@ -91,6 +90,8 @@ export class ReadableStream<R = any> {
     //
     // (undocumented)
     getReader(): ReadableStreamDefaultReader_2<R>;
+    // (undocumented)
+    get locked(): boolean;
     // (undocumented)
     pipeThrough<T>({ writable, readable }: {
         writable: WritableStream<R>;
@@ -155,7 +156,9 @@ export interface Transformer<I = any, O = any> {
 // @public (undocumented)
 export class TransformStream<I = any, O = any> {
     constructor(transformer?: Transformer<I, O>, writableStrategy?: QueuingStrategy<I>, readableStrategy?: QueuingStrategy<O>);
+    // (undocumented)
     get readable(): ReadableStream<O>;
+    // (undocumented)
     get writable(): WritableStream<I>;
 }
 
@@ -221,13 +224,14 @@ export interface UnderlyingSource<R = any> {
 // @public (undocumented)
 export class WritableStream<W = any> {
     constructor(underlyingSink?: UnderlyingSink<W>, strategy?: QueuingStrategy<W>);
-    get locked(): boolean;
     // (undocumented)
     abort(reason: any): Promise<void>;
     // Warning: (ae-forgotten-export) The symbol "WritableStreamDefaultWriter" needs to be exported by the entry point polyfill.d.ts
     //
     // (undocumented)
     getWriter(): WritableStreamDefaultWriter_2<W>;
+    // (undocumented)
+    get locked(): boolean;
 }
 
 // Warning: (ae-forgotten-export) The symbol "WritableStreamDefaultController" needs to be exported by the entry point polyfill.d.ts
