@@ -102,7 +102,7 @@ export function CreateAlgorithmFromUnderlyingMethod(underlyingObject: any,
       }
     }
   }
-  return () => promiseResolvedWith(undefined);
+  return promiseResolvedWith(undefined);
 }
 
 export function InvokeOrNoop<T, Key extends FunctionPropertyNames<Required<T>> = FunctionPropertyNames<Required<T>>>(
