@@ -33,6 +33,7 @@ const writerClosePromise: Promise<void> = writer.close();
 const writerAbortPromise: Promise<void> = writer.abort('aborted');
 const writerReleaseLockResult: void = writer.releaseLock();
 
+const closePromise: Promise<void> = writableStream.close();
 const abortPromise: Promise<void> = writableStream.abort('aborted');
 
 // Compatibility with stream types from DOM

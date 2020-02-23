@@ -11,6 +11,7 @@
 
 ## Unreleased
 
+* 👓 Align with [spec version `ed00d2f`](https://github.com/whatwg/streams/tree/ed00d2fe2d53ac5ad9ff8e727c7ef0a68f424074/) ([#43](https://github.com/MattiasBuelens/web-streams-polyfill/issues/43), [#44](https://github.com/MattiasBuelens/web-streams-polyfill/pull/44))
 * 🏠 Down-level type definitions for older TypeScript versions. ([#41](https://github.com/MattiasBuelens/web-streams-polyfill/pull/41))
 
 ## v2.0.6 (2019-11-08)
