@@ -226,6 +226,8 @@ export class WritableStream<W = any> {
     constructor(underlyingSink?: UnderlyingSink<W>, strategy?: QueuingStrategy<W>);
     // (undocumented)
     abort(reason: any): Promise<void>;
+    // (undocumented)
+    close(): Promise<void>;
     // Warning: (ae-forgotten-export) The symbol "WritableStreamDefaultWriter" needs to be exported by the entry point polyfill.d.ts
     //
     // (undocumented)
