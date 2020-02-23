@@ -136,7 +136,6 @@ typings/
 .serverless
 
 ### Project
-/.rpt2_cache/
 /dist/
 /lib/
 /temp/
