@@ -1,9 +1,9 @@
 const path = require('path');
 
 const typescript = require('rollup-plugin-typescript2');
-const inject = require('rollup-plugin-inject');
-const strip = require('rollup-plugin-strip');
-const replace = require('rollup-plugin-replace');
+const inject = require('@rollup/plugin-inject');
+const strip = require('@rollup/plugin-strip');
+const replace = require('@rollup/plugin-replace');
 const { terser } = require('rollup-plugin-terser');
 
 const debug = false;
