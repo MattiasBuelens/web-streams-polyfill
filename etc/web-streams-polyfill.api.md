@@ -128,12 +128,13 @@ export type ReadableStreamDefaultController<R> = ReadableStreamDefaultController
 export type ReadableStreamDefaultReader<R> = ReadableStreamDefaultReader_2<R>;
 
 // @public (undocumented)
-export interface ReadResult<T = any> {
-    // (undocumented)
-    done: boolean;
-    // (undocumented)
+export type ReadResult<T> = {
+    done: false;
     value: T;
-}
+} | {
+    done: true;
+    value?: T;
+};
 
 // @public (undocumented)
 export interface Transformer<I = any, O = any> {

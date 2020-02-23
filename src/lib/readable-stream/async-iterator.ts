@@ -10,7 +10,8 @@ import {
   ReadableStreamCreateReadResult,
   ReadableStreamReaderGenericCancel,
   ReadableStreamReaderGenericRelease,
-  readerLockException
+  readerLockException,
+  ReadResult
 } from './generic-reader';
 import assert from '../../stub/assert';
 import { promiseRejectedWith, promiseResolvedWith, transformPromiseWith, typeIsObject } from '../helpers';
@@ -34,7 +35,7 @@ declare class ReadableStreamAsyncIteratorImpl<R> implements ReadableStreamAsyncI
 }
 
 const ReadableStreamAsyncIteratorPrototype: ReadableStreamAsyncIteratorImpl<any> = {
-  next(): Promise<IteratorResult<any>> {
+  next(this: ReadableStreamAsyncIteratorImpl<any>): Promise<ReadResult<any>> {
     if (IsReadableStreamAsyncIterator(this) === false) {
       return promiseRejectedWith(streamAsyncIteratorBrandCheckException('next'));
     }
@@ -54,7 +55,7 @@ const ReadableStreamAsyncIteratorPrototype: ReadableStreamAsyncIteratorImpl<any>
     });
   },
 
-  return(value: any): Promise<IteratorResult<any>> {
+  return(this: ReadableStreamAsyncIteratorImpl<any>, value: any): Promise<ReadResult<any>> {
     if (IsReadableStreamAsyncIterator(this) === false) {
       return promiseRejectedWith(streamAsyncIteratorBrandCheckException('next'));
     }
