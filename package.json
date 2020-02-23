@@ -22,7 +22,7 @@
     "lint": "eslint \"src/**/*.ts\"",
     "build": "npm run build:bundle && npm run build:types",
     "build:bundle": "rollup -c",
-    "build:types": "tsc --project src --emitDeclarationOnly && api-extractor run --local && node ./build/downlevel-dts.js",
+    "build:types": "tsc --project . --emitDeclarationOnly && api-extractor run --local && node ./build/downlevel-dts.js",
     "prepare": "npm run build"
   },
   "files": [

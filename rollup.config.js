@@ -38,7 +38,7 @@ function bundle(entry, { esm = false, minify = false, target = 'es5' } = {}) {
     ].filter(Boolean),
     plugins: [
       typescript({
-        tsconfig: `src/tsconfig${target === 'es5' ? '' : `-${target}`}.json`,
+        tsconfig: `tsconfig${target === 'es5' ? '' : `-${target}`}.json`,
         tsconfigOverride: {
           compilerOptions: {
             declaration: false,

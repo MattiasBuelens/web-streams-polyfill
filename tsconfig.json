@@ -13,12 +13,15 @@
     "importHelpers": true,
     "declaration": true,
     "declarationMap": true,
-    "outDir": "../lib",
-    "baseUrl": ".",
+    "outDir": "./lib",
+    "baseUrl": "./src",
     "paths": {
       "@@target/*": [
         "./target/es5/*"
       ]
     }
-  }
+  },
+  "include": [
+    "src/"
+  ]
 }
