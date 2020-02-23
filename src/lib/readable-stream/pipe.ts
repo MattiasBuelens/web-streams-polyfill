@@ -44,6 +44,8 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
   const reader = AcquireReadableStreamDefaultReader<T>(source);
   const writer = AcquireWritableStreamDefaultWriter<T>(dest);
 
+  source._disturbed = true;
+
   let shuttingDown = false;
 
   // This is used to keep track of the spec's requirement that we wait for ongoing writes during shutdown.
