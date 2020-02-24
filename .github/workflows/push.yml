@@ -11,10 +11,7 @@ jobs:
       !contains(github.event.head_commit.message, '[skip ci]')
     steps:
       - name: Check out commit
-        uses: actions/checkout@v1
-        with:
-          fetch-depth: 1
-          submodules: true
+        uses: actions/checkout@v2
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v1
         with:
