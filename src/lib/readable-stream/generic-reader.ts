@@ -2,10 +2,12 @@ import assert from '../../stub/assert';
 import { ReadableStream, ReadableStreamCancel, ReadableStreamReader } from '../readable-stream';
 import { newPromise, setPromiseIsHandledToTrue } from '../helpers';
 
-// TODO Fix ReadableStreamReadResult<R> in TypeScript DOM types
-export interface ReadResult<T = any> {
-  done: boolean;
+export type ReadResult<T> = {
+  done: false;
   value: T;
+} | {
+  done: true;
+  value?: T;
 }
 
 export function ReadableStreamCreateReadResult<T>(value: T | undefined,

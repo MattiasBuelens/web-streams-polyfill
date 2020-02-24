@@ -1,9 +1,9 @@
 const path = require('path');
 
-const typescript = require('rollup-plugin-typescript2');
-const inject = require('rollup-plugin-inject');
-const strip = require('rollup-plugin-strip');
-const replace = require('rollup-plugin-replace');
+const typescript = require('@rollup/plugin-typescript');
+const inject = require('@rollup/plugin-inject');
+const strip = require('@rollup/plugin-strip');
+const replace = require('@rollup/plugin-replace');
 const { terser } = require('rollup-plugin-terser');
 
 const debug = false;
@@ -38,13 +38,9 @@ function bundle(entry, { esm = false, minify = false, target = 'es5' } = {}) {
     ].filter(Boolean),
     plugins: [
       typescript({
-        tsconfig: `src/tsconfig${target === 'es5' ? '' : `-${target}`}.json`,
-        tsconfigOverride: {
-          compilerOptions: {
-            declaration: false,
-            declarationMap: false
-          }
-        }
+        tsconfig: `tsconfig${target === 'es5' ? '' : `-${target}`}.json`,
+        declaration: false,
+        declarationMap: false
       }),
       inject({
         include: 'src/**/*.ts',

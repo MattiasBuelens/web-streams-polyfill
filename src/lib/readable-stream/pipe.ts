@@ -109,12 +109,12 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
       }
 
       return PerformPromiseThen(writer._readyPromise, () => {
-        return PerformPromiseThen(ReadableStreamDefaultReaderRead(reader), ({ value, done }) => {
-          if (done === true) {
+        return PerformPromiseThen(ReadableStreamDefaultReaderRead(reader), result => {
+          if (result.done === true) {
             return true;
           }
 
-          currentWrite = PerformPromiseThen(WritableStreamDefaultWriterWrite(writer, value), undefined, noop);
+          currentWrite = PerformPromiseThen(WritableStreamDefaultWriterWrite(writer, result.value), undefined, noop);
           return false;
         });
       });
