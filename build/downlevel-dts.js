@@ -32,7 +32,11 @@ function downlevelTS36(f) {
     const s = g.getSetAccessor();
     const returnTypeNode = g.getReturnTypeNode();
     const returnType = returnTypeNode ? returnTypeNode.getText() : 'any';
-    g.replaceWithText(`${getModifiersText(g)}${s ? '' : 'readonly '}${g.getName()}: ${returnType};`);
+    g.getParent().insertProperty(g.getChildIndex(), Object.assign({}, g.getStructure(), {
+      type: returnType,
+      isReadonly: !s
+    }));
+    g.remove();
     if (s) {
       s.remove();
     }
@@ -44,7 +48,11 @@ function downlevelTS36(f) {
       const firstParam = s.getParameters()[0];
       const firstParamTypeNode = firstParam && firstParam.getTypeNode();
       const firstParamType = firstParamTypeNode ? firstParamTypeNode.getText() : 'any';
-      s.replaceWithText(`${getModifiersText(s)}${s.getName()}: ${firstParamType};`);
+      s.getParent().insertProperty(s.getChildIndex(), Object.assign({}, s.getStructure(), {
+        type: firstParamType,
+        isReadonly: false
+      }));
+      s.remove();
     }
   }
 }
@@ -60,9 +68,4 @@ function downlevelTS34(f) {
       f.replaceText([r.getPos(), r.getEnd()], 'esnext.asynciterable');
     }
   }
-}
-
-function getModifiersText(node) {
-  const modifiersText = node.getModifiers().map(m => m.getText()).join(' ');
-  return modifiersText.length > 0 ? modifiersText + ' ' : '';
 }
