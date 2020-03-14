@@ -14,7 +14,6 @@
     "importHelpers": true,
     "declaration": true,
     "declarationMap": true,
-    "outDir": "./lib",
     "baseUrl": "./src",
     "paths": {
       "@@target/*": [
