@@ -2,12 +2,16 @@ import assert from '../../stub/assert';
 import { ReadableStream, ReadableStreamCancel, ReadableStreamReader } from '../readable-stream';
 import { newPromise, setPromiseIsHandledToTrue } from '../helpers';
 
-export type ReadResult<T> = {
-  done: false;
-  value: T;
-} | {
+export type ReadResult<T> = ReadResultDoneResult<T> | ReadResultValueResult<T>;
+
+interface ReadResultDoneResult<T> {
   done: true;
   value?: T;
+}
+
+interface ReadResultValueResult<T> {
+  done: false;
+  value: T;
 }
 
 export function ReadableStreamCreateReadResult<T>(value: T | undefined,
