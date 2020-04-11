@@ -9,6 +9,10 @@
 > - 🏠 Internal
 > - 💅 Polish
 
+## v2.1.1 (2020-04-11)
+
+* 💅 Improve `ReadResult` in TypeScript type definitions. ([759506e](https://github.com/MattiasBuelens/web-streams-polyfill/commit/759506e00e55289ae6f92f30922b8855fcddd9ab), [#49](https://github.com/MattiasBuelens/web-streams-polyfill/pull/49))
+
 ## v2.1.0 (2020-02-23)
 
 * 👓 Align with [spec version `ed00d2f`](https://github.com/whatwg/streams/tree/ed00d2fe2d53ac5ad9ff8e727c7ef0a68f424074/) ([#43](https://github.com/MattiasBuelens/web-streams-polyfill/issues/43), [#44](https://github.com/MattiasBuelens/web-streams-polyfill/pull/44))
