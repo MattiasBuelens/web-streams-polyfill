@@ -5,6 +5,33 @@
   "main": "dist/polyfill",
   "browser": "dist/polyfill.min.js",
   "module": "dist/polyfill.mjs",
+  "type": "commonjs",
+  "exports": {
+    ".": {
+      "import": "./dist/polyfill.mjs",
+      "require": "./dist/polyfill.js"
+    },
+    "./es6": {
+      "import": "./dist/polyfill.es6.mjs",
+      "require": "./dist/polyfill.es6.js"
+    },
+    "./es2018": {
+      "import": "./dist/polyfill.es2018.mjs",
+      "require": "./dist/polyfill.es2018.js"
+    },
+    "./ponyfill": {
+      "import": "./dist/ponyfill.mjs",
+      "require": "./dist/ponyfill.js"
+    },
+    "./ponyfill/es6": {
+      "import": "./dist/ponyfill.es6.mjs",
+      "require": "./dist/ponyfill.es6.js"
+    },
+    "./ponyfill/es2018": {
+      "import": "./dist/ponyfill.es2018.mjs",
+      "require": "./dist/ponyfill.es2018.js"
+    }
+  },
   "types": "dist/types/polyfill.d.ts",
   "typesVersions": {
     ">=3.6": {
