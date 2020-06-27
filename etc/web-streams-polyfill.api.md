@@ -33,7 +33,7 @@ export class CountQueuingStrategy implements QueuingStrategy<any> {
     // (undocumented)
     get highWaterMark(): number;
     // (undocumented)
-    get size(): (chunk: any) => number;
+    get size(): (chunk: any) => 1;
 }
 
 // @public (undocumented)

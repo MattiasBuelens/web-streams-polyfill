@@ -25,10 +25,10 @@ const underlyingByteSource: polyfill.UnderlyingByteSource = {
   start(c: polyfill.ReadableByteStreamController) {
     byteStreamController = c;
     const desiredSize: number | null = c.desiredSize;
-    const request: polyfill.ReadableStreamBYOBRequest | undefined = c.byobRequest;
+    const request: polyfill.ReadableStreamBYOBRequest | null = c.byobRequest;
     if (request) {
       byobRequest = request;
-      const view: ArrayBufferView = request.view;
+      const view: ArrayBufferView | null = request.view;
       request.respond(5);
       request.respondWithNewView(new Uint32Array([4, 5, 6]));
     }
