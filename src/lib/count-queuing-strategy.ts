@@ -1,7 +1,7 @@
 import { QueuingStrategy } from './queuing-strategy';
 import { isDictionary, typeIsObject } from './helpers';
 
-const countSizeFunction = function size(): number {
+const countSizeFunction = function size(): 1 {
   return 1;
 };
 
@@ -27,7 +27,7 @@ export default class CountQueuingStrategy implements QueuingStrategy<any> {
     return this._countQueuingStrategyHighWaterMark;
   }
 
-  get size(): (chunk: any) => number {
+  get size(): (chunk: any) => 1 {
     if (IsCountQueuingStrategy(this) === false) {
       throw countBrandCheckException('size');
     }
