@@ -61,6 +61,10 @@ export class ReadableStreamBYOBRequest {
       throw byobRequestBrandCheckException('respond');
     }
 
+    if (bytesWritten === undefined) {
+      throw new TypeError('bytesWritten is required');
+    }
+
     if (this._associatedReadableByteStreamController === undefined) {
       throw new TypeError('This BYOB request has been invalidated');
     }
