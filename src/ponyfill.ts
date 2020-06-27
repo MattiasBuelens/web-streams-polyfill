@@ -7,6 +7,7 @@ import {
   ReadableStreamBYOBRequest,
   ReadableStreamDefaultController,
   ReadableStreamDefaultReader,
+  ReadableWritablePair,
   ReadResult,
   UnderlyingByteSource,
   UnderlyingSource
@@ -27,6 +28,7 @@ export {
   ReadableStream,
   UnderlyingSource,
   UnderlyingByteSource,
+  ReadableWritablePair,
   PipeOptions,
   ReadResult,
   ReadableStreamDefaultController,
