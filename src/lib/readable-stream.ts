@@ -21,8 +21,7 @@ import {
 import {
   AcquireReadableStreamDefaultReader,
   IsReadableStreamDefaultReader,
-  ReadableStreamDefaultReader,
-  ReadableStreamDefaultReaderType
+  ReadableStreamDefaultReader
 } from './readable-stream/default-reader';
 import { ReadableStreamPipeTo } from './readable-stream/pipe';
 import { ReadableStreamTee } from './readable-stream/tee';
@@ -32,20 +31,17 @@ import { SimpleQueue } from './simple-queue';
 import {
   AcquireReadableStreamBYOBReader,
   IsReadableStreamBYOBReader,
-  ReadableStreamBYOBReader,
-  ReadableStreamBYOBReaderType
+  ReadableStreamBYOBReader
 } from './readable-stream/byob-reader';
 import {
   ReadableByteStreamController,
-  ReadableByteStreamControllerType,
-  ReadableStreamBYOBRequestType,
+  ReadableStreamBYOBRequest,
   SetUpReadableByteStreamController,
   SetUpReadableByteStreamControllerFromUnderlyingSource
 } from './readable-stream/byte-stream-controller';
 import { CancelSteps } from './readable-stream/symbols';
 import {
   ReadableStreamDefaultController,
-  ReadableStreamDefaultControllerType,
   SetUpReadableStreamDefaultController,
   SetUpReadableStreamDefaultControllerFromUnderlyingSource
 } from './readable-stream/default-controller';
@@ -284,7 +280,6 @@ export {
   ReadableByteStreamControllerCallback,
   ReadableStreamAsyncIterator,
   ReadableStreamDefaultControllerCallback,
-  ReadableStreamDefaultReader,
   ReadableStreamErrorCallback,
   ReadResult,
   UnderlyingByteSource,
@@ -447,16 +442,16 @@ export function ReadableStreamError<R>(stream: ReadableStream<R>, e: any): void 
 export type ReadableStreamReader<R> = ReadableStreamDefaultReader<R> | ReadableStreamBYOBReader;
 
 export {
-  ReadableStreamDefaultReaderType,
-  ReadableStreamBYOBReaderType
+  ReadableStreamDefaultReader,
+  ReadableStreamBYOBReader
 };
 
 // Controllers
 
 export {
-  ReadableStreamDefaultControllerType,
-  ReadableStreamBYOBRequestType,
-  ReadableByteStreamControllerType
+  ReadableStreamDefaultController,
+  ReadableStreamBYOBRequest,
+  ReadableByteStreamController
 };
 
 // Helper functions for the ReadableStream.

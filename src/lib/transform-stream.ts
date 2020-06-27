@@ -12,11 +12,7 @@ import {
   typeIsObject,
   ValidateAndNormalizeHighWaterMark
 } from './helpers';
-import {
-  CreateReadableStream,
-  ReadableStream,
-  ReadableStreamDefaultControllerType as ReadableStreamDefaultController
-} from './readable-stream';
+import { CreateReadableStream, ReadableStream, ReadableStreamDefaultController } from './readable-stream';
 import {
   ReadableStreamDefaultControllerCanCloseOrEnqueue,
   ReadableStreamDefaultControllerClose,
@@ -29,9 +25,9 @@ import { QueuingStrategy, QueuingStrategySizeCallback } from './queuing-strategy
 import { CreateWritableStream, WritableStream, WritableStreamDefaultControllerErrorIfNeeded } from './writable-stream';
 
 export type TransformStreamDefaultControllerCallback<O>
-  = (controller: TransformStreamDefaultControllerType<O>) => void | PromiseLike<void>;
+  = (controller: TransformStreamDefaultController<O>) => void | PromiseLike<void>;
 export type TransformStreamDefaultControllerTransformCallback<I, O>
-  = (chunk: I, controller: TransformStreamDefaultControllerType<O>) => void | PromiseLike<void>;
+  = (chunk: I, controller: TransformStreamDefaultController<O>) => void | PromiseLike<void>;
 
 export interface Transformer<I = any, O = any> {
   start?: TransformStreamDefaultControllerCallback<O>;
@@ -246,9 +242,7 @@ function TransformStreamSetBackpressure(stream: TransformStream, backpressure: b
 
 // Class TransformStreamDefaultController
 
-export type TransformStreamDefaultControllerType<O> = TransformStreamDefaultController<O>;
-
-class TransformStreamDefaultController<O> {
+export class TransformStreamDefaultController<O> {
   /** @internal */
   _controlledTransformStream: TransformStream<any, O>;
   /** @internal */

@@ -1,9 +1,17 @@
 import {
   ByteLengthQueuingStrategy,
   CountQueuingStrategy,
+  ReadableByteStreamController,
   ReadableStream,
+  ReadableStreamBYOBReader,
+  ReadableStreamBYOBRequest,
+  ReadableStreamDefaultController,
+  ReadableStreamDefaultReader,
   TransformStream,
-  WritableStream
+  TransformStreamDefaultController,
+  WritableStream,
+  WritableStreamDefaultController,
+  WritableStreamDefaultWriter
 } from './ponyfill';
 import { globals } from './utils';
 import ObjectAssign from './stub/object-assign';
@@ -13,10 +21,21 @@ export * from './ponyfill';
 
 const exports = {
   ReadableStream,
+  ReadableStreamDefaultController,
+  ReadableByteStreamController,
+  ReadableStreamBYOBRequest,
+  ReadableStreamDefaultReader,
+  ReadableStreamBYOBReader,
+
   WritableStream,
+  WritableStreamDefaultWriter,
+  WritableStreamDefaultController,
+
   ByteLengthQueuingStrategy,
   CountQueuingStrategy,
-  TransformStream
+
+  TransformStream,
+  TransformStreamDefaultController
 };
 
 // Add classes to global scope

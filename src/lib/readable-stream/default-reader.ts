@@ -73,8 +73,6 @@ export interface ReadRequest<R> {
   _reject: (reason: any) => void;
 }
 
-export type ReadableStreamDefaultReaderType<R> = ReadableStreamDefaultReader<R>;
-
 export class ReadableStreamDefaultReader<R> {
   /** @internal */
   _forAuthorCode!: boolean;
