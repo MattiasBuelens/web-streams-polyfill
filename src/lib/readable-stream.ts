@@ -163,7 +163,7 @@ export class ReadableStream<R = any> {
   }
 
   pipeThrough<T>({ writable, readable }: { writable: WritableStream<R>; readable: ReadableStream<T> },
-                 { preventClose, preventAbort, preventCancel, signal }: PipeOptions = {}): ReadableStream<T> {
+                 options: PipeOptions = {}): ReadableStream<T> {
     if (IsReadableStream(this) === false) {
       throw streamBrandCheckException('pipeThrough');
     }
@@ -175,6 +175,9 @@ export class ReadableStream<R = any> {
     if (IsReadableStream(readable) === false) {
       throw new TypeError('readable argument to pipeThrough must be a ReadableStream');
     }
+
+    let { preventAbort, preventCancel, preventClose } = options;
+    const signal = options.signal;
 
     preventClose = Boolean(preventClose);
     preventAbort = Boolean(preventAbort);
@@ -198,14 +201,23 @@ export class ReadableStream<R = any> {
     return readable;
   }
 
-  pipeTo(dest: WritableStream<R>,
-         { preventClose, preventAbort, preventCancel, signal }: PipeOptions = {}): Promise<void> {
+  pipeTo(dest: WritableStream<R>, options: PipeOptions = {}): Promise<void> {
     if (IsReadableStream(this) === false) {
       return promiseRejectedWith(streamBrandCheckException('pipeTo'));
     }
     if (IsWritableStream(dest) === false) {
       return promiseRejectedWith(
         new TypeError('ReadableStream.prototype.pipeTo\'s first argument must be a WritableStream'));
+    }
+
+    let preventAbort;
+    let preventCancel;
+    let preventClose;
+    let signal;
+    try {
+      ({ preventAbort, preventCancel, preventClose, signal } = options);
+    } catch (e) {
+      return promiseRejectedWith(e);
     }
 
     preventClose = Boolean(preventClose);
