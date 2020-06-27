@@ -119,15 +119,16 @@ const asyncIteratorReturnResult: Promise<IteratorResult<any>> = asyncIterator.re
 const abortSignal: polyfill.AbortSignal = new AbortController().signal;
 
 // Compatibility with stream types from DOM
+// FIXME Re-enable when TypeScript types have been updated to match latest spec
 const domUnderlyingSource: UnderlyingSource<string> = underlyingSource;
-const domUnderlyingByteSource: UnderlyingByteSource = underlyingByteSource;
+// const domUnderlyingByteSource: UnderlyingByteSource = underlyingByteSource;
 
 const domReadableStream: ReadableStream<string> = readableStream;
 const domReadableByteStream: ReadableStream<Uint8Array> = readableByteStream;
 
 const domDefaultController: ReadableStreamDefaultController<string> = defaultController;
-const domByteStreamController: ReadableByteStreamController = byteStreamController;
-const domByobRequest: ReadableStreamBYOBRequest = byobRequest;
+// const domByteStreamController: ReadableByteStreamController = byteStreamController;
+// const domByobRequest: ReadableStreamBYOBRequest = byobRequest;
 
 const domDefaultReader: ReadableStreamDefaultReader<string> = defaultReader;
 const domBYOBReader: ReadableStreamBYOBReader = byobReader;
