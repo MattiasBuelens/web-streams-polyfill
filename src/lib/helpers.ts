@@ -11,6 +11,10 @@ export function typeIsObject(x: any): x is object {
   return (typeof x === 'object' && x !== null) || typeof x === 'function';
 }
 
+export function isDictionary(x: any): x is object {
+  return typeof x === 'object' || typeof x === 'function';
+}
+
 export function createDataProperty(o: object, p: string | symbol, v: any) {
   assert(typeIsObject(o));
   Object.defineProperty(o, p, { value: v, writable: true, enumerable: true, configurable: true });

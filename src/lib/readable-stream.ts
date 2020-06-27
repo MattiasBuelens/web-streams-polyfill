@@ -1,6 +1,7 @@
 import assert from '../stub/assert';
 import {
   createArrayFromList,
+  isDictionary,
   IsNonNegativeNumber,
   MakeSizeAlgorithmFromSizeFunction,
   promiseRejectedWith,
@@ -150,7 +151,7 @@ export class ReadableStream<R = any> {
       throw streamBrandCheckException('getReader');
     }
 
-    if (options !== undefined && typeof options !== 'object' && typeof options !== 'function') {
+    if (options !== undefined && !isDictionary(options)) {
       throw new TypeError('Invalid reader options');
     }
 
@@ -262,7 +263,7 @@ export class ReadableStream<R = any> {
       throw streamBrandCheckException('values');
     }
 
-    if (options !== undefined && typeof options !== 'object' && typeof options !== 'function') {
+    if (options !== undefined && !isDictionary(options)) {
       throw new TypeError('Invalid iterator options');
     }
 

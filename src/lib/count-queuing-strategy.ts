@@ -1,4 +1,5 @@
 import { QueuingStrategy } from './queuing-strategy';
+import { isDictionary } from './helpers';
 
 const countSizeFunction = ({
   size(): number {
@@ -10,7 +11,7 @@ export default class CountQueuingStrategy implements QueuingStrategy<any> {
   private readonly _highWaterMark!: number;
 
   constructor(options: { highWaterMark: number }) {
-    if (options !== undefined && typeof options !== 'object' && typeof options !== 'function') {
+    if (options !== undefined && !isDictionary(options)) {
       throw new TypeError(`First parameter is not an object`);
     }
     const highWaterMark = options?.highWaterMark;
