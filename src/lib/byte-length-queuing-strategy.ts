@@ -1,5 +1,5 @@
 import { QueuingStrategy } from './queuing-strategy';
-import { isDictionary } from './helpers';
+import { isDictionary, typeIsObject } from './helpers';
 
 const byteLengthSizeFunction = ({
   size(chunk: ArrayBufferView): number {
@@ -8,7 +8,7 @@ const byteLengthSizeFunction = ({
 }).size;
 
 export default class ByteLengthQueuingStrategy implements QueuingStrategy<ArrayBufferView> {
-  private readonly _highWaterMark!: number;
+  private readonly _byteLengthQueuingStrategyHighWaterMark!: number;
 
   constructor(options: { highWaterMark: number }) {
     if (options !== undefined && !isDictionary(options)) {
@@ -18,14 +18,20 @@ export default class ByteLengthQueuingStrategy implements QueuingStrategy<ArrayB
     if (highWaterMark === undefined) {
       throw new TypeError(`highWaterMark is required`);
     }
-    this._highWaterMark = Number(highWaterMark);
+    this._byteLengthQueuingStrategyHighWaterMark = Number(highWaterMark);
   }
 
   get highWaterMark(): number {
-    return this._highWaterMark;
+    if (IsByteLengthQueuingStrategy(this) === false) {
+      throw byteLengthBrandCheckException('highWaterMark');
+    }
+    return this._byteLengthQueuingStrategyHighWaterMark;
   }
 
   get size(): (chunk: ArrayBufferView) => number {
+    if (IsByteLengthQueuingStrategy(this) === false) {
+      throw byteLengthBrandCheckException('size');
+    }
     return byteLengthSizeFunction;
   }
 }
@@ -39,4 +45,22 @@ if (typeof Symbol.toStringTag === 'symbol') {
     value: 'ByteLengthQueuingStrategy',
     configurable: true
   });
+}
+
+// Helper functions for the ByteLengthQueuingStrategy.
+
+function byteLengthBrandCheckException(name: string): TypeError {
+  return new TypeError(`ByteLengthQueuingStrategy.prototype.${name} can only be used on a ByteLengthQueuingStrategy`);
+}
+
+export function IsByteLengthQueuingStrategy(x: any): x is ByteLengthQueuingStrategy {
+  if (!typeIsObject(x)) {
+    return false;
+  }
+
+  if (!Object.prototype.hasOwnProperty.call(x, '_byteLengthQueuingStrategyHighWaterMark')) {
+    return false;
+  }
+
+  return true;
 }
