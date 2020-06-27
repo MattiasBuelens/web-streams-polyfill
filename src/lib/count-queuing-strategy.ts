@@ -1,13 +1,30 @@
 import { QueuingStrategy } from './queuing-strategy';
 
-export default class CountQueuingStrategy implements QueuingStrategy<any> {
-  readonly highWaterMark!: number;
+const countSizeFunction = ({
+  size(): number {
+    return 1;
+  }
+}).size;
 
-  constructor({ highWaterMark }: { highWaterMark: number }) {
-    this.highWaterMark = highWaterMark;
+export default class CountQueuingStrategy implements QueuingStrategy<any> {
+  private readonly _highWaterMark!: number;
+
+  constructor(options: { highWaterMark: number }) {
+    if (options !== undefined && typeof options !== 'object' && typeof options !== 'function') {
+      throw new TypeError(`First parameter is not an object`);
+    }
+    const highWaterMark = options?.highWaterMark;
+    if (highWaterMark === undefined) {
+      throw new TypeError(`highWaterMark is required`);
+    }
+    this._highWaterMark = Number(highWaterMark);
   }
 
-  size(): 1 {
-    return 1;
+  get highWaterMark(): number {
+    return this._highWaterMark;
+  }
+
+  get size(): (chunk: any) => number {
+    return countSizeFunction;
   }
 }
