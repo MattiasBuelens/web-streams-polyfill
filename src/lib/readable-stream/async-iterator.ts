@@ -87,7 +87,7 @@ const ReadableStreamAsyncIteratorPrototype: ReadableStreamAsyncIteratorInstance<
 
   return(this: ReadableStreamAsyncIteratorInstance<any>, value: any): Promise<ReadResult<any>> {
     if (IsReadableStreamAsyncIterator(this) === false) {
-      return promiseRejectedWith(streamAsyncIteratorBrandCheckException('next'));
+      return promiseRejectedWith(streamAsyncIteratorBrandCheckException('return'));
     }
     return this._asyncIteratorImpl.return(value);
   }
