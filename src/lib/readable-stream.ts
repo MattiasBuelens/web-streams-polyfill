@@ -257,10 +257,16 @@ export class ReadableStream<R = any> {
     return createArrayFromList(branches);
   }
 
-  values({ preventCancel = false }: { preventCancel?: boolean } = {}): ReadableStreamAsyncIterator<R> {
+  values(options?: { preventCancel?: boolean }): ReadableStreamAsyncIterator<R> {
     if (IsReadableStream(this) === false) {
       throw streamBrandCheckException('values');
     }
+
+    if (options !== undefined && typeof options !== 'object' && typeof options !== 'function') {
+      throw new TypeError('Invalid iterator options');
+    }
+
+    const preventCancel = Boolean(options?.preventCancel);
     return AcquireReadableStreamAsyncIterator<R>(this, preventCancel);
   }
 

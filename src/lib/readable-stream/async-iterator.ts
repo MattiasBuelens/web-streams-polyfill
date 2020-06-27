@@ -89,7 +89,7 @@ export class ReadableStreamAsyncIteratorImpl<R> {
       return promiseRejectedWith(new TypeError(
         'Tried to release a reader lock when that reader has pending read() calls un-settled'));
     }
-    if (this._preventCancel === false) {
+    if (!this._preventCancel) {
       const result = ReadableStreamReaderGenericCancel(reader, value);
       ReadableStreamReaderGenericRelease(reader);
       return transformPromiseWith(result, () => ({ value, done: true }));
@@ -132,7 +132,7 @@ if (AsyncIteratorPrototype !== undefined) {
 export function AcquireReadableStreamAsyncIterator<R>(stream: ReadableStream<R>,
                                                       preventCancel = false): ReadableStreamAsyncIterator<R> {
   const reader = AcquireReadableStreamDefaultReader<R>(stream);
-  const impl = new ReadableStreamAsyncIteratorImpl(reader, Boolean(preventCancel));
+  const impl = new ReadableStreamAsyncIteratorImpl(reader, preventCancel);
   const iterator: ReadableStreamAsyncIteratorInstance<R> = Object.create(ReadableStreamAsyncIteratorPrototype);
   iterator._asyncIteratorImpl = impl;
   return iterator;
