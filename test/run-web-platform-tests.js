@@ -39,6 +39,16 @@ async function main() {
   ];
   const ignoredFailures = {};
 
+  const ignoredFailuresMinified = {
+    'idlharness.any.html': [
+      // Terser turns `(a = undefined) => {}` into `(a) => {}`, changing the function's length property
+      // Therefore we cannot correctly implement methods with optional arguments
+      /interface: operation (abort|cancel|enqueue|error|getReader|write)/,
+      // Same thing for ReadableStream.values(), which is tested as part of the async iterable declaration
+      'ReadableStream interface: async iterable<any>'
+    ]
+  };
+
   if (!supportsES2018) {
     excludedTests.push(
       // Skip tests that use async generators or for-await-of
@@ -51,62 +61,37 @@ async function main() {
     ];
   }
 
-  const ignoredFailuresES6 = {
-    ...ignoredFailures,
+  const ignoredFailuresES6 = merge(ignoredFailures, {
     'readable-streams/async-iterator.any.html': [
       // ES6 build will not use correct %AsyncIteratorPrototype%
       'Async iterator instances should have the correct list of properties'
     ]
-  };
+  });
 
-  const ignoredFailuresES5 = {
-    ...ignoredFailuresES6,
-    // ES5 build does not set correct function name on constructors and methods
-    // ES5 build does not set correct length on constructors and methods with optional arguments
-    // ES5 build does not set correct 'enumerable' flag on properties and methods
-    // ES5 build cannot mark methods as non-constructable
-    'byte-length-queuing-strategy.any.html': [
-      'ByteLengthQueuingStrategy.name is correct'
-    ],
-    'count-queuing-strategy.any.html': [
-      'CountQueuingStrategy.name is correct'
-    ],
-    'readable-byte-streams/brand-checks.any.html': [
-      'Can get the ReadableStreamBYOBReader constructor indirectly', // checks name
-      'Can get the ReadableByteStreamController constructor indirectly' // checks name
-    ],
-    'readable-byte-streams/properties.any.html': [
-      'ReadableStreamBYOBReader instances should have the correct list of properties',
-      'ReadableByteStreamController instances should have the correct list of properties',
-      'ReadableStreamBYOBRequest instances should have the correct list of properties'
-    ],
-    'readable-streams/default-reader.any.html': [
-      'ReadableStreamDefaultReader instances should have the correct list of properties'
-    ],
-    'readable-streams/general.any.html': [
-      'ReadableStream instances should have the correct list of properties',
-      'ReadableStream start should be called with the proper parameters'
-    ],
-    'transform-streams/general.any.html': [
-      'TransformStream instances must have writable and readable properties of the correct types'
-    ],
-    'transform-streams/properties.any.html': [
-      /should be a constructor/,
-      /should be a method/,
-      /should have standard properties/
-    ],
-    'writable-streams/properties.any.html': [
-      /should be a constructor/,
-      /should be a method/,
-      /should have standard properties/
+  const ignoredFailuresES5 = merge(ignoredFailuresES6, {
+    'idlharness.any.html': [
+      // ES5 build does not set correct length on constructors with optional arguments
+      'ReadableStream interface object length',
+      'WritableStream interface object length',
+      'TransformStream interface object length',
+      // ES5 build does not set correct length on methods with optional arguments
+      /interface: operation \w+\(.*optional.*\)/,
+      'ReadableStream interface: async iterable<any>',
+      // ES5 build does not set correct function name on getters and setters
+      /interface: attribute/,
+      // ES5 build has { writable: true } on prototype objects
+      /interface: existence and properties of interface prototype object/
     ]
-  };
+  });
 
   let failures = 0;
 
   if (supportsES2018) {
     failures += await runTests('polyfill.es2018.js', { excludedTests, ignoredFailures });
-    failures += await runTests('polyfill.es2018.min.js', { excludedTests, ignoredFailures });
+    failures += await runTests('polyfill.es2018.min.js', {
+      excludedTests,
+      ignoredFailures: merge(ignoredFailures, ignoredFailuresMinified)
+    });
   }
 
   failures += await runTests('polyfill.es6.js', {
@@ -115,7 +100,7 @@ async function main() {
   });
   failures += await runTests('polyfill.es6.min.js', {
     excludedTests,
-    ignoredFailures: ignoredFailuresES6
+    ignoredFailures: merge(ignoredFailuresES6, ignoredFailuresMinified)
   });
 
   failures += await runTests('polyfill.js', {
@@ -124,7 +109,7 @@ async function main() {
   });
   failures += await runTests('polyfill.min.js', {
     excludedTests,
-    ignoredFailures: ignoredFailuresES5
+    ignoredFailures: merge(ignoredFailuresES5, ignoredFailuresMinified)
   });
 
   process.exitCode = failures;
@@ -205,4 +190,12 @@ function runtimeSupportsAsyncGenerators() {
   } catch (e) {
     return false;
   }
+}
+
+function merge(left, right) {
+  const result = { ...left };
+  for (const key of Object.keys(right)) {
+    result[key] = [...(result[key] || []), ...right[key]];
+  }
+  return result;
 }
