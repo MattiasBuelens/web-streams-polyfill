@@ -192,7 +192,7 @@ export class ReadableStream<R = any> {
     preventCancel = Boolean(preventCancel);
 
     if (signal !== undefined && !isAbortSignal(signal)) {
-      throw new TypeError('ReadableStream.prototype.pipeThrough\'s signal option must be an AbortSignal');
+      throw new TypeError(`ReadableStream.prototype.pipeThrough's signal option must be an AbortSignal`);
     }
 
     if (IsReadableStreamLocked(this) === true) {
@@ -215,7 +215,7 @@ export class ReadableStream<R = any> {
     }
     if (IsWritableStream(dest) === false) {
       return promiseRejectedWith(
-        new TypeError('ReadableStream.prototype.pipeTo\'s first argument must be a WritableStream'));
+        new TypeError(`ReadableStream.prototype.pipeTo's first argument must be a WritableStream`));
     }
 
     let preventAbort;
@@ -234,7 +234,7 @@ export class ReadableStream<R = any> {
 
     if (signal !== undefined && !isAbortSignal(signal)) {
       return promiseRejectedWith(
-        new TypeError('ReadableStream.prototype.pipeTo\'s signal option must be an AbortSignal'));
+        new TypeError(`ReadableStream.prototype.pipeTo's signal option must be an AbortSignal`));
     }
 
     if (IsReadableStreamLocked(this) === true) {

@@ -743,7 +743,7 @@ function WritableStreamDefaultWriterRelease(writer: WritableStreamDefaultWriter<
   assert(stream._writer === writer);
 
   const releasedError = new TypeError(
-    'Writer was released and can no longer be used to monitor the stream\'s closedness');
+    `Writer was released and can no longer be used to monitor the stream's closedness`);
 
   WritableStreamDefaultWriterEnsureReadyPromiseRejected(writer, releasedError);
 

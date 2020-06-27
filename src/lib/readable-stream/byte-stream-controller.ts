@@ -66,7 +66,7 @@ export class ReadableStreamBYOBRequest {
     }
 
     if (IsDetachedBuffer(this._view!.buffer) === true) {
-      throw new TypeError('The BYOB request\'s buffer has been detached and so cannot be used as a response');
+      throw new TypeError(`The BYOB request's buffer has been detached and so cannot be used as a response`);
     }
 
     ReadableByteStreamControllerRespond(this._associatedReadableByteStreamController, bytesWritten);
@@ -86,7 +86,7 @@ export class ReadableStreamBYOBRequest {
     }
 
     if (IsDetachedBuffer(view.buffer) === true) {
-      throw new TypeError('The supplied view\'s buffer has been detached and so cannot be used as a response');
+      throw new TypeError(`The supplied view's buffer has been detached and so cannot be used as a response`);
     }
 
     ReadableByteStreamControllerRespondWithNewView(this._associatedReadableByteStreamController, view);
