@@ -40,11 +40,11 @@ async function main() {
   const ignoredFailures = {};
 
   if (!supportsES2018) {
-    excludedTests.push([
+    excludedTests.push(
       // Skip tests that use async generators or for-await-of
       'readable-streams/async-iterator.any.html',
       'readable-streams/patched-global.any.html'
-    ]);
+    );
     ignoredFailures['readable-streams/general.any.html'] = [
       // Symbol.asyncIterator does not exist
       'ReadableStream instances should have the correct list of properties'
