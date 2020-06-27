@@ -41,14 +41,14 @@ export class ReadableStreamBYOBRequest {
   /** @internal */
   _associatedReadableByteStreamController!: ReadableByteStreamController;
   /** @internal */
-  _view!: ArrayBufferView;
+  _view!: ArrayBufferView | null;
 
   /** @internal */
   constructor() {
     throw new TypeError('Illegal constructor');
   }
 
-  get view(): ArrayBufferView {
+  get view(): ArrayBufferView | null {
     if (IsReadableStreamBYOBRequest(this) === false) {
       throw byobRequestBrandCheckException('view');
     }
@@ -65,7 +65,7 @@ export class ReadableStreamBYOBRequest {
       throw new TypeError('This BYOB request has been invalidated');
     }
 
-    if (IsDetachedBuffer(this._view.buffer) === true) {
+    if (IsDetachedBuffer(this._view!.buffer) === true) {
       throw new TypeError('The BYOB request\'s buffer has been detached and so cannot be used as a response');
     }
 
@@ -154,7 +154,7 @@ export class ReadableByteStreamController {
   /** @internal */
   _autoAllocateChunkSize: number | undefined;
   /** @internal */
-  _byobRequest: ReadableStreamBYOBRequest | undefined;
+  _byobRequest: ReadableStreamBYOBRequest | null;
   /** @internal */
   _pendingPullIntos!: SimpleQueue<PullIntoDescriptor>;
 
@@ -163,12 +163,12 @@ export class ReadableByteStreamController {
     throw new TypeError('Illegal constructor');
   }
 
-  get byobRequest(): ReadableStreamBYOBRequest | undefined {
+  get byobRequest(): ReadableStreamBYOBRequest | null {
     if (IsReadableByteStreamController(this) === false) {
       throw byteStreamControllerBrandCheckException('byobRequest');
     }
 
-    if (this._byobRequest === undefined && this._pendingPullIntos.length > 0) {
+    if (this._byobRequest === null && this._pendingPullIntos.length > 0) {
       const firstDescriptor = this._pendingPullIntos.peek();
       const view = new Uint8Array(firstDescriptor.buffer,
                                   firstDescriptor.byteOffset + firstDescriptor.bytesFilled,
@@ -480,13 +480,13 @@ function ReadableByteStreamControllerHandleQueueDrain(controller: ReadableByteSt
 }
 
 function ReadableByteStreamControllerInvalidateBYOBRequest(controller: ReadableByteStreamController) {
-  if (controller._byobRequest === undefined) {
+  if (controller._byobRequest === null) {
     return;
   }
 
   controller._byobRequest._associatedReadableByteStreamController = undefined!;
-  controller._byobRequest._view = undefined!;
-  controller._byobRequest = undefined;
+  controller._byobRequest._view = null!;
+  controller._byobRequest = null;
 }
 
 function ReadableByteStreamControllerProcessPullIntoDescriptorsUsingQueue(controller: ReadableByteStreamController) {
@@ -816,7 +816,7 @@ export function SetUpReadableByteStreamController(stream: ReadableByteStream,
   controller._pullAgain = false;
   controller._pulling = false;
 
-  controller._byobRequest = undefined;
+  controller._byobRequest = null;
 
   // Need to set the slots so that the assert doesn't fire. In the spec the slots already exist implicitly.
   controller._queue = controller._queueTotalSize = undefined!;
