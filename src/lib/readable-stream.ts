@@ -61,6 +61,11 @@ import { AbortSignal, isAbortSignal } from './abort-signal';
 
 export type ReadableByteStream = ReadableStream<Uint8Array>;
 
+export interface ReadableWritablePair<R, W> {
+  readable: ReadableStream<R>;
+  writable: WritableStream<W>;
+}
+
 export interface PipeOptions {
   preventAbort?: boolean;
   preventCancel?: boolean;
@@ -162,18 +167,19 @@ export class ReadableStream<R = any> {
     throw new RangeError('Invalid mode is specified');
   }
 
-  pipeThrough<T>({ writable, readable }: { writable: WritableStream<R>; readable: ReadableStream<T> },
-                 options: PipeOptions = {}): ReadableStream<T> {
+  pipeThrough<T>(transform: ReadableWritablePair<T, R>, options: PipeOptions = {}): ReadableStream<T> {
     if (IsReadableStream(this) === false) {
       throw streamBrandCheckException('pipeThrough');
     }
 
-    if (IsWritableStream(writable) === false) {
-      throw new TypeError('writable argument to pipeThrough must be a WritableStream');
-    }
-
+    const readable = transform.readable;
     if (IsReadableStream(readable) === false) {
       throw new TypeError('readable argument to pipeThrough must be a ReadableStream');
+    }
+
+    const writable = transform.writable;
+    if (IsWritableStream(writable) === false) {
+      throw new TypeError('writable argument to pipeThrough must be a WritableStream');
     }
 
     let { preventAbort, preventCancel, preventClose } = options;
