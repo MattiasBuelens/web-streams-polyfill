@@ -62,6 +62,7 @@ function bundle(entry, { esm = false, minify = false, target = 'es5' } = {}) {
       }) : undefined,
       minify ? terser({
         keep_classnames: true, // needed for WPT
+        keep_fnames: /^size$/,
         mangle: {
           toplevel: true
         }

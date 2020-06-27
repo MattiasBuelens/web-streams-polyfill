@@ -1,11 +1,9 @@
 import { QueuingStrategy } from './queuing-strategy';
 import { isDictionary, typeIsObject } from './helpers';
 
-const countSizeFunction = ({
-  size(): number {
-    return 1;
-  }
-}).size;
+const countSizeFunction = function size(): number {
+  return 1;
+};
 
 export default class CountQueuingStrategy implements QueuingStrategy<any> {
   private readonly _countQueuingStrategyHighWaterMark!: number;

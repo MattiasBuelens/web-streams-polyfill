@@ -1,11 +1,9 @@
 import { QueuingStrategy } from './queuing-strategy';
 import { isDictionary, typeIsObject } from './helpers';
 
-const byteLengthSizeFunction = ({
-  size(chunk: ArrayBufferView): number {
-    return chunk.byteLength;
-  }
-}).size;
+const byteLengthSizeFunction = function size(chunk: ArrayBufferView): number {
+  return chunk.byteLength;
+};
 
 export default class ByteLengthQueuingStrategy implements QueuingStrategy<ArrayBufferView> {
   private readonly _byteLengthQueuingStrategyHighWaterMark!: number;
