@@ -149,11 +149,16 @@ export class ReadableStream<R = any> {
 
   getReader({ mode }: { mode: 'byob' }): ReadableStreamBYOBReader;
   getReader(): ReadableStreamDefaultReader<R>;
-  getReader({ mode }: { mode?: 'byob' } = {}): ReadableStreamDefaultReader<R> | ReadableStreamBYOBReader {
+  getReader(options?: { mode?: 'byob' }): ReadableStreamDefaultReader<R> | ReadableStreamBYOBReader {
     if (IsReadableStream(this) === false) {
       throw streamBrandCheckException('getReader');
     }
 
+    if (options !== undefined && typeof options !== 'object' && typeof options !== 'function') {
+      throw new TypeError('Invalid reader options');
+    }
+
+    let mode = options?.mode;
     if (mode === undefined) {
       return AcquireReadableStreamDefaultReader(this, true);
     }
@@ -164,7 +169,7 @@ export class ReadableStream<R = any> {
       return AcquireReadableStreamBYOBReader(this as unknown as ReadableByteStream, true);
     }
 
-    throw new RangeError('Invalid mode is specified');
+    throw new TypeError('Invalid mode is specified');
   }
 
   pipeThrough<T>(transform: ReadableWritablePair<T, R>, options: PipeOptions = {}): ReadableStream<T> {
