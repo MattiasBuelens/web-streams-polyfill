@@ -7,7 +7,6 @@ import {
   ReadableStreamDefaultReaderRead
 } from './default-reader';
 import {
-  ReadableStreamCreateReadResult,
   ReadableStreamReaderGenericCancel,
   ReadableStreamReaderGenericRelease,
   readerLockException,
@@ -26,6 +25,8 @@ export interface ReadableStreamAsyncIterator<R> extends AsyncIterator<R> {
 export class ReadableStreamAsyncIteratorImpl<R> {
   private readonly _reader: ReadableStreamDefaultReader<R>;
   private readonly _preventCancel: boolean;
+  private _ongoingPromise: Promise<ReadResult<R>> | undefined = undefined;
+  private _isFinished = false;
 
   constructor(reader: ReadableStreamDefaultReader<R>, preventCancel: boolean) {
     this._reader = reader;
@@ -33,23 +34,53 @@ export class ReadableStreamAsyncIteratorImpl<R> {
   }
 
   next(): Promise<ReadResult<R>> {
+    const nextSteps = () => this._nextSteps();
+    this._ongoingPromise = this._ongoingPromise ?
+      transformPromiseWith(this._ongoingPromise, nextSteps, nextSteps) :
+      nextSteps();
+    return this._ongoingPromise;
+  }
+
+  return(value: any): Promise<ReadResult<any>> {
+    const returnSteps = () => this._returnSteps(value);
+    return this._ongoingPromise ?
+      transformPromiseWith(this._ongoingPromise, returnSteps, returnSteps) :
+      returnSteps();
+  }
+
+  private _nextSteps(): Promise<ReadResult<R>> {
+    if (this._isFinished) {
+      return Promise.resolve({ value: undefined, done: true });
+    }
+
     const reader = this._reader;
     if (reader._ownerReadableStream === undefined) {
       return promiseRejectedWith(readerLockException('iterate'));
     }
-    return transformPromiseWith(ReadableStreamDefaultReaderRead(reader), result => {
+    return transformPromiseWith(ReadableStreamDefaultReaderRead(reader), (result): ReadResult<R> => {
+      this._ongoingPromise = undefined;
       assert(typeIsObject(result));
-      const done = result.done;
-      assert(typeof done === 'boolean');
-      if (done) {
+      assert(typeof result.done === 'boolean');
+      if (result.done) {
+        this._isFinished = true;
         ReadableStreamReaderGenericRelease(reader);
+        return { value: undefined, done: true };
       }
-      const value = result.value;
-      return ReadableStreamCreateReadResult(value, done, true);
+      return { value: result.value, done: false };
+    }, reason => {
+      this._ongoingPromise = undefined;
+      this._isFinished = true;
+      ReadableStreamReaderGenericRelease(reader);
+      throw reason;
     });
   }
 
-  return(value: any): Promise<ReadResult<any>> {
+  private _returnSteps(value: any): Promise<ReadResult<any>> {
+    if (this._isFinished) {
+      return Promise.resolve({ value, done: true });
+    }
+    this._isFinished = true;
+
     const reader = this._reader;
     if (reader._ownerReadableStream === undefined) {
       return promiseRejectedWith(readerLockException('finish iterating'));
@@ -61,10 +92,10 @@ export class ReadableStreamAsyncIteratorImpl<R> {
     if (this._preventCancel === false) {
       const result = ReadableStreamReaderGenericCancel(reader, value);
       ReadableStreamReaderGenericRelease(reader);
-      return transformPromiseWith(result, () => ReadableStreamCreateReadResult(value, true, true));
+      return transformPromiseWith(result, () => ({ value, done: true }));
     }
     ReadableStreamReaderGenericRelease(reader);
-    return promiseResolvedWith(ReadableStreamCreateReadResult(value, true, true));
+    return promiseResolvedWith({ value, done: true });
   }
 }
 
