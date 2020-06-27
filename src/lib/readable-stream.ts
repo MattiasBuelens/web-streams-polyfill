@@ -119,7 +119,7 @@ export class ReadableStream<R = any> {
                                                                highWaterMark,
                                                                sizeAlgorithm);
     } else {
-      throw new RangeError('Invalid type is specified');
+      throw new TypeError('Invalid type is specified');
     }
   }
 
