@@ -55,10 +55,6 @@ async function main() {
       'readable-streams/async-iterator.any.html',
       'readable-streams/patched-global.any.html'
     );
-    ignoredFailures['readable-streams/general.any.html'] = [
-      // Symbol.asyncIterator does not exist
-      'ReadableStream instances should have the correct list of properties'
-    ];
   }
 
   const ignoredFailuresES6 = merge(ignoredFailures, {
