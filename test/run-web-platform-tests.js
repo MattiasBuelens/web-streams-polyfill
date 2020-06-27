@@ -103,12 +103,24 @@ async function main() {
   };
 
   let failures = 0;
+
   if (supportsES2018) {
+    failures += await runTests('polyfill.es2018.js', { excludedTests, ignoredFailures });
     failures += await runTests('polyfill.es2018.min.js', { excludedTests, ignoredFailures });
   }
+
+  failures += await runTests('polyfill.es6.js', {
+    excludedTests,
+    ignoredFailures: ignoredFailuresES6
+  });
   failures += await runTests('polyfill.es6.min.js', {
     excludedTests,
     ignoredFailures: ignoredFailuresES6
+  });
+
+  failures += await runTests('polyfill.js', {
+    excludedTests,
+    ignoredFailures: ignoredFailuresES5
   });
   failures += await runTests('polyfill.min.js', {
     excludedTests,
