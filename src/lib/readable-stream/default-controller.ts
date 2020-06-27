@@ -119,6 +119,19 @@ export class ReadableStreamDefaultController<R> {
   }
 }
 
+Object.defineProperties(ReadableStreamDefaultController.prototype, {
+  close: { enumerable: true },
+  enqueue: { enumerable: true },
+  error: { enumerable: true },
+  desiredSize: { enumerable: true }
+});
+if (typeof Symbol.toStringTag === 'symbol') {
+  Object.defineProperty(ReadableStreamDefaultController.prototype, Symbol.toStringTag, {
+    value: 'ReadableStreamDefaultController',
+    configurable: true
+  });
+}
+
 // Abstract operations for the ReadableStreamDefaultController.
 
 function IsReadableStreamDefaultController<R>(x: any): x is ReadableStreamDefaultController<R> {

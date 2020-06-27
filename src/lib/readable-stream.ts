@@ -274,10 +274,24 @@ export class ReadableStream<R = any> {
   [Symbol.asyncIterator]: (options?: { preventCancel?: boolean }) => ReadableStreamAsyncIterator<R>;
 }
 
+Object.defineProperties(ReadableStream.prototype, {
+  cancel: { enumerable: true },
+  getReader: { enumerable: true },
+  pipeThrough: { enumerable: true },
+  pipeTo: { enumerable: true },
+  tee: { enumerable: true },
+  values: { enumerable: true },
+  locked: { enumerable: true }
+});
+if (typeof Symbol.toStringTag === 'symbol') {
+  Object.defineProperty(ReadableStream.prototype, Symbol.toStringTag, {
+    value: 'ReadableStream',
+    configurable: true
+  });
+}
 if (typeof Symbol.asyncIterator === 'symbol') {
   Object.defineProperty(ReadableStream.prototype, Symbol.asyncIterator, {
     value: ReadableStream.prototype.values,
-    enumerable: false,
     writable: true,
     configurable: true
   });

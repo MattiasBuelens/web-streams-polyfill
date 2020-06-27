@@ -149,6 +149,19 @@ export class ReadableStreamDefaultReader<R> {
   }
 }
 
+Object.defineProperties(ReadableStreamDefaultReader.prototype, {
+  cancel: { enumerable: true },
+  read: { enumerable: true },
+  releaseLock: { enumerable: true },
+  closed: { enumerable: true }
+});
+if (typeof Symbol.toStringTag === 'symbol') {
+  Object.defineProperty(ReadableStreamDefaultReader.prototype, Symbol.toStringTag, {
+    value: 'ReadableStreamDefaultReader',
+    configurable: true
+  });
+}
+
 // Abstract operations for the readers.
 
 export function IsReadableStreamDefaultReader<R>(x: any): x is ReadableStreamDefaultReader<R> {

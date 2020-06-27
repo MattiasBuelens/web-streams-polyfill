@@ -117,6 +117,17 @@ export class TransformStream<I = any, O = any> {
   }
 }
 
+Object.defineProperties(TransformStream.prototype, {
+  readable: { enumerable: true },
+  writable: { enumerable: true }
+});
+if (typeof Symbol.toStringTag === 'symbol') {
+  Object.defineProperty(TransformStream.prototype, Symbol.toStringTag, {
+    value: 'TransformStream',
+    configurable: true
+  });
+}
+
 // Transform Stream Abstract Operations
 
 export function CreateTransformStream<I, O>(startAlgorithm: () => void | PromiseLike<void>,
@@ -287,6 +298,19 @@ export class TransformStreamDefaultController<O> {
 
     TransformStreamDefaultControllerTerminate(this);
   }
+}
+
+Object.defineProperties(TransformStreamDefaultController.prototype, {
+  enqueue: { enumerable: true },
+  error: { enumerable: true },
+  terminate: { enumerable: true },
+  desiredSize: { enumerable: true }
+});
+if (typeof Symbol.toStringTag === 'symbol') {
+  Object.defineProperty(TransformStreamDefaultController.prototype, Symbol.toStringTag, {
+    value: 'TransformStreamDefaultController',
+    configurable: true
+  });
 }
 
 // Transform Stream Default Controller Abstract Operations

@@ -93,6 +93,18 @@ export class ReadableStreamBYOBRequest {
   }
 }
 
+Object.defineProperties(ReadableStreamBYOBRequest.prototype, {
+  respond: { enumerable: true },
+  respondWithNewView: { enumerable: true },
+  view: { enumerable: true }
+});
+if (typeof Symbol.toStringTag === 'symbol') {
+  Object.defineProperty(ReadableStreamBYOBRequest.prototype, Symbol.toStringTag, {
+    value: 'ReadableStreamBYOBRequest',
+    configurable: true
+  });
+}
+
 interface ArrayBufferViewConstructor<T extends ArrayBufferView = ArrayBufferView> {
   new(buffer: ArrayBufferLike, byteOffset: number, length?: number): T;
 
@@ -305,6 +317,20 @@ export class ReadableByteStreamController {
 
     return promise;
   }
+}
+
+Object.defineProperties(ReadableByteStreamController.prototype, {
+  close: { enumerable: true },
+  enqueue: { enumerable: true },
+  error: { enumerable: true },
+  byobRequest: { enumerable: true },
+  desiredSize: { enumerable: true }
+});
+if (typeof Symbol.toStringTag === 'symbol') {
+  Object.defineProperty(ReadableByteStreamController.prototype, Symbol.toStringTag, {
+    value: 'ReadableByteStreamController',
+    configurable: true
+  });
 }
 
 // Abstract operations for the ReadableByteStreamController.

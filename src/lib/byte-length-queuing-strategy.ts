@@ -29,3 +29,14 @@ export default class ByteLengthQueuingStrategy implements QueuingStrategy<ArrayB
     return byteLengthSizeFunction;
   }
 }
+
+Object.defineProperties(ByteLengthQueuingStrategy.prototype, {
+  highWaterMark: { enumerable: true },
+  size: { enumerable: true }
+});
+if (typeof Symbol.toStringTag === 'symbol') {
+  Object.defineProperty(ByteLengthQueuingStrategy.prototype, Symbol.toStringTag, {
+    value: 'ByteLengthQueuingStrategy',
+    configurable: true
+  });
+}

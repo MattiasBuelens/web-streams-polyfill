@@ -140,6 +140,19 @@ class WritableStream<W = any> {
   }
 }
 
+Object.defineProperties(WritableStream.prototype, {
+  abort: { enumerable: true },
+  close: { enumerable: true },
+  getWriter: { enumerable: true },
+  locked: { enumerable: true }
+});
+if (typeof Symbol.toStringTag === 'symbol') {
+  Object.defineProperty(WritableStream.prototype, Symbol.toStringTag, {
+    value: 'WritableStream',
+    configurable: true
+  });
+}
+
 export {
   AcquireWritableStreamDefaultWriter,
   CreateWritableStream,
@@ -655,6 +668,22 @@ export class WritableStreamDefaultWriter<W> {
   }
 }
 
+Object.defineProperties(WritableStreamDefaultWriter.prototype, {
+  abort: { enumerable: true },
+  close: { enumerable: true },
+  releaseLock: { enumerable: true },
+  write: { enumerable: true },
+  closed: { enumerable: true },
+  desiredSize: { enumerable: true },
+  ready: { enumerable: true }
+});
+if (typeof Symbol.toStringTag === 'symbol') {
+  Object.defineProperty(WritableStreamDefaultWriter.prototype, Symbol.toStringTag, {
+    value: 'WritableStreamDefaultWriter',
+    configurable: true
+  });
+}
+
 // Abstract operations for the WritableStreamDefaultWriter.
 
 function IsWritableStreamDefaultWriter<W>(x: any): x is WritableStreamDefaultWriter<W> {
@@ -845,6 +874,16 @@ export class WritableStreamDefaultController<W = any> {
   [ErrorSteps]() {
     ResetQueue(this);
   }
+}
+
+Object.defineProperties(WritableStreamDefaultController.prototype, {
+  error: { enumerable: true }
+});
+if (typeof Symbol.toStringTag === 'symbol') {
+  Object.defineProperty(WritableStreamDefaultController.prototype, Symbol.toStringTag, {
+    value: 'WritableStreamDefaultController',
+    configurable: true
+  });
 }
 
 // Abstract operations implementing interface required by the WritableStream.

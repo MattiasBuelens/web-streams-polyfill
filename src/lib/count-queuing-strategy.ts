@@ -29,3 +29,14 @@ export default class CountQueuingStrategy implements QueuingStrategy<any> {
     return countSizeFunction;
   }
 }
+
+Object.defineProperties(CountQueuingStrategy.prototype, {
+  highWaterMark: { enumerable: true },
+  size: { enumerable: true }
+});
+if (typeof Symbol.toStringTag === 'symbol') {
+  Object.defineProperty(CountQueuingStrategy.prototype, Symbol.toStringTag, {
+    value: 'CountQueuingStrategy',
+    configurable: true
+  });
+}

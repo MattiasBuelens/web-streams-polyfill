@@ -172,6 +172,19 @@ export class ReadableStreamBYOBReader {
   }
 }
 
+Object.defineProperties(ReadableStreamBYOBReader.prototype, {
+  cancel: { enumerable: true },
+  read: { enumerable: true },
+  releaseLock: { enumerable: true },
+  closed: { enumerable: true }
+});
+if (typeof Symbol.toStringTag === 'symbol') {
+  Object.defineProperty(ReadableStreamBYOBReader.prototype, Symbol.toStringTag, {
+    value: 'ReadableStreamBYOBReader',
+    configurable: true
+  });
+}
+
 // Abstract operations for the readers.
 
 export function IsReadableStreamBYOBReader(x: any): x is ReadableStreamBYOBReader {
