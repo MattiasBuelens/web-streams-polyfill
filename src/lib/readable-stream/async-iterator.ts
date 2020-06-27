@@ -23,23 +23,17 @@ export interface ReadableStreamAsyncIterator<R> extends AsyncIterator<R> {
   return(value?: any): Promise<IteratorResult<any>>;
 }
 
-declare class ReadableStreamAsyncIteratorImpl<R> implements ReadableStreamAsyncIterator<R> {
-  /** @internal */
-  _asyncIteratorReader: ReadableStreamDefaultReader<R>;
-  /** @internal */
-  _preventCancel: boolean;
+export class ReadableStreamAsyncIteratorImpl<R> {
+  private readonly _reader: ReadableStreamDefaultReader<R>;
+  private readonly _preventCancel: boolean;
 
-  next(): Promise<IteratorResult<R>>;
+  constructor(reader: ReadableStreamDefaultReader<R>, preventCancel: boolean) {
+    this._reader = reader;
+    this._preventCancel = preventCancel;
+  }
 
-  return(value?: any): Promise<IteratorResult<any>>;
-}
-
-const ReadableStreamAsyncIteratorPrototype: ReadableStreamAsyncIteratorImpl<any> = {
-  next(this: ReadableStreamAsyncIteratorImpl<any>): Promise<ReadResult<any>> {
-    if (IsReadableStreamAsyncIterator(this) === false) {
-      return promiseRejectedWith(streamAsyncIteratorBrandCheckException('next'));
-    }
-    const reader = this._asyncIteratorReader;
+  next(): Promise<ReadResult<R>> {
+    const reader = this._reader;
     if (reader._ownerReadableStream === undefined) {
       return promiseRejectedWith(readerLockException('iterate'));
     }
@@ -53,13 +47,10 @@ const ReadableStreamAsyncIteratorPrototype: ReadableStreamAsyncIteratorImpl<any>
       const value = result.value;
       return ReadableStreamCreateReadResult(value, done, true);
     });
-  },
+  }
 
-  return(this: ReadableStreamAsyncIteratorImpl<any>, value: any): Promise<ReadResult<any>> {
-    if (IsReadableStreamAsyncIterator(this) === false) {
-      return promiseRejectedWith(streamAsyncIteratorBrandCheckException('next'));
-    }
-    const reader = this._asyncIteratorReader;
+  return(value: any): Promise<ReadResult<any>> {
+    const reader = this._reader;
     if (reader._ownerReadableStream === undefined) {
       return promiseRejectedWith(readerLockException('finish iterating'));
     }
@@ -75,21 +66,44 @@ const ReadableStreamAsyncIteratorPrototype: ReadableStreamAsyncIteratorImpl<any>
     ReadableStreamReaderGenericRelease(reader);
     return promiseResolvedWith(ReadableStreamCreateReadResult(value, true, true));
   }
+}
+
+declare class ReadableStreamAsyncIteratorInstance<R> implements ReadableStreamAsyncIterator<R> {
+  /** @interal */
+  _asyncIteratorImpl: ReadableStreamAsyncIteratorImpl<R>;
+
+  next(): Promise<ReadResult<R>>;
+
+  return(value?: any): Promise<ReadResult<any>>;
+}
+
+const ReadableStreamAsyncIteratorPrototype: ReadableStreamAsyncIteratorInstance<any> = {
+  next(this: ReadableStreamAsyncIteratorInstance<any>): Promise<ReadResult<any>> {
+    if (IsReadableStreamAsyncIterator(this) === false) {
+      return promiseRejectedWith(streamAsyncIteratorBrandCheckException('next'));
+    }
+    return this._asyncIteratorImpl.next();
+  },
+
+  return(this: ReadableStreamAsyncIteratorInstance<any>, value: any): Promise<ReadResult<any>> {
+    if (IsReadableStreamAsyncIterator(this) === false) {
+      return promiseRejectedWith(streamAsyncIteratorBrandCheckException('next'));
+    }
+    return this._asyncIteratorImpl.return(value);
+  }
 } as any;
 if (AsyncIteratorPrototype !== undefined) {
   Object.setPrototypeOf(ReadableStreamAsyncIteratorPrototype, AsyncIteratorPrototype);
 }
-Object.defineProperty(ReadableStreamAsyncIteratorPrototype, 'next', { enumerable: false });
-Object.defineProperty(ReadableStreamAsyncIteratorPrototype, 'return', { enumerable: false });
 
 // Abstract operations for the ReadableStream.
 
 export function AcquireReadableStreamAsyncIterator<R>(stream: ReadableStream<R>,
                                                       preventCancel = false): ReadableStreamAsyncIterator<R> {
   const reader = AcquireReadableStreamDefaultReader<R>(stream);
-  const iterator: ReadableStreamAsyncIteratorImpl<R> = Object.create(ReadableStreamAsyncIteratorPrototype);
-  iterator._asyncIteratorReader = reader;
-  iterator._preventCancel = Boolean(preventCancel);
+  const impl = new ReadableStreamAsyncIteratorImpl(reader, Boolean(preventCancel));
+  const iterator: ReadableStreamAsyncIteratorInstance<R> = Object.create(ReadableStreamAsyncIteratorPrototype);
+  iterator._asyncIteratorImpl = impl;
   return iterator;
 }
 
@@ -98,7 +112,7 @@ function IsReadableStreamAsyncIterator<R>(x: any): x is ReadableStreamAsyncItera
     return false;
   }
 
-  if (!Object.prototype.hasOwnProperty.call(x, '_asyncIteratorReader')) {
+  if (!Object.prototype.hasOwnProperty.call(x, '_asyncIteratorImpl')) {
     return false;
   }
 

@@ -7,7 +7,7 @@ export type ReadResult<T> = {
   value: T;
 } | {
   done: true;
-  value?: T;
+  value: T | undefined;
 }
 
 export function ReadableStreamCreateReadResult<T>(value: T | undefined,
