@@ -6,7 +6,8 @@ const countSizeFunction = function size(): number {
 };
 
 export default class CountQueuingStrategy implements QueuingStrategy<any> {
-  private readonly _countQueuingStrategyHighWaterMark!: number;
+  /** @internal */
+  readonly _countQueuingStrategyHighWaterMark!: number;
 
   constructor(options: { highWaterMark: number }) {
     if (options !== undefined && !isDictionary(options)) {

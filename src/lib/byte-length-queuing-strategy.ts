@@ -6,7 +6,8 @@ const byteLengthSizeFunction = function size(chunk: ArrayBufferView): number {
 };
 
 export default class ByteLengthQueuingStrategy implements QueuingStrategy<ArrayBufferView> {
-  private readonly _byteLengthQueuingStrategyHighWaterMark!: number;
+  /** @internal */
+  readonly _byteLengthQueuingStrategyHighWaterMark: number;
 
   constructor(options: { highWaterMark: number }) {
     if (options !== undefined && !isDictionary(options)) {
