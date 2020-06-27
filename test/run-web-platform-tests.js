@@ -35,7 +35,7 @@ async function main() {
   const excludedTests = [
     // We cannot polyfill TransferArrayBuffer yet, so disable tests for detached array buffers
     // See https://github.com/MattiasBuelens/web-streams-polyfill/issues/3
-    'readable-byte-streams/detached-buffers.any.html'
+    'readable-byte-streams/bad-buffers-and-views.any.html'
   ];
   const ignoredFailures = {};
 
