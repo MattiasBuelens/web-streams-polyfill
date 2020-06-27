@@ -103,7 +103,7 @@ class WritableStream<W = any> {
     return IsWritableStreamLocked(this);
   }
 
-  abort(reason: any): Promise<void> {
+  abort(reason: any = undefined): Promise<void> {
     if (IsWritableStream(this) === false) {
       return promiseRejectedWith(streamBrandCheckException('abort'));
     }
@@ -609,7 +609,7 @@ export class WritableStreamDefaultWriter<W> {
     return this._readyPromise;
   }
 
-  abort(reason: any): Promise<void> {
+  abort(reason: any = undefined): Promise<void> {
     if (IsWritableStreamDefaultWriter(this) === false) {
       return promiseRejectedWith(defaultWriterBrandCheckException('abort'));
     }
@@ -655,7 +655,8 @@ export class WritableStreamDefaultWriter<W> {
     WritableStreamDefaultWriterRelease(this);
   }
 
-  write(chunk: W): Promise<void> {
+  write(chunk: W): Promise<void>;
+  write(chunk: W = undefined!): Promise<void> {
     if (IsWritableStreamDefaultWriter(this) === false) {
       return promiseRejectedWith(defaultWriterBrandCheckException('write'));
     }
@@ -848,7 +849,7 @@ export class WritableStreamDefaultController<W = any> {
     throw new TypeError('Illegal constructor');
   }
 
-  error(e: any) {
+  error(e: any = undefined): void {
     if (IsWritableStreamDefaultController(this) === false) {
       throw new TypeError(
         'WritableStreamDefaultController.prototype.error can only be used on a WritableStreamDefaultController');

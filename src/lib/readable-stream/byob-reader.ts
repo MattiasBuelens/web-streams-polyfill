@@ -119,7 +119,7 @@ export class ReadableStreamBYOBReader {
     return this._closedPromise;
   }
 
-  cancel(reason: any): Promise<void> {
+  cancel(reason: any = undefined): Promise<void> {
     if (!IsReadableStreamBYOBReader(this)) {
       return promiseRejectedWith(byobReaderBrandCheckException('cancel'));
     }

@@ -108,7 +108,7 @@ export class ReadableStreamDefaultReader<R> {
     return this._closedPromise;
   }
 
-  cancel(reason: any): Promise<void> {
+  cancel(reason: any = undefined): Promise<void> {
     if (!IsReadableStreamDefaultReader(this)) {
       return promiseRejectedWith(defaultReaderBrandCheckException('cancel'));
     }

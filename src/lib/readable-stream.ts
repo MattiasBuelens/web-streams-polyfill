@@ -132,7 +132,7 @@ export class ReadableStream<R = any> {
     return IsReadableStreamLocked(this);
   }
 
-  cancel(reason: any): Promise<void> {
+  cancel(reason: any = undefined): Promise<void> {
     if (IsReadableStream(this) === false) {
       return promiseRejectedWith(streamBrandCheckException('cancel'));
     }
@@ -146,7 +146,7 @@ export class ReadableStream<R = any> {
 
   getReader({ mode }: { mode: 'byob' }): ReadableStreamBYOBReader;
   getReader(): ReadableStreamDefaultReader<R>;
-  getReader(options?: { mode?: 'byob' }): ReadableStreamDefaultReader<R> | ReadableStreamBYOBReader {
+  getReader(options: { mode?: 'byob' } | undefined = undefined): ReadableStreamDefaultReader<R> | ReadableStreamBYOBReader {
     if (IsReadableStream(this) === false) {
       throw streamBrandCheckException('getReader');
     }
@@ -258,7 +258,7 @@ export class ReadableStream<R = any> {
     return createArrayFromList(branches);
   }
 
-  values(options?: { preventCancel?: boolean }): ReadableStreamAsyncIterator<R> {
+  values(options: { preventCancel?: boolean } | undefined = undefined): ReadableStreamAsyncIterator<R> {
     if (IsReadableStream(this) === false) {
       throw streamBrandCheckException('values');
     }

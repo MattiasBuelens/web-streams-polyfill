@@ -275,7 +275,8 @@ export class TransformStreamDefaultController<O> {
     return ReadableStreamDefaultControllerGetDesiredSize(readableController as ReadableStreamDefaultController<O>);
   }
 
-  enqueue(chunk: O): void {
+  enqueue(chunk: O): void;
+  enqueue(chunk: O = undefined!): void {
     if (IsTransformStreamDefaultController(this) === false) {
       throw defaultControllerBrandCheckException('enqueue');
     }
@@ -283,7 +284,7 @@ export class TransformStreamDefaultController<O> {
     TransformStreamDefaultControllerEnqueue(this, chunk);
   }
 
-  error(reason: any): void {
+  error(reason: any = undefined): void {
     if (IsTransformStreamDefaultController(this) === false) {
       throw defaultControllerBrandCheckException('error');
     }

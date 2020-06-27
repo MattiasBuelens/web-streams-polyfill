@@ -68,7 +68,8 @@ export class ReadableStreamDefaultController<R> {
     ReadableStreamDefaultControllerClose(this);
   }
 
-  enqueue(chunk: R): void {
+  enqueue(chunk: R): void;
+  enqueue(chunk: R = undefined!): void {
     if (IsReadableStreamDefaultController(this) === false) {
       throw defaultControllerBrandCheckException('enqueue');
     }
@@ -80,7 +81,7 @@ export class ReadableStreamDefaultController<R> {
     return ReadableStreamDefaultControllerEnqueue(this, chunk);
   }
 
-  error(e: any): void {
+  error(e: any = undefined): void {
     if (IsReadableStreamDefaultController(this) === false) {
       throw defaultControllerBrandCheckException('error');
     }

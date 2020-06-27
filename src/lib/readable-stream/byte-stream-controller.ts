@@ -248,7 +248,7 @@ export class ReadableByteStreamController {
     ReadableByteStreamControllerEnqueue(this, chunk);
   }
 
-  error(e: any): void {
+  error(e: any = undefined): void {
     if (IsReadableByteStreamController(this) === false) {
       throw byteStreamControllerBrandCheckException('error');
     }
