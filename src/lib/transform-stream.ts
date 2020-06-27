@@ -252,7 +252,7 @@ export class TransformStreamDefaultController<O> {
 
   /** @internal */
   constructor() {
-    throw new TypeError('TransformStreamDefaultController instances cannot be created directly');
+    throw new TypeError('Illegal constructor');
   }
 
   get desiredSize(): number | null {

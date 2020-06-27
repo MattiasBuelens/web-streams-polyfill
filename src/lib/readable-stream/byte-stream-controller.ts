@@ -45,7 +45,7 @@ export class ReadableStreamBYOBRequest {
 
   /** @internal */
   constructor() {
-    throw new TypeError('ReadableStreamBYOBRequest cannot be used directly');
+    throw new TypeError('Illegal constructor');
   }
 
   get view(): ArrayBufferView {
@@ -160,7 +160,7 @@ export class ReadableByteStreamController {
 
   /** @internal */
   constructor() {
-    throw new TypeError('ReadableByteStreamController constructor cannot be used directly');
+    throw new TypeError('Illegal constructor');
   }
 
   get byobRequest(): ReadableStreamBYOBRequest | undefined {

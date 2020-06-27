@@ -45,7 +45,7 @@ export class ReadableStreamDefaultController<R> {
 
   /** @internal */
   constructor() {
-    throw new TypeError();
+    throw new TypeError('Illegal constructor');
   }
 
   get desiredSize(): number | null {

@@ -816,7 +816,7 @@ export class WritableStreamDefaultController<W = any> {
 
   /** @internal */
   constructor() {
-    throw new TypeError('WritableStreamDefaultController cannot be constructed explicitly');
+    throw new TypeError('Illegal constructor');
   }
 
   error(e: any) {
