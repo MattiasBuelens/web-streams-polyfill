@@ -120,7 +120,8 @@ async function main() {
 
 async function runTests(entryFile, { excludedTests = [], ignoredFailures = {} } = {}) {
   const entryPath = path.resolve(__dirname, `../dist/${entryFile}`);
-  const testsPath = path.resolve(__dirname, './web-platform-tests/streams');
+  const wptPath = path.resolve(__dirname, 'web-platform-tests');
+  const testsPath = path.resolve(wptPath, 'streams');
 
   const includedTests = process.argv.length >= 3 ? process.argv.slice(2) : ['**/*.html'];
   const includeMatcher = micromatch.matcher(includedTests);
@@ -137,12 +138,28 @@ async function runTests(entryFile, { excludedTests = [], ignoredFailures = {} } 
     rootURL: 'streams/',
     reporter,
     setup(window) {
-      window.gc = gc;
+      window.queueMicrotask = queueMicrotask;
+      window.fetch = async function (url) {
+        const filePath = path.join(wptPath, url);
+        if (!filePath.startsWith(wptPath)) {
+          throw new TypeError('Invalid URL');
+        }
+        return {
+          ok: true,
+          async text() {
+            return await readFileAsync(filePath, { encoding: 'utf8' });
+          }
+        };
+      };
       window.eval(bundledJS);
     },
     filter(testPath) {
-      return !workerTestPattern.test(testPath) && // ignore the worker versions
-          includeMatcher(testPath) &&
+      // Ignore the worker versions
+      if (workerTestPattern.test(testPath)) {
+        return false;
+      }
+
+      return includeMatcher(testPath) &&
           !excludeMatcher(testPath);
     }
   });

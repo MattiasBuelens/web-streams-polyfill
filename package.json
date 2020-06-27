@@ -69,6 +69,6 @@
     "ts-morph": "^6.0.3",
     "tslib": "^1.11.1",
     "typescript": "^3.8.3",
-    "wpt-runner": "^3.0.1"
+    "wpt-runner": "^3.1.0"
   }
 }
