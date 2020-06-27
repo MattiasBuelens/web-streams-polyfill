@@ -113,7 +113,9 @@ export function ReadableStreamTee<R>(stream: ReadableStream<R>,
     return cancelPromise;
   }
 
-  function startAlgorithm() {}
+  function startAlgorithm() {
+    // do nothing
+  }
 
   branch1 = CreateReadableStream(startAlgorithm, pullAlgorithm, cancel1Algorithm);
   branch2 = CreateReadableStream(startAlgorithm, pullAlgorithm, cancel2Algorithm);
