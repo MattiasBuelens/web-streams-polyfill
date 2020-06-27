@@ -64,8 +64,7 @@ function bundle(entry, { esm = false, minify = false, target = 'es5' } = {}) {
         keep_classnames: true, // needed for WPT
         mangle: {
           toplevel: true
-        },
-        sourcemap: true
+        }
       }) : undefined
     ].filter(Boolean)
   };
