@@ -257,9 +257,9 @@ export class ReadableStream<R = any> {
     return createArrayFromList(branches);
   }
 
-  getIterator({ preventCancel = false }: { preventCancel?: boolean } = {}): ReadableStreamAsyncIterator<R> {
+  values({ preventCancel = false }: { preventCancel?: boolean } = {}): ReadableStreamAsyncIterator<R> {
     if (IsReadableStream(this) === false) {
-      throw streamBrandCheckException('getIterator');
+      throw streamBrandCheckException('values');
     }
     return AcquireReadableStreamAsyncIterator<R>(this, preventCancel);
   }
@@ -269,7 +269,7 @@ export class ReadableStream<R = any> {
 
 if (typeof Symbol.asyncIterator === 'symbol') {
   Object.defineProperty(ReadableStream.prototype, Symbol.asyncIterator, {
-    value: ReadableStream.prototype.getIterator,
+    value: ReadableStream.prototype.values,
     enumerable: false,
     writable: true,
     configurable: true

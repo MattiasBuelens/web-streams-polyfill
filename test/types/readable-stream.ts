@@ -104,7 +104,7 @@ const pipeThroughStream: polyfill.ReadableStream<Uint8Array> = readableStream
     signal: undefined
   });
 
-const getIteratorResult: polyfill.ReadableStreamAsyncIterator<string> = readableStream.getIterator({ preventCancel: true });
+const valuesResult: polyfill.ReadableStreamAsyncIterator<string> = readableStream.values({ preventCancel: true });
 
 const asyncIterator: polyfill.ReadableStreamAsyncIterator<string> = readableStream[Symbol.asyncIterator]();
 const asyncIteratorNextResult: Promise<IteratorResult<string>> = asyncIterator.next();
