@@ -11,6 +11,7 @@ const consoleReporter = require('wpt-runner/lib/console-reporter.js');
 const { FilteringReporter } = require('./wpt-util/filtering-reporter.js');
 
 const readFileAsync = promisify(fs.readFile);
+const queueMicrotask = global.queueMicrotask || (fn => Promise.resolve().then(fn));
 
 // wpt-runner does not yet support unhandled rejection tracking a la
 // https://github.com/w3c/testharness.js/commit/7716e2581a86dfd9405a9c00547a7504f0c7fe94
