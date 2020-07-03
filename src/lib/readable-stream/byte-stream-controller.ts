@@ -37,20 +37,18 @@ import {
 import { CancelSteps, PullSteps } from './symbols';
 import { UnderlyingByteSource } from './underlying-source';
 
-export type ReadableStreamBYOBRequestType = ReadableStreamBYOBRequest;
-
 export class ReadableStreamBYOBRequest {
   /** @internal */
   _associatedReadableByteStreamController!: ReadableByteStreamController;
   /** @internal */
-  _view!: ArrayBufferView;
+  _view!: ArrayBufferView | null;
 
   /** @internal */
   constructor() {
-    throw new TypeError('ReadableStreamBYOBRequest cannot be used directly');
+    throw new TypeError('Illegal constructor');
   }
 
-  get view(): ArrayBufferView {
+  get view(): ArrayBufferView | null {
     if (IsReadableStreamBYOBRequest(this) === false) {
       throw byobRequestBrandCheckException('view');
     }
@@ -63,12 +61,16 @@ export class ReadableStreamBYOBRequest {
       throw byobRequestBrandCheckException('respond');
     }
 
+    if (bytesWritten === undefined) {
+      throw new TypeError('bytesWritten is required');
+    }
+
     if (this._associatedReadableByteStreamController === undefined) {
       throw new TypeError('This BYOB request has been invalidated');
     }
 
-    if (IsDetachedBuffer(this._view.buffer) === true) {
-      throw new TypeError('The BYOB request\'s buffer has been detached and so cannot be used as a response');
+    if (IsDetachedBuffer(this._view!.buffer) === true) {
+      throw new TypeError(`The BYOB request's buffer has been detached and so cannot be used as a response`);
     }
 
     ReadableByteStreamControllerRespond(this._associatedReadableByteStreamController, bytesWritten);
@@ -88,11 +90,23 @@ export class ReadableStreamBYOBRequest {
     }
 
     if (IsDetachedBuffer(view.buffer) === true) {
-      throw new TypeError('The supplied view\'s buffer has been detached and so cannot be used as a response');
+      throw new TypeError(`The supplied view's buffer has been detached and so cannot be used as a response`);
     }
 
     ReadableByteStreamControllerRespondWithNewView(this._associatedReadableByteStreamController, view);
   }
+}
+
+Object.defineProperties(ReadableStreamBYOBRequest.prototype, {
+  respond: { enumerable: true },
+  respondWithNewView: { enumerable: true },
+  view: { enumerable: true }
+});
+if (typeof Symbol.toStringTag === 'symbol') {
+  Object.defineProperty(ReadableStreamBYOBRequest.prototype, Symbol.toStringTag, {
+    value: 'ReadableStreamBYOBRequest',
+    configurable: true
+  });
 }
 
 interface ArrayBufferViewConstructor<T extends ArrayBufferView = ArrayBufferView> {
@@ -132,8 +146,6 @@ interface BYOBPullIntoDescriptor<T extends ArrayBufferView = ArrayBufferView> {
   readerType: 'byob';
 }
 
-export type ReadableByteStreamControllerType = ReadableByteStreamController;
-
 export class ReadableByteStreamController {
   /** @internal */
   _controlledReadableByteStream!: ReadableByteStream;
@@ -158,21 +170,21 @@ export class ReadableByteStreamController {
   /** @internal */
   _autoAllocateChunkSize: number | undefined;
   /** @internal */
-  _byobRequest: ReadableStreamBYOBRequest | undefined;
+  _byobRequest: ReadableStreamBYOBRequest | null;
   /** @internal */
   _pendingPullIntos!: SimpleQueue<PullIntoDescriptor>;
 
   /** @internal */
   constructor() {
-    throw new TypeError('ReadableByteStreamController constructor cannot be used directly');
+    throw new TypeError('Illegal constructor');
   }
 
-  get byobRequest(): ReadableStreamBYOBRequest | undefined {
+  get byobRequest(): ReadableStreamBYOBRequest | null {
     if (IsReadableByteStreamController(this) === false) {
       throw byteStreamControllerBrandCheckException('byobRequest');
     }
 
-    if (this._byobRequest === undefined && this._pendingPullIntos.length > 0) {
+    if (this._byobRequest === null && this._pendingPullIntos.length > 0) {
       const firstDescriptor = this._pendingPullIntos.peek();
       const view = new Uint8Array(firstDescriptor.buffer,
                                   firstDescriptor.byteOffset + firstDescriptor.bytesFilled,
@@ -236,7 +248,7 @@ export class ReadableByteStreamController {
     ReadableByteStreamControllerEnqueue(this, chunk);
   }
 
-  error(e: any): void {
+  error(e: any = undefined): void {
     if (IsReadableByteStreamController(this) === false) {
       throw byteStreamControllerBrandCheckException('error');
     }
@@ -309,6 +321,20 @@ export class ReadableByteStreamController {
 
     return promise;
   }
+}
+
+Object.defineProperties(ReadableByteStreamController.prototype, {
+  close: { enumerable: true },
+  enqueue: { enumerable: true },
+  error: { enumerable: true },
+  byobRequest: { enumerable: true },
+  desiredSize: { enumerable: true }
+});
+if (typeof Symbol.toStringTag === 'symbol') {
+  Object.defineProperty(ReadableByteStreamController.prototype, Symbol.toStringTag, {
+    value: 'ReadableByteStreamController',
+    configurable: true
+  });
 }
 
 // Abstract operations for the ReadableByteStreamController.
@@ -484,13 +510,13 @@ function ReadableByteStreamControllerHandleQueueDrain(controller: ReadableByteSt
 }
 
 function ReadableByteStreamControllerInvalidateBYOBRequest(controller: ReadableByteStreamController) {
-  if (controller._byobRequest === undefined) {
+  if (controller._byobRequest === null) {
     return;
   }
 
   controller._byobRequest._associatedReadableByteStreamController = undefined!;
-  controller._byobRequest._view = undefined!;
-  controller._byobRequest = undefined;
+  controller._byobRequest._view = null!;
+  controller._byobRequest = null;
 }
 
 function ReadableByteStreamControllerProcessPullIntoDescriptorsUsingQueue(controller: ReadableByteStreamController) {
@@ -690,8 +716,9 @@ function ReadableByteStreamControllerClearAlgorithms(controller: ReadableByteStr
 function ReadableByteStreamControllerClose(controller: ReadableByteStreamController) {
   const stream = controller._controlledReadableByteStream;
 
-  assert(controller._closeRequested === false);
-  assert(stream._state === 'readable');
+  if (controller._closeRequested === true || stream._state !== 'readable') {
+    return;
+  }
 
   if (controller._queueTotalSize > 0) {
     controller._closeRequested = true;
@@ -716,8 +743,9 @@ function ReadableByteStreamControllerClose(controller: ReadableByteStreamControl
 function ReadableByteStreamControllerEnqueue(controller: ReadableByteStreamController, chunk: ArrayBufferView) {
   const stream = controller._controlledReadableByteStream;
 
-  assert(controller._closeRequested === false);
-  assert(stream._state === 'readable');
+  if (controller._closeRequested === true || stream._state !== 'readable') {
+    return;
+  }
 
   const buffer = chunk.buffer;
   const byteOffset = chunk.byteOffset;
@@ -820,7 +848,7 @@ export function SetUpReadableByteStreamController(stream: ReadableByteStream,
   controller._pullAgain = false;
   controller._pulling = false;
 
-  controller._byobRequest = undefined;
+  controller._byobRequest = null;
 
   // Need to set the slots so that the assert doesn't fire. In the spec the slots already exist implicitly.
   controller._queue = controller._queueTotalSize = undefined!;

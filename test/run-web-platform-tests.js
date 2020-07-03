@@ -9,8 +9,10 @@ const micromatch = require('micromatch');
 const wptRunner = require('wpt-runner');
 const consoleReporter = require('wpt-runner/lib/console-reporter.js');
 const { FilteringReporter } = require('./wpt-util/filtering-reporter.js');
+const allSettled = require('@ungap/promise-all-settled');
 
 const readFileAsync = promisify(fs.readFile);
+const queueMicrotask = global.queueMicrotask || (fn => Promise.resolve().then(fn));
 
 // wpt-runner does not yet support unhandled rejection tracking a la
 // https://github.com/w3c/testharness.js/commit/7716e2581a86dfd9405a9c00547a7504f0c7fe94
@@ -35,92 +37,103 @@ async function main() {
   const excludedTests = [
     // We cannot polyfill TransferArrayBuffer yet, so disable tests for detached array buffers
     // See https://github.com/MattiasBuelens/web-streams-polyfill/issues/3
-    'readable-byte-streams/detached-buffers.any.html'
+    'readable-byte-streams/bad-buffers-and-views.any.html'
   ];
   const ignoredFailures = {};
 
+  const ignoredFailuresMinified = {
+    'idlharness.any.html': [
+      // Terser turns `(a = undefined) => {}` into `(a) => {}`, changing the function's length property
+      // Therefore we cannot correctly implement methods with optional arguments
+      /interface: operation (abort|cancel|enqueue|error|getReader|write)/,
+      // Same thing for ReadableStream.values(), which is tested as part of the async iterable declaration
+      'ReadableStream interface: async iterable<any>'
+    ]
+  };
+
   if (!supportsES2018) {
-    excludedTests.push([
+    excludedTests.push(
       // Skip tests that use async generators or for-await-of
       'readable-streams/async-iterator.any.html',
       'readable-streams/patched-global.any.html'
-    ]);
-    ignoredFailures['readable-streams/general.any.html'] = [
-      // Symbol.asyncIterator does not exist
-      'ReadableStream instances should have the correct list of properties'
-    ];
+    );
   }
 
-  const ignoredFailuresES6 = {
-    ...ignoredFailures,
+  const ignoredFailuresES6 = merge(ignoredFailures, {
     'readable-streams/async-iterator.any.html': [
       // ES6 build will not use correct %AsyncIteratorPrototype%
       'Async iterator instances should have the correct list of properties'
     ]
-  };
+  });
 
-  const ignoredFailuresES5 = {
-    ...ignoredFailuresES6,
-    // ES5 build does not set correct function name on constructors and methods
-    // ES5 build does not set correct length on constructors and methods with optional arguments
-    // ES5 build does not set correct 'enumerable' flag on properties and methods
-    // ES5 build cannot mark methods as non-constructable
-    'byte-length-queuing-strategy.any.html': [
-      'ByteLengthQueuingStrategy.name is correct'
-    ],
-    'count-queuing-strategy.any.html': [
-      'CountQueuingStrategy.name is correct'
-    ],
-    'readable-byte-streams/brand-checks.any.html': [
-      'Can get the ReadableStreamBYOBReader constructor indirectly', // checks name
-      'Can get the ReadableByteStreamController constructor indirectly' // checks name
-    ],
-    'readable-byte-streams/properties.any.html': [
-      'ReadableStreamBYOBReader instances should have the correct list of properties',
-      'ReadableByteStreamController instances should have the correct list of properties',
-      'ReadableStreamBYOBRequest instances should have the correct list of properties'
-    ],
-    'readable-streams/default-reader.any.html': [
-      'ReadableStreamDefaultReader instances should have the correct list of properties'
-    ],
-    'readable-streams/general.any.html': [
-      'ReadableStream instances should have the correct list of properties',
-      'ReadableStream start should be called with the proper parameters'
-    ],
-    'transform-streams/general.any.html': [
-      'TransformStream instances must have writable and readable properties of the correct types'
-    ],
-    'transform-streams/properties.any.html': [
-      /should be a constructor/,
-      /should be a method/,
-      /should have standard properties/
-    ],
-    'writable-streams/properties.any.html': [
-      /should be a constructor/,
-      /should be a method/,
-      /should have standard properties/
+  const excludedTestsES5 = [
+    ...excludedTests,
+    // TODO Re-enable after https://github.com/domenic/wpt-runner/pull/21 lands
+    'idlharness.any.html'
+  ];
+
+  const ignoredFailuresES5 = merge(ignoredFailuresES6, {
+    'idlharness.any.html': [
+      // ES5 build does not set correct length on constructors with optional arguments
+      'ReadableStream interface object length',
+      'WritableStream interface object length',
+      'TransformStream interface object length',
+      // ES5 build does not set correct length on methods with optional arguments
+      /interface: operation \w+\(.*optional.*\)/,
+      'ReadableStream interface: async iterable<any>',
+      // ES5 build does not set correct function name on getters and setters
+      /interface: attribute/,
+      // ES5 build has { writable: true } on prototype objects
+      /interface: existence and properties of interface prototype object/
     ]
-  };
+  });
 
-  let failures = 0;
+  const results = [];
+
   if (supportsES2018) {
-    failures += await runTests('polyfill.es2018.min.js', { excludedTests, ignoredFailures });
+    results.push(await runTests('polyfill.es2018.js', { excludedTests, ignoredFailures }));
+    results.push(await runTests('polyfill.es2018.min.js', {
+      excludedTests,
+      ignoredFailures: merge(ignoredFailures, ignoredFailuresMinified)
+    }));
   }
-  failures += await runTests('polyfill.es6.min.js', {
+
+  results.push(await runTests('polyfill.es6.js', {
     excludedTests,
     ignoredFailures: ignoredFailuresES6
-  });
-  failures += await runTests('polyfill.min.js', {
+  }));
+  results.push(await runTests('polyfill.es6.min.js', {
     excludedTests,
+    ignoredFailures: merge(ignoredFailuresES6, ignoredFailuresMinified)
+  }));
+
+  results.push(await runTests('polyfill.js', {
+    excludedTests: excludedTestsES5,
     ignoredFailures: ignoredFailuresES5
-  });
+  }));
+  results.push(await runTests('polyfill.min.js', {
+    excludedTests: excludedTestsES5,
+    ignoredFailures: merge(ignoredFailuresES5, ignoredFailuresMinified)
+  }));
+
+  const failures = results.reduce((sum, result) => sum + result.failures, 0);
+  for (const { entryFile, testResults, rejectionsCount } of results) {
+    console.log(`> ${entryFile}`);
+    console.log(`  * ${testResults.passed} passed`);
+    console.log(`  * ${testResults.failed} failed`);
+    console.log(`  * ${testResults.ignored} ignored`);
+    if (rejectionsCount > 0) {
+      console.log(`  * ${rejectionsCount} unhandled promise rejections`);
+    }
+  }
 
   process.exitCode = failures;
 }
 
 async function runTests(entryFile, { excludedTests = [], ignoredFailures = {} } = {}) {
   const entryPath = path.resolve(__dirname, `../dist/${entryFile}`);
-  const testsPath = path.resolve(__dirname, './web-platform-tests/streams');
+  const wptPath = path.resolve(__dirname, 'web-platform-tests');
+  const testsPath = path.resolve(wptPath, 'streams');
 
   const includedTests = process.argv.length >= 3 ? process.argv.slice(2) : ['**/*.html'];
   const includeMatcher = micromatch.matcher(includedTests);
@@ -137,35 +150,51 @@ async function runTests(entryFile, { excludedTests = [], ignoredFailures = {} } 
     rootURL: 'streams/',
     reporter,
     setup(window) {
-      window.gc = gc;
+      window.queueMicrotask = queueMicrotask;
+      window.Promise.allSettled = allSettled;
+      window.fetch = async function (url) {
+        const filePath = path.join(wptPath, url);
+        if (!filePath.startsWith(wptPath)) {
+          throw new TypeError('Invalid URL');
+        }
+        return {
+          ok: true,
+          async text() {
+            return await readFileAsync(filePath, { encoding: 'utf8' });
+          }
+        };
+      };
       window.eval(bundledJS);
     },
     filter(testPath) {
-      return !workerTestPattern.test(testPath) && // ignore the worker versions
-          includeMatcher(testPath) &&
+      // Ignore the worker versions
+      if (workerTestPattern.test(testPath)) {
+        return false;
+      }
+
+      return includeMatcher(testPath) &&
           !excludeMatcher(testPath);
     }
   });
-  const results = reporter.getResults();
 
-  console.log();
-  console.log(`${results.passed} tests passed, ${results.failed} failed, ${results.ignored} ignored`);
-
-  let failures = Math.max(results.failed, wptFailures - results.ignored);
+  const testResults = reporter.getResults();
+  let failures = Math.max(testResults.failed, wptFailures - testResults.ignored);
 
   if (rejections.size > 0) {
     if (failures === 0) {
       failures = 1;
     }
 
+    console.log();
     for (const reason of rejections.values()) {
       console.error('Unhandled promise rejection: ', reason.stack);
     }
+    rejections.clear();
   }
 
   console.log();
 
-  return failures;
+  return { entryFile, failures, testResults, rejectionsCount: rejections.size };
 }
 
 function runtimeSupportsAsyncGenerators() {
@@ -176,4 +205,12 @@ function runtimeSupportsAsyncGenerators() {
   } catch (e) {
     return false;
   }
+}
+
+function merge(left, right) {
+  const result = { ...left };
+  for (const key of Object.keys(right)) {
+    result[key] = [...(result[key] || []), ...right[key]];
+  }
+  return result;
 }

@@ -20,9 +20,9 @@ const AbortSteps = Symbol('[[AbortSteps]]');
 const ErrorSteps = Symbol('[[ErrorSteps]]');
 
 type WritableStreamDefaultControllerStartCallback
-  = (controller: WritableStreamDefaultControllerType) => void | PromiseLike<void>;
+  = (controller: WritableStreamDefaultController) => void | PromiseLike<void>;
 type WritableStreamDefaultControllerWriteCallback<W>
-  = (chunk: W, controller: WritableStreamDefaultControllerType) => void | PromiseLike<void>;
+  = (chunk: W, controller: WritableStreamDefaultController) => void | PromiseLike<void>;
 type WritableStreamDefaultControllerCloseCallback = () => void | PromiseLike<void>;
 type WritableStreamErrorCallback = (reason: any) => void | PromiseLike<void>;
 
@@ -103,7 +103,7 @@ class WritableStream<W = any> {
     return IsWritableStreamLocked(this);
   }
 
-  abort(reason: any): Promise<void> {
+  abort(reason: any = undefined): Promise<void> {
     if (IsWritableStream(this) === false) {
       return promiseRejectedWith(streamBrandCheckException('abort'));
     }
@@ -138,6 +138,19 @@ class WritableStream<W = any> {
 
     return AcquireWritableStreamDefaultWriter(this);
   }
+}
+
+Object.defineProperties(WritableStream.prototype, {
+  abort: { enumerable: true },
+  close: { enumerable: true },
+  getWriter: { enumerable: true },
+  locked: { enumerable: true }
+});
+if (typeof Symbol.toStringTag === 'symbol') {
+  Object.defineProperty(WritableStream.prototype, Symbol.toStringTag, {
+    value: 'WritableStream',
+    configurable: true
+  });
 }
 
 export {
@@ -512,9 +525,7 @@ function WritableStreamUpdateBackpressure(stream: WritableStream, backpressure: 
   stream._backpressure = backpressure;
 }
 
-export type WritableStreamDefaultWriterType<W> = WritableStreamDefaultWriter<W>;
-
-class WritableStreamDefaultWriter<W> {
+export class WritableStreamDefaultWriter<W> {
   /** @internal */
   _ownerWritableStream: WritableStream<W>;
   /** @internal */
@@ -598,7 +609,7 @@ class WritableStreamDefaultWriter<W> {
     return this._readyPromise;
   }
 
-  abort(reason: any): Promise<void> {
+  abort(reason: any = undefined): Promise<void> {
     if (IsWritableStreamDefaultWriter(this) === false) {
       return promiseRejectedWith(defaultWriterBrandCheckException('abort'));
     }
@@ -644,7 +655,8 @@ class WritableStreamDefaultWriter<W> {
     WritableStreamDefaultWriterRelease(this);
   }
 
-  write(chunk: W): Promise<void> {
+  write(chunk: W): Promise<void>;
+  write(chunk: W = undefined!): Promise<void> {
     if (IsWritableStreamDefaultWriter(this) === false) {
       return promiseRejectedWith(defaultWriterBrandCheckException('write'));
     }
@@ -655,6 +667,22 @@ class WritableStreamDefaultWriter<W> {
 
     return WritableStreamDefaultWriterWrite(this, chunk);
   }
+}
+
+Object.defineProperties(WritableStreamDefaultWriter.prototype, {
+  abort: { enumerable: true },
+  close: { enumerable: true },
+  releaseLock: { enumerable: true },
+  write: { enumerable: true },
+  closed: { enumerable: true },
+  desiredSize: { enumerable: true },
+  ready: { enumerable: true }
+});
+if (typeof Symbol.toStringTag === 'symbol') {
+  Object.defineProperty(WritableStreamDefaultWriter.prototype, Symbol.toStringTag, {
+    value: 'WritableStreamDefaultWriter',
+    configurable: true
+  });
 }
 
 // Abstract operations for the WritableStreamDefaultWriter.
@@ -745,7 +773,7 @@ function WritableStreamDefaultWriterRelease(writer: WritableStreamDefaultWriter<
   assert(stream._writer === writer);
 
   const releasedError = new TypeError(
-    'Writer was released and can no longer be used to monitor the stream\'s closedness');
+    `Writer was released and can no longer be used to monitor the stream's closedness`);
 
   WritableStreamDefaultWriterEnsureReadyPromiseRejected(writer, releasedError);
 
@@ -796,9 +824,7 @@ interface WriteRecord<W> {
 
 type QueueRecord<W> = WriteRecord<W> | 'close';
 
-export type WritableStreamDefaultControllerType = WritableStreamDefaultController<any>;
-
-class WritableStreamDefaultController<W = any> {
+export class WritableStreamDefaultController<W = any> {
   /** @internal */
   _controlledWritableStream!: WritableStream<W>;
   /** @internal */
@@ -820,10 +846,10 @@ class WritableStreamDefaultController<W = any> {
 
   /** @internal */
   constructor() {
-    throw new TypeError('WritableStreamDefaultController cannot be constructed explicitly');
+    throw new TypeError('Illegal constructor');
   }
 
-  error(e: any) {
+  error(e: any = undefined): void {
     if (IsWritableStreamDefaultController(this) === false) {
       throw new TypeError(
         'WritableStreamDefaultController.prototype.error can only be used on a WritableStreamDefaultController');
@@ -849,6 +875,16 @@ class WritableStreamDefaultController<W = any> {
   [ErrorSteps]() {
     ResetQueue(this);
   }
+}
+
+Object.defineProperties(WritableStreamDefaultController.prototype, {
+  error: { enumerable: true }
+});
+if (typeof Symbol.toStringTag === 'symbol') {
+  Object.defineProperty(WritableStreamDefaultController.prototype, Symbol.toStringTag, {
+    value: 'WritableStreamDefaultController',
+    configurable: true
+  });
 }
 
 // Abstract operations implementing interface required by the WritableStream.

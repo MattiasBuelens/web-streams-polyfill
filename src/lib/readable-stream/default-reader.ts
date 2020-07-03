@@ -73,8 +73,6 @@ export interface ReadRequest<R> {
   _reject: (reason: any) => void;
 }
 
-export type ReadableStreamDefaultReaderType<R> = ReadableStreamDefaultReader<R>;
-
 export class ReadableStreamDefaultReader<R> {
   /** @internal */
   _forAuthorCode!: boolean;
@@ -110,7 +108,7 @@ export class ReadableStreamDefaultReader<R> {
     return this._closedPromise;
   }
 
-  cancel(reason: any): Promise<void> {
+  cancel(reason: any = undefined): Promise<void> {
     if (!IsReadableStreamDefaultReader(this)) {
       return promiseRejectedWith(defaultReaderBrandCheckException('cancel'));
     }
@@ -149,6 +147,19 @@ export class ReadableStreamDefaultReader<R> {
 
     ReadableStreamReaderGenericRelease(this);
   }
+}
+
+Object.defineProperties(ReadableStreamDefaultReader.prototype, {
+  cancel: { enumerable: true },
+  read: { enumerable: true },
+  releaseLock: { enumerable: true },
+  closed: { enumerable: true }
+});
+if (typeof Symbol.toStringTag === 'symbol') {
+  Object.defineProperty(ReadableStreamDefaultReader.prototype, Symbol.toStringTag, {
+    value: 'ReadableStreamDefaultReader',
+    configurable: true
+  });
 }
 
 // Abstract operations for the readers.

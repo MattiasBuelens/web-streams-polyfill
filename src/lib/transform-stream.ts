@@ -12,11 +12,7 @@ import {
   typeIsObject,
   ValidateAndNormalizeHighWaterMark
 } from './helpers';
-import {
-  CreateReadableStream,
-  ReadableStream,
-  ReadableStreamDefaultControllerType as ReadableStreamDefaultController
-} from './readable-stream';
+import { CreateReadableStream, ReadableStream, ReadableStreamDefaultController } from './readable-stream';
 import {
   ReadableStreamDefaultControllerCanCloseOrEnqueue,
   ReadableStreamDefaultControllerClose,
@@ -29,9 +25,9 @@ import { QueuingStrategy, QueuingStrategySizeCallback } from './queuing-strategy
 import { CreateWritableStream, WritableStream, WritableStreamDefaultControllerErrorIfNeeded } from './writable-stream';
 
 export type TransformStreamDefaultControllerCallback<O>
-  = (controller: TransformStreamDefaultControllerType<O>) => void | PromiseLike<void>;
+  = (controller: TransformStreamDefaultController<O>) => void | PromiseLike<void>;
 export type TransformStreamDefaultControllerTransformCallback<I, O>
-  = (chunk: I, controller: TransformStreamDefaultControllerType<O>) => void | PromiseLike<void>;
+  = (chunk: I, controller: TransformStreamDefaultController<O>) => void | PromiseLike<void>;
 
 export interface Transformer<I = any, O = any> {
   start?: TransformStreamDefaultControllerCallback<O>;
@@ -119,6 +115,17 @@ export class TransformStream<I = any, O = any> {
 
     return this._writable;
   }
+}
+
+Object.defineProperties(TransformStream.prototype, {
+  readable: { enumerable: true },
+  writable: { enumerable: true }
+});
+if (typeof Symbol.toStringTag === 'symbol') {
+  Object.defineProperty(TransformStream.prototype, Symbol.toStringTag, {
+    value: 'TransformStream',
+    configurable: true
+  });
 }
 
 // Transform Stream Abstract Operations
@@ -246,9 +253,7 @@ function TransformStreamSetBackpressure(stream: TransformStream, backpressure: b
 
 // Class TransformStreamDefaultController
 
-export type TransformStreamDefaultControllerType<O> = TransformStreamDefaultController<O>;
-
-class TransformStreamDefaultController<O> {
+export class TransformStreamDefaultController<O> {
   /** @internal */
   _controlledTransformStream: TransformStream<any, O>;
   /** @internal */
@@ -258,7 +263,7 @@ class TransformStreamDefaultController<O> {
 
   /** @internal */
   constructor() {
-    throw new TypeError('TransformStreamDefaultController instances cannot be created directly');
+    throw new TypeError('Illegal constructor');
   }
 
   get desiredSize(): number | null {
@@ -270,7 +275,8 @@ class TransformStreamDefaultController<O> {
     return ReadableStreamDefaultControllerGetDesiredSize(readableController as ReadableStreamDefaultController<O>);
   }
 
-  enqueue(chunk: O): void {
+  enqueue(chunk: O): void;
+  enqueue(chunk: O = undefined!): void {
     if (IsTransformStreamDefaultController(this) === false) {
       throw defaultControllerBrandCheckException('enqueue');
     }
@@ -278,7 +284,7 @@ class TransformStreamDefaultController<O> {
     TransformStreamDefaultControllerEnqueue(this, chunk);
   }
 
-  error(reason: any): void {
+  error(reason: any = undefined): void {
     if (IsTransformStreamDefaultController(this) === false) {
       throw defaultControllerBrandCheckException('error');
     }
@@ -293,6 +299,19 @@ class TransformStreamDefaultController<O> {
 
     TransformStreamDefaultControllerTerminate(this);
   }
+}
+
+Object.defineProperties(TransformStreamDefaultController.prototype, {
+  enqueue: { enumerable: true },
+  error: { enumerable: true },
+  terminate: { enumerable: true },
+  desiredSize: { enumerable: true }
+});
+if (typeof Symbol.toStringTag === 'symbol') {
+  Object.defineProperty(TransformStreamDefaultController.prototype, Symbol.toStringTag, {
+    value: 'TransformStreamDefaultController',
+    configurable: true
+  });
 }
 
 // Transform Stream Default Controller Abstract Operations
@@ -400,9 +419,7 @@ function TransformStreamDefaultControllerTerminate<O>(controller: TransformStrea
   const stream = controller._controlledTransformStream;
   const readableController = stream._readable._readableStreamController as ReadableStreamDefaultController<O>;
 
-  if (ReadableStreamDefaultControllerCanCloseOrEnqueue(readableController) === true) {
-    ReadableStreamDefaultControllerClose(readableController);
-  }
+  ReadableStreamDefaultControllerClose(readableController);
 
   const error = new TypeError('TransformStream terminated');
   TransformStreamErrorWritableAndUnblockWrite(stream, error);

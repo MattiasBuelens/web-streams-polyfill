@@ -19,8 +19,6 @@ import {
 import { IsReadableStreamLocked, ReadableStream, ReadableStreamClose, ReadableStreamError } from '../readable-stream';
 import { UnderlyingSource } from './underlying-source';
 
-export type ReadableStreamDefaultControllerType<R> = ReadableStreamDefaultController<R>;
-
 export class ReadableStreamDefaultController<R> {
   /** @internal */
   _controlledReadableStream!: ReadableStream<R>;
@@ -47,7 +45,7 @@ export class ReadableStreamDefaultController<R> {
 
   /** @internal */
   constructor() {
-    throw new TypeError();
+    throw new TypeError('Illegal constructor');
   }
 
   get desiredSize(): number | null {
@@ -70,7 +68,8 @@ export class ReadableStreamDefaultController<R> {
     ReadableStreamDefaultControllerClose(this);
   }
 
-  enqueue(chunk: R): void {
+  enqueue(chunk: R): void;
+  enqueue(chunk: R = undefined!): void {
     if (IsReadableStreamDefaultController(this) === false) {
       throw defaultControllerBrandCheckException('enqueue');
     }
@@ -82,7 +81,7 @@ export class ReadableStreamDefaultController<R> {
     return ReadableStreamDefaultControllerEnqueue(this, chunk);
   }
 
-  error(e: any): void {
+  error(e: any = undefined): void {
     if (IsReadableStreamDefaultController(this) === false) {
       throw defaultControllerBrandCheckException('error');
     }
@@ -119,6 +118,19 @@ export class ReadableStreamDefaultController<R> {
     ReadableStreamDefaultControllerCallPullIfNeeded(this);
     return pendingPromise;
   }
+}
+
+Object.defineProperties(ReadableStreamDefaultController.prototype, {
+  close: { enumerable: true },
+  enqueue: { enumerable: true },
+  error: { enumerable: true },
+  desiredSize: { enumerable: true }
+});
+if (typeof Symbol.toStringTag === 'symbol') {
+  Object.defineProperty(ReadableStreamDefaultController.prototype, Symbol.toStringTag, {
+    value: 'ReadableStreamDefaultController',
+    configurable: true
+  });
 }
 
 // Abstract operations for the ReadableStreamDefaultController.
@@ -200,9 +212,11 @@ function ReadableStreamDefaultControllerClearAlgorithms(controller: ReadableStre
 // A client of ReadableStreamDefaultController may use these functions directly to bypass state check.
 
 export function ReadableStreamDefaultControllerClose(controller: ReadableStreamDefaultController<any>) {
-  const stream = controller._controlledReadableStream;
+  if (ReadableStreamDefaultControllerCanCloseOrEnqueue(controller) === false) {
+    return;
+  }
 
-  assert(ReadableStreamDefaultControllerCanCloseOrEnqueue(controller) === true);
+  const stream = controller._controlledReadableStream;
 
   controller._closeRequested = true;
 
@@ -213,9 +227,11 @@ export function ReadableStreamDefaultControllerClose(controller: ReadableStreamD
 }
 
 export function ReadableStreamDefaultControllerEnqueue<R>(controller: ReadableStreamDefaultController<R>, chunk: R): void {
-  const stream = controller._controlledReadableStream;
+  if (ReadableStreamDefaultControllerCanCloseOrEnqueue(controller) === false) {
+    return;
+  }
 
-  assert(ReadableStreamDefaultControllerCanCloseOrEnqueue(controller) === true);
+  const stream = controller._controlledReadableStream;
 
   if (IsReadableStreamLocked(stream) === true && ReadableStreamGetNumReadRequests(stream) > 0) {
     ReadableStreamFulfillReadRequest(stream, chunk, false);

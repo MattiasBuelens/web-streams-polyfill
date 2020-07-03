@@ -79,8 +79,6 @@ interface ReadIntoRequest<T extends ArrayBufferView> {
   _reject: (reason: any) => void;
 }
 
-export type ReadableStreamBYOBReaderType = ReadableStreamBYOBReader;
-
 export class ReadableStreamBYOBReader {
   /** @internal */
   _forAuthorCode!: boolean;
@@ -121,7 +119,7 @@ export class ReadableStreamBYOBReader {
     return this._closedPromise;
   }
 
-  cancel(reason: any): Promise<void> {
+  cancel(reason: any = undefined): Promise<void> {
     if (!IsReadableStreamBYOBReader(this)) {
       return promiseRejectedWith(byobReaderBrandCheckException('cancel'));
     }
@@ -172,6 +170,19 @@ export class ReadableStreamBYOBReader {
 
     ReadableStreamReaderGenericRelease(this);
   }
+}
+
+Object.defineProperties(ReadableStreamBYOBReader.prototype, {
+  cancel: { enumerable: true },
+  read: { enumerable: true },
+  releaseLock: { enumerable: true },
+  closed: { enumerable: true }
+});
+if (typeof Symbol.toStringTag === 'symbol') {
+  Object.defineProperty(ReadableStreamBYOBReader.prototype, Symbol.toStringTag, {
+    value: 'ReadableStreamBYOBReader',
+    configurable: true
+  });
 }
 
 // Abstract operations for the readers.

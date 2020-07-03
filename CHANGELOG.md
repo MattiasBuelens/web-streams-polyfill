@@ -9,6 +9,10 @@
 > - 🏠 Internal
 > - 💅 Polish
 
+## Unreleased
+
+* 👓 Align with [spec version `caf3cea`](https://github.com/whatwg/streams/tree/caf3cea28134d8be2ec69b6a1105748a7c8d10b5/) ([#52](https://github.com/MattiasBuelens/web-streams-polyfill/pull/52))
+
 ## v2.1.1 (2020-04-11)
 
 * 💅 Improve `ReadResult` in TypeScript type definitions. ([759506e](https://github.com/MattiasBuelens/web-streams-polyfill/commit/759506e00e55289ae6f92f30922b8855fcddd9ab), [#49](https://github.com/MattiasBuelens/web-streams-polyfill/pull/49))

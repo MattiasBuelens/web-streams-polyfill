@@ -1,12 +1,13 @@
 import {
   PipeOptions,
-  ReadableByteStreamControllerType,
+  ReadableByteStreamController,
   ReadableStream,
   ReadableStreamAsyncIterator,
-  ReadableStreamBYOBReaderType,
-  ReadableStreamBYOBRequestType,
-  ReadableStreamDefaultControllerType,
-  ReadableStreamDefaultReaderType,
+  ReadableStreamBYOBReader,
+  ReadableStreamBYOBRequest,
+  ReadableStreamDefaultController,
+  ReadableStreamDefaultReader,
+  ReadableWritablePair,
   ReadResult,
   UnderlyingByteSource,
   UnderlyingSource
@@ -14,32 +15,33 @@ import {
 import {
   UnderlyingSink,
   WritableStream,
-  WritableStreamDefaultControllerType,
-  WritableStreamDefaultWriterType
+  WritableStreamDefaultController,
+  WritableStreamDefaultWriter
 } from './lib/writable-stream';
 import { QueuingStrategy } from './lib/queuing-strategy';
 import ByteLengthQueuingStrategy from './lib/byte-length-queuing-strategy';
 import CountQueuingStrategy from './lib/count-queuing-strategy';
-import { Transformer, TransformStream, TransformStreamDefaultControllerType } from './lib/transform-stream';
+import { Transformer, TransformStream, TransformStreamDefaultController } from './lib/transform-stream';
 import { AbortSignal } from './lib/abort-signal';
 
 export {
   ReadableStream,
   UnderlyingSource,
   UnderlyingByteSource,
+  ReadableWritablePair,
   PipeOptions,
   ReadResult,
-  ReadableStreamDefaultControllerType as ReadableStreamDefaultController,
-  ReadableByteStreamControllerType as ReadableByteStreamController,
-  ReadableStreamBYOBRequestType as ReadableStreamBYOBRequest,
-  ReadableStreamDefaultReaderType as ReadableStreamDefaultReader,
-  ReadableStreamBYOBReaderType as ReadableStreamBYOBReader,
+  ReadableStreamDefaultController,
+  ReadableByteStreamController,
+  ReadableStreamBYOBRequest,
+  ReadableStreamDefaultReader,
+  ReadableStreamBYOBReader,
   ReadableStreamAsyncIterator,
 
   WritableStream,
   UnderlyingSink,
-  WritableStreamDefaultWriterType as WritableStreamDefaultWriter,
-  WritableStreamDefaultControllerType as WritableStreamDefaultController,
+  WritableStreamDefaultWriter,
+  WritableStreamDefaultController,
 
   QueuingStrategy,
   ByteLengthQueuingStrategy,
@@ -47,7 +49,7 @@ export {
 
   TransformStream,
   Transformer,
-  TransformStreamDefaultControllerType as TransformStreamDefaultController,
+  TransformStreamDefaultController,
 
   AbortSignal
 };

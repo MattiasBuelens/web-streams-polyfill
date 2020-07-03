@@ -7,7 +7,7 @@ export type ReadResult<T> = {
   value: T;
 } | {
   done: true;
-  value?: T;
+  value: T | undefined;
 }
 
 export function ReadableStreamCreateReadResult<T>(value: T | undefined,
@@ -56,11 +56,11 @@ export function ReadableStreamReaderGenericRelease(reader: ReadableStreamReader<
   if (reader._ownerReadableStream._state === 'readable') {
     defaultReaderClosedPromiseReject(
       reader,
-      new TypeError('Reader was released and can no longer be used to monitor the stream\'s closedness'));
+      new TypeError(`Reader was released and can no longer be used to monitor the stream's closedness`));
   } else {
     defaultReaderClosedPromiseResetToRejected(
       reader,
-      new TypeError('Reader was released and can no longer be used to monitor the stream\'s closedness'));
+      new TypeError(`Reader was released and can no longer be used to monitor the stream's closedness`));
   }
 
   reader._ownerReadableStream._reader = undefined;

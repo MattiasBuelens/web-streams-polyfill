@@ -15,6 +15,26 @@ const banner = `
  */
 `.trim();
 
+const keepNames = [
+  // Class names
+  'ReadableStream',
+  'ReadableStreamDefaultController',
+  'ReadableByteStreamController',
+  'ReadableStreamBYOBRequest',
+  'ReadableStreamDefaultReader',
+  'ReadableStreamBYOBReader',
+  'WritableStream',
+  'WritableStreamDefaultWriter',
+  'WritableStreamDefaultController',
+  'ByteLengthQueuingStrategy',
+  'CountQueuingStrategy',
+  'TransformStream',
+  'TransformStreamDefaultController',
+  // Queuing strategy "size" getter
+  'size'
+];
+const keepRegex = new RegExp(`^(${keepNames.join('|')})$`);
+
 function bundle(entry, { esm = false, minify = false, target = 'es5' } = {}) {
   const outname = `${entry}${target === 'es5' ? '' : `.${target}`}`;
   return {
@@ -61,11 +81,11 @@ function bundle(entry, { esm = false, minify = false, target = 'es5' } = {}) {
         sourceMap: true
       }) : undefined,
       minify ? terser({
-        keep_classnames: true, // needed for WPT
+        keep_classnames: keepRegex, // needed for WPT
+        keep_fnames: keepRegex,
         mangle: {
           toplevel: true
-        },
-        sourcemap: true
+        }
       }) : undefined
     ].filter(Boolean)
   };

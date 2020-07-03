@@ -16,24 +16,24 @@ export interface AbortSignal {
 
 // @public (undocumented)
 export class ByteLengthQueuingStrategy implements QueuingStrategy<ArrayBufferView> {
-    constructor({ highWaterMark }: {
+    constructor(options: {
         highWaterMark: number;
     });
     // (undocumented)
-    readonly highWaterMark: number;
+    get highWaterMark(): number;
     // (undocumented)
-    size(chunk: ArrayBufferView): number;
+    get size(): (chunk: ArrayBufferView) => number;
 }
 
 // @public (undocumented)
 export class CountQueuingStrategy implements QueuingStrategy<any> {
-    constructor({ highWaterMark }: {
+    constructor(options: {
         highWaterMark: number;
     });
     // (undocumented)
-    readonly highWaterMark: number;
+    get highWaterMark(): number;
     // (undocumented)
-    size(): 1;
+    get size(): (chunk: any) => 1;
 }
 
 // @public (undocumented)
@@ -58,10 +58,19 @@ export interface QueuingStrategy<T = any> {
     size?: QueuingStrategySizeCallback<T>;
 }
 
-// Warning: (ae-forgotten-export) The symbol "ReadableByteStreamController" needs to be exported by the entry point polyfill.d.ts
-//
 // @public (undocumented)
-export type ReadableByteStreamController = ReadableByteStreamController_2;
+export class ReadableByteStreamController {
+    // (undocumented)
+    get byobRequest(): ReadableStreamBYOBRequest | null;
+    // (undocumented)
+    close(): void;
+    // (undocumented)
+    get desiredSize(): number | null;
+    // (undocumented)
+    enqueue(chunk: ArrayBufferView): void;
+    // (undocumented)
+    error(e?: any): void;
+}
 
 // @public (undocumented)
 export class ReadableStream<R = any> {
@@ -75,32 +84,25 @@ export class ReadableStream<R = any> {
     });
     constructor(underlyingSource?: UnderlyingSource<R>, strategy?: QueuingStrategy<R>);
     // (undocumented)
-    cancel(reason: any): Promise<void>;
-    // (undocumented)
-    getIterator({ preventCancel }?: {
-        preventCancel?: boolean;
-    }): ReadableStreamAsyncIterator<R>;
-    // Warning: (ae-forgotten-export) The symbol "ReadableStreamBYOBReader" needs to be exported by the entry point polyfill.d.ts
-    //
+    cancel(reason?: any): Promise<void>;
     // (undocumented)
     getReader({ mode }: {
         mode: 'byob';
-    }): ReadableStreamBYOBReader_2;
-    // Warning: (ae-forgotten-export) The symbol "ReadableStreamDefaultReader" needs to be exported by the entry point polyfill.d.ts
-    //
+    }): ReadableStreamBYOBReader;
     // (undocumented)
-    getReader(): ReadableStreamDefaultReader_2<R>;
+    getReader(): ReadableStreamDefaultReader<R>;
     // (undocumented)
     get locked(): boolean;
     // (undocumented)
-    pipeThrough<T>({ writable, readable }: {
-        writable: WritableStream<R>;
-        readable: ReadableStream<T>;
-    }, { preventClose, preventAbort, preventCancel, signal }?: PipeOptions): ReadableStream<T>;
+    pipeThrough<T>(transform: ReadableWritablePair<T, R>, options?: PipeOptions): ReadableStream<T>;
     // (undocumented)
-    pipeTo(dest: WritableStream<R>, { preventClose, preventAbort, preventCancel, signal }?: PipeOptions): Promise<void>;
+    pipeTo(dest: WritableStream<R>, options?: PipeOptions): Promise<void>;
     // (undocumented)
     tee(): [ReadableStream<R>, ReadableStream<R>];
+    // (undocumented)
+    values(options?: {
+        preventCancel?: boolean;
+    } | undefined): ReadableStreamAsyncIterator<R>;
 }
 
 // @public (undocumented)
@@ -112,20 +114,61 @@ export interface ReadableStreamAsyncIterator<R> extends AsyncIterator<R> {
 }
 
 // @public (undocumented)
-export type ReadableStreamBYOBReader = ReadableStreamBYOBReader_2;
+export class ReadableStreamBYOBReader {
+    // Warning: (ae-forgotten-export) The symbol "ReadableByteStream" needs to be exported by the entry point polyfill.d.ts
+    constructor(stream: ReadableByteStream);
+    // (undocumented)
+    cancel(reason?: any): Promise<void>;
+    // (undocumented)
+    get closed(): Promise<void>;
+    // (undocumented)
+    read<T extends ArrayBufferView>(view: T): Promise<ReadResult<T>>;
+    // (undocumented)
+    releaseLock(): void;
+}
 
-// Warning: (ae-forgotten-export) The symbol "ReadableStreamBYOBRequest" needs to be exported by the entry point polyfill.d.ts
-//
 // @public (undocumented)
-export type ReadableStreamBYOBRequest = ReadableStreamBYOBRequest_2;
+export class ReadableStreamBYOBRequest {
+    // (undocumented)
+    respond(bytesWritten: number): void;
+    // (undocumented)
+    respondWithNewView(view: ArrayBufferView): void;
+    // (undocumented)
+    get view(): ArrayBufferView | null;
+}
 
-// Warning: (ae-forgotten-export) The symbol "ReadableStreamDefaultController" needs to be exported by the entry point polyfill.d.ts
-//
 // @public (undocumented)
-export type ReadableStreamDefaultController<R> = ReadableStreamDefaultController_2<R>;
+export class ReadableStreamDefaultController<R> {
+    // (undocumented)
+    close(): void;
+    // (undocumented)
+    get desiredSize(): number | null;
+    // (undocumented)
+    enqueue(chunk: R): void;
+    // (undocumented)
+    error(e?: any): void;
+}
 
 // @public (undocumented)
-export type ReadableStreamDefaultReader<R> = ReadableStreamDefaultReader_2<R>;
+export class ReadableStreamDefaultReader<R> {
+    constructor(stream: ReadableStream<R>);
+    // (undocumented)
+    cancel(reason?: any): Promise<void>;
+    // (undocumented)
+    get closed(): Promise<void>;
+    // (undocumented)
+    read(): Promise<ReadResult<R>>;
+    // (undocumented)
+    releaseLock(): void;
+}
+
+// @public (undocumented)
+export interface ReadableWritablePair<R, W> {
+    // (undocumented)
+    readable: ReadableStream<R>;
+    // (undocumented)
+    writable: WritableStream<W>;
+}
 
 // @public (undocumented)
 export type ReadResult<T> = {
@@ -133,7 +176,7 @@ export type ReadResult<T> = {
     value: T;
 } | {
     done: true;
-    value?: T;
+    value: T | undefined;
 };
 
 // @public (undocumented)
@@ -163,10 +206,17 @@ export class TransformStream<I = any, O = any> {
     get writable(): WritableStream<I>;
 }
 
-// Warning: (ae-forgotten-export) The symbol "TransformStreamDefaultController" needs to be exported by the entry point polyfill.d.ts
-//
 // @public (undocumented)
-export type TransformStreamDefaultController<O> = TransformStreamDefaultController_2<O>;
+export class TransformStreamDefaultController<O> {
+    // (undocumented)
+    get desiredSize(): number | null;
+    // (undocumented)
+    enqueue(chunk: O): void;
+    // (undocumented)
+    error(reason?: any): void;
+    // (undocumented)
+    terminate(): void;
+}
 
 // @public (undocumented)
 export interface UnderlyingByteSource {
@@ -226,24 +276,39 @@ export interface UnderlyingSource<R = any> {
 export class WritableStream<W = any> {
     constructor(underlyingSink?: UnderlyingSink<W>, strategy?: QueuingStrategy<W>);
     // (undocumented)
-    abort(reason: any): Promise<void>;
+    abort(reason?: any): Promise<void>;
     // (undocumented)
     close(): Promise<void>;
-    // Warning: (ae-forgotten-export) The symbol "WritableStreamDefaultWriter" needs to be exported by the entry point polyfill.d.ts
-    //
     // (undocumented)
-    getWriter(): WritableStreamDefaultWriter_2<W>;
+    getWriter(): WritableStreamDefaultWriter<W>;
     // (undocumented)
     get locked(): boolean;
 }
 
-// Warning: (ae-forgotten-export) The symbol "WritableStreamDefaultController" needs to be exported by the entry point polyfill.d.ts
-//
 // @public (undocumented)
-export type WritableStreamDefaultController = WritableStreamDefaultController_2<any>;
+export class WritableStreamDefaultController<W = any> {
+    // (undocumented)
+    error(e?: any): void;
+}
 
 // @public (undocumented)
-export type WritableStreamDefaultWriter<W> = WritableStreamDefaultWriter_2<W>;
+export class WritableStreamDefaultWriter<W> {
+    constructor(stream: WritableStream<W>);
+    // (undocumented)
+    abort(reason?: any): Promise<void>;
+    // (undocumented)
+    close(): Promise<void>;
+    // (undocumented)
+    get closed(): Promise<void>;
+    // (undocumented)
+    get desiredSize(): number | null;
+    // (undocumented)
+    get ready(): Promise<void>;
+    // (undocumented)
+    releaseLock(): void;
+    // (undocumented)
+    write(chunk: W): Promise<void>;
+}
 
 
 // (No @packageDocumentation comment for this package)

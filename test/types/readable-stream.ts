@@ -25,10 +25,10 @@ const underlyingByteSource: polyfill.UnderlyingByteSource = {
   start(c: polyfill.ReadableByteStreamController) {
     byteStreamController = c;
     const desiredSize: number | null = c.desiredSize;
-    const request: polyfill.ReadableStreamBYOBRequest | undefined = c.byobRequest;
+    const request: polyfill.ReadableStreamBYOBRequest | null = c.byobRequest;
     if (request) {
       byobRequest = request;
-      const view: ArrayBufferView = request.view;
+      const view: ArrayBufferView | null = request.view;
       request.respond(5);
       request.respondWithNewView(new Uint32Array([4, 5, 6]));
     }
@@ -104,7 +104,7 @@ const pipeThroughStream: polyfill.ReadableStream<Uint8Array> = readableStream
     signal: undefined
   });
 
-const getIteratorResult: polyfill.ReadableStreamAsyncIterator<string> = readableStream.getIterator({ preventCancel: true });
+const valuesResult: polyfill.ReadableStreamAsyncIterator<string> = readableStream.values({ preventCancel: true });
 
 const asyncIterator: polyfill.ReadableStreamAsyncIterator<string> = readableStream[Symbol.asyncIterator]();
 const asyncIteratorNextResult: Promise<IteratorResult<string>> = asyncIterator.next();
@@ -119,15 +119,16 @@ const asyncIteratorReturnResult: Promise<IteratorResult<any>> = asyncIterator.re
 const abortSignal: polyfill.AbortSignal = new AbortController().signal;
 
 // Compatibility with stream types from DOM
+// FIXME Re-enable when TypeScript types have been updated to match latest spec
 const domUnderlyingSource: UnderlyingSource<string> = underlyingSource;
-const domUnderlyingByteSource: UnderlyingByteSource = underlyingByteSource;
+// const domUnderlyingByteSource: UnderlyingByteSource = underlyingByteSource;
 
 const domReadableStream: ReadableStream<string> = readableStream;
 const domReadableByteStream: ReadableStream<Uint8Array> = readableByteStream;
 
 const domDefaultController: ReadableStreamDefaultController<string> = defaultController;
-const domByteStreamController: ReadableByteStreamController = byteStreamController;
-const domByobRequest: ReadableStreamBYOBRequest = byobRequest;
+// const domByteStreamController: ReadableByteStreamController = byteStreamController;
+// const domByobRequest: ReadableStreamBYOBRequest = byobRequest;
 
 const domDefaultReader: ReadableStreamDefaultReader<string> = defaultReader;
 const domBYOBReader: ReadableStreamBYOBReader = byobReader;
