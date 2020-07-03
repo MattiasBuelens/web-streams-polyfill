@@ -9,6 +9,7 @@ const micromatch = require('micromatch');
 const wptRunner = require('wpt-runner');
 const consoleReporter = require('wpt-runner/lib/console-reporter.js');
 const { FilteringReporter } = require('./wpt-util/filtering-reporter.js');
+const allSettled = require('@ungap/promise-all-settled');
 
 const readFileAsync = promisify(fs.readFile);
 const queueMicrotask = global.queueMicrotask || (fn => Promise.resolve().then(fn));
@@ -150,6 +151,7 @@ async function runTests(entryFile, { excludedTests = [], ignoredFailures = {} } 
     reporter,
     setup(window) {
       window.queueMicrotask = queueMicrotask;
+      window.Promise.allSettled = allSettled;
       window.fetch = async function (url) {
         const filePath = path.join(wptPath, url);
         if (!filePath.startsWith(wptPath)) {
