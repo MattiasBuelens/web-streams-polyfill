@@ -87,33 +87,44 @@ async function main() {
     ]
   });
 
-  let failures = 0;
+  const results = [];
 
   if (supportsES2018) {
-    failures += await runTests('polyfill.es2018.js', { excludedTests, ignoredFailures });
-    failures += await runTests('polyfill.es2018.min.js', {
+    results.push(await runTests('polyfill.es2018.js', { excludedTests, ignoredFailures }));
+    results.push(await runTests('polyfill.es2018.min.js', {
       excludedTests,
       ignoredFailures: merge(ignoredFailures, ignoredFailuresMinified)
-    });
+    }));
   }
 
-  failures += await runTests('polyfill.es6.js', {
+  results.push(await runTests('polyfill.es6.js', {
     excludedTests,
     ignoredFailures: ignoredFailuresES6
-  });
-  failures += await runTests('polyfill.es6.min.js', {
+  }));
+  results.push(await runTests('polyfill.es6.min.js', {
     excludedTests,
     ignoredFailures: merge(ignoredFailuresES6, ignoredFailuresMinified)
-  });
+  }));
 
-  failures += await runTests('polyfill.js', {
+  results.push(await runTests('polyfill.js', {
     excludedTests: excludedTestsES5,
     ignoredFailures: ignoredFailuresES5
-  });
-  failures += await runTests('polyfill.min.js', {
+  }));
+  results.push(await runTests('polyfill.min.js', {
     excludedTests: excludedTestsES5,
     ignoredFailures: merge(ignoredFailuresES5, ignoredFailuresMinified)
-  });
+  }));
+
+  const failures = results.reduce((sum, result) => sum + result.failures, 0);
+  for (const { entryFile, testResults, rejectionsCount } of results) {
+    console.log(`> ${entryFile}`);
+    console.log(`  * ${testResults.passed} passed`);
+    console.log(`  * ${testResults.failed} failed`);
+    console.log(`  * ${testResults.ignored} ignored`);
+    if (rejectionsCount > 0) {
+      console.log(`  * ${rejectionsCount} unhandled promise rejections`);
+    }
+  }
 
   process.exitCode = failures;
 }
@@ -163,18 +174,16 @@ async function runTests(entryFile, { excludedTests = [], ignoredFailures = {} } 
           !excludeMatcher(testPath);
     }
   });
-  const results = reporter.getResults();
 
-  console.log();
-  console.log(`${results.passed} tests passed, ${results.failed} failed, ${results.ignored} ignored`);
-
-  let failures = Math.max(results.failed, wptFailures - results.ignored);
+  const testResults = reporter.getResults();
+  let failures = Math.max(testResults.failed, wptFailures - testResults.ignored);
 
   if (rejections.size > 0) {
     if (failures === 0) {
       failures = 1;
     }
 
+    console.log();
     for (const reason of rejections.values()) {
       console.error('Unhandled promise rejection: ', reason.stack);
     }
@@ -182,7 +191,7 @@ async function runTests(entryFile, { excludedTests = [], ignoredFailures = {} } 
 
   console.log();
 
-  return failures;
+  return { entryFile, failures, testResults, rejectionsCount: rejections.size };
 }
 
 function runtimeSupportsAsyncGenerators() {
