@@ -66,11 +66,11 @@ The `polyfill/es2018` and `ponyfill/es2018` variants work in any ES2018-compatib
 
 ### Compliance
 
-The polyfill implements [version `ed00d2f` (17 Feb 2020)][spec-snapshot] of the streams specification.
+The polyfill implements [version `caf3cea` (11 Jun 2020)][spec-snapshot] of the streams specification.
 
 The polyfill is tested against the same [web platform tests][wpt] that are used by browsers to test their native implementations.
 The polyfill aims to pass all tests, although it allows some exceptions for practical reasons:
-* The `es2018` variant passes all of the tests, except for the [detached buffer tests for readable byte streams][wpt-detached-buffer].
+* The `es2018` variant passes all of the tests, except for the ["bad buffers and views" tests for readable byte streams][wpt-bad-buffers].
   These tests require the implementation to synchronously transfer the contents of an `ArrayBuffer`, which is not yet possible from JavaScript (although there is a [proposal][proposal-arraybuffer-transfer] to make it possible).
   The reference implementation "cheats" on these tests [by making a copy instead][ref-impl-transferarraybuffer], but that is unacceptable for the polyfill's performance ([#3][issue-3]).
 * The `es6` variant passes the same tests as the `es2018` variant, except for the [test for the prototype of `ReadableStream`'s async iterator][wpt-async-iterator-prototype].
@@ -99,12 +99,12 @@ Thanks to these people for their work on [the original polyfill][creatorrr-polyf
 [promise-support]: https://kangax.github.io/compat-table/es6/#test-Promise
 [promise-polyfill]: https://www.npmjs.com/package/promise-polyfill
 [rs-asynciterator]: https://streams.spec.whatwg.org/#rs-asynciterator
-[spec-snapshot]: https://streams.spec.whatwg.org/commit-snapshots/ed00d2fe2d53ac5ad9ff8e727c7ef0a68f424074/
-[wpt]: https://github.com/web-platform-tests/wpt/tree/0ba0c4c07c8d2c23efdcc84dfc9043a3fdccbf19/streams
-[wpt-detached-buffer]: https://github.com/web-platform-tests/wpt/blob/0ba0c4c07c8d2c23efdcc84dfc9043a3fdccbf19/streams/readable-byte-streams/detached-buffers.any.js
+[spec-snapshot]: https://streams.spec.whatwg.org/commit-snapshots/caf3cea28134d8be2ec69b6a1105748a7c8d10b5/
+[wpt]: https://github.com/web-platform-tests/wpt/tree/c5f9e701753a034f99dda16d4716c465bed73e18/streams
+[wpt-bad-buffers]: https://github.com/web-platform-tests/wpt/blob/c5f9e701753a034f99dda16d4716c465bed73e18/streams/readable-byte-streams/bad-buffers-and-views.any.js
 [proposal-arraybuffer-transfer]: https://github.com/domenic/proposal-arraybuffer-transfer
-[ref-impl-transferarraybuffer]: https://github.com/whatwg/streams/blob/ed00d2fe2d53ac5ad9ff8e727c7ef0a68f424074/reference-implementation/lib/helpers.js#L120
+[ref-impl-transferarraybuffer]: https://github.com/whatwg/streams/blob/caf3cea28134d8be2ec69b6a1105748a7c8d10b5/reference-implementation/lib/abstract-ops/ecmascript.js#L16
 [issue-3]: https://github.com/MattiasBuelens/web-streams-polyfill/issues/3
-[wpt-async-iterator-prototype]: https://github.com/web-platform-tests/wpt/blob/0ba0c4c07c8d2c23efdcc84dfc9043a3fdccbf19/streams/readable-streams/async-iterator.any.js#L17
+[wpt-async-iterator-prototype]: https://github.com/web-platform-tests/wpt/blob/c5f9e701753a034f99dda16d4716c465bed73e18/streams/readable-streams/async-iterator.any.js#L28
 [stub-async-iterator-prototype]: https://github.com/MattiasBuelens/web-streams-polyfill/blob/v2.0.0/src/target/es5/stub/async-iterator-prototype.ts
 [creatorrr-polyfill]: https://github.com/creatorrr/web-streams-polyfill
