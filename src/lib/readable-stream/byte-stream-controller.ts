@@ -716,8 +716,9 @@ function ReadableByteStreamControllerClearAlgorithms(controller: ReadableByteStr
 function ReadableByteStreamControllerClose(controller: ReadableByteStreamController) {
   const stream = controller._controlledReadableByteStream;
 
-  assert(controller._closeRequested === false);
-  assert(stream._state === 'readable');
+  if (controller._closeRequested === true || stream._state !== 'readable') {
+    return;
+  }
 
   if (controller._queueTotalSize > 0) {
     controller._closeRequested = true;
@@ -742,8 +743,9 @@ function ReadableByteStreamControllerClose(controller: ReadableByteStreamControl
 function ReadableByteStreamControllerEnqueue(controller: ReadableByteStreamController, chunk: ArrayBufferView) {
   const stream = controller._controlledReadableByteStream;
 
-  assert(controller._closeRequested === false);
-  assert(stream._state === 'readable');
+  if (controller._closeRequested === true || stream._state !== 'readable') {
+    return;
+  }
 
   const buffer = chunk.buffer;
   const byteOffset = chunk.byteOffset;

@@ -419,9 +419,7 @@ function TransformStreamDefaultControllerTerminate<O>(controller: TransformStrea
   const stream = controller._controlledTransformStream;
   const readableController = stream._readable._readableStreamController as ReadableStreamDefaultController<O>;
 
-  if (ReadableStreamDefaultControllerCanCloseOrEnqueue(readableController) === true) {
-    ReadableStreamDefaultControllerClose(readableController);
-  }
+  ReadableStreamDefaultControllerClose(readableController);
 
   const error = new TypeError('TransformStream terminated');
   TransformStreamErrorWritableAndUnblockWrite(stream, error);

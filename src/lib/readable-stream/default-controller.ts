@@ -212,9 +212,11 @@ function ReadableStreamDefaultControllerClearAlgorithms(controller: ReadableStre
 // A client of ReadableStreamDefaultController may use these functions directly to bypass state check.
 
 export function ReadableStreamDefaultControllerClose(controller: ReadableStreamDefaultController<any>) {
-  const stream = controller._controlledReadableStream;
+  if (ReadableStreamDefaultControllerCanCloseOrEnqueue(controller) === false) {
+    return;
+  }
 
-  assert(ReadableStreamDefaultControllerCanCloseOrEnqueue(controller) === true);
+  const stream = controller._controlledReadableStream;
 
   controller._closeRequested = true;
 
@@ -225,9 +227,11 @@ export function ReadableStreamDefaultControllerClose(controller: ReadableStreamD
 }
 
 export function ReadableStreamDefaultControllerEnqueue<R>(controller: ReadableStreamDefaultController<R>, chunk: R): void {
-  const stream = controller._controlledReadableStream;
+  if (ReadableStreamDefaultControllerCanCloseOrEnqueue(controller) === false) {
+    return;
+  }
 
-  assert(ReadableStreamDefaultControllerCanCloseOrEnqueue(controller) === true);
+  const stream = controller._controlledReadableStream;
 
   if (IsReadableStreamLocked(stream) === true && ReadableStreamGetNumReadRequests(stream) > 0) {
     ReadableStreamFulfillReadRequest(stream, chunk, false);
