@@ -844,8 +844,7 @@ export class WritableStreamDefaultController<W = any> {
   /** @internal */
   _abortAlgorithm!: (reason: any) => Promise<void>;
 
-  /** @internal */
-  constructor() {
+  private constructor() {
     throw new TypeError('Illegal constructor');
   }
 

@@ -43,8 +43,7 @@ export class ReadableStreamDefaultController<R> {
   /** @internal */
   _cancelAlgorithm!: (reason: any) => Promise<void>;
 
-  /** @internal */
-  constructor() {
+  private constructor() {
     throw new TypeError('Illegal constructor');
   }
 

@@ -43,8 +43,7 @@ export class ReadableStreamBYOBRequest {
   /** @internal */
   _view!: ArrayBufferView | null;
 
-  /** @internal */
-  constructor() {
+  private constructor() {
     throw new TypeError('Illegal constructor');
   }
 
@@ -174,8 +173,7 @@ export class ReadableByteStreamController {
   /** @internal */
   _pendingPullIntos!: SimpleQueue<PullIntoDescriptor>;
 
-  /** @internal */
-  constructor() {
+  private constructor() {
     throw new TypeError('Illegal constructor');
   }
 

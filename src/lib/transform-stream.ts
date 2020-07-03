@@ -261,8 +261,7 @@ export class TransformStreamDefaultController<O> {
   /** @internal */
   _flushAlgorithm: () => Promise<void>;
 
-  /** @internal */
-  constructor() {
+  private constructor() {
     throw new TypeError('Illegal constructor');
   }
 
