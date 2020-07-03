@@ -7,7 +7,6 @@ import {
   promiseResolvedWith,
   setPromiseIsHandledToTrue,
   transformPromiseWith,
-  typeIsObject,
   uponRejection
 } from '../helpers';
 import {
@@ -16,6 +15,7 @@ import {
   ReadableStreamDefaultControllerEnqueue,
   ReadableStreamDefaultControllerError
 } from './default-controller';
+import { typeIsObject } from '../helpers/miscellaneous';
 
 export function ReadableStreamTee<R>(stream: ReadableStream<R>,
                                      cloneForBranch2: boolean): [ReadableStream<R>, ReadableStream<R>] {

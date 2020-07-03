@@ -1,14 +1,10 @@
 import assert from '../stub/assert';
 import NumberIsNaN from '../stub/number-isnan';
-import { rethrowAssertionErrorRejection } from './utils';
 import { FunctionPropertyNames, InferFirst, InferFunction, InferRest, Promisify } from '../util/type-utils';
+import { rethrowAssertionErrorRejection, typeIsObject } from './helpers/miscellaneous';
 
 function IsPropertyKey(argument: any): argument is string | symbol {
   return typeof argument === 'string' || typeof argument === 'symbol';
-}
-
-export function typeIsObject(x: any): x is object {
-  return (typeof x === 'object' && x !== null) || typeof x === 'function';
 }
 
 export function isDictionary(x: any): x is object {

@@ -9,7 +9,6 @@ import {
   promiseRejectedWith,
   promiseResolvedWith,
   TransferArrayBuffer,
-  typeIsObject,
   uponPromise,
   ValidateAndNormalizeHighWaterMark
 } from '../helpers';
@@ -36,6 +35,7 @@ import {
 } from '../readable-stream';
 import { CancelSteps, PullSteps } from './symbols';
 import { UnderlyingByteSource } from './underlying-source';
+import { typeIsObject } from '../helpers/miscellaneous';
 
 export class ReadableStreamBYOBRequest {
   /** @internal */

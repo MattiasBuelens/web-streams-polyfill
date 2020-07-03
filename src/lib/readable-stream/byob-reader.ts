@@ -1,4 +1,4 @@
-import { IsDetachedBuffer, newPromise, promiseRejectedWith, typeIsObject } from '../helpers';
+import { IsDetachedBuffer, newPromise, promiseRejectedWith } from '../helpers';
 import assert from '../../stub/assert';
 import { SimpleQueue } from '../simple-queue';
 import {
@@ -15,6 +15,7 @@ import {
   ReadableByteStreamController,
   ReadableByteStreamControllerPullInto
 } from './byte-stream-controller';
+import { typeIsObject } from '../helpers/miscellaneous';
 
 // Abstract operations for the ReadableStream.
 

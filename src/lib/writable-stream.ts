@@ -8,13 +8,13 @@ import {
   promiseRejectedWith,
   promiseResolvedWith,
   setPromiseIsHandledToTrue,
-  typeIsObject,
   uponPromise,
   ValidateAndNormalizeHighWaterMark
 } from './helpers';
 import { DequeueValue, EnqueueValueWithSize, PeekQueueValue, QueuePair, ResetQueue } from './queue-with-sizes';
 import { QueuingStrategy, QueuingStrategySizeCallback } from './queuing-strategy';
 import { SimpleQueue } from './simple-queue';
+import { typeIsObject } from './helpers/miscellaneous';
 
 const AbortSteps = Symbol('[[AbortSteps]]');
 const ErrorSteps = Symbol('[[ErrorSteps]]');

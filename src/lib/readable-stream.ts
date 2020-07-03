@@ -8,7 +8,6 @@ import {
   promiseResolvedWith,
   setPromiseIsHandledToTrue,
   transformPromiseWith,
-  typeIsObject,
   ValidateAndNormalizeHighWaterMark
 } from './helpers';
 import { QueuingStrategy, QueuingStrategySizeCallback } from './queuing-strategy';
@@ -55,6 +54,7 @@ import {
 } from './readable-stream/underlying-source';
 import { noop } from '../utils';
 import { AbortSignal, isAbortSignal } from './abort-signal';
+import { typeIsObject } from './helpers/miscellaneous';
 
 export type ReadableByteStream = ReadableStream<Uint8Array>;
 

@@ -1,5 +1,6 @@
 import { QueuingStrategy } from './queuing-strategy';
-import { isDictionary, typeIsObject } from './helpers';
+import { isDictionary } from './helpers';
+import { typeIsObject } from './helpers/miscellaneous';
 
 const countSizeFunction = function size(): 1 {
   return 1;
