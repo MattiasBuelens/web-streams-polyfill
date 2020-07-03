@@ -187,6 +187,7 @@ async function runTests(entryFile, { excludedTests = [], ignoredFailures = {} } 
     for (const reason of rejections.values()) {
       console.error('Unhandled promise rejection: ', reason.stack);
     }
+    rejections.clear();
   }
 
   console.log();
