@@ -65,6 +65,12 @@ async function main() {
     ]
   });
 
+  const excludedTestsES5 = [
+    ...excludedTests,
+    // TODO Re-enable after https://github.com/domenic/wpt-runner/pull/21 lands
+    'idlharness.any.html'
+  ];
+
   const ignoredFailuresES5 = merge(ignoredFailuresES6, {
     'idlharness.any.html': [
       // ES5 build does not set correct length on constructors with optional arguments
@@ -101,11 +107,11 @@ async function main() {
   });
 
   failures += await runTests('polyfill.js', {
-    excludedTests,
+    excludedTests: excludedTestsES5,
     ignoredFailures: ignoredFailuresES5
   });
   failures += await runTests('polyfill.min.js', {
-    excludedTests,
+    excludedTests: excludedTestsES5,
     ignoredFailures: merge(ignoredFailuresES5, ignoredFailuresMinified)
   });
 
