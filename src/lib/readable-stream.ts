@@ -1,5 +1,5 @@
 import assert from '../stub/assert';
-import { isDictionary, MakeSizeAlgorithmFromSizeFunction, ValidateAndNormalizeHighWaterMark } from './helpers';
+import { MakeSizeAlgorithmFromSizeFunction, ValidateAndNormalizeHighWaterMark } from './helpers';
 import {
   promiseRejectedWith,
   promiseResolvedWith,
@@ -53,6 +53,7 @@ import { typeIsObject } from './helpers/miscellaneous';
 import { CreateArrayFromList } from './abstract-ops/ecmascript';
 import { CancelSteps } from './abstract-ops/internal-methods';
 import { IsNonNegativeNumber } from './abstract-ops/miscellaneous';
+import { assertDictionary, isDictionary } from './validators/dictionary';
 
 export type ReadableByteStream = ReadableStream<Uint8Array>;
 
@@ -149,9 +150,7 @@ export class ReadableStream<R = any> {
       throw streamBrandCheckException('getReader');
     }
 
-    if (options !== undefined && !isDictionary(options)) {
-      throw new TypeError('Invalid reader options');
-    }
+    assertDictionary(options, 'First parameter');
 
     let mode = options?.mode;
     if (mode === undefined) {
@@ -261,9 +260,7 @@ export class ReadableStream<R = any> {
       throw streamBrandCheckException('values');
     }
 
-    if (options !== undefined && !isDictionary(options)) {
-      throw new TypeError('Invalid iterator options');
-    }
+    assertDictionary(options, 'First parameter');
 
     const preventCancel = Boolean(options?.preventCancel);
     return AcquireReadableStreamAsyncIterator<R>(this, preventCancel);

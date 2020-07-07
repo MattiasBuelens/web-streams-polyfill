@@ -1,6 +1,6 @@
 import { QueuingStrategy } from './queuing-strategy';
-import { isDictionary } from './helpers';
 import { typeIsObject } from './helpers/miscellaneous';
+import { assertDictionary, isDictionary } from './validators/dictionary';
 
 const countSizeFunction = function size(): 1 {
   return 1;
@@ -11,9 +11,7 @@ export default class CountQueuingStrategy implements QueuingStrategy<any> {
   readonly _countQueuingStrategyHighWaterMark!: number;
 
   constructor(options: { highWaterMark: number }) {
-    if (options !== undefined && !isDictionary(options)) {
-      throw new TypeError(`First parameter is not an object`);
-    }
+    assertDictionary(options, 'First parameter');
     const highWaterMark = options?.highWaterMark;
     if (highWaterMark === undefined) {
       throw new TypeError(`highWaterMark is required`);

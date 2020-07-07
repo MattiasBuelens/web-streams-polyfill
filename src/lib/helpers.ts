@@ -7,10 +7,6 @@ function IsPropertyKey(argument: any): argument is string | symbol {
   return typeof argument === 'string' || typeof argument === 'symbol';
 }
 
-export function isDictionary(x: any): x is object {
-  return typeof x === 'object' || typeof x === 'function';
-}
-
 export function Call<T, A extends any[], R>(F: (this: T, ...args: A) => R, V: T, args: A): R {
   if (typeof F !== 'function') {
     throw new TypeError('Argument is not a function');
