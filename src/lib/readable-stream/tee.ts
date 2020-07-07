@@ -15,7 +15,7 @@ import {
   ReadableStreamDefaultControllerError
 } from './default-controller';
 import { typeIsObject } from '../helpers/miscellaneous';
-import { createArrayFromList } from '../abstract-ops/ecmascript';
+import { CreateArrayFromList } from '../abstract-ops/ecmascript';
 
 export function ReadableStreamTee<R>(stream: ReadableStream<R>,
                                      cloneForBranch2: boolean): [ReadableStream<R>, ReadableStream<R>] {
@@ -95,7 +95,7 @@ export function ReadableStreamTee<R>(stream: ReadableStream<R>,
     canceled1 = true;
     reason1 = reason;
     if (canceled2 === true) {
-      const compositeReason = createArrayFromList([reason1, reason2]);
+      const compositeReason = CreateArrayFromList([reason1, reason2]);
       const cancelResult = ReadableStreamCancel(stream, compositeReason);
       resolveCancelPromise(cancelResult);
     }
@@ -106,7 +106,7 @@ export function ReadableStreamTee<R>(stream: ReadableStream<R>,
     canceled2 = true;
     reason2 = reason;
     if (canceled1 === true) {
-      const compositeReason = createArrayFromList([reason1, reason2]);
+      const compositeReason = CreateArrayFromList([reason1, reason2]);
       const cancelResult = ReadableStreamCancel(stream, compositeReason);
       resolveCancelPromise(cancelResult);
     }

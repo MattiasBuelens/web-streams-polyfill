@@ -33,7 +33,7 @@ import {
 import { CancelSteps, PullSteps } from './symbols';
 import { UnderlyingByteSource } from './underlying-source';
 import { typeIsObject } from '../helpers/miscellaneous';
-import { ArrayBufferCopy, IsDetachedBuffer, TransferArrayBuffer } from '../abstract-ops/ecmascript';
+import { CopyDataBlockBytes, IsDetachedBuffer, TransferArrayBuffer } from '../abstract-ops/ecmascript';
 
 export class ReadableStreamBYOBRequest {
   /** @internal */
@@ -461,7 +461,7 @@ function ReadableByteStreamControllerFillPullIntoDescriptorFromQueue(controller:
     const bytesToCopy = Math.min(totalBytesToCopyRemaining, headOfQueue.byteLength);
 
     const destStart = pullIntoDescriptor.byteOffset + pullIntoDescriptor.bytesFilled;
-    ArrayBufferCopy(pullIntoDescriptor.buffer, destStart, headOfQueue.buffer, headOfQueue.byteOffset, bytesToCopy);
+    CopyDataBlockBytes(pullIntoDescriptor.buffer, destStart, headOfQueue.buffer, headOfQueue.byteOffset, bytesToCopy);
 
     if (headOfQueue.byteLength === bytesToCopy) {
       queue.shift();

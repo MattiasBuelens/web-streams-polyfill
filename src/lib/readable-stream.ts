@@ -54,7 +54,7 @@ import {
 import { noop } from '../utils';
 import { AbortSignal, isAbortSignal } from './abort-signal';
 import { typeIsObject } from './helpers/miscellaneous';
-import { createArrayFromList } from './abstract-ops/ecmascript';
+import { CreateArrayFromList } from './abstract-ops/ecmascript';
 
 export type ReadableByteStream = ReadableStream<Uint8Array>;
 
@@ -255,7 +255,7 @@ export class ReadableStream<R = any> {
     }
 
     const branches = ReadableStreamTee(this, false);
-    return createArrayFromList(branches);
+    return CreateArrayFromList(branches);
   }
 
   values(options: { preventCancel?: boolean } | undefined = undefined): ReadableStreamAsyncIterator<R> {
