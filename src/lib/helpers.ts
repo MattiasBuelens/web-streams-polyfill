@@ -16,34 +16,6 @@ export function createDataProperty(o: object, p: string | symbol, v: any) {
   Object.defineProperty(o, p, { value: v, writable: true, enumerable: true, configurable: true });
 }
 
-export function IsFiniteNonNegativeNumber(v: number): boolean {
-  if (IsNonNegativeNumber(v) === false) {
-    return false;
-  }
-
-  if (v === Infinity) {
-    return false;
-  }
-
-  return true;
-}
-
-export function IsNonNegativeNumber(v: number): boolean {
-  if (typeof v !== 'number') {
-    return false;
-  }
-
-  if (NumberIsNaN(v)) {
-    return false;
-  }
-
-  if (v < 0) {
-    return false;
-  }
-
-  return true;
-}
-
 export function Call<T, A extends any[], R>(F: (this: T, ...args: A) => R, V: T, args: A): R {
   if (typeof F !== 'function') {
     throw new TypeError('Argument is not a function');

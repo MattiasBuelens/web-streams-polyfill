@@ -2,7 +2,6 @@ import assert from '../stub/assert';
 import {
   CreateAlgorithmFromUnderlyingMethod,
   InvokeOrNoop,
-  IsNonNegativeNumber,
   MakeSizeAlgorithmFromSizeFunction,
   newPromise,
   promiseRejectedWith,
@@ -16,6 +15,7 @@ import { QueuingStrategy, QueuingStrategySizeCallback } from './queuing-strategy
 import { SimpleQueue } from './simple-queue';
 import { typeIsObject } from './helpers/miscellaneous';
 import { AbortSteps, ErrorSteps } from './abstract-ops/internal-methods';
+import { IsNonNegativeNumber } from './abstract-ops/miscellaneous';
 
 type WritableStreamDefaultControllerStartCallback
   = (controller: WritableStreamDefaultController) => void | PromiseLike<void>;

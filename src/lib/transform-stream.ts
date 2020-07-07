@@ -2,7 +2,6 @@ import assert from '../stub/assert';
 import {
   CreateAlgorithmFromUnderlyingMethod,
   InvokeOrNoop,
-  IsNonNegativeNumber,
   MakeSizeAlgorithmFromSizeFunction,
   newPromise,
   PromiseCall,
@@ -23,6 +22,7 @@ import {
 import { QueuingStrategy, QueuingStrategySizeCallback } from './queuing-strategy';
 import { CreateWritableStream, WritableStream, WritableStreamDefaultControllerErrorIfNeeded } from './writable-stream';
 import { typeIsObject } from './helpers/miscellaneous';
+import { IsNonNegativeNumber } from './abstract-ops/miscellaneous';
 
 export type TransformStreamDefaultControllerCallback<O>
   = (controller: TransformStreamDefaultController<O>) => void | PromiseLike<void>;

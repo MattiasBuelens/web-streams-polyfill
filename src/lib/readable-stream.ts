@@ -1,7 +1,6 @@
 import assert from '../stub/assert';
 import {
   isDictionary,
-  IsNonNegativeNumber,
   MakeSizeAlgorithmFromSizeFunction,
   promiseRejectedWith,
   promiseResolvedWith,
@@ -55,6 +54,7 @@ import { AbortSignal, isAbortSignal } from './abort-signal';
 import { typeIsObject } from './helpers/miscellaneous';
 import { CreateArrayFromList } from './abstract-ops/ecmascript';
 import { CancelSteps } from './abstract-ops/internal-methods';
+import { IsNonNegativeNumber } from './abstract-ops/miscellaneous';
 
 export type ReadableByteStream = ReadableStream<Uint8Array>;
 

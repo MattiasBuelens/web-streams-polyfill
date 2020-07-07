@@ -3,7 +3,6 @@ import { SimpleQueue } from '../simple-queue';
 import {
   CreateAlgorithmFromUnderlyingMethod,
   InvokeOrNoop,
-  IsFiniteNonNegativeNumber,
   promiseRejectedWith,
   promiseResolvedWith,
   uponPromise,
@@ -34,6 +33,7 @@ import { UnderlyingByteSource } from './underlying-source';
 import { typeIsObject } from '../helpers/miscellaneous';
 import { CopyDataBlockBytes, IsDetachedBuffer, TransferArrayBuffer } from '../abstract-ops/ecmascript';
 import { CancelSteps, PullSteps } from '../abstract-ops/internal-methods';
+import { IsFiniteNonNegativeNumber } from '../abstract-ops/miscellaneous';
 
 export class ReadableStreamBYOBRequest {
   /** @internal */
