@@ -7,12 +7,12 @@ import {
   ReadableStreamGetNumReadRequests
 } from './default-reader';
 import { SimpleQueue } from '../simple-queue';
-import { CancelSteps, PullSteps } from './symbols';
 import { ReadableStreamCreateReadResult, ReadResult } from './generic-reader';
 import { CreateAlgorithmFromUnderlyingMethod, InvokeOrNoop, promiseResolvedWith, uponPromise } from '../helpers';
 import { IsReadableStreamLocked, ReadableStream, ReadableStreamClose, ReadableStreamError } from '../readable-stream';
 import { UnderlyingSource } from './underlying-source';
 import { typeIsObject } from '../helpers/miscellaneous';
+import { CancelSteps, PullSteps } from '../abstract-ops/internal-methods';
 
 export class ReadableStreamDefaultController<R> {
   /** @internal */

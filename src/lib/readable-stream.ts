@@ -38,7 +38,6 @@ import {
   SetUpReadableByteStreamController,
   SetUpReadableByteStreamControllerFromUnderlyingSource
 } from './readable-stream/byte-stream-controller';
-import { CancelSteps } from './readable-stream/symbols';
 import {
   ReadableStreamDefaultController,
   SetUpReadableStreamDefaultController,
@@ -55,6 +54,7 @@ import { noop } from '../utils';
 import { AbortSignal, isAbortSignal } from './abort-signal';
 import { typeIsObject } from './helpers/miscellaneous';
 import { CreateArrayFromList } from './abstract-ops/ecmascript';
+import { CancelSteps } from './abstract-ops/internal-methods';
 
 export type ReadableByteStream = ReadableStream<Uint8Array>;
 

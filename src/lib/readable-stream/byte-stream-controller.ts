@@ -30,10 +30,10 @@ import {
   ReadableStreamClose,
   ReadableStreamError
 } from '../readable-stream';
-import { CancelSteps, PullSteps } from './symbols';
 import { UnderlyingByteSource } from './underlying-source';
 import { typeIsObject } from '../helpers/miscellaneous';
 import { CopyDataBlockBytes, IsDetachedBuffer, TransferArrayBuffer } from '../abstract-ops/ecmascript';
+import { CancelSteps, PullSteps } from '../abstract-ops/internal-methods';
 
 export class ReadableStreamBYOBRequest {
   /** @internal */

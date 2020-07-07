@@ -10,8 +10,8 @@ import {
   ReadResult
 } from './generic-reader';
 import { IsReadableStream, IsReadableStreamLocked, ReadableStream } from '../readable-stream';
-import { PullSteps } from './symbols';
 import { typeIsObject } from '../helpers/miscellaneous';
+import { PullSteps } from '../abstract-ops/internal-methods';
 
 // Abstract operations for the ReadableStream.
 

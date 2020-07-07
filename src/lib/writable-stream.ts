@@ -15,9 +15,7 @@ import { DequeueValue, EnqueueValueWithSize, PeekQueueValue, QueuePair, ResetQue
 import { QueuingStrategy, QueuingStrategySizeCallback } from './queuing-strategy';
 import { SimpleQueue } from './simple-queue';
 import { typeIsObject } from './helpers/miscellaneous';
-
-const AbortSteps = Symbol('[[AbortSteps]]');
-const ErrorSteps = Symbol('[[ErrorSteps]]');
+import { AbortSteps, ErrorSteps } from './abstract-ops/internal-methods';
 
 type WritableStreamDefaultControllerStartCallback
   = (controller: WritableStreamDefaultController) => void | PromiseLike<void>;
