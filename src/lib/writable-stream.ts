@@ -1,10 +1,5 @@
 import assert from '../stub/assert';
-import {
-  CreateAlgorithmFromUnderlyingMethod,
-  InvokeOrNoop,
-  MakeSizeAlgorithmFromSizeFunction,
-  ValidateAndNormalizeHighWaterMark
-} from './helpers';
+import { CreateAlgorithmFromUnderlyingMethod, InvokeOrNoop } from './helpers';
 import {
   newPromise,
   promiseRejectedWith,
@@ -24,6 +19,8 @@ import { SimpleQueue } from './simple-queue';
 import { typeIsObject } from './helpers/miscellaneous';
 import { AbortSteps, ErrorSteps } from './abstract-ops/internal-methods';
 import { IsNonNegativeNumber } from './abstract-ops/miscellaneous';
+import { ExtractHighWaterMark, ExtractSizeAlgorithm } from './abstract-ops/queuing-strategy';
+import { convertQueuingStrategy } from './validators/queuing-strategy';
 
 type WritableStreamDefaultControllerStartCallback
   = (controller: WritableStreamDefaultController) => void | PromiseLike<void>;
@@ -81,10 +78,8 @@ class WritableStream<W = any> {
   _backpressure!: boolean;
 
   constructor(underlyingSink: UnderlyingSink<W> = {}, strategy: QueuingStrategy<W> = {}) {
+    strategy = convertQueuingStrategy(strategy, 'Second parameter');
     InitializeWritableStream(this);
-
-    const size = strategy.size;
-    let highWaterMark = strategy.highWaterMark;
 
     const type = underlyingSink.type;
 
@@ -92,11 +87,8 @@ class WritableStream<W = any> {
       throw new RangeError('Invalid type is specified');
     }
 
-    const sizeAlgorithm = MakeSizeAlgorithmFromSizeFunction(size);
-    if (highWaterMark === undefined) {
-      highWaterMark = 1;
-    }
-    highWaterMark = ValidateAndNormalizeHighWaterMark(highWaterMark);
+    const sizeAlgorithm = ExtractSizeAlgorithm(strategy);
+    const highWaterMark = ExtractHighWaterMark(strategy, 1);
 
     SetUpWritableStreamDefaultControllerFromUnderlyingSink(this, underlyingSink, highWaterMark, sizeAlgorithm);
   }

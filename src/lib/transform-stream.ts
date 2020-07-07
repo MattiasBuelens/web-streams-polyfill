@@ -1,11 +1,5 @@
 import assert from '../stub/assert';
-import {
-  CreateAlgorithmFromUnderlyingMethod,
-  InvokeOrNoop,
-  MakeSizeAlgorithmFromSizeFunction,
-  PromiseCall,
-  ValidateAndNormalizeHighWaterMark
-} from './helpers';
+import { CreateAlgorithmFromUnderlyingMethod, InvokeOrNoop, PromiseCall } from './helpers';
 import { newPromise, promiseRejectedWith, promiseResolvedWith, transformPromiseWith } from './helpers/webidl';
 import { CreateReadableStream, ReadableStream, ReadableStreamDefaultController } from './readable-stream';
 import {
@@ -20,6 +14,8 @@ import { QueuingStrategy, QueuingStrategySizeCallback } from './queuing-strategy
 import { CreateWritableStream, WritableStream, WritableStreamDefaultControllerErrorIfNeeded } from './writable-stream';
 import { typeIsObject } from './helpers/miscellaneous';
 import { IsNonNegativeNumber } from './abstract-ops/miscellaneous';
+import { convertQueuingStrategy } from './validators/queuing-strategy';
+import { ExtractHighWaterMark, ExtractSizeAlgorithm } from './abstract-ops/queuing-strategy';
 
 export type TransformStreamDefaultControllerCallback<O>
   = (controller: TransformStreamDefaultController<O>) => void | PromiseLike<void>;
@@ -53,10 +49,8 @@ export class TransformStream<I = any, O = any> {
   constructor(transformer: Transformer<I, O> = {},
               writableStrategy: QueuingStrategy<I> = {},
               readableStrategy: QueuingStrategy<O> = {}) {
-    const writableSizeFunction = writableStrategy.size;
-    let writableHighWaterMark = writableStrategy.highWaterMark;
-    const readableSizeFunction = readableStrategy.size;
-    let readableHighWaterMark = readableStrategy.highWaterMark;
+    writableStrategy = convertQueuingStrategy(writableStrategy, 'Second parameter');
+    readableStrategy = convertQueuingStrategy(readableStrategy, 'Third parameter');
 
     const writableType = transformer.writableType;
 
@@ -64,23 +58,16 @@ export class TransformStream<I = any, O = any> {
       throw new RangeError('Invalid writable type specified');
     }
 
-    const writableSizeAlgorithm = MakeSizeAlgorithmFromSizeFunction(writableSizeFunction);
-    if (writableHighWaterMark === undefined) {
-      writableHighWaterMark = 1;
-    }
-    writableHighWaterMark = ValidateAndNormalizeHighWaterMark(writableHighWaterMark);
+    const readableHighWaterMark = ExtractHighWaterMark(readableStrategy, 0);
+    const readableSizeAlgorithm = ExtractSizeAlgorithm(readableStrategy);
+    const writableHighWaterMark = ExtractHighWaterMark(writableStrategy, 1);
+    const writableSizeAlgorithm = ExtractSizeAlgorithm(writableStrategy);
 
     const readableType = transformer.readableType;
 
     if (readableType !== undefined) {
       throw new RangeError('Invalid readable type specified');
     }
-
-    const readableSizeAlgorithm = MakeSizeAlgorithmFromSizeFunction(readableSizeFunction);
-    if (readableHighWaterMark === undefined) {
-      readableHighWaterMark = 0;
-    }
-    readableHighWaterMark = ValidateAndNormalizeHighWaterMark(readableHighWaterMark);
 
     let startPromise_resolve!: (value: void | PromiseLike<void>) => void;
     const startPromise = newPromise<void>(resolve => {

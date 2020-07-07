@@ -1,5 +1,4 @@
 import assert from '../stub/assert';
-import NumberIsNaN from '../stub/number-isnan';
 import { FunctionPropertyNames, InferFirst, InferFunction, InferRest, Promisify } from '../util/type-utils';
 import { promiseRejectedWith, promiseResolvedWith } from './helpers/webidl';
 
@@ -85,23 +84,4 @@ export function PromiseCall<T, A extends any[], R>(F: (this: T, ...args: A) => R
   } catch (value) {
     return promiseRejectedWith(value);
   }
-}
-
-export function ValidateAndNormalizeHighWaterMark(highWaterMark: number): number {
-  highWaterMark = Number(highWaterMark);
-  if (NumberIsNaN(highWaterMark) || highWaterMark < 0) {
-    throw new RangeError('highWaterMark property of a queuing strategy must be non-negative and non-NaN');
-  }
-
-  return highWaterMark;
-}
-
-export function MakeSizeAlgorithmFromSizeFunction<T>(size?: (chunk: T) => number): (chunk: T) => number {
-  if (size === undefined) {
-    return () => 1;
-  }
-  if (typeof size !== 'function') {
-    throw new TypeError('size property of a queuing strategy must be a function');
-  }
-  return chunk => size(chunk);
 }

@@ -1,6 +1,6 @@
 import assert from '../../stub/assert';
 import { SimpleQueue } from '../simple-queue';
-import { CreateAlgorithmFromUnderlyingMethod, InvokeOrNoop, ValidateAndNormalizeHighWaterMark } from '../helpers';
+import { CreateAlgorithmFromUnderlyingMethod, InvokeOrNoop } from '../helpers';
 import { ResetQueue } from '../abstract-ops/queue-with-sizes';
 import { ReadableStreamCreateReadResult, ReadResult } from './generic-reader';
 import {
@@ -847,7 +847,7 @@ export function SetUpReadableByteStreamController(stream: ReadableByteStream,
   controller._closeRequested = false;
   controller._started = false;
 
-  controller._strategyHWM = ValidateAndNormalizeHighWaterMark(highWaterMark);
+  controller._strategyHWM = highWaterMark;
 
   controller._pullAlgorithm = pullAlgorithm;
   controller._cancelAlgorithm = cancelAlgorithm;

@@ -8,6 +8,14 @@ export function assertDictionary(obj: unknown, context = 'The provided value'): 
   }
 }
 
+export type AnyFunction = (...args: any[]) => any;
+
+export function assertFunction(x: unknown, context = 'The provided value'): asserts x is AnyFunction {
+  if (typeof x !== 'function') {
+    throw new TypeError(`${context} is not a function.`);
+  }
+}
+
 export function assertRequiredArgument<T extends any>(x: T | undefined,
                                                       position: number,
                                                       context: string): asserts x is T {

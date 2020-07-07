@@ -1,5 +1,4 @@
 import assert from '../stub/assert';
-import { MakeSizeAlgorithmFromSizeFunction, ValidateAndNormalizeHighWaterMark } from './helpers';
 import {
   promiseRejectedWith,
   promiseResolvedWith,
@@ -53,7 +52,9 @@ import { typeIsObject } from './helpers/miscellaneous';
 import { CreateArrayFromList } from './abstract-ops/ecmascript';
 import { CancelSteps } from './abstract-ops/internal-methods';
 import { IsNonNegativeNumber } from './abstract-ops/miscellaneous';
-import { assertDictionary, isDictionary } from './validators/basic';
+import { assertDictionary } from './validators/basic';
+import { convertQueuingStrategy } from './validators/queuing-strategy';
+import { ExtractHighWaterMark, ExtractSizeAlgorithm } from './abstract-ops/queuing-strategy';
 
 export type ReadableByteStream = ReadableStream<Uint8Array>;
 
@@ -86,40 +87,33 @@ export class ReadableStream<R = any> {
   constructor(underlyingSource: UnderlyingByteSource, strategy?: { highWaterMark?: number; size?: undefined });
   constructor(underlyingSource?: UnderlyingSource<R>, strategy?: QueuingStrategy<R>);
   constructor(underlyingSource: UnderlyingSource<R> | UnderlyingByteSource = {}, strategy: QueuingStrategy<R> = {}) {
+    strategy = convertQueuingStrategy(strategy, 'Second parameter');
     InitializeReadableStream(this);
-
-    const size = strategy.size;
-    let highWaterMark = strategy.highWaterMark;
 
     const type = underlyingSource.type;
     const typeString = String(type);
     if (typeString === 'bytes') {
-      if (size !== undefined) {
+      if (strategy.size !== undefined) {
         throw new RangeError('The strategy for a byte stream cannot have a size function');
       }
-
-      if (highWaterMark === undefined) {
-        highWaterMark = 0;
-      }
-      highWaterMark = ValidateAndNormalizeHighWaterMark(highWaterMark);
-
-      SetUpReadableByteStreamControllerFromUnderlyingSource(this as unknown as ReadableByteStream,
-                                                            underlyingSource as UnderlyingByteSource,
-                                                            highWaterMark);
-    } else if (type === undefined) {
-      const sizeAlgorithm = MakeSizeAlgorithmFromSizeFunction(size);
-
-      if (highWaterMark === undefined) {
-        highWaterMark = 1;
-      }
-      highWaterMark = ValidateAndNormalizeHighWaterMark(highWaterMark);
-
-      SetUpReadableStreamDefaultControllerFromUnderlyingSource(this,
-                                                               underlyingSource as UnderlyingSource<R>,
-                                                               highWaterMark,
-                                                               sizeAlgorithm);
+      const highWaterMark = ExtractHighWaterMark(strategy, 0);
+      SetUpReadableByteStreamControllerFromUnderlyingSource(
+        this as unknown as ReadableByteStream,
+        underlyingSource as UnderlyingByteSource,
+        highWaterMark
+      );
     } else {
-      throw new TypeError('Invalid type is specified');
+      if (type !== undefined) {
+        throw new TypeError('Invalid type is specified');
+      }
+      const sizeAlgorithm = ExtractSizeAlgorithm(strategy);
+      const highWaterMark = ExtractHighWaterMark(strategy, 1);
+      SetUpReadableStreamDefaultControllerFromUnderlyingSource(
+        this,
+        underlyingSource as UnderlyingSource<R>,
+        highWaterMark,
+        sizeAlgorithm
+      );
     }
   }
 
