@@ -1,7 +1,6 @@
 import assert from '../stub/assert';
 import NumberIsNaN from '../stub/number-isnan';
 import { FunctionPropertyNames, InferFirst, InferFunction, InferRest, Promisify } from '../util/type-utils';
-import { typeIsObject } from './helpers/miscellaneous';
 import { promiseRejectedWith, promiseResolvedWith } from './helpers/webidl';
 
 function IsPropertyKey(argument: any): argument is string | symbol {
@@ -10,11 +9,6 @@ function IsPropertyKey(argument: any): argument is string | symbol {
 
 export function isDictionary(x: any): x is object {
   return typeof x === 'object' || typeof x === 'function';
-}
-
-export function createDataProperty(o: object, p: string | symbol, v: any) {
-  assert(typeIsObject(o));
-  Object.defineProperty(o, p, { value: v, writable: true, enumerable: true, configurable: true });
 }
 
 export function Call<T, A extends any[], R>(F: (this: T, ...args: A) => R, V: T, args: A): R {
