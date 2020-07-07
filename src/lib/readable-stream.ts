@@ -53,7 +53,7 @@ import { typeIsObject } from './helpers/miscellaneous';
 import { CreateArrayFromList } from './abstract-ops/ecmascript';
 import { CancelSteps } from './abstract-ops/internal-methods';
 import { IsNonNegativeNumber } from './abstract-ops/miscellaneous';
-import { assertDictionary, isDictionary } from './validators/dictionary';
+import { assertDictionary, isDictionary } from './validators/basic';
 
 export type ReadableByteStream = ReadableStream<Uint8Array>;
 
