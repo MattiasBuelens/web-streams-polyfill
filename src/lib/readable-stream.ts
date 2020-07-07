@@ -1,6 +1,5 @@
 import assert from '../stub/assert';
 import {
-  createArrayFromList,
   isDictionary,
   IsNonNegativeNumber,
   MakeSizeAlgorithmFromSizeFunction,
@@ -55,6 +54,7 @@ import {
 import { noop } from '../utils';
 import { AbortSignal, isAbortSignal } from './abort-signal';
 import { typeIsObject } from './helpers/miscellaneous';
+import { createArrayFromList } from './abstract-ops/ecmascript';
 
 export type ReadableByteStream = ReadableStream<Uint8Array>;
 

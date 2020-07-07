@@ -2,7 +2,6 @@ import { CreateReadableStream, IsReadableStream, ReadableStream, ReadableStreamC
 import { AcquireReadableStreamDefaultReader, ReadableStreamDefaultReaderRead } from './default-reader';
 import assert from '../../stub/assert';
 import {
-  createArrayFromList,
   newPromise,
   promiseResolvedWith,
   setPromiseIsHandledToTrue,
@@ -16,6 +15,7 @@ import {
   ReadableStreamDefaultControllerError
 } from './default-controller';
 import { typeIsObject } from '../helpers/miscellaneous';
+import { createArrayFromList } from '../abstract-ops/ecmascript';
 
 export function ReadableStreamTee<R>(stream: ReadableStream<R>,
                                      cloneForBranch2: boolean): [ReadableStream<R>, ReadableStream<R>] {

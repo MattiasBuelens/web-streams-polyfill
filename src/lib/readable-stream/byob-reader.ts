@@ -1,4 +1,4 @@
-import { IsDetachedBuffer, newPromise, promiseRejectedWith } from '../helpers';
+import { newPromise, promiseRejectedWith } from '../helpers';
 import assert from '../../stub/assert';
 import { SimpleQueue } from '../simple-queue';
 import {
@@ -16,6 +16,7 @@ import {
   ReadableByteStreamControllerPullInto
 } from './byte-stream-controller';
 import { typeIsObject } from '../helpers/miscellaneous';
+import { IsDetachedBuffer } from '../abstract-ops/ecmascript';
 
 // Abstract operations for the ReadableStream.
 

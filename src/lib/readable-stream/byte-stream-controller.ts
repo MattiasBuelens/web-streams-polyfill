@@ -1,14 +1,11 @@
 import assert from '../../stub/assert';
 import { SimpleQueue } from '../simple-queue';
 import {
-  ArrayBufferCopy,
   CreateAlgorithmFromUnderlyingMethod,
   InvokeOrNoop,
-  IsDetachedBuffer,
   IsFiniteNonNegativeNumber,
   promiseRejectedWith,
   promiseResolvedWith,
-  TransferArrayBuffer,
   uponPromise,
   ValidateAndNormalizeHighWaterMark
 } from '../helpers';
@@ -36,6 +33,7 @@ import {
 import { CancelSteps, PullSteps } from './symbols';
 import { UnderlyingByteSource } from './underlying-source';
 import { typeIsObject } from '../helpers/miscellaneous';
+import { ArrayBufferCopy, IsDetachedBuffer, TransferArrayBuffer } from '../abstract-ops/ecmascript';
 
 export class ReadableStreamBYOBRequest {
   /** @internal */
