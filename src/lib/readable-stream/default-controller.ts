@@ -8,11 +8,12 @@ import {
 } from './default-reader';
 import { SimpleQueue } from '../simple-queue';
 import { ReadableStreamCreateReadResult, ReadResult } from './generic-reader';
-import { CreateAlgorithmFromUnderlyingMethod, InvokeOrNoop, promiseResolvedWith, uponPromise } from '../helpers';
+import { CreateAlgorithmFromUnderlyingMethod, InvokeOrNoop } from '../helpers';
 import { IsReadableStreamLocked, ReadableStream, ReadableStreamClose, ReadableStreamError } from '../readable-stream';
 import { UnderlyingSource } from './underlying-source';
 import { typeIsObject } from '../helpers/miscellaneous';
 import { CancelSteps, PullSteps } from '../abstract-ops/internal-methods';
+import { promiseResolvedWith, uponPromise } from '../helpers/webidl';
 
 export class ReadableStreamDefaultController<R> {
   /** @internal */

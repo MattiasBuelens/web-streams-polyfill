@@ -1,4 +1,3 @@
-import { newPromise, promiseRejectedWith, promiseResolvedWith } from '../helpers';
 import assert from '../../stub/assert';
 import { SimpleQueue } from '../simple-queue';
 import {
@@ -12,6 +11,7 @@ import {
 import { IsReadableStream, IsReadableStreamLocked, ReadableStream } from '../readable-stream';
 import { typeIsObject } from '../helpers/miscellaneous';
 import { PullSteps } from '../abstract-ops/internal-methods';
+import { newPromise, promiseRejectedWith, promiseResolvedWith } from '../helpers/webidl';
 
 // Abstract operations for the ReadableStream.
 

@@ -3,13 +3,10 @@ import {
   CreateAlgorithmFromUnderlyingMethod,
   InvokeOrNoop,
   MakeSizeAlgorithmFromSizeFunction,
-  newPromise,
   PromiseCall,
-  promiseRejectedWith,
-  promiseResolvedWith,
-  transformPromiseWith,
   ValidateAndNormalizeHighWaterMark
 } from './helpers';
+import { newPromise, promiseRejectedWith, promiseResolvedWith, transformPromiseWith } from './helpers/webidl';
 import { CreateReadableStream, ReadableStream, ReadableStreamDefaultController } from './readable-stream';
 import {
   ReadableStreamDefaultControllerCanCloseOrEnqueue,

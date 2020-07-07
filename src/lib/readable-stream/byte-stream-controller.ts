@@ -1,13 +1,6 @@
 import assert from '../../stub/assert';
 import { SimpleQueue } from '../simple-queue';
-import {
-  CreateAlgorithmFromUnderlyingMethod,
-  InvokeOrNoop,
-  promiseRejectedWith,
-  promiseResolvedWith,
-  uponPromise,
-  ValidateAndNormalizeHighWaterMark
-} from '../helpers';
+import { CreateAlgorithmFromUnderlyingMethod, InvokeOrNoop, ValidateAndNormalizeHighWaterMark } from '../helpers';
 import { ResetQueue } from '../abstract-ops/queue-with-sizes';
 import { ReadableStreamCreateReadResult, ReadResult } from './generic-reader';
 import {
@@ -34,6 +27,7 @@ import { typeIsObject } from '../helpers/miscellaneous';
 import { CopyDataBlockBytes, IsDetachedBuffer, TransferArrayBuffer } from '../abstract-ops/ecmascript';
 import { CancelSteps, PullSteps } from '../abstract-ops/internal-methods';
 import { IsFiniteNonNegativeNumber } from '../abstract-ops/miscellaneous';
+import { promiseRejectedWith, promiseResolvedWith, uponPromise } from '../helpers/webidl';
 
 export class ReadableStreamBYOBRequest {
   /** @internal */

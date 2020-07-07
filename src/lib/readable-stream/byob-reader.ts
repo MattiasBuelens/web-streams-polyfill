@@ -1,4 +1,3 @@
-import { newPromise, promiseRejectedWith } from '../helpers';
 import assert from '../../stub/assert';
 import { SimpleQueue } from '../simple-queue';
 import {
@@ -17,6 +16,7 @@ import {
 } from './byte-stream-controller';
 import { typeIsObject } from '../helpers/miscellaneous';
 import { IsDetachedBuffer } from '../abstract-ops/ecmascript';
+import { newPromise, promiseRejectedWith } from '../helpers/webidl';
 
 // Abstract operations for the ReadableStream.
 

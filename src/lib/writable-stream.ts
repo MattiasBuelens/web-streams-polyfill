@@ -3,13 +3,15 @@ import {
   CreateAlgorithmFromUnderlyingMethod,
   InvokeOrNoop,
   MakeSizeAlgorithmFromSizeFunction,
+  ValidateAndNormalizeHighWaterMark
+} from './helpers';
+import {
   newPromise,
   promiseRejectedWith,
   promiseResolvedWith,
   setPromiseIsHandledToTrue,
-  uponPromise,
-  ValidateAndNormalizeHighWaterMark
-} from './helpers';
+  uponPromise
+} from './helpers/webidl';
 import {
   DequeueValue,
   EnqueueValueWithSize,

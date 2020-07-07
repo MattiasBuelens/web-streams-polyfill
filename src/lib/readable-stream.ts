@@ -1,13 +1,11 @@
 import assert from '../stub/assert';
+import { isDictionary, MakeSizeAlgorithmFromSizeFunction, ValidateAndNormalizeHighWaterMark } from './helpers';
 import {
-  isDictionary,
-  MakeSizeAlgorithmFromSizeFunction,
   promiseRejectedWith,
   promiseResolvedWith,
   setPromiseIsHandledToTrue,
-  transformPromiseWith,
-  ValidateAndNormalizeHighWaterMark
-} from './helpers';
+  transformPromiseWith
+} from './helpers/webidl';
 import { QueuingStrategy, QueuingStrategySizeCallback } from './queuing-strategy';
 import { AcquireReadableStreamAsyncIterator, ReadableStreamAsyncIterator } from './readable-stream/async-iterator';
 import {

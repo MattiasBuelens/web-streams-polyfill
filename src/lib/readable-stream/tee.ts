@@ -7,7 +7,7 @@ import {
   setPromiseIsHandledToTrue,
   transformPromiseWith,
   uponRejection
-} from '../helpers';
+} from '../helpers/webidl';
 import {
   ReadableStreamDefaultController,
   ReadableStreamDefaultControllerClose,
