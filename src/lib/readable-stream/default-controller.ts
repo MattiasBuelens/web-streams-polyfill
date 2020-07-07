@@ -1,6 +1,6 @@
 import { QueuingStrategySizeCallback } from '../queuing-strategy';
 import assert from '../../stub/assert';
-import { DequeueValue, EnqueueValueWithSize, QueuePair, ResetQueue } from '../queue-with-sizes';
+import { DequeueValue, EnqueueValueWithSize, QueuePair, ResetQueue } from '../abstract-ops/queue-with-sizes';
 import {
   ReadableStreamAddReadRequest,
   ReadableStreamFulfillReadRequest,

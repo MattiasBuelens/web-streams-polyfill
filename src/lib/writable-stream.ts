@@ -10,7 +10,13 @@ import {
   uponPromise,
   ValidateAndNormalizeHighWaterMark
 } from './helpers';
-import { DequeueValue, EnqueueValueWithSize, PeekQueueValue, QueuePair, ResetQueue } from './queue-with-sizes';
+import {
+  DequeueValue,
+  EnqueueValueWithSize,
+  PeekQueueValue,
+  QueuePair,
+  ResetQueue
+} from './abstract-ops/queue-with-sizes';
 import { QueuingStrategy, QueuingStrategySizeCallback } from './queuing-strategy';
 import { SimpleQueue } from './simple-queue';
 import { typeIsObject } from './helpers/miscellaneous';

@@ -8,7 +8,7 @@ import {
   uponPromise,
   ValidateAndNormalizeHighWaterMark
 } from '../helpers';
-import { ResetQueue } from '../queue-with-sizes';
+import { ResetQueue } from '../abstract-ops/queue-with-sizes';
 import { ReadableStreamCreateReadResult, ReadResult } from './generic-reader';
 import {
   ReadableStreamAddReadRequest,
