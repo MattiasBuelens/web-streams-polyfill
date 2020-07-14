@@ -44,7 +44,9 @@ import {
   ReadableStreamDefaultControllerCallback,
   ReadableStreamErrorCallback,
   UnderlyingByteSource,
-  UnderlyingSource
+  UnderlyingSource,
+  ValidatedUnderlyingByteSource,
+  ValidatedUnderlyingSource
 } from './readable-stream/underlying-source';
 import { noop } from '../utils';
 import { AbortSignal, isAbortSignal } from './abort-signal';
@@ -52,9 +54,10 @@ import { typeIsObject } from './helpers/miscellaneous';
 import { CreateArrayFromList } from './abstract-ops/ecmascript';
 import { CancelSteps } from './abstract-ops/internal-methods';
 import { IsNonNegativeNumber } from './abstract-ops/miscellaneous';
-import { assertDictionary } from './validators/basic';
+import { assertDictionary, assertObject } from './validators/basic';
 import { convertQueuingStrategy } from './validators/queuing-strategy';
 import { ExtractHighWaterMark, ExtractSizeAlgorithm } from './abstract-ops/queuing-strategy';
+import { convertUnderlyingDefaultOrByteSource } from './validators/underlying-source';
 
 export type ReadableByteStream = ReadableStream<Uint8Array>;
 
@@ -86,31 +89,36 @@ export class ReadableStream<R = any> {
 
   constructor(underlyingSource: UnderlyingByteSource, strategy?: { highWaterMark?: number; size?: undefined });
   constructor(underlyingSource?: UnderlyingSource<R>, strategy?: QueuingStrategy<R>);
-  constructor(underlyingSource: UnderlyingSource<R> | UnderlyingByteSource = {}, strategy: QueuingStrategy<R> = {}) {
+  constructor(underlyingSource: UnderlyingSource<R> | UnderlyingByteSource | null | undefined = undefined,
+              strategy: QueuingStrategy<R> | null | undefined = undefined) {
+    if (underlyingSource === undefined) {
+      underlyingSource = null;
+    } else {
+      assertObject(underlyingSource, 'First parameter');
+    }
+
     strategy = convertQueuingStrategy(strategy, 'Second parameter');
+    const underlyingSourceDict = convertUnderlyingDefaultOrByteSource(underlyingSource, 'First parameter');
+
     InitializeReadableStream(this);
 
-    const type = underlyingSource.type;
-    const typeString = String(type);
-    if (typeString === 'bytes') {
+    if (underlyingSourceDict.type === 'bytes') {
       if (strategy.size !== undefined) {
         throw new RangeError('The strategy for a byte stream cannot have a size function');
       }
       const highWaterMark = ExtractHighWaterMark(strategy, 0);
       SetUpReadableByteStreamControllerFromUnderlyingSource(
         this as unknown as ReadableByteStream,
-        underlyingSource as UnderlyingByteSource,
+        underlyingSourceDict as ValidatedUnderlyingByteSource,
         highWaterMark
       );
     } else {
-      if (type !== undefined) {
-        throw new TypeError('Invalid type is specified');
-      }
+      assert(underlyingSourceDict.type === undefined);
       const sizeAlgorithm = ExtractSizeAlgorithm(strategy);
       const highWaterMark = ExtractHighWaterMark(strategy, 1);
       SetUpReadableStreamDefaultControllerFromUnderlyingSource(
         this,
-        underlyingSource as UnderlyingSource<R>,
+        underlyingSourceDict as ValidatedUnderlyingSource<R>,
         highWaterMark,
         sizeAlgorithm
       );

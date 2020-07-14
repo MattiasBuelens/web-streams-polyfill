@@ -1,7 +1,7 @@
 import { QueuingStrategy, QueuingStrategySizeCallback } from '../queuing-strategy';
 import { assertDictionary, assertFunction, convertUnrestrictedDouble } from './basic';
 
-export function convertQueuingStrategy<T>(init: QueuingStrategy<T> | undefined,
+export function convertQueuingStrategy<T>(init: QueuingStrategy<T> | null | undefined,
                                           context = 'The provided value'): QueuingStrategy<T> {
   assertDictionary(init, context);
   const highWaterMark = init?.highWaterMark;
@@ -13,7 +13,7 @@ export function convertQueuingStrategy<T>(init: QueuingStrategy<T> | undefined,
 }
 
 function convertQueuingStrategySize<T>(fn: QueuingStrategySizeCallback<T>,
-                                       context = 'The provided value'): QueuingStrategySizeCallback<T> {
+                                       context: string): QueuingStrategySizeCallback<T> {
   assertFunction(fn, context);
   return chunk => convertUnrestrictedDouble(fn(chunk));
 }

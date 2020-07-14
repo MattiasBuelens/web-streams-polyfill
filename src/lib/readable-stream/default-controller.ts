@@ -8,9 +8,8 @@ import {
 } from './default-reader';
 import { SimpleQueue } from '../simple-queue';
 import { ReadableStreamCreateReadResult, ReadResult } from './generic-reader';
-import { CreateAlgorithmFromUnderlyingMethod, InvokeOrNoop } from '../helpers';
 import { IsReadableStreamLocked, ReadableStream, ReadableStreamClose, ReadableStreamError } from '../readable-stream';
-import { UnderlyingSource } from './underlying-source';
+import { ValidatedUnderlyingSource } from './underlying-source';
 import { typeIsObject } from '../helpers/miscellaneous';
 import { CancelSteps, PullSteps } from '../abstract-ops/internal-methods';
 import { promiseResolvedWith, uponPromise } from '../helpers/webidl';
@@ -341,27 +340,31 @@ export function SetUpReadableStreamDefaultController<R>(stream: ReadableStream<R
   );
 }
 
-export function SetUpReadableStreamDefaultControllerFromUnderlyingSource<R>(stream: ReadableStream<R>,
-                                                                            underlyingSource: UnderlyingSource<R>,
-                                                                            highWaterMark: number,
-                                                                            sizeAlgorithm: QueuingStrategySizeCallback<R>) {
-  assert(underlyingSource !== undefined);
-
+export function SetUpReadableStreamDefaultControllerFromUnderlyingSource<R>(
+  stream: ReadableStream<R>,
+  underlyingSource: ValidatedUnderlyingSource<R>,
+  highWaterMark: number,
+  sizeAlgorithm: QueuingStrategySizeCallback<R>
+) {
   const controller: ReadableStreamDefaultController<R> = Object.create(ReadableStreamDefaultController.prototype);
 
-  function startAlgorithm() {
-    return InvokeOrNoop<typeof underlyingSource, 'start'>(underlyingSource, 'start', [controller]);
+  let startAlgorithm: () => void | PromiseLike<void> = () => undefined;
+  let pullAlgorithm: () => Promise<void> = () => promiseResolvedWith(undefined);
+  let cancelAlgorithm: (reason: any) => Promise<void> = () => promiseResolvedWith(undefined);
+
+  if (underlyingSource.start !== undefined) {
+    startAlgorithm = () => underlyingSource.start!(controller);
+  }
+  if (underlyingSource.pull !== undefined) {
+    pullAlgorithm = () => underlyingSource.pull!(controller);
+  }
+  if (underlyingSource.cancel !== undefined) {
+    cancelAlgorithm = reason => underlyingSource.cancel!(reason);
   }
 
-  const pullAlgorithm = CreateAlgorithmFromUnderlyingMethod<typeof underlyingSource, 'pull'>(
-    underlyingSource, 'pull', 0, [controller]
+  SetUpReadableStreamDefaultController(
+    stream, controller, startAlgorithm, pullAlgorithm, cancelAlgorithm, highWaterMark, sizeAlgorithm
   );
-  const cancelAlgorithm = CreateAlgorithmFromUnderlyingMethod<typeof underlyingSource, 'cancel'>(
-    underlyingSource, 'cancel', 1, []
-  );
-
-  SetUpReadableStreamDefaultController(stream, controller, startAlgorithm, pullAlgorithm, cancelAlgorithm,
-                                       highWaterMark, sizeAlgorithm);
 }
 
 // Helper functions for the ReadableStreamDefaultController.

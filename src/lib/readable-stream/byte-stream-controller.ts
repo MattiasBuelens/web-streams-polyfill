@@ -1,6 +1,5 @@
 import assert from '../../stub/assert';
 import { SimpleQueue } from '../simple-queue';
-import { CreateAlgorithmFromUnderlyingMethod, InvokeOrNoop } from '../helpers';
 import { ResetQueue } from '../abstract-ops/queue-with-sizes';
 import { ReadableStreamCreateReadResult, ReadResult } from './generic-reader';
 import {
@@ -22,7 +21,7 @@ import {
   ReadableStreamClose,
   ReadableStreamError
 } from '../readable-stream';
-import { UnderlyingByteSource } from './underlying-source';
+import { ValidatedUnderlyingByteSource } from './underlying-source';
 import { typeIsObject } from '../helpers/miscellaneous';
 import { CopyDataBlockBytes, IsDetachedBuffer, TransferArrayBuffer } from '../abstract-ops/ecmascript';
 import { CancelSteps, PullSteps } from '../abstract-ops/internal-methods';
@@ -875,34 +874,32 @@ export function SetUpReadableByteStreamController(stream: ReadableByteStream,
   );
 }
 
-export function SetUpReadableByteStreamControllerFromUnderlyingSource(stream: ReadableByteStream,
-                                                                      underlyingByteSource: UnderlyingByteSource,
-                                                                      highWaterMark: number) {
-  assert(underlyingByteSource !== undefined);
-
+export function SetUpReadableByteStreamControllerFromUnderlyingSource(
+  stream: ReadableByteStream,
+  underlyingByteSource: ValidatedUnderlyingByteSource,
+  highWaterMark: number
+) {
   const controller: ReadableByteStreamController = Object.create(ReadableByteStreamController.prototype);
 
-  function startAlgorithm() {
-    return InvokeOrNoop<typeof underlyingByteSource, 'start'>(underlyingByteSource, 'start', [controller]);
+  let startAlgorithm: () => void | PromiseLike<void> = () => undefined;
+  let pullAlgorithm: () => Promise<void> = () => promiseResolvedWith(undefined);
+  let cancelAlgorithm: (reason: any) => Promise<void> = () => promiseResolvedWith(undefined);
+
+  if (underlyingByteSource.start !== undefined) {
+    startAlgorithm = () => underlyingByteSource.start!(controller);
+  }
+  if (underlyingByteSource.pull !== undefined) {
+    pullAlgorithm = () => underlyingByteSource.pull!(controller);
+  }
+  if (underlyingByteSource.cancel !== undefined) {
+    cancelAlgorithm = reason => underlyingByteSource.cancel!(reason);
   }
 
-  const pullAlgorithm = CreateAlgorithmFromUnderlyingMethod<typeof underlyingByteSource, 'pull'>(
-    underlyingByteSource, 'pull', 0, [controller]
-  );
-  const cancelAlgorithm = CreateAlgorithmFromUnderlyingMethod<typeof underlyingByteSource, 'cancel'>(
-    underlyingByteSource, 'cancel', 1, []
-  );
+  const autoAllocateChunkSize = underlyingByteSource.autoAllocateChunkSize;
 
-  let autoAllocateChunkSize = underlyingByteSource.autoAllocateChunkSize;
-  if (autoAllocateChunkSize !== undefined) {
-    autoAllocateChunkSize = Number(autoAllocateChunkSize);
-    if (NumberIsInteger(autoAllocateChunkSize) === false || autoAllocateChunkSize <= 0) {
-      throw new RangeError('autoAllocateChunkSize must be a positive integer');
-    }
-  }
-
-  SetUpReadableByteStreamController(stream, controller, startAlgorithm, pullAlgorithm, cancelAlgorithm, highWaterMark,
-                                    autoAllocateChunkSize);
+  SetUpReadableByteStreamController(
+    stream, controller, startAlgorithm, pullAlgorithm, cancelAlgorithm, highWaterMark, autoAllocateChunkSize
+  );
 }
 
 function SetUpReadableStreamBYOBRequest(request: ReadableStreamBYOBRequest,

@@ -1,4 +1,5 @@
 import { rethrowAssertionErrorRejection } from './miscellaneous';
+import assert from '../../stub/assert';
 
 const originalPromise = Promise;
 const originalPromiseThen = Promise.prototype.then;
@@ -57,4 +58,24 @@ export function transformPromiseWith<T, TResult1 = T, TResult2 = never>(
 
 export function setPromiseIsHandledToTrue(promise: Promise<unknown>): void {
   PerformPromiseThen(promise, undefined, rethrowAssertionErrorRejection);
+}
+
+export function reflectCall<T, A extends any[], R>(F: (this: T, ...args: A) => R, V: T, args: A): R {
+  if (typeof F !== 'function') {
+    throw new TypeError('Argument is not a function');
+  }
+  return Function.prototype.apply.call(F, V, args);
+}
+
+export function promiseCall<T, A extends any[], R>(F: (this: T, ...args: A) => R | PromiseLike<R>,
+                                                   V: T,
+                                                   args: A): Promise<R> {
+  assert(typeof F === 'function');
+  assert(V !== undefined);
+  assert(Array.isArray(args));
+  try {
+    return promiseResolvedWith(reflectCall(F, V, args));
+  } catch (value) {
+    return promiseRejectedWith(value);
+  }
 }
