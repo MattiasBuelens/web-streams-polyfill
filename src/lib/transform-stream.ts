@@ -16,19 +16,7 @@ import { typeIsObject } from './helpers/miscellaneous';
 import { IsNonNegativeNumber } from './abstract-ops/miscellaneous';
 import { convertQueuingStrategy } from './validators/queuing-strategy';
 import { ExtractHighWaterMark, ExtractSizeAlgorithm } from './abstract-ops/queuing-strategy';
-
-export type TransformStreamDefaultControllerCallback<O>
-  = (controller: TransformStreamDefaultController<O>) => void | PromiseLike<void>;
-export type TransformStreamDefaultControllerTransformCallback<I, O>
-  = (chunk: I, controller: TransformStreamDefaultController<O>) => void | PromiseLike<void>;
-
-export interface Transformer<I = any, O = any> {
-  start?: TransformStreamDefaultControllerCallback<O>;
-  transform?: TransformStreamDefaultControllerTransformCallback<I, O>;
-  flush?: TransformStreamDefaultControllerCallback<O>;
-  readableType?: undefined;
-  writableType?: undefined;
-}
+import { Transformer } from './transform-stream/transformer';
 
 // Class TransformStream
 
@@ -111,6 +99,10 @@ if (typeof Symbol.toStringTag === 'symbol') {
     configurable: true
   });
 }
+
+export {
+  Transformer
+};
 
 // Transform Stream Abstract Operations
 
