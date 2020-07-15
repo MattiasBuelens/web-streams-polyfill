@@ -89,8 +89,8 @@ export class ReadableStream<R = any> {
 
   constructor(underlyingSource: UnderlyingByteSource, strategy?: { highWaterMark?: number; size?: undefined });
   constructor(underlyingSource?: UnderlyingSource<R>, strategy?: QueuingStrategy<R>);
-  constructor(underlyingSource: UnderlyingSource<R> | UnderlyingByteSource | null | undefined = undefined,
-              strategy: QueuingStrategy<R> | null | undefined = undefined) {
+  constructor(underlyingSource: UnderlyingSource<R> | UnderlyingByteSource | null | undefined = {},
+              strategy: QueuingStrategy<R> | null | undefined = {}) {
     if (underlyingSource === undefined) {
       underlyingSource = null;
     } else {
