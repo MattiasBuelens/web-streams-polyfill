@@ -44,9 +44,7 @@ import {
   ReadableStreamDefaultControllerCallback,
   ReadableStreamErrorCallback,
   UnderlyingByteSource,
-  UnderlyingSource,
-  ValidatedUnderlyingByteSource,
-  ValidatedUnderlyingSource
+  UnderlyingSource
 } from './readable-stream/underlying-source';
 import { noop } from '../utils';
 import { AbortSignal, isAbortSignal } from './abort-signal';
@@ -109,7 +107,7 @@ export class ReadableStream<R = any> {
       const highWaterMark = ExtractHighWaterMark(strategy, 0);
       SetUpReadableByteStreamControllerFromUnderlyingSource(
         this as unknown as ReadableByteStream,
-        underlyingSourceDict as ValidatedUnderlyingByteSource,
+        underlyingSourceDict,
         highWaterMark
       );
     } else {
@@ -118,7 +116,7 @@ export class ReadableStream<R = any> {
       const highWaterMark = ExtractHighWaterMark(strategy, 1);
       SetUpReadableStreamDefaultControllerFromUnderlyingSource(
         this,
-        underlyingSourceDict as ValidatedUnderlyingSource<R>,
+        underlyingSourceDict,
         highWaterMark,
         sizeAlgorithm
       );
