@@ -21,21 +21,7 @@ import { AbortSteps, ErrorSteps } from './abstract-ops/internal-methods';
 import { IsNonNegativeNumber } from './abstract-ops/miscellaneous';
 import { ExtractHighWaterMark, ExtractSizeAlgorithm } from './abstract-ops/queuing-strategy';
 import { convertQueuingStrategy } from './validators/queuing-strategy';
-
-type WritableStreamDefaultControllerStartCallback
-  = (controller: WritableStreamDefaultController) => void | PromiseLike<void>;
-type WritableStreamDefaultControllerWriteCallback<W>
-  = (chunk: W, controller: WritableStreamDefaultController) => void | PromiseLike<void>;
-type WritableStreamDefaultControllerCloseCallback = () => void | PromiseLike<void>;
-type WritableStreamErrorCallback = (reason: any) => void | PromiseLike<void>;
-
-export interface UnderlyingSink<W = any> {
-  start?: WritableStreamDefaultControllerStartCallback;
-  write?: WritableStreamDefaultControllerWriteCallback<W>;
-  close?: WritableStreamDefaultControllerCloseCallback;
-  abort?: WritableStreamErrorCallback;
-  type?: undefined;
-}
+import { UnderlyingSink } from './writable-stream/underlying-sink';
 
 type WritableStreamState = 'writable' | 'closed' | 'erroring' | 'errored';
 
@@ -162,7 +148,8 @@ export {
   WritableStreamDefaultWriterCloseWithErrorPropagation,
   WritableStreamDefaultWriterRelease,
   WritableStreamDefaultWriterWrite,
-  WritableStreamCloseQueuedOrInFlight
+  WritableStreamCloseQueuedOrInFlight,
+  UnderlyingSink
 };
 
 // Abstract operations for the WritableStream.
