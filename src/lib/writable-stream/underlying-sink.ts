@@ -1,16 +1,28 @@
 import { WritableStreamDefaultController } from '../writable-stream';
 
-export type WritableStreamDefaultControllerStartCallback
+export type UnderlyingSinkStartCallback
   = (controller: WritableStreamDefaultController) => void | PromiseLike<void>;
-export type WritableStreamDefaultControllerWriteCallback<W>
+export type UnderlyingSinkWriteCallback<W>
   = (chunk: W, controller: WritableStreamDefaultController) => void | PromiseLike<void>;
-export type WritableStreamDefaultControllerCloseCallback = () => void | PromiseLike<void>;
-export type WritableStreamErrorCallback = (reason: any) => void | PromiseLike<void>;
+export type UnderlyingSinkCloseCallback = () => void | PromiseLike<void>;
+export type UnderlyingSinkAbortCallback = (reason: any) => void | PromiseLike<void>;
+
+export type WritableStreamDefaultControllerStartCallback = UnderlyingSinkStartCallback;
+export type WritableStreamDefaultControllerWriteCallback<W> = UnderlyingSinkWriteCallback<W>;
+export type WritableStreamDefaultControllerCloseCallback = UnderlyingSinkCloseCallback;
+export type WritableStreamErrorCallback = UnderlyingSinkAbortCallback;
 
 export interface UnderlyingSink<W = any> {
-  start?: WritableStreamDefaultControllerStartCallback;
-  write?: WritableStreamDefaultControllerWriteCallback<W>;
-  close?: WritableStreamDefaultControllerCloseCallback;
-  abort?: WritableStreamErrorCallback;
+  start?: UnderlyingSinkStartCallback;
+  write?: UnderlyingSinkWriteCallback<W>;
+  close?: UnderlyingSinkCloseCallback;
+  abort?: UnderlyingSinkAbortCallback;
   type?: undefined;
+}
+
+/** @internal */
+export interface ValidatedUnderlyingSink<W = any> extends UnderlyingSink<W> {
+  write?: (chunk: W, controller: WritableStreamDefaultController) => Promise<void>;
+  close?: () => Promise<void>;
+  abort?: (reason: any) => Promise<void>;
 }
