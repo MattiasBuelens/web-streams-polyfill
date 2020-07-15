@@ -2,7 +2,7 @@ import { QueuingStrategy, QueuingStrategySizeCallback } from '../queuing-strateg
 import { assertDictionary, assertFunction, convertUnrestrictedDouble } from './basic';
 
 export function convertQueuingStrategy<T>(init: QueuingStrategy<T> | null | undefined,
-                                          context = 'The provided value'): QueuingStrategy<T> {
+                                          context: string): QueuingStrategy<T> {
   assertDictionary(init, context);
   const highWaterMark = init?.highWaterMark;
   const size = init?.size;

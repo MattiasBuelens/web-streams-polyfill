@@ -13,7 +13,7 @@ import { promiseCall, reflectCall } from '../helpers/webidl';
 
 export function convertUnderlyingDefaultOrByteSource<R>(
   source: UnderlyingSource<R> | UnderlyingByteSource | null,
-  context = 'The provided value'
+  context: string
 ): ValidatedUnderlyingDefaultOrByteSource<R> {
   assertDictionary(source, context);
   const original = source as (UnderlyingDefaultOrByteSource<R> | null);
@@ -25,7 +25,10 @@ export function convertUnderlyingDefaultOrByteSource<R>(
   return {
     autoAllocateChunkSize: autoAllocateChunkSize === undefined ?
       undefined :
-      convertUnsignedLongLongWithEnforceRange(autoAllocateChunkSize),
+      convertUnsignedLongLongWithEnforceRange(
+        autoAllocateChunkSize,
+        `${context} has member 'autoAllocateChunkSize' that`
+      ),
     cancel: cancel === undefined ?
       undefined :
       convertUnderlyingSourceCancelCallback(cancel, original!, `${context} has member 'cancel' that`),

@@ -9,10 +9,8 @@ import {
 } from '../transform-stream/transformer';
 import { TransformStreamDefaultController } from '../transform-stream';
 
-export function convertTransformer<I, O>(
-  original: Transformer<I, O> | null,
-  context = 'The provided value'
-): ValidatedTransformer<I, O> {
+export function convertTransformer<I, O>(original: Transformer<I, O> | null,
+                                         context: string): ValidatedTransformer<I, O> {
   assertDictionary(original, context);
   const flush = original?.flush;
   const readableType = original?.readableType;

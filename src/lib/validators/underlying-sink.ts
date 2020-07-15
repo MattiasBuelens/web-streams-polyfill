@@ -10,10 +10,8 @@ import {
 } from '../writable-stream/underlying-sink';
 import { WritableStreamDefaultController } from '../writable-stream';
 
-export function convertUnderlyingSink<W>(
-  original: UnderlyingSink<W> | null,
-  context = 'The provided value'
-): ValidatedUnderlyingSink<W> {
+export function convertUnderlyingSink<W>(original: UnderlyingSink<W> | null,
+                                         context: string): ValidatedUnderlyingSink<W> {
   assertDictionary(original, context);
   const abort = original?.abort;
   const close = original?.close;

@@ -7,7 +7,7 @@ export function isDictionary(x: any): x is object | null {
 }
 
 export function assertDictionary(obj: unknown,
-                                 context = 'The provided value'): asserts obj is object | null | undefined {
+                                 context: string): asserts obj is object | null | undefined {
   if (obj !== undefined && !isDictionary(obj)) {
     throw new TypeError(`${context} is not an object.`);
   }
@@ -16,7 +16,7 @@ export function assertDictionary(obj: unknown,
 export type AnyFunction = (...args: any[]) => any;
 
 // https://heycam.github.io/webidl/#idl-callback-functions
-export function assertFunction(x: unknown, context = 'The provided value'): asserts x is AnyFunction {
+export function assertFunction(x: unknown, context: string): asserts x is AnyFunction {
   if (typeof x !== 'function') {
     throw new TypeError(`${context} is not a function.`);
   }
@@ -28,7 +28,7 @@ export function isObject(x: any): x is object {
 }
 
 export function assertObject(x: unknown,
-                             context = 'The provided value'): asserts x is object {
+                             context: string): asserts x is object {
   if (!isObject(x)) {
     throw new TypeError(`${context} is not an object.`);
   }
@@ -64,8 +64,7 @@ function integerPart(x: number): number {
 }
 
 // https://heycam.github.io/webidl/#idl-unsigned-long-long
-export function convertUnsignedLongLongWithEnforceRange(value: unknown,
-                                                        context = 'The provided value'): number {
+export function convertUnsignedLongLongWithEnforceRange(value: unknown, context: string): number {
   const lowerBound = 0;
   const upperBound = Number.MAX_SAFE_INTEGER;
 
