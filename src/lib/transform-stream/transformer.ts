@@ -17,3 +17,9 @@ export interface Transformer<I = any, O = any> {
   readableType?: undefined;
   writableType?: undefined;
 }
+
+/** @internal */
+export interface ValidatedTransformer<I = any, O = any> extends Transformer<I, O> {
+  transform?: (chunk: I, controller: TransformStreamDefaultController<O>) => Promise<void>;
+  flush?: (controller: TransformStreamDefaultController<O>) => Promise<void>;
+}

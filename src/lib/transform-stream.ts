@@ -1,5 +1,4 @@
 import assert from '../stub/assert';
-import { CreateAlgorithmFromUnderlyingMethod, InvokeOrNoop, PromiseCall } from './helpers';
 import { newPromise, promiseRejectedWith, promiseResolvedWith, transformPromiseWith } from './helpers/webidl';
 import { CreateReadableStream, ReadableStream, ReadableStreamDefaultController } from './readable-stream';
 import {
@@ -16,7 +15,8 @@ import { typeIsObject } from './helpers/miscellaneous';
 import { IsNonNegativeNumber } from './abstract-ops/miscellaneous';
 import { convertQueuingStrategy } from './validators/queuing-strategy';
 import { ExtractHighWaterMark, ExtractSizeAlgorithm } from './abstract-ops/queuing-strategy';
-import { Transformer } from './transform-stream/transformer';
+import { Transformer, ValidatedTransformer } from './transform-stream/transformer';
+import { convertTransformer } from './validators/transformer';
 
 // Class TransformStream
 
@@ -34,16 +34,27 @@ export class TransformStream<I = any, O = any> {
   /** @internal */
   _transformStreamController!: TransformStreamDefaultController<O>;
 
-  constructor(transformer: Transformer<I, O> = {},
-              writableStrategy: QueuingStrategy<I> = {},
-              readableStrategy: QueuingStrategy<O> = {}) {
+  constructor(
+    transformer?: Transformer<I, O>,
+    writableStrategy?: QueuingStrategy<I>,
+    readableStrategy?: QueuingStrategy<O>
+  );
+  constructor(transformer: Transformer<I, O> | null | undefined = {},
+              writableStrategy: QueuingStrategy<I> | null | undefined = {},
+              readableStrategy: QueuingStrategy<O> | null | undefined = {}) {
+    if (transformer === undefined) {
+      transformer = null;
+    }
+
     writableStrategy = convertQueuingStrategy(writableStrategy, 'Second parameter');
     readableStrategy = convertQueuingStrategy(readableStrategy, 'Third parameter');
 
-    const writableType = transformer.writableType;
-
-    if (writableType !== undefined) {
-      throw new RangeError('Invalid writable type specified');
+    const transformerDict = convertTransformer(transformer, 'First parameter');
+    if (transformerDict.readableType !== undefined) {
+      throw new RangeError('Invalid readableType specified');
+    }
+    if (transformerDict.writableType !== undefined) {
+      throw new RangeError('Invalid writableType specified');
     }
 
     const readableHighWaterMark = ExtractHighWaterMark(readableStrategy, 0);
@@ -51,25 +62,21 @@ export class TransformStream<I = any, O = any> {
     const writableHighWaterMark = ExtractHighWaterMark(writableStrategy, 1);
     const writableSizeAlgorithm = ExtractSizeAlgorithm(writableStrategy);
 
-    const readableType = transformer.readableType;
-
-    if (readableType !== undefined) {
-      throw new RangeError('Invalid readable type specified');
-    }
-
     let startPromise_resolve!: (value: void | PromiseLike<void>) => void;
     const startPromise = newPromise<void>(resolve => {
       startPromise_resolve = resolve;
     });
 
-    InitializeTransformStream(this, startPromise, writableHighWaterMark, writableSizeAlgorithm, readableHighWaterMark,
-                              readableSizeAlgorithm);
-    SetUpTransformStreamDefaultControllerFromTransformer(this, transformer);
-
-    const startResult = InvokeOrNoop<typeof transformer, 'start'>(
-      transformer, 'start', [this._transformStreamController]
+    InitializeTransformStream(
+      this, startPromise, writableHighWaterMark, writableSizeAlgorithm, readableHighWaterMark, readableSizeAlgorithm
     );
-    startPromise_resolve(startResult);
+    SetUpTransformStreamDefaultControllerFromTransformer(this, transformerDict);
+
+    if (transformerDict.start !== undefined) {
+      startPromise_resolve(transformerDict.start(this._transformStreamController));
+    } else {
+      startPromise_resolve(undefined);
+    }
   }
 
   get readable(): ReadableStream<O> {
@@ -318,30 +325,28 @@ function SetUpTransformStreamDefaultController<I, O>(stream: TransformStream<I, 
 }
 
 function SetUpTransformStreamDefaultControllerFromTransformer<I, O>(stream: TransformStream<I, O>,
-                                                                    transformer: Transformer<I, O>) {
+                                                                    transformer: ValidatedTransformer<I, O>) {
   assert(transformer !== undefined);
 
   const controller: TransformStreamDefaultController<O> = Object.create(TransformStreamDefaultController.prototype);
 
-  let transformAlgorithm = (chunk: I) => {
+  let transformAlgorithm = (chunk: I): Promise<void> => {
     try {
       TransformStreamDefaultControllerEnqueue(controller, chunk as unknown as O);
-      return promiseResolvedWith<void>(undefined);
+      return promiseResolvedWith(undefined);
     } catch (transformResultE) {
       return promiseRejectedWith(transformResultE);
     }
   };
-  const transformMethod = transformer.transform;
-  if (transformMethod !== undefined) {
-    if (typeof transformMethod !== 'function') {
-      throw new TypeError('transform is not a method');
-    }
-    transformAlgorithm = chunk => PromiseCall(transformMethod, transformer, [chunk, controller]);
-  }
 
-  const flushAlgorithm = CreateAlgorithmFromUnderlyingMethod<typeof transformer, 'flush'>(
-    transformer, 'flush', 0, [controller]
-  );
+  let flushAlgorithm: () => Promise<void> = () => promiseResolvedWith(undefined);
+
+  if (transformer.transform !== undefined) {
+    transformAlgorithm = chunk => transformer.transform!(chunk, controller);
+  }
+  if (transformer.flush !== undefined) {
+    flushAlgorithm = () => transformer.flush!(controller);
+  }
 
   SetUpTransformStreamDefaultController(stream, controller, transformAlgorithm, flushAlgorithm);
 }
