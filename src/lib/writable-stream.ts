@@ -65,20 +65,20 @@ class WritableStream<W = any> {
   _backpressure!: boolean;
 
   constructor(underlyingSink?: UnderlyingSink<W>, strategy?: QueuingStrategy<W>);
-  constructor(underlyingSink: UnderlyingSink<W> | null | undefined = {},
-              strategy: QueuingStrategy<W> | null | undefined = {}) {
-    if (underlyingSink === undefined) {
-      underlyingSink = null;
+  constructor(rawUnderlyingSink: UnderlyingSink<W> | null | undefined = {},
+              rawStrategy: QueuingStrategy<W> | null | undefined = {}) {
+    if (rawUnderlyingSink === undefined) {
+      rawUnderlyingSink = null;
     } else {
-      assertObject(underlyingSink, 'First parameter');
+      assertObject(rawUnderlyingSink, 'First parameter');
     }
 
-    strategy = convertQueuingStrategy(strategy, 'Second parameter');
-    const underlyingSinkDict = convertUnderlyingSink(underlyingSink, 'First parameter');
+    const strategy = convertQueuingStrategy(rawStrategy, 'Second parameter');
+    const underlyingSink = convertUnderlyingSink(rawUnderlyingSink, 'First parameter');
 
     InitializeWritableStream(this);
 
-    const type = underlyingSinkDict.type;
+    const type = underlyingSink.type;
     if (type !== undefined) {
       throw new RangeError('Invalid type is specified');
     }
@@ -86,7 +86,7 @@ class WritableStream<W = any> {
     const sizeAlgorithm = ExtractSizeAlgorithm(strategy);
     const highWaterMark = ExtractHighWaterMark(strategy, 1);
 
-    SetUpWritableStreamDefaultControllerFromUnderlyingSink(this, underlyingSinkDict, highWaterMark, sizeAlgorithm);
+    SetUpWritableStreamDefaultControllerFromUnderlyingSink(this, underlyingSink, highWaterMark, sizeAlgorithm);
   }
 
   get locked(): boolean {

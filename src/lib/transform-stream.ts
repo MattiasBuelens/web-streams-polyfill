@@ -39,21 +39,21 @@ export class TransformStream<I = any, O = any> {
     writableStrategy?: QueuingStrategy<I>,
     readableStrategy?: QueuingStrategy<O>
   );
-  constructor(transformer: Transformer<I, O> | null | undefined = {},
-              writableStrategy: QueuingStrategy<I> | null | undefined = {},
-              readableStrategy: QueuingStrategy<O> | null | undefined = {}) {
-    if (transformer === undefined) {
-      transformer = null;
+  constructor(rawTransformer: Transformer<I, O> | null | undefined = {},
+              rawWritableStrategy: QueuingStrategy<I> | null | undefined = {},
+              rawReadableStrategy: QueuingStrategy<O> | null | undefined = {}) {
+    if (rawTransformer === undefined) {
+      rawTransformer = null;
     }
 
-    writableStrategy = convertQueuingStrategy(writableStrategy, 'Second parameter');
-    readableStrategy = convertQueuingStrategy(readableStrategy, 'Third parameter');
+    const writableStrategy = convertQueuingStrategy(rawWritableStrategy, 'Second parameter');
+    const readableStrategy = convertQueuingStrategy(rawReadableStrategy, 'Third parameter');
 
-    const transformerDict = convertTransformer(transformer, 'First parameter');
-    if (transformerDict.readableType !== undefined) {
+    const transformer = convertTransformer(rawTransformer, 'First parameter');
+    if (transformer.readableType !== undefined) {
       throw new RangeError('Invalid readableType specified');
     }
-    if (transformerDict.writableType !== undefined) {
+    if (transformer.writableType !== undefined) {
       throw new RangeError('Invalid writableType specified');
     }
 
@@ -70,10 +70,10 @@ export class TransformStream<I = any, O = any> {
     InitializeTransformStream(
       this, startPromise, writableHighWaterMark, writableSizeAlgorithm, readableHighWaterMark, readableSizeAlgorithm
     );
-    SetUpTransformStreamDefaultControllerFromTransformer(this, transformerDict);
+    SetUpTransformStreamDefaultControllerFromTransformer(this, transformer);
 
-    if (transformerDict.start !== undefined) {
-      startPromise_resolve(transformerDict.start(this._transformStreamController));
+    if (transformer.start !== undefined) {
+      startPromise_resolve(transformer.start(this._transformStreamController));
     } else {
       startPromise_resolve(undefined);
     }

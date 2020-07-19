@@ -82,36 +82,36 @@ export class ReadableStream<R = any> {
 
   constructor(underlyingSource: UnderlyingByteSource, strategy?: { highWaterMark?: number; size?: undefined });
   constructor(underlyingSource?: UnderlyingSource<R>, strategy?: QueuingStrategy<R>);
-  constructor(underlyingSource: UnderlyingSource<R> | UnderlyingByteSource | null | undefined = {},
-              strategy: QueuingStrategy<R> | null | undefined = {}) {
-    if (underlyingSource === undefined) {
-      underlyingSource = null;
+  constructor(rawUnderlyingSource: UnderlyingSource<R> | UnderlyingByteSource | null | undefined = {},
+              rawStrategy: QueuingStrategy<R> | null | undefined = {}) {
+    if (rawUnderlyingSource === undefined) {
+      rawUnderlyingSource = null;
     } else {
-      assertObject(underlyingSource, 'First parameter');
+      assertObject(rawUnderlyingSource, 'First parameter');
     }
 
-    strategy = convertQueuingStrategy(strategy, 'Second parameter');
-    const underlyingSourceDict = convertUnderlyingDefaultOrByteSource(underlyingSource, 'First parameter');
+    const strategy = convertQueuingStrategy(rawStrategy, 'Second parameter');
+    const underlyingSource = convertUnderlyingDefaultOrByteSource(rawUnderlyingSource, 'First parameter');
 
     InitializeReadableStream(this);
 
-    if (underlyingSourceDict.type === 'bytes') {
+    if (underlyingSource.type === 'bytes') {
       if (strategy.size !== undefined) {
         throw new RangeError('The strategy for a byte stream cannot have a size function');
       }
       const highWaterMark = ExtractHighWaterMark(strategy, 0);
       SetUpReadableByteStreamControllerFromUnderlyingSource(
         this as unknown as ReadableByteStream,
-        underlyingSourceDict,
+        underlyingSource,
         highWaterMark
       );
     } else {
-      assert(underlyingSourceDict.type === undefined);
+      assert(underlyingSource.type === undefined);
       const sizeAlgorithm = ExtractSizeAlgorithm(strategy);
       const highWaterMark = ExtractHighWaterMark(strategy, 1);
       SetUpReadableStreamDefaultControllerFromUnderlyingSource(
         this,
-        underlyingSourceDict,
+        underlyingSource,
         highWaterMark,
         sizeAlgorithm
       );
