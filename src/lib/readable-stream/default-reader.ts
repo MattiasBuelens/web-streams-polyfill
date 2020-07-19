@@ -1,4 +1,3 @@
-import { newPromise, promiseRejectedWith, promiseResolvedWith, typeIsObject } from '../helpers';
 import assert from '../../stub/assert';
 import { SimpleQueue } from '../simple-queue';
 import {
@@ -10,7 +9,11 @@ import {
   ReadResult
 } from './generic-reader';
 import { IsReadableStream, IsReadableStreamLocked, ReadableStream } from '../readable-stream';
-import { PullSteps } from './symbols';
+import { typeIsObject } from '../helpers/miscellaneous';
+import { PullSteps } from '../abstract-ops/internal-methods';
+import { newPromise, promiseRejectedWith, promiseResolvedWith } from '../helpers/webidl';
+import { assertRequiredArgument } from '../validators/basic';
+import { assertReadableStream } from '../validators/readable-stream';
 
 // Abstract operations for the ReadableStream.
 
@@ -88,9 +91,9 @@ export class ReadableStreamDefaultReader<R> {
   _readRequests: SimpleQueue<ReadRequest<R>>;
 
   constructor(stream: ReadableStream<R>) {
-    if (IsReadableStream(stream) === false) {
-      throw new TypeError('ReadableStreamDefaultReader can only be constructed with a ReadableStream instance');
-    }
+    assertRequiredArgument(stream, 1, 'ReadableStreamDefaultReader');
+    assertReadableStream(stream, 'First parameter');
+
     if (IsReadableStreamLocked(stream) === true) {
       throw new TypeError('This stream has already been locked for exclusive reading by another reader');
     }

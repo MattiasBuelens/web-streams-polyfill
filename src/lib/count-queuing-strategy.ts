@@ -1,5 +1,7 @@
-import { QueuingStrategy } from './queuing-strategy';
-import { isDictionary, typeIsObject } from './helpers';
+import { QueuingStrategy, QueuingStrategyInit } from './queuing-strategy';
+import { typeIsObject } from './helpers/miscellaneous';
+import { assertRequiredArgument } from './validators/basic';
+import { convertQueuingStrategyInit } from './validators/queuing-strategy-init';
 
 const countSizeFunction = function size(): 1 {
   return 1;
@@ -9,15 +11,10 @@ export default class CountQueuingStrategy implements QueuingStrategy<any> {
   /** @internal */
   readonly _countQueuingStrategyHighWaterMark!: number;
 
-  constructor(options: { highWaterMark: number }) {
-    if (options !== undefined && !isDictionary(options)) {
-      throw new TypeError(`First parameter is not an object`);
-    }
-    const highWaterMark = options?.highWaterMark;
-    if (highWaterMark === undefined) {
-      throw new TypeError(`highWaterMark is required`);
-    }
-    this._countQueuingStrategyHighWaterMark = Number(highWaterMark);
+  constructor(options: QueuingStrategyInit) {
+    assertRequiredArgument(options, 1, 'CountQueuingStrategy');
+    options = convertQueuingStrategyInit(options, 'First parameter');
+    this._countQueuingStrategyHighWaterMark = options.highWaterMark;
   }
 
   get highWaterMark(): number {

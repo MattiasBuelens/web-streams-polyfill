@@ -1,6 +1,6 @@
-import assert from '../stub/assert';
-import { IsFiniteNonNegativeNumber } from './helpers';
-import { SimpleQueue } from './simple-queue';
+import assert from '../../stub/assert';
+import { SimpleQueue } from '../simple-queue';
+import { IsFiniteNonNegativeNumber } from './miscellaneous';
 
 export interface QueueContainer<T> {
   _queue: SimpleQueue<T>;

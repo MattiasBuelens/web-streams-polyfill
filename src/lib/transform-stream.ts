@@ -1,17 +1,5 @@
 import assert from '../stub/assert';
-import {
-  CreateAlgorithmFromUnderlyingMethod,
-  InvokeOrNoop,
-  IsNonNegativeNumber,
-  MakeSizeAlgorithmFromSizeFunction,
-  newPromise,
-  PromiseCall,
-  promiseRejectedWith,
-  promiseResolvedWith,
-  transformPromiseWith,
-  typeIsObject,
-  ValidateAndNormalizeHighWaterMark
-} from './helpers';
+import { newPromise, promiseRejectedWith, promiseResolvedWith, transformPromiseWith } from './helpers/webidl';
 import { CreateReadableStream, ReadableStream, ReadableStreamDefaultController } from './readable-stream';
 import {
   ReadableStreamDefaultControllerCanCloseOrEnqueue,
@@ -23,19 +11,12 @@ import {
 } from './readable-stream/default-controller';
 import { QueuingStrategy, QueuingStrategySizeCallback } from './queuing-strategy';
 import { CreateWritableStream, WritableStream, WritableStreamDefaultControllerErrorIfNeeded } from './writable-stream';
-
-export type TransformStreamDefaultControllerCallback<O>
-  = (controller: TransformStreamDefaultController<O>) => void | PromiseLike<void>;
-export type TransformStreamDefaultControllerTransformCallback<I, O>
-  = (chunk: I, controller: TransformStreamDefaultController<O>) => void | PromiseLike<void>;
-
-export interface Transformer<I = any, O = any> {
-  start?: TransformStreamDefaultControllerCallback<O>;
-  transform?: TransformStreamDefaultControllerTransformCallback<I, O>;
-  flush?: TransformStreamDefaultControllerCallback<O>;
-  readableType?: undefined;
-  writableType?: undefined;
-}
+import { typeIsObject } from './helpers/miscellaneous';
+import { IsNonNegativeNumber } from './abstract-ops/miscellaneous';
+import { convertQueuingStrategy } from './validators/queuing-strategy';
+import { ExtractHighWaterMark, ExtractSizeAlgorithm } from './abstract-ops/queuing-strategy';
+import { Transformer, ValidatedTransformer } from './transform-stream/transformer';
+import { convertTransformer } from './validators/transformer';
 
 // Class TransformStream
 
@@ -53,51 +34,49 @@ export class TransformStream<I = any, O = any> {
   /** @internal */
   _transformStreamController!: TransformStreamDefaultController<O>;
 
-  constructor(transformer: Transformer<I, O> = {},
-              writableStrategy: QueuingStrategy<I> = {},
-              readableStrategy: QueuingStrategy<O> = {}) {
-    const writableSizeFunction = writableStrategy.size;
-    let writableHighWaterMark = writableStrategy.highWaterMark;
-    const readableSizeFunction = readableStrategy.size;
-    let readableHighWaterMark = readableStrategy.highWaterMark;
-
-    const writableType = transformer.writableType;
-
-    if (writableType !== undefined) {
-      throw new RangeError('Invalid writable type specified');
+  constructor(
+    transformer?: Transformer<I, O>,
+    writableStrategy?: QueuingStrategy<I>,
+    readableStrategy?: QueuingStrategy<O>
+  );
+  constructor(rawTransformer: Transformer<I, O> | null | undefined = {},
+              rawWritableStrategy: QueuingStrategy<I> | null | undefined = {},
+              rawReadableStrategy: QueuingStrategy<O> | null | undefined = {}) {
+    if (rawTransformer === undefined) {
+      rawTransformer = null;
     }
 
-    const writableSizeAlgorithm = MakeSizeAlgorithmFromSizeFunction(writableSizeFunction);
-    if (writableHighWaterMark === undefined) {
-      writableHighWaterMark = 1;
-    }
-    writableHighWaterMark = ValidateAndNormalizeHighWaterMark(writableHighWaterMark);
+    const writableStrategy = convertQueuingStrategy(rawWritableStrategy, 'Second parameter');
+    const readableStrategy = convertQueuingStrategy(rawReadableStrategy, 'Third parameter');
 
-    const readableType = transformer.readableType;
-
-    if (readableType !== undefined) {
-      throw new RangeError('Invalid readable type specified');
+    const transformer = convertTransformer(rawTransformer, 'First parameter');
+    if (transformer.readableType !== undefined) {
+      throw new RangeError('Invalid readableType specified');
+    }
+    if (transformer.writableType !== undefined) {
+      throw new RangeError('Invalid writableType specified');
     }
 
-    const readableSizeAlgorithm = MakeSizeAlgorithmFromSizeFunction(readableSizeFunction);
-    if (readableHighWaterMark === undefined) {
-      readableHighWaterMark = 0;
-    }
-    readableHighWaterMark = ValidateAndNormalizeHighWaterMark(readableHighWaterMark);
+    const readableHighWaterMark = ExtractHighWaterMark(readableStrategy, 0);
+    const readableSizeAlgorithm = ExtractSizeAlgorithm(readableStrategy);
+    const writableHighWaterMark = ExtractHighWaterMark(writableStrategy, 1);
+    const writableSizeAlgorithm = ExtractSizeAlgorithm(writableStrategy);
 
     let startPromise_resolve!: (value: void | PromiseLike<void>) => void;
     const startPromise = newPromise<void>(resolve => {
       startPromise_resolve = resolve;
     });
 
-    InitializeTransformStream(this, startPromise, writableHighWaterMark, writableSizeAlgorithm, readableHighWaterMark,
-                              readableSizeAlgorithm);
+    InitializeTransformStream(
+      this, startPromise, writableHighWaterMark, writableSizeAlgorithm, readableHighWaterMark, readableSizeAlgorithm
+    );
     SetUpTransformStreamDefaultControllerFromTransformer(this, transformer);
 
-    const startResult = InvokeOrNoop<typeof transformer, 'start'>(
-      transformer, 'start', [this._transformStreamController]
-    );
-    startPromise_resolve(startResult);
+    if (transformer.start !== undefined) {
+      startPromise_resolve(transformer.start(this._transformStreamController));
+    } else {
+      startPromise_resolve(undefined);
+    }
   }
 
   get readable(): ReadableStream<O> {
@@ -127,6 +106,10 @@ if (typeof Symbol.toStringTag === 'symbol') {
     configurable: true
   });
 }
+
+export {
+  Transformer
+};
 
 // Transform Stream Abstract Operations
 
@@ -202,11 +185,10 @@ function InitializeTransformStream<I, O>(stream: TransformStream<I, O>,
   stream._backpressureChangePromise_resolve = undefined!;
   TransformStreamSetBackpressure(stream, true);
 
-  // Used by IsWritableStream() which is called by SetUpTransformStreamDefaultController().
   stream._transformStreamController = undefined!;
 }
 
-function IsTransformStream<I, O>(x: any): x is TransformStream<I, O> {
+function IsTransformStream(x: unknown): x is TransformStream {
   if (!typeIsObject(x)) {
     return false;
   }
@@ -261,8 +243,7 @@ export class TransformStreamDefaultController<O> {
   /** @internal */
   _flushAlgorithm: () => Promise<void>;
 
-  /** @internal */
-  constructor() {
+  private constructor() {
     throw new TypeError('Illegal constructor');
   }
 
@@ -343,30 +324,28 @@ function SetUpTransformStreamDefaultController<I, O>(stream: TransformStream<I, 
 }
 
 function SetUpTransformStreamDefaultControllerFromTransformer<I, O>(stream: TransformStream<I, O>,
-                                                                    transformer: Transformer<I, O>) {
+                                                                    transformer: ValidatedTransformer<I, O>) {
   assert(transformer !== undefined);
 
   const controller: TransformStreamDefaultController<O> = Object.create(TransformStreamDefaultController.prototype);
 
-  let transformAlgorithm = (chunk: I) => {
+  let transformAlgorithm = (chunk: I): Promise<void> => {
     try {
       TransformStreamDefaultControllerEnqueue(controller, chunk as unknown as O);
-      return promiseResolvedWith<void>(undefined);
+      return promiseResolvedWith(undefined);
     } catch (transformResultE) {
       return promiseRejectedWith(transformResultE);
     }
   };
-  const transformMethod = transformer.transform;
-  if (transformMethod !== undefined) {
-    if (typeof transformMethod !== 'function') {
-      throw new TypeError('transform is not a method');
-    }
-    transformAlgorithm = chunk => PromiseCall(transformMethod, transformer, [chunk, controller]);
-  }
 
-  const flushAlgorithm = CreateAlgorithmFromUnderlyingMethod<typeof transformer, 'flush'>(
-    transformer, 'flush', 0, [controller]
-  );
+  let flushAlgorithm: () => Promise<void> = () => promiseResolvedWith(undefined);
+
+  if (transformer.transform !== undefined) {
+    transformAlgorithm = chunk => transformer.transform!(chunk, controller);
+  }
+  if (transformer.flush !== undefined) {
+    flushAlgorithm = () => transformer.flush!(controller);
+  }
 
   SetUpTransformStreamDefaultController(stream, controller, transformAlgorithm, flushAlgorithm);
 }

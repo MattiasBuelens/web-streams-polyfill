@@ -11,7 +11,7 @@
 
 ## Unreleased
 
-* 👓 Align with [spec version `caf3cea`](https://github.com/whatwg/streams/tree/caf3cea28134d8be2ec69b6a1105748a7c8d10b5/) ([#52](https://github.com/MattiasBuelens/web-streams-polyfill/pull/52))
+* 👓 Align with [spec version `caf3cea`](https://github.com/whatwg/streams/tree/caf3cea28134d8be2ec69b6a1105748a7c8d10b5/) ([#52](https://github.com/MattiasBuelens/web-streams-polyfill/pull/52), [#57](https://github.com/MattiasBuelens/web-streams-polyfill/pull/57))
 
 ## v2.1.1 (2020-04-11)
 

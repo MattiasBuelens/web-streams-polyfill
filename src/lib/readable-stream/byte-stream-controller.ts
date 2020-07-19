@@ -1,19 +1,6 @@
 import assert from '../../stub/assert';
 import { SimpleQueue } from '../simple-queue';
-import {
-  ArrayBufferCopy,
-  CreateAlgorithmFromUnderlyingMethod,
-  InvokeOrNoop,
-  IsDetachedBuffer,
-  IsFiniteNonNegativeNumber,
-  promiseRejectedWith,
-  promiseResolvedWith,
-  TransferArrayBuffer,
-  typeIsObject,
-  uponPromise,
-  ValidateAndNormalizeHighWaterMark
-} from '../helpers';
-import { ResetQueue } from '../queue-with-sizes';
+import { ResetQueue } from '../abstract-ops/queue-with-sizes';
 import { ReadableStreamCreateReadResult, ReadResult } from './generic-reader';
 import {
   ReadableStreamAddReadRequest,
@@ -34,8 +21,13 @@ import {
   ReadableStreamClose,
   ReadableStreamError
 } from '../readable-stream';
-import { CancelSteps, PullSteps } from './symbols';
-import { UnderlyingByteSource } from './underlying-source';
+import { ValidatedUnderlyingByteSource } from './underlying-source';
+import { typeIsObject } from '../helpers/miscellaneous';
+import { CopyDataBlockBytes, IsDetachedBuffer, TransferArrayBuffer } from '../abstract-ops/ecmascript';
+import { CancelSteps, PullSteps } from '../abstract-ops/internal-methods';
+import { IsFiniteNonNegativeNumber } from '../abstract-ops/miscellaneous';
+import { promiseRejectedWith, promiseResolvedWith, uponPromise } from '../helpers/webidl';
+import { assertRequiredArgument, convertUnsignedLongLongWithEnforceRange } from '../validators/basic';
 
 export class ReadableStreamBYOBRequest {
   /** @internal */
@@ -43,8 +35,7 @@ export class ReadableStreamBYOBRequest {
   /** @internal */
   _view!: ArrayBufferView | null;
 
-  /** @internal */
-  constructor() {
+  private constructor() {
     throw new TypeError('Illegal constructor');
   }
 
@@ -56,14 +47,13 @@ export class ReadableStreamBYOBRequest {
     return this._view;
   }
 
-  respond(bytesWritten: number): void {
+  respond(bytesWritten: number): void;
+  respond(bytesWritten: number | undefined): void {
     if (IsReadableStreamBYOBRequest(this) === false) {
       throw byobRequestBrandCheckException('respond');
     }
-
-    if (bytesWritten === undefined) {
-      throw new TypeError('bytesWritten is required');
-    }
+    assertRequiredArgument(bytesWritten, 1, 'respond');
+    bytesWritten = convertUnsignedLongLongWithEnforceRange(bytesWritten, 'First parameter');
 
     if (this._associatedReadableByteStreamController === undefined) {
       throw new TypeError('This BYOB request has been invalidated');
@@ -73,24 +63,31 @@ export class ReadableStreamBYOBRequest {
       throw new TypeError(`The BYOB request's buffer has been detached and so cannot be used as a response`);
     }
 
+    assert(this._view!.byteLength > 0);
+    assert(this._view!.buffer.byteLength > 0);
+
     ReadableByteStreamControllerRespond(this._associatedReadableByteStreamController, bytesWritten);
   }
 
-  respondWithNewView(view: ArrayBufferView): void {
+  respondWithNewView(view: ArrayBufferView): void;
+  respondWithNewView(view: ArrayBufferView | undefined): void {
     if (IsReadableStreamBYOBRequest(this) === false) {
-      throw byobRequestBrandCheckException('respond');
+      throw byobRequestBrandCheckException('respondWithNewView');
     }
-
-    if (this._associatedReadableByteStreamController === undefined) {
-      throw new TypeError('This BYOB request has been invalidated');
-    }
+    assertRequiredArgument(view, 1, 'respondWithNewView');
 
     if (!ArrayBuffer.isView(view)) {
       throw new TypeError('You can only respond with array buffer views');
     }
+    if (view.byteLength === 0) {
+      throw new TypeError('chunk must have non-zero byteLength');
+    }
+    if (view.buffer.byteLength === 0) {
+      throw new TypeError(`chunk's buffer must have non-zero byteLength`);
+    }
 
-    if (IsDetachedBuffer(view.buffer) === true) {
-      throw new TypeError(`The supplied view's buffer has been detached and so cannot be used as a response`);
+    if (this._associatedReadableByteStreamController === undefined) {
+      throw new TypeError('This BYOB request has been invalidated');
     }
 
     ReadableByteStreamControllerRespondWithNewView(this._associatedReadableByteStreamController, view);
@@ -174,8 +171,7 @@ export class ReadableByteStreamController {
   /** @internal */
   _pendingPullIntos!: SimpleQueue<PullIntoDescriptor>;
 
-  /** @internal */
-  constructor() {
+  private constructor() {
     throw new TypeError('Illegal constructor');
   }
 
@@ -223,9 +219,21 @@ export class ReadableByteStreamController {
     ReadableByteStreamControllerClose(this);
   }
 
-  enqueue(chunk: ArrayBufferView): void {
+  enqueue(chunk: ArrayBufferView): void;
+  enqueue(chunk: ArrayBufferView | undefined): void {
     if (IsReadableByteStreamController(this) === false) {
       throw byteStreamControllerBrandCheckException('enqueue');
+    }
+
+    assertRequiredArgument(chunk, 1, 'enqueue');
+    if (!ArrayBuffer.isView(chunk)) {
+      throw new TypeError('chunk must be an array buffer view');
+    }
+    if (chunk.byteLength === 0) {
+      throw new TypeError('chunk must have non-zero byteLength');
+    }
+    if (chunk.buffer.byteLength === 0) {
+      throw new TypeError(`chunk's buffer must have non-zero byteLength`);
     }
 
     if (this._closeRequested === true) {
@@ -235,14 +243,6 @@ export class ReadableByteStreamController {
     const state = this._controlledReadableByteStream._state;
     if (state !== 'readable') {
       throw new TypeError(`The stream (in ${state} state) is not in the readable state and cannot be enqueued to`);
-    }
-
-    if (!ArrayBuffer.isView(chunk)) {
-      throw new TypeError('You can only enqueue array buffer views when using a ReadableByteStreamController');
-    }
-
-    if (IsDetachedBuffer(chunk.buffer) === true) {
-      throw new TypeError('Cannot enqueue a view onto a detached ArrayBuffer');
     }
 
     ReadableByteStreamControllerEnqueue(this, chunk);
@@ -465,7 +465,7 @@ function ReadableByteStreamControllerFillPullIntoDescriptorFromQueue(controller:
     const bytesToCopy = Math.min(totalBytesToCopyRemaining, headOfQueue.byteLength);
 
     const destStart = pullIntoDescriptor.byteOffset + pullIntoDescriptor.bytesFilled;
-    ArrayBufferCopy(pullIntoDescriptor.buffer, destStart, headOfQueue.buffer, headOfQueue.byteOffset, bytesToCopy);
+    CopyDataBlockBytes(pullIntoDescriptor.buffer, destStart, headOfQueue.buffer, headOfQueue.byteOffset, bytesToCopy);
 
     if (headOfQueue.byteLength === bytesToCopy) {
       queue.shift();
@@ -857,7 +857,7 @@ export function SetUpReadableByteStreamController(stream: ReadableByteStream,
   controller._closeRequested = false;
   controller._started = false;
 
-  controller._strategyHWM = ValidateAndNormalizeHighWaterMark(highWaterMark);
+  controller._strategyHWM = highWaterMark;
 
   controller._pullAlgorithm = pullAlgorithm;
   controller._cancelAlgorithm = cancelAlgorithm;
@@ -885,34 +885,32 @@ export function SetUpReadableByteStreamController(stream: ReadableByteStream,
   );
 }
 
-export function SetUpReadableByteStreamControllerFromUnderlyingSource(stream: ReadableByteStream,
-                                                                      underlyingByteSource: UnderlyingByteSource,
-                                                                      highWaterMark: number) {
-  assert(underlyingByteSource !== undefined);
-
+export function SetUpReadableByteStreamControllerFromUnderlyingSource(
+  stream: ReadableByteStream,
+  underlyingByteSource: ValidatedUnderlyingByteSource,
+  highWaterMark: number
+) {
   const controller: ReadableByteStreamController = Object.create(ReadableByteStreamController.prototype);
 
-  function startAlgorithm() {
-    return InvokeOrNoop<typeof underlyingByteSource, 'start'>(underlyingByteSource, 'start', [controller]);
+  let startAlgorithm: () => void | PromiseLike<void> = () => undefined;
+  let pullAlgorithm: () => Promise<void> = () => promiseResolvedWith(undefined);
+  let cancelAlgorithm: (reason: any) => Promise<void> = () => promiseResolvedWith(undefined);
+
+  if (underlyingByteSource.start !== undefined) {
+    startAlgorithm = () => underlyingByteSource.start!(controller);
+  }
+  if (underlyingByteSource.pull !== undefined) {
+    pullAlgorithm = () => underlyingByteSource.pull!(controller);
+  }
+  if (underlyingByteSource.cancel !== undefined) {
+    cancelAlgorithm = reason => underlyingByteSource.cancel!(reason);
   }
 
-  const pullAlgorithm = CreateAlgorithmFromUnderlyingMethod<typeof underlyingByteSource, 'pull'>(
-    underlyingByteSource, 'pull', 0, [controller]
-  );
-  const cancelAlgorithm = CreateAlgorithmFromUnderlyingMethod<typeof underlyingByteSource, 'cancel'>(
-    underlyingByteSource, 'cancel', 1, []
-  );
+  const autoAllocateChunkSize = underlyingByteSource.autoAllocateChunkSize;
 
-  let autoAllocateChunkSize = underlyingByteSource.autoAllocateChunkSize;
-  if (autoAllocateChunkSize !== undefined) {
-    autoAllocateChunkSize = Number(autoAllocateChunkSize);
-    if (NumberIsInteger(autoAllocateChunkSize) === false || autoAllocateChunkSize <= 0) {
-      throw new RangeError('autoAllocateChunkSize must be a positive integer');
-    }
-  }
-
-  SetUpReadableByteStreamController(stream, controller, startAlgorithm, pullAlgorithm, cancelAlgorithm, highWaterMark,
-                                    autoAllocateChunkSize);
+  SetUpReadableByteStreamController(
+    stream, controller, startAlgorithm, pullAlgorithm, cancelAlgorithm, highWaterMark, autoAllocateChunkSize
+  );
 }
 
 function SetUpReadableStreamBYOBRequest(request: ReadableStreamBYOBRequest,

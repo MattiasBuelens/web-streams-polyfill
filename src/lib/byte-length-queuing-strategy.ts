@@ -1,5 +1,7 @@
-import { QueuingStrategy } from './queuing-strategy';
-import { isDictionary, typeIsObject } from './helpers';
+import { QueuingStrategy, QueuingStrategyInit } from './queuing-strategy';
+import { typeIsObject } from './helpers/miscellaneous';
+import { assertRequiredArgument } from './validators/basic';
+import { convertQueuingStrategyInit } from './validators/queuing-strategy-init';
 
 const byteLengthSizeFunction = function size(chunk: ArrayBufferView): number {
   return chunk.byteLength;
@@ -9,15 +11,10 @@ export default class ByteLengthQueuingStrategy implements QueuingStrategy<ArrayB
   /** @internal */
   readonly _byteLengthQueuingStrategyHighWaterMark: number;
 
-  constructor(options: { highWaterMark: number }) {
-    if (options !== undefined && !isDictionary(options)) {
-      throw new TypeError(`First parameter is not an object`);
-    }
-    const highWaterMark = options?.highWaterMark;
-    if (highWaterMark === undefined) {
-      throw new TypeError(`highWaterMark is required`);
-    }
-    this._byteLengthQueuingStrategyHighWaterMark = Number(highWaterMark);
+  constructor(options: QueuingStrategyInit) {
+    assertRequiredArgument(options, 1, 'ByteLengthQueuingStrategy');
+    options = convertQueuingStrategyInit(options, 'First parameter');
+    this._byteLengthQueuingStrategyHighWaterMark = options.highWaterMark;
   }
 
   get highWaterMark(): number {

@@ -21,7 +21,7 @@ import {
   uponFulfillment,
   uponPromise,
   uponRejection
-} from '../helpers';
+} from '../helpers/webidl';
 import { noop } from '../../utils';
 import { AbortSignal, isAbortSignal } from '../abort-signal';
 import { DOMException } from '../../stub/dom-exception';
