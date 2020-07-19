@@ -31,7 +31,7 @@ export function AcquireReadableStreamBYOBReader(stream: ReadableStream<Uint8Arra
 // ReadableStream API exposed for controllers.
 
 export function ReadableStreamAddReadIntoRequest<T extends ArrayBufferView>(stream: ReadableByteStream): Promise<ReadResult<T>> {
-  assert(IsReadableStreamBYOBReader(stream._reader) === true);
+  assert(IsReadableStreamBYOBReader(stream._reader));
   assert(stream._state === 'readable' || stream._state === 'closed');
 
   const promise = newPromise<ReadResult<T>>((resolve, reject) => {

@@ -14,7 +14,7 @@ export function ReadableStreamCreateReadResult<T>(value: T | undefined,
                                                   done: boolean,
                                                   forAuthorCode: boolean): ReadResult<T> {
   let prototype: object | null = null;
-  if (forAuthorCode === true) {
+  if (forAuthorCode) {
     prototype = Object.prototype;
   }
   assert(typeof done === 'boolean');

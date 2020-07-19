@@ -19,7 +19,7 @@ import { CreateArrayFromList } from '../abstract-ops/ecmascript';
 
 export function ReadableStreamTee<R>(stream: ReadableStream<R>,
                                      cloneForBranch2: boolean): [ReadableStream<R>, ReadableStream<R>] {
-  assert(IsReadableStream(stream) === true);
+  assert(IsReadableStream(stream));
   assert(typeof cloneForBranch2 === 'boolean');
 
   const reader = AcquireReadableStreamDefaultReader<R>(stream);
@@ -38,7 +38,7 @@ export function ReadableStreamTee<R>(stream: ReadableStream<R>,
   });
 
   function pullAlgorithm(): Promise<void> {
-    if (reading === true) {
+    if (reading) {
       return promiseResolvedWith(undefined);
     }
 
@@ -51,7 +51,7 @@ export function ReadableStreamTee<R>(stream: ReadableStream<R>,
       const done = result.done;
       assert(typeof done === 'boolean');
 
-      if (done === true) {
+      if (done) {
         if (canceled1 === false) {
           ReadableStreamDefaultControllerClose(branch1._readableStreamController as ReadableStreamDefaultController<R>);
         }
@@ -67,7 +67,7 @@ export function ReadableStreamTee<R>(stream: ReadableStream<R>,
 
       // There is no way to access the cloning code right now in the reference implementation.
       // If we add one then we'll need an implementation for serializable objects.
-      // if (canceled2 === false && cloneForBranch2 === true) {
+      // if (canceled2 === false && cloneForBranch2) {
       //   value2 = StructuredDeserialize(StructuredSerialize(value2));
       // }
 
@@ -94,7 +94,7 @@ export function ReadableStreamTee<R>(stream: ReadableStream<R>,
   function cancel1Algorithm(reason: any): Promise<void> {
     canceled1 = true;
     reason1 = reason;
-    if (canceled2 === true) {
+    if (canceled2) {
       const compositeReason = CreateArrayFromList([reason1, reason2]);
       const cancelResult = ReadableStreamCancel(stream, compositeReason);
       resolveCancelPromise(cancelResult);
@@ -105,7 +105,7 @@ export function ReadableStreamTee<R>(stream: ReadableStream<R>,
   function cancel2Algorithm(reason: any): Promise<void> {
     canceled2 = true;
     reason2 = reason;
-    if (canceled1 === true) {
+    if (canceled1) {
       const compositeReason = CreateArrayFromList([reason1, reason2]);
       const cancelResult = ReadableStreamCancel(stream, compositeReason);
       resolveCancelPromise(cancelResult);

@@ -98,7 +98,7 @@ export class ReadableStreamDefaultController<R> {
     if (this._queue.length > 0) {
       const chunk = DequeueValue(this);
 
-      if (this._closeRequested === true && this._queue.length === 0) {
+      if (this._closeRequested && this._queue.length === 0) {
         ReadableStreamDefaultControllerClearAlgorithms(this);
         ReadableStreamClose(stream);
       } else {
@@ -147,7 +147,7 @@ function ReadableStreamDefaultControllerCallPullIfNeeded(controller: ReadableStr
     return;
   }
 
-  if (controller._pulling === true) {
+  if (controller._pulling) {
     controller._pullAgain = true;
     return;
   }
@@ -162,7 +162,7 @@ function ReadableStreamDefaultControllerCallPullIfNeeded(controller: ReadableStr
     () => {
       controller._pulling = false;
 
-      if (controller._pullAgain === true) {
+      if (controller._pullAgain) {
         controller._pullAgain = false;
         ReadableStreamDefaultControllerCallPullIfNeeded(controller);
       }
@@ -184,7 +184,7 @@ function ReadableStreamDefaultControllerShouldCallPull(controller: ReadableStrea
     return false;
   }
 
-  if (IsReadableStreamLocked(stream) === true && ReadableStreamGetNumReadRequests(stream) > 0) {
+  if (IsReadableStreamLocked(stream) && ReadableStreamGetNumReadRequests(stream) > 0) {
     return true;
   }
 
@@ -227,7 +227,7 @@ export function ReadableStreamDefaultControllerEnqueue<R>(controller: ReadableSt
 
   const stream = controller._controlledReadableStream;
 
-  if (IsReadableStreamLocked(stream) === true && ReadableStreamGetNumReadRequests(stream) > 0) {
+  if (IsReadableStreamLocked(stream) && ReadableStreamGetNumReadRequests(stream) > 0) {
     ReadableStreamFulfillReadRequest(stream, chunk, false);
   } else {
     let chunkSize;
@@ -278,7 +278,7 @@ export function ReadableStreamDefaultControllerGetDesiredSize(controller: Readab
 
 // This is used in the implementation of TransformStream.
 export function ReadableStreamDefaultControllerHasBackpressure(controller: ReadableStreamDefaultController<any>): boolean {
-  if (ReadableStreamDefaultControllerShouldCallPull(controller) === true) {
+  if (ReadableStreamDefaultControllerShouldCallPull(controller)) {
     return false;
   }
 

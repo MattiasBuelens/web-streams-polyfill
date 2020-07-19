@@ -32,8 +32,8 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
                                         preventAbort: boolean,
                                         preventCancel: boolean,
                                         signal: AbortSignal | undefined): Promise<void> {
-  assert(IsReadableStream(source) === true);
-  assert(IsWritableStream(dest) === true);
+  assert(IsReadableStream(source));
+  assert(IsWritableStream(dest));
   assert(typeof preventClose === 'boolean');
   assert(typeof preventAbort === 'boolean');
   assert(typeof preventCancel === 'boolean');
@@ -76,7 +76,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
         shutdownWithAction(() => Promise.all(actions.map(action => action())), true, error);
       };
 
-      if (signal.aborted === true) {
+      if (signal.aborted) {
         abortAlgorithm();
         return;
       }
@@ -104,13 +104,13 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
     }
 
     function pipeStep(): Promise<boolean> {
-      if (shuttingDown === true) {
+      if (shuttingDown) {
         return promiseResolvedWith(true);
       }
 
       return PerformPromiseThen(writer._readyPromise, () => {
         return PerformPromiseThen(ReadableStreamDefaultReaderRead(reader), result => {
-          if (result.done === true) {
+          if (result.done) {
             return true;
           }
 
@@ -148,7 +148,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
     });
 
     // Closing must be propagated backward
-    if (WritableStreamCloseQueuedOrInFlight(dest) === true || dest._state === 'closed') {
+    if (WritableStreamCloseQueuedOrInFlight(dest) || dest._state === 'closed') {
       const destClosed = new TypeError('the destination writable stream closed before all data could be piped to it');
 
       if (preventCancel === false) {
@@ -189,7 +189,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
     }
 
     function shutdownWithAction(action: () => Promise<unknown>, originalIsError?: boolean, originalError?: any) {
-      if (shuttingDown === true) {
+      if (shuttingDown) {
         return;
       }
       shuttingDown = true;
@@ -210,7 +210,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
     }
 
     function shutdown(isError?: boolean, error?: any) {
-      if (shuttingDown === true) {
+      if (shuttingDown) {
         return;
       }
       shuttingDown = true;

@@ -27,7 +27,7 @@ export function AcquireReadableStreamDefaultReader<R>(stream: ReadableStream,
 // ReadableStream API exposed for controllers.
 
 export function ReadableStreamAddReadRequest<R>(stream: ReadableStream<R>): Promise<ReadResult<R>> {
-  assert(IsReadableStreamDefaultReader(stream._reader) === true);
+  assert(IsReadableStreamDefaultReader(stream._reader));
   assert(stream._state === 'readable');
 
   const promise = newPromise<ReadResult<R>>((resolve, reject) => {
@@ -94,7 +94,7 @@ export class ReadableStreamDefaultReader<R> {
     assertRequiredArgument(stream, 1, 'ReadableStreamDefaultReader');
     assertReadableStream(stream, 'First parameter');
 
-    if (IsReadableStreamLocked(stream) === true) {
+    if (IsReadableStreamLocked(stream)) {
       throw new TypeError('This stream has already been locked for exclusive reading by another reader');
     }
 
