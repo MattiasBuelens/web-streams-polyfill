@@ -47,19 +47,20 @@ import {
   UnderlyingSource
 } from './readable-stream/underlying-source';
 import { noop } from '../utils';
-import { isAbortSignal } from './abort-signal';
 import { typeIsObject } from './helpers/miscellaneous';
 import { CreateArrayFromList } from './abstract-ops/ecmascript';
 import { CancelSteps } from './abstract-ops/internal-methods';
 import { IsNonNegativeNumber } from './abstract-ops/miscellaneous';
-import { assertDictionary, assertObject } from './validators/basic';
+import { assertObject } from './validators/basic';
 import { convertQueuingStrategy } from './validators/queuing-strategy';
 import { ExtractHighWaterMark, ExtractSizeAlgorithm } from './abstract-ops/queuing-strategy';
 import { convertUnderlyingDefaultOrByteSource } from './validators/underlying-source';
 import { ReadableStreamGetReaderOptions } from './readable-stream/reader-options';
 import { convertReaderOptions } from './validators/reader-options';
-import { PipeOptions } from './readable-stream/pipe-options';
+import { PipeOptions, ValidatedPipeOptions } from './readable-stream/pipe-options';
 import { ReadableStreamIteratorOptions } from './readable-stream/iterator-options';
+import { convertIteratorOptions } from './validators/iterator-options';
+import { convertPipeOptions } from './validators/pipe-options';
 
 export type ReadableByteStream = ReadableStream<Uint8Array>;
 
@@ -159,7 +160,9 @@ export class ReadableStream<R = any> {
     return AcquireReadableStreamBYOBReader(this as unknown as ReadableByteStream, true);
   }
 
-  pipeThrough<T>(transform: ReadableWritablePair<T, R>, options: PipeOptions = {}): ReadableStream<T> {
+  pipeThrough<T>(transform: ReadableWritablePair<T, R>, options?: PipeOptions): ReadableStream<T>;
+  pipeThrough<T>(transform: ReadableWritablePair<T, R>,
+                 rawOptions: PipeOptions | undefined = undefined): ReadableStream<T> {
     if (IsReadableStream(this) === false) {
       throw streamBrandCheckException('pipeThrough');
     }
@@ -174,16 +177,7 @@ export class ReadableStream<R = any> {
       throw new TypeError('writable argument to pipeThrough must be a WritableStream');
     }
 
-    let { preventAbort, preventCancel, preventClose } = options;
-    const signal = options.signal;
-
-    preventClose = Boolean(preventClose);
-    preventAbort = Boolean(preventAbort);
-    preventCancel = Boolean(preventCancel);
-
-    if (signal !== undefined && !isAbortSignal(signal)) {
-      throw new TypeError(`ReadableStream.prototype.pipeThrough's signal option must be an AbortSignal`);
-    }
+    const options = convertPipeOptions(rawOptions, 'Second parameter');
 
     if (IsReadableStreamLocked(this) === true) {
       throw new TypeError('ReadableStream.prototype.pipeThrough cannot be used on a locked ReadableStream');
@@ -192,51 +186,47 @@ export class ReadableStream<R = any> {
       throw new TypeError('ReadableStream.prototype.pipeThrough cannot be used on a locked WritableStream');
     }
 
-    const promise = ReadableStreamPipeTo(this, writable, preventClose, preventAbort, preventCancel, signal);
+    const promise = ReadableStreamPipeTo(
+      this, writable, options.preventClose, options.preventAbort, options.preventCancel, options.signal
+    );
 
     setPromiseIsHandledToTrue(promise);
 
     return readable;
   }
 
-  pipeTo(dest: WritableStream<R>, options: PipeOptions = {}): Promise<void> {
+  pipeTo(destination: WritableStream<R>, options?: PipeOptions): Promise<void>;
+  pipeTo(destination: WritableStream<R>, rawOptions: PipeOptions | undefined = undefined): Promise<void> {
     if (IsReadableStream(this) === false) {
       return promiseRejectedWith(streamBrandCheckException('pipeTo'));
     }
-    if (IsWritableStream(dest) === false) {
+    if (IsWritableStream(destination) === false) {
       return promiseRejectedWith(
-        new TypeError(`ReadableStream.prototype.pipeTo's first argument must be a WritableStream`));
+        new TypeError(`ReadableStream.prototype.pipeTo's first argument must be a WritableStream`)
+      );
     }
 
-    let preventAbort;
-    let preventCancel;
-    let preventClose;
-    let signal;
+    let options: ValidatedPipeOptions;
     try {
-      ({ preventAbort, preventCancel, preventClose, signal } = options);
+      options = convertPipeOptions(rawOptions, 'Second parameter');
     } catch (e) {
       return promiseRejectedWith(e);
     }
 
-    preventClose = Boolean(preventClose);
-    preventAbort = Boolean(preventAbort);
-    preventCancel = Boolean(preventCancel);
-
-    if (signal !== undefined && !isAbortSignal(signal)) {
-      return promiseRejectedWith(
-        new TypeError(`ReadableStream.prototype.pipeTo's signal option must be an AbortSignal`));
-    }
-
     if (IsReadableStreamLocked(this) === true) {
       return promiseRejectedWith(
-        new TypeError('ReadableStream.prototype.pipeTo cannot be used on a locked ReadableStream'));
+        new TypeError('ReadableStream.prototype.pipeTo cannot be used on a locked ReadableStream')
+      );
     }
-    if (IsWritableStreamLocked(dest) === true) {
+    if (IsWritableStreamLocked(destination) === true) {
       return promiseRejectedWith(
-        new TypeError('ReadableStream.prototype.pipeTo cannot be used on a locked WritableStream'));
+        new TypeError('ReadableStream.prototype.pipeTo cannot be used on a locked WritableStream')
+      );
     }
 
-    return ReadableStreamPipeTo(this, dest, preventClose, preventAbort, preventCancel, signal);
+    return ReadableStreamPipeTo(
+      this, destination, options.preventClose, options.preventAbort, options.preventCancel, options.signal
+    );
   }
 
   tee(): [ReadableStream<R>, ReadableStream<R>] {
@@ -248,15 +238,14 @@ export class ReadableStream<R = any> {
     return CreateArrayFromList(branches);
   }
 
-  values(options: ReadableStreamIteratorOptions | undefined = undefined): ReadableStreamAsyncIterator<R> {
+  values(options?: ReadableStreamIteratorOptions): ReadableStreamAsyncIterator<R>;
+  values(rawOptions: ReadableStreamIteratorOptions | undefined = undefined): ReadableStreamAsyncIterator<R> {
     if (IsReadableStream(this) === false) {
       throw streamBrandCheckException('values');
     }
 
-    assertDictionary(options, 'First parameter');
-
-    const preventCancel = Boolean(options?.preventCancel);
-    return AcquireReadableStreamAsyncIterator<R>(this, preventCancel);
+    const options = convertIteratorOptions(rawOptions, 'First parameter');
+    return AcquireReadableStreamAsyncIterator<R>(this, options.preventCancel);
   }
 
   [Symbol.asyncIterator]: (options?: ReadableStreamIteratorOptions) => ReadableStreamAsyncIterator<R>;

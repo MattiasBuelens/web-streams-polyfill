@@ -6,3 +6,10 @@ export interface PipeOptions {
   preventClose?: boolean;
   signal?: AbortSignal;
 }
+
+export interface ValidatedPipeOptions {
+  preventAbort: boolean;
+  preventCancel: boolean;
+  preventClose: boolean;
+  signal?: AbortSignal;
+}

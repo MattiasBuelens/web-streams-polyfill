@@ -131,7 +131,7 @@ if (AsyncIteratorPrototype !== undefined) {
 // Abstract operations for the ReadableStream.
 
 export function AcquireReadableStreamAsyncIterator<R>(stream: ReadableStream<R>,
-                                                      preventCancel = false): ReadableStreamAsyncIterator<R> {
+                                                      preventCancel: boolean): ReadableStreamAsyncIterator<R> {
   const reader = AcquireReadableStreamDefaultReader<R>(stream);
   const impl = new ReadableStreamAsyncIteratorImpl(reader, preventCancel);
   const iterator: ReadableStreamAsyncIteratorInstance<R> = Object.create(ReadableStreamAsyncIteratorPrototype);
