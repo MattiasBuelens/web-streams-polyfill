@@ -21,8 +21,9 @@ import { IsNonNegativeNumber } from './abstract-ops/miscellaneous';
 import { ExtractHighWaterMark, ExtractSizeAlgorithm } from './abstract-ops/queuing-strategy';
 import { convertQueuingStrategy } from './validators/queuing-strategy';
 import { UnderlyingSink, ValidatedUnderlyingSink } from './writable-stream/underlying-sink';
-import { assertObject } from './validators/basic';
+import { assertObject, assertRequiredArgument } from './validators/basic';
 import { convertUnderlyingSink } from './validators/underlying-sink';
+import { assertWritableStream } from './validators/writable-stream';
 
 type WritableStreamState = 'writable' | 'closed' | 'erroring' | 'errored';
 
@@ -541,9 +542,8 @@ export class WritableStreamDefaultWriter<W> {
   _readyPromiseState!: 'pending' | 'fulfilled' | 'rejected';
 
   constructor(stream: WritableStream<W>) {
-    if (IsWritableStream(stream) === false) {
-      throw new TypeError('WritableStreamDefaultWriter can only be constructed with a WritableStream instance');
-    }
+    assertRequiredArgument(stream, 1, 'WritableStreamDefaultWriter');
+    assertWritableStream(stream, 'First parameter');
     if (IsWritableStreamLocked(stream) === true) {
       throw new TypeError('This stream has already been locked for exclusive writing by another writer');
     }

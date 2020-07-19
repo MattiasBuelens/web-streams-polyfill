@@ -16,6 +16,8 @@ import {
 } from './byte-stream-controller';
 import { typeIsObject } from '../helpers/miscellaneous';
 import { newPromise, promiseRejectedWith } from '../helpers/webidl';
+import { assertRequiredArgument } from '../validators/basic';
+import { assertReadableStream } from '../validators/readable-stream';
 
 // Abstract operations for the ReadableStream.
 
@@ -95,10 +97,8 @@ export class ReadableStreamBYOBReader {
   _readIntoRequests: SimpleQueue<ReadIntoRequest<any>>;
 
   constructor(stream: ReadableByteStream) {
-    if (!IsReadableStream(stream)) {
-      throw new TypeError('ReadableStreamBYOBReader can only be constructed with a ReadableStream instance given a ' +
-        'byte source');
-    }
+    assertRequiredArgument(stream, 1, 'ReadableStreamBYOBReader');
+    assertReadableStream(stream, 'First parameter');
     if (IsReadableByteStreamController(stream._readableStreamController) === false) {
       throw new TypeError('Cannot construct a ReadableStreamBYOBReader for a stream not constructed with a byte ' +
         'source');
