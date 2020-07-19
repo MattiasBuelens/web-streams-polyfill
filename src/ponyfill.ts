@@ -7,6 +7,7 @@ import {
   ReadableStreamBYOBRequest,
   ReadableStreamDefaultController,
   ReadableStreamDefaultReader,
+  ReadableStreamIteratorOptions,
   ReadableWritablePair,
   ReadResult,
   UnderlyingByteSource,
@@ -37,6 +38,7 @@ export {
   ReadableStreamDefaultReader,
   ReadableStreamBYOBReader,
   ReadableStreamAsyncIterator,
+  ReadableStreamIteratorOptions,
 
   WritableStream,
   UnderlyingSink,

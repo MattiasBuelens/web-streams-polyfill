@@ -47,7 +47,7 @@ import {
   UnderlyingSource
 } from './readable-stream/underlying-source';
 import { noop } from '../utils';
-import { AbortSignal, isAbortSignal } from './abort-signal';
+import { isAbortSignal } from './abort-signal';
 import { typeIsObject } from './helpers/miscellaneous';
 import { CreateArrayFromList } from './abstract-ops/ecmascript';
 import { CancelSteps } from './abstract-ops/internal-methods';
@@ -58,19 +58,14 @@ import { ExtractHighWaterMark, ExtractSizeAlgorithm } from './abstract-ops/queui
 import { convertUnderlyingDefaultOrByteSource } from './validators/underlying-source';
 import { ReadableStreamGetReaderOptions } from './readable-stream/reader-options';
 import { convertReaderOptions } from './validators/reader-options';
+import { PipeOptions } from './readable-stream/pipe-options';
+import { ReadableStreamIteratorOptions } from './readable-stream/iterator-options';
 
 export type ReadableByteStream = ReadableStream<Uint8Array>;
 
 export interface ReadableWritablePair<R, W> {
   readable: ReadableStream<R>;
   writable: WritableStream<W>;
-}
-
-export interface PipeOptions {
-  preventAbort?: boolean;
-  preventCancel?: boolean;
-  preventClose?: boolean;
-  signal?: AbortSignal;
 }
 
 type ReadableStreamState = 'readable' | 'closed' | 'errored';
@@ -253,7 +248,7 @@ export class ReadableStream<R = any> {
     return CreateArrayFromList(branches);
   }
 
-  values(options: { preventCancel?: boolean } | undefined = undefined): ReadableStreamAsyncIterator<R> {
+  values(options: ReadableStreamIteratorOptions | undefined = undefined): ReadableStreamAsyncIterator<R> {
     if (IsReadableStream(this) === false) {
       throw streamBrandCheckException('values');
     }
@@ -264,7 +259,7 @@ export class ReadableStream<R = any> {
     return AcquireReadableStreamAsyncIterator<R>(this, preventCancel);
   }
 
-  [Symbol.asyncIterator]: (options?: { preventCancel?: boolean }) => ReadableStreamAsyncIterator<R>;
+  [Symbol.asyncIterator]: (options?: ReadableStreamIteratorOptions) => ReadableStreamAsyncIterator<R>;
 }
 
 Object.defineProperties(ReadableStream.prototype, {
@@ -297,7 +292,9 @@ export {
   ReadableStreamErrorCallback,
   ReadResult,
   UnderlyingByteSource,
-  UnderlyingSource
+  UnderlyingSource,
+  PipeOptions,
+  ReadableStreamIteratorOptions
 };
 
 // Abstract operations for the ReadableStream.
