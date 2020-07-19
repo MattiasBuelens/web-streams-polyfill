@@ -69,7 +69,7 @@ function convertUnderlyingSourceStartCallback<R>(
   return (controller: ReadableStreamController<R>) => reflectCall(fn, original, [controller]);
 }
 
-function convertReadableStreamType(type: string, context: string): 'bytes' | undefined {
+function convertReadableStreamType(type: string, context: string): 'bytes' {
   type = `${type}`;
   if (type !== 'bytes') {
     throw new TypeError(`${context} '${type}' is not a valid enumeration value for ReadableStreamType`);
