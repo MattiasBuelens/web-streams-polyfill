@@ -56,6 +56,8 @@ import { assertDictionary, assertObject } from './validators/basic';
 import { convertQueuingStrategy } from './validators/queuing-strategy';
 import { ExtractHighWaterMark, ExtractSizeAlgorithm } from './abstract-ops/queuing-strategy';
 import { convertUnderlyingDefaultOrByteSource } from './validators/underlying-source';
+import { ReadableStreamGetReaderOptions } from './readable-stream/reader-options';
+import { convertReaderOptions } from './validators/reader-options';
 
 export type ReadableByteStream = ReadableStream<Uint8Array>;
 
@@ -145,25 +147,21 @@ export class ReadableStream<R = any> {
 
   getReader({ mode }: { mode: 'byob' }): ReadableStreamBYOBReader;
   getReader(): ReadableStreamDefaultReader<R>;
-  getReader(options: { mode?: 'byob' } | undefined = undefined): ReadableStreamDefaultReader<R> | ReadableStreamBYOBReader {
+  getReader(
+    options: ReadableStreamGetReaderOptions | undefined = undefined
+  ): ReadableStreamDefaultReader<R> | ReadableStreamBYOBReader {
     if (IsReadableStream(this) === false) {
       throw streamBrandCheckException('getReader');
     }
 
-    assertDictionary(options, 'First parameter');
+    options = convertReaderOptions(options, 'First parameter');
 
-    let mode = options?.mode;
-    if (mode === undefined) {
+    if (options.mode === undefined) {
       return AcquireReadableStreamDefaultReader(this, true);
     }
 
-    mode = String(mode) as 'byob';
-
-    if (mode === 'byob') {
-      return AcquireReadableStreamBYOBReader(this as unknown as ReadableByteStream, true);
-    }
-
-    throw new TypeError('Invalid mode is specified');
+    assert(options.mode === 'byob');
+    return AcquireReadableStreamBYOBReader(this as unknown as ReadableByteStream, true);
   }
 
   pipeThrough<T>(transform: ReadableWritablePair<T, R>, options: PipeOptions = {}): ReadableStream<T> {
