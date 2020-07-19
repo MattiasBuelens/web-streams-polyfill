@@ -61,13 +61,10 @@ import { PipeOptions, ValidatedPipeOptions } from './readable-stream/pipe-option
 import { ReadableStreamIteratorOptions } from './readable-stream/iterator-options';
 import { convertIteratorOptions } from './validators/iterator-options';
 import { convertPipeOptions } from './validators/pipe-options';
+import { ReadableWritablePair } from './readable-stream/readable-writable-pair';
+import { convertReadableWritablePair } from './validators/readable-writable-pair';
 
 export type ReadableByteStream = ReadableStream<Uint8Array>;
-
-export interface ReadableWritablePair<R, W> {
-  readable: ReadableStream<R>;
-  writable: WritableStream<W>;
-}
 
 type ReadableStreamState = 'readable' | 'closed' | 'errored';
 
@@ -161,38 +158,29 @@ export class ReadableStream<R = any> {
   }
 
   pipeThrough<T>(transform: ReadableWritablePair<T, R>, options?: PipeOptions): ReadableStream<T>;
-  pipeThrough<T>(transform: ReadableWritablePair<T, R>,
+  pipeThrough<T>(rawTransform: ReadableWritablePair<T, R>,
                  rawOptions: PipeOptions | undefined = undefined): ReadableStream<T> {
     if (IsReadableStream(this) === false) {
       throw streamBrandCheckException('pipeThrough');
     }
 
-    const readable = transform.readable;
-    if (IsReadableStream(readable) === false) {
-      throw new TypeError('readable argument to pipeThrough must be a ReadableStream');
-    }
-
-    const writable = transform.writable;
-    if (IsWritableStream(writable) === false) {
-      throw new TypeError('writable argument to pipeThrough must be a WritableStream');
-    }
-
+    const transform = convertReadableWritablePair(rawTransform, 'First parameter');
     const options = convertPipeOptions(rawOptions, 'Second parameter');
 
     if (IsReadableStreamLocked(this) === true) {
       throw new TypeError('ReadableStream.prototype.pipeThrough cannot be used on a locked ReadableStream');
     }
-    if (IsWritableStreamLocked(writable) === true) {
+    if (IsWritableStreamLocked(transform.writable) === true) {
       throw new TypeError('ReadableStream.prototype.pipeThrough cannot be used on a locked WritableStream');
     }
 
     const promise = ReadableStreamPipeTo(
-      this, writable, options.preventClose, options.preventAbort, options.preventCancel, options.signal
+      this, transform.writable, options.preventClose, options.preventAbort, options.preventCancel, options.signal
     );
 
     setPromiseIsHandledToTrue(promise);
 
-    return readable;
+    return transform.readable;
   }
 
   pipeTo(destination: WritableStream<R>, options?: PipeOptions): Promise<void>;
@@ -283,6 +271,7 @@ export {
   UnderlyingByteSource,
   UnderlyingSource,
   PipeOptions,
+  ReadableWritablePair,
   ReadableStreamIteratorOptions
 };
 
