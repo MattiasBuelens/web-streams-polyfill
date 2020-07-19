@@ -185,7 +185,6 @@ function InitializeTransformStream<I, O>(stream: TransformStream<I, O>,
   stream._backpressureChangePromise_resolve = undefined!;
   TransformStreamSetBackpressure(stream, true);
 
-  // Used by IsWritableStream() which is called by SetUpTransformStreamDefaultController().
   stream._transformStreamController = undefined!;
 }
 

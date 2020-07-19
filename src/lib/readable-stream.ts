@@ -295,7 +295,6 @@ export function CreateReadableStream<R>(startAlgorithm: () => void | PromiseLike
   InitializeReadableStream(stream);
 
   const controller: ReadableStreamDefaultController<R> = Object.create(ReadableStreamDefaultController.prototype);
-
   SetUpReadableStreamDefaultController(
     stream, controller, startAlgorithm, pullAlgorithm, cancelAlgorithm, highWaterMark, sizeAlgorithm
   );

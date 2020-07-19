@@ -99,12 +99,14 @@ export class ReadableStreamBYOBReader {
   constructor(stream: ReadableByteStream) {
     assertRequiredArgument(stream, 1, 'ReadableStreamBYOBReader');
     assertReadableStream(stream, 'First parameter');
+
+    if (IsReadableStreamLocked(stream)) {
+      throw new TypeError('This stream has already been locked for exclusive reading by another reader');
+    }
+
     if (IsReadableByteStreamController(stream._readableStreamController) === false) {
       throw new TypeError('Cannot construct a ReadableStreamBYOBReader for a stream not constructed with a byte ' +
         'source');
-    }
-    if (IsReadableStreamLocked(stream)) {
-      throw new TypeError('This stream has already been locked for exclusive reading by another reader');
     }
 
     ReadableStreamReaderGenericInitialize(this, stream);

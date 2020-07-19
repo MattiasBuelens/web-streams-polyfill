@@ -93,6 +93,7 @@ export class ReadableStreamDefaultReader<R> {
   constructor(stream: ReadableStream<R>) {
     assertRequiredArgument(stream, 1, 'ReadableStreamDefaultReader');
     assertReadableStream(stream, 'First parameter');
+
     if (IsReadableStreamLocked(stream) === true) {
       throw new TypeError('This stream has already been locked for exclusive reading by another reader');
     }

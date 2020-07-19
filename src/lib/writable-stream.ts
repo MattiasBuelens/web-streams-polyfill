@@ -544,6 +544,7 @@ export class WritableStreamDefaultWriter<W> {
   constructor(stream: WritableStream<W>) {
     assertRequiredArgument(stream, 1, 'WritableStreamDefaultWriter');
     assertWritableStream(stream, 'First parameter');
+
     if (IsWritableStreamLocked(stream) === true) {
       throw new TypeError('This stream has already been locked for exclusive writing by another writer');
     }
