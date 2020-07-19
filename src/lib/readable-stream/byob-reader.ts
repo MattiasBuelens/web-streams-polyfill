@@ -15,7 +15,6 @@ import {
   ReadableByteStreamControllerPullInto
 } from './byte-stream-controller';
 import { typeIsObject } from '../helpers/miscellaneous';
-import { IsDetachedBuffer } from '../abstract-ops/ecmascript';
 import { newPromise, promiseRejectedWith } from '../helpers/webidl';
 
 // Abstract operations for the ReadableStream.
@@ -138,20 +137,18 @@ export class ReadableStreamBYOBReader {
       return promiseRejectedWith(byobReaderBrandCheckException('read'));
     }
 
-    if (this._ownerReadableStream === undefined) {
-      return promiseRejectedWith(readerLockException('read from'));
-    }
-
     if (!ArrayBuffer.isView(view)) {
       return promiseRejectedWith(new TypeError('view must be an array buffer view'));
     }
-
-    if (IsDetachedBuffer(view.buffer) === true) {
-      return promiseRejectedWith(new TypeError('Cannot read into a view onto a detached ArrayBuffer'));
-    }
-
     if (view.byteLength === 0) {
       return promiseRejectedWith(new TypeError('view must have non-zero byteLength'));
+    }
+    if (view.buffer.byteLength === 0) {
+      return promiseRejectedWith(new TypeError(`view's buffer must have non-zero byteLength`));
+    }
+
+    if (this._ownerReadableStream === undefined) {
+      return promiseRejectedWith(readerLockException('read from'));
     }
 
     return ReadableStreamBYOBReaderRead(this, view);

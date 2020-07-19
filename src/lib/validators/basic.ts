@@ -38,7 +38,7 @@ export function assertRequiredArgument<T extends any>(x: T | undefined,
                                                       position: number,
                                                       context: string): asserts x is T {
   if (x === undefined) {
-    throw new TypeError(`Parameter ${position} is required in '${context}.`);
+    throw new TypeError(`Parameter ${position} is required in '${context}'.`);
   }
 }
 
