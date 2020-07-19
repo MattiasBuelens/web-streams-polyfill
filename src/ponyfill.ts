@@ -19,7 +19,7 @@ import {
   WritableStreamDefaultController,
   WritableStreamDefaultWriter
 } from './lib/writable-stream';
-import { QueuingStrategy } from './lib/queuing-strategy';
+import { QueuingStrategy, QueuingStrategyInit } from './lib/queuing-strategy';
 import ByteLengthQueuingStrategy from './lib/byte-length-queuing-strategy';
 import CountQueuingStrategy from './lib/count-queuing-strategy';
 import { Transformer, TransformStream, TransformStreamDefaultController } from './lib/transform-stream';
@@ -46,6 +46,7 @@ export {
   WritableStreamDefaultController,
 
   QueuingStrategy,
+  QueuingStrategyInit,
   ByteLengthQueuingStrategy,
   CountQueuingStrategy,
 

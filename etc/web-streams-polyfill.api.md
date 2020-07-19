@@ -16,9 +16,7 @@ export interface AbortSignal {
 
 // @public (undocumented)
 export class ByteLengthQueuingStrategy implements QueuingStrategy<ArrayBufferView> {
-    constructor(options: {
-        highWaterMark: number;
-    });
+    constructor(options: QueuingStrategyInit);
     // (undocumented)
     get highWaterMark(): number;
     // (undocumented)
@@ -27,9 +25,7 @@ export class ByteLengthQueuingStrategy implements QueuingStrategy<ArrayBufferVie
 
 // @public (undocumented)
 export class CountQueuingStrategy implements QueuingStrategy<any> {
-    constructor(options: {
-        highWaterMark: number;
-    });
+    constructor(options: QueuingStrategyInit);
     // (undocumented)
     get highWaterMark(): number;
     // (undocumented)
@@ -59,6 +55,12 @@ export interface QueuingStrategy<T = any> {
 }
 
 // @public (undocumented)
+export interface QueuingStrategyInit {
+    // (undocumented)
+    highWaterMark: number;
+}
+
+// @public (undocumented)
 export class ReadableByteStreamController {
     // (undocumented)
     get byobRequest(): ReadableStreamBYOBRequest | null;
@@ -75,9 +77,7 @@ export class ReadableByteStreamController {
 // @public (undocumented)
 export class ReadableStream<R = any> {
     // (undocumented)
-    [Symbol.asyncIterator]: (options?: {
-        preventCancel?: boolean;
-    }) => ReadableStreamAsyncIterator<R>;
+    [Symbol.asyncIterator]: (options?: ReadableStreamIteratorOptions) => ReadableStreamAsyncIterator<R>;
     constructor(underlyingSource: UnderlyingByteSource, strategy?: {
         highWaterMark?: number;
         size?: undefined;
@@ -96,13 +96,11 @@ export class ReadableStream<R = any> {
     // (undocumented)
     pipeThrough<T>(transform: ReadableWritablePair<T, R>, options?: PipeOptions): ReadableStream<T>;
     // (undocumented)
-    pipeTo(dest: WritableStream<R>, options?: PipeOptions): Promise<void>;
+    pipeTo(destination: WritableStream<R>, options?: PipeOptions): Promise<void>;
     // (undocumented)
     tee(): [ReadableStream<R>, ReadableStream<R>];
     // (undocumented)
-    values(options?: {
-        preventCancel?: boolean;
-    } | undefined): ReadableStreamAsyncIterator<R>;
+    values(options?: ReadableStreamIteratorOptions): ReadableStreamAsyncIterator<R>;
 }
 
 // @public (undocumented)
@@ -163,6 +161,12 @@ export class ReadableStreamDefaultReader<R> {
 }
 
 // @public (undocumented)
+export interface ReadableStreamIteratorOptions {
+    // (undocumented)
+    preventCancel?: boolean;
+}
+
+// @public (undocumented)
 export interface ReadableWritablePair<R, W> {
     // (undocumented)
     readable: ReadableStream<R>;
@@ -181,18 +185,20 @@ export type ReadResult<T> = {
 
 // @public (undocumented)
 export interface Transformer<I = any, O = any> {
+    // Warning: (ae-forgotten-export) The symbol "TransformerFlushCallback" needs to be exported by the entry point polyfill.d.ts
+    //
     // (undocumented)
-    flush?: TransformStreamDefaultControllerCallback<O>;
+    flush?: TransformerFlushCallback<O>;
     // (undocumented)
     readableType?: undefined;
-    // Warning: (ae-forgotten-export) The symbol "TransformStreamDefaultControllerCallback" needs to be exported by the entry point polyfill.d.ts
+    // Warning: (ae-forgotten-export) The symbol "TransformerStartCallback" needs to be exported by the entry point polyfill.d.ts
     //
     // (undocumented)
-    start?: TransformStreamDefaultControllerCallback<O>;
-    // Warning: (ae-forgotten-export) The symbol "TransformStreamDefaultControllerTransformCallback" needs to be exported by the entry point polyfill.d.ts
+    start?: TransformerStartCallback<O>;
+    // Warning: (ae-forgotten-export) The symbol "TransformerTransformCallback" needs to be exported by the entry point polyfill.d.ts
     //
     // (undocumented)
-    transform?: TransformStreamDefaultControllerTransformCallback<I, O>;
+    transform?: TransformerTransformCallback<I, O>;
     // (undocumented)
     writableType?: undefined;
 }
@@ -222,10 +228,10 @@ export class TransformStreamDefaultController<O> {
 export interface UnderlyingByteSource {
     // (undocumented)
     autoAllocateChunkSize?: number;
-    // Warning: (ae-forgotten-export) The symbol "ReadableStreamErrorCallback" needs to be exported by the entry point polyfill.d.ts
+    // Warning: (ae-forgotten-export) The symbol "UnderlyingSourceCancelCallback" needs to be exported by the entry point polyfill.d.ts
     //
     // (undocumented)
-    cancel?: ReadableStreamErrorCallback;
+    cancel?: UnderlyingSourceCancelCallback;
     // (undocumented)
     pull?: ReadableByteStreamControllerCallback;
     // Warning: (ae-forgotten-export) The symbol "ReadableByteStreamControllerCallback" needs to be exported by the entry point polyfill.d.ts
@@ -238,30 +244,30 @@ export interface UnderlyingByteSource {
 
 // @public (undocumented)
 export interface UnderlyingSink<W = any> {
-    // Warning: (ae-forgotten-export) The symbol "WritableStreamErrorCallback" needs to be exported by the entry point polyfill.d.ts
+    // Warning: (ae-forgotten-export) The symbol "UnderlyingSinkAbortCallback" needs to be exported by the entry point polyfill.d.ts
     //
     // (undocumented)
-    abort?: WritableStreamErrorCallback;
-    // Warning: (ae-forgotten-export) The symbol "WritableStreamDefaultControllerCloseCallback" needs to be exported by the entry point polyfill.d.ts
+    abort?: UnderlyingSinkAbortCallback;
+    // Warning: (ae-forgotten-export) The symbol "UnderlyingSinkCloseCallback" needs to be exported by the entry point polyfill.d.ts
     //
     // (undocumented)
-    close?: WritableStreamDefaultControllerCloseCallback;
-    // Warning: (ae-forgotten-export) The symbol "WritableStreamDefaultControllerStartCallback" needs to be exported by the entry point polyfill.d.ts
+    close?: UnderlyingSinkCloseCallback;
+    // Warning: (ae-forgotten-export) The symbol "UnderlyingSinkStartCallback" needs to be exported by the entry point polyfill.d.ts
     //
     // (undocumented)
-    start?: WritableStreamDefaultControllerStartCallback;
+    start?: UnderlyingSinkStartCallback;
     // (undocumented)
     type?: undefined;
-    // Warning: (ae-forgotten-export) The symbol "WritableStreamDefaultControllerWriteCallback" needs to be exported by the entry point polyfill.d.ts
+    // Warning: (ae-forgotten-export) The symbol "UnderlyingSinkWriteCallback" needs to be exported by the entry point polyfill.d.ts
     //
     // (undocumented)
-    write?: WritableStreamDefaultControllerWriteCallback<W>;
+    write?: UnderlyingSinkWriteCallback<W>;
 }
 
 // @public (undocumented)
 export interface UnderlyingSource<R = any> {
     // (undocumented)
-    cancel?: ReadableStreamErrorCallback;
+    cancel?: UnderlyingSourceCancelCallback;
     // (undocumented)
     pull?: ReadableStreamDefaultControllerCallback<R>;
     // Warning: (ae-forgotten-export) The symbol "ReadableStreamDefaultControllerCallback" needs to be exported by the entry point polyfill.d.ts
