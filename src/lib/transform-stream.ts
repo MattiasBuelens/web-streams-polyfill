@@ -188,7 +188,7 @@ function InitializeTransformStream<I, O>(stream: TransformStream<I, O>,
   stream._transformStreamController = undefined!;
 }
 
-function IsTransformStream<I, O>(x: any): x is TransformStream<I, O> {
+function IsTransformStream(x: unknown): x is TransformStream {
   if (!typeIsObject(x)) {
     return false;
   }

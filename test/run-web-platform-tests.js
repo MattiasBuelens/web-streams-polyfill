@@ -45,7 +45,7 @@ async function main() {
     'idlharness.any.html': [
       // Terser turns `(a = undefined) => {}` into `(a) => {}`, changing the function's length property
       // Therefore we cannot correctly implement methods with optional arguments
-      /interface: operation (abort|cancel|enqueue|error|getReader|pipeThrough|pipeTo|write)/,
+      /interface: operation (abort|cancel|enqueue|error|getReader|write)/,
       // Same thing for ReadableStream.values(), which is tested as part of the async iterable declaration
       'ReadableStream interface: async iterable<any>'
     ]

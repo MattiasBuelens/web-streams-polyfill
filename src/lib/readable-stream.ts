@@ -141,13 +141,13 @@ export class ReadableStream<R = any> {
   getReader({ mode }: { mode: 'byob' }): ReadableStreamBYOBReader;
   getReader(): ReadableStreamDefaultReader<R>;
   getReader(
-    options: ReadableStreamGetReaderOptions | undefined = undefined
+    rawOptions: ReadableStreamGetReaderOptions | null | undefined = undefined
   ): ReadableStreamDefaultReader<R> | ReadableStreamBYOBReader {
     if (IsReadableStream(this) === false) {
       throw streamBrandCheckException('getReader');
     }
 
-    options = convertReaderOptions(options, 'First parameter');
+    const options = convertReaderOptions(rawOptions, 'First parameter');
 
     if (options.mode === undefined) {
       return AcquireReadableStreamDefaultReader(this, true);
@@ -158,8 +158,8 @@ export class ReadableStream<R = any> {
   }
 
   pipeThrough<T>(transform: ReadableWritablePair<T, R>, options?: PipeOptions): ReadableStream<T>;
-  pipeThrough<T>(rawTransform: ReadableWritablePair<T, R> | undefined,
-                 rawOptions: PipeOptions | undefined = undefined): ReadableStream<T> {
+  pipeThrough<T>(rawTransform: ReadableWritablePair<T, R> | null | undefined,
+                 rawOptions: PipeOptions | null | undefined = {}): ReadableStream<T> {
     if (IsReadableStream(this) === false) {
       throw streamBrandCheckException('pipeThrough');
     }
@@ -185,8 +185,8 @@ export class ReadableStream<R = any> {
   }
 
   pipeTo(destination: WritableStream<R>, options?: PipeOptions): Promise<void>;
-  pipeTo(destination: WritableStream<R> | undefined,
-         rawOptions: PipeOptions | undefined = undefined): Promise<void> {
+  pipeTo(destination: WritableStream<R> | null | undefined,
+         rawOptions: PipeOptions | null | undefined = {}): Promise<void> {
     if (IsReadableStream(this) === false) {
       return promiseRejectedWith(streamBrandCheckException('pipeTo'));
     }
@@ -194,7 +194,7 @@ export class ReadableStream<R = any> {
     if (destination === undefined) {
       return promiseRejectedWith(`Parameter 1 is required in 'pipeTo'.`);
     }
-    if (IsWritableStream(destination) === false) {
+    if (!IsWritableStream(destination)) {
       return promiseRejectedWith(
         new TypeError(`ReadableStream.prototype.pipeTo's first argument must be a WritableStream`)
       );
@@ -218,7 +218,7 @@ export class ReadableStream<R = any> {
       );
     }
 
-    return ReadableStreamPipeTo(
+    return ReadableStreamPipeTo<R>(
       this, destination, options.preventClose, options.preventAbort, options.preventCancel, options.signal
     );
   }
@@ -233,7 +233,7 @@ export class ReadableStream<R = any> {
   }
 
   values(options?: ReadableStreamIteratorOptions): ReadableStreamAsyncIterator<R>;
-  values(rawOptions: ReadableStreamIteratorOptions | undefined = undefined): ReadableStreamAsyncIterator<R> {
+  values(rawOptions: ReadableStreamIteratorOptions | null | undefined = undefined): ReadableStreamAsyncIterator<R> {
     if (IsReadableStream(this) === false) {
       throw streamBrandCheckException('values');
     }
@@ -332,7 +332,7 @@ function InitializeReadableStream(stream: ReadableStream) {
   stream._disturbed = false;
 }
 
-export function IsReadableStream(x: any): x is ReadableStream {
+export function IsReadableStream(x: unknown): x is ReadableStream {
   if (!typeIsObject(x)) {
     return false;
   }

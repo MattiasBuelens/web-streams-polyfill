@@ -1,7 +1,7 @@
 import { assertDictionary } from './basic';
 import { ReadableStreamGetReaderOptions } from '../readable-stream/reader-options';
 
-export function convertReaderOptions(options: ReadableStreamGetReaderOptions | undefined,
+export function convertReaderOptions(options: ReadableStreamGetReaderOptions | null | undefined,
                                      context: string): ReadableStreamGetReaderOptions {
   assertDictionary(options, context);
   const mode = options?.mode;

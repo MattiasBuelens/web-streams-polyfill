@@ -2,7 +2,7 @@ import { assertDictionary } from './basic';
 import { PipeOptions, ValidatedPipeOptions } from '../readable-stream/pipe-options';
 import { AbortSignal, isAbortSignal } from '../abort-signal';
 
-export function convertPipeOptions(options: PipeOptions | undefined,
+export function convertPipeOptions(options: PipeOptions | null | undefined,
                                    context: string): ValidatedPipeOptions {
   assertDictionary(options, context);
   const preventAbort = options?.preventAbort;

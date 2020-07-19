@@ -224,7 +224,7 @@ function InitializeWritableStream<W>(stream: WritableStream<W>) {
   stream._backpressure = false;
 }
 
-function IsWritableStream<W>(x: any): x is WritableStream<W> {
+function IsWritableStream(x: unknown): x is WritableStream {
   if (!typeIsObject(x)) {
     return false;
   }

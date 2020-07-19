@@ -3,7 +3,7 @@ import { ReadableWritablePair } from '../readable-stream/readable-writable-pair'
 import { assertReadableStream } from './readable-stream';
 import { assertWritableStream } from './writable-stream';
 
-export function convertReadableWritablePair<R, W>(pair: ReadableWritablePair<R, W> | undefined,
+export function convertReadableWritablePair<R, W>(pair: ReadableWritablePair<R, W> | null | undefined,
                                                   context: string): ReadableWritablePair<R, W> {
   assertDictionary(pair, context);
 
