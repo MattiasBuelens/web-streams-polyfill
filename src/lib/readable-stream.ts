@@ -51,7 +51,7 @@ import { typeIsObject } from './helpers/miscellaneous';
 import { CreateArrayFromList } from './abstract-ops/ecmascript';
 import { CancelSteps } from './abstract-ops/internal-methods';
 import { IsNonNegativeNumber } from './abstract-ops/miscellaneous';
-import { assertObject } from './validators/basic';
+import { assertObject, assertRequiredArgument } from './validators/basic';
 import { convertQueuingStrategy } from './validators/queuing-strategy';
 import { ExtractHighWaterMark, ExtractSizeAlgorithm } from './abstract-ops/queuing-strategy';
 import { convertUnderlyingDefaultOrByteSource } from './validators/underlying-source';
@@ -158,11 +158,12 @@ export class ReadableStream<R = any> {
   }
 
   pipeThrough<T>(transform: ReadableWritablePair<T, R>, options?: PipeOptions): ReadableStream<T>;
-  pipeThrough<T>(rawTransform: ReadableWritablePair<T, R>,
+  pipeThrough<T>(rawTransform: ReadableWritablePair<T, R> | undefined,
                  rawOptions: PipeOptions | undefined = undefined): ReadableStream<T> {
     if (IsReadableStream(this) === false) {
       throw streamBrandCheckException('pipeThrough');
     }
+    assertRequiredArgument(rawTransform, 1, 'pipeThrough');
 
     const transform = convertReadableWritablePair(rawTransform, 'First parameter');
     const options = convertPipeOptions(rawOptions, 'Second parameter');
@@ -184,9 +185,14 @@ export class ReadableStream<R = any> {
   }
 
   pipeTo(destination: WritableStream<R>, options?: PipeOptions): Promise<void>;
-  pipeTo(destination: WritableStream<R>, rawOptions: PipeOptions | undefined = undefined): Promise<void> {
+  pipeTo(destination: WritableStream<R> | undefined,
+         rawOptions: PipeOptions | undefined = undefined): Promise<void> {
     if (IsReadableStream(this) === false) {
       return promiseRejectedWith(streamBrandCheckException('pipeTo'));
+    }
+
+    if (destination === undefined) {
+      return promiseRejectedWith(`Parameter 1 is required in 'pipeTo'.`);
     }
     if (IsWritableStream(destination) === false) {
       return promiseRejectedWith(
