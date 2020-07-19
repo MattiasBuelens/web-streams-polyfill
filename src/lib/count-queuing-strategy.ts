@@ -18,14 +18,14 @@ export default class CountQueuingStrategy implements QueuingStrategy<any> {
   }
 
   get highWaterMark(): number {
-    if (IsCountQueuingStrategy(this) === false) {
+    if (!IsCountQueuingStrategy(this)) {
       throw countBrandCheckException('highWaterMark');
     }
     return this._countQueuingStrategyHighWaterMark;
   }
 
   get size(): (chunk: any) => 1 {
-    if (IsCountQueuingStrategy(this) === false) {
+    if (!IsCountQueuingStrategy(this)) {
       throw countBrandCheckException('size');
     }
     return countSizeFunction;

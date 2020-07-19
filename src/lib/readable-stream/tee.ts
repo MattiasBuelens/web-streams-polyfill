@@ -52,10 +52,10 @@ export function ReadableStreamTee<R>(stream: ReadableStream<R>,
       assert(typeof done === 'boolean');
 
       if (done) {
-        if (canceled1 === false) {
+        if (!canceled1) {
           ReadableStreamDefaultControllerClose(branch1._readableStreamController as ReadableStreamDefaultController<R>);
         }
-        if (canceled2 === false) {
+        if (!canceled2) {
           ReadableStreamDefaultControllerClose(branch2._readableStreamController as ReadableStreamDefaultController<R>);
         }
         return;
@@ -67,18 +67,18 @@ export function ReadableStreamTee<R>(stream: ReadableStream<R>,
 
       // There is no way to access the cloning code right now in the reference implementation.
       // If we add one then we'll need an implementation for serializable objects.
-      // if (canceled2 === false && cloneForBranch2) {
+      // if (!canceled2 && cloneForBranch2) {
       //   value2 = StructuredDeserialize(StructuredSerialize(value2));
       // }
 
-      if (canceled1 === false) {
+      if (!canceled1) {
         ReadableStreamDefaultControllerEnqueue(
           branch1._readableStreamController as ReadableStreamDefaultController<R>,
           value1
         );
       }
 
-      if (canceled2 === false) {
+      if (!canceled2) {
         ReadableStreamDefaultControllerEnqueue(
           branch2._readableStreamController as ReadableStreamDefaultController<R>,
           value2

@@ -18,14 +18,14 @@ export default class ByteLengthQueuingStrategy implements QueuingStrategy<ArrayB
   }
 
   get highWaterMark(): number {
-    if (IsByteLengthQueuingStrategy(this) === false) {
+    if (!IsByteLengthQueuingStrategy(this)) {
       throw byteLengthBrandCheckException('highWaterMark');
     }
     return this._byteLengthQueuingStrategyHighWaterMark;
   }
 
   get size(): (chunk: ArrayBufferView) => number {
-    if (IsByteLengthQueuingStrategy(this) === false) {
+    if (!IsByteLengthQueuingStrategy(this)) {
       throw byteLengthBrandCheckException('size');
     }
     return byteLengthSizeFunction;

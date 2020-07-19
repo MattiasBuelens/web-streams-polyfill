@@ -80,7 +80,7 @@ export class TransformStream<I = any, O = any> {
   }
 
   get readable(): ReadableStream<O> {
-    if (IsTransformStream(this) === false) {
+    if (!IsTransformStream(this)) {
       throw streamBrandCheckException('readable');
     }
 
@@ -88,7 +88,7 @@ export class TransformStream<I = any, O = any> {
   }
 
   get writable(): WritableStream<I> {
-    if (IsTransformStream(this) === false) {
+    if (!IsTransformStream(this)) {
       throw streamBrandCheckException('writable');
     }
 
@@ -248,7 +248,7 @@ export class TransformStreamDefaultController<O> {
   }
 
   get desiredSize(): number | null {
-    if (IsTransformStreamDefaultController(this) === false) {
+    if (!IsTransformStreamDefaultController(this)) {
       throw defaultControllerBrandCheckException('desiredSize');
     }
 
@@ -258,7 +258,7 @@ export class TransformStreamDefaultController<O> {
 
   enqueue(chunk: O): void;
   enqueue(chunk: O = undefined!): void {
-    if (IsTransformStreamDefaultController(this) === false) {
+    if (!IsTransformStreamDefaultController(this)) {
       throw defaultControllerBrandCheckException('enqueue');
     }
 
@@ -266,7 +266,7 @@ export class TransformStreamDefaultController<O> {
   }
 
   error(reason: any = undefined): void {
-    if (IsTransformStreamDefaultController(this) === false) {
+    if (!IsTransformStreamDefaultController(this)) {
       throw defaultControllerBrandCheckException('error');
     }
 
@@ -274,7 +274,7 @@ export class TransformStreamDefaultController<O> {
   }
 
   terminate(): void {
-    if (IsTransformStreamDefaultController(this) === false) {
+    if (!IsTransformStreamDefaultController(this)) {
       throw defaultControllerBrandCheckException('terminate');
     }
 
@@ -358,7 +358,7 @@ function TransformStreamDefaultControllerClearAlgorithms(controller: TransformSt
 function TransformStreamDefaultControllerEnqueue<O>(controller: TransformStreamDefaultController<O>, chunk: O) {
   const stream = controller._controlledTransformStream;
   const readableController = stream._readable._readableStreamController as ReadableStreamDefaultController<O>;
-  if (ReadableStreamDefaultControllerCanCloseOrEnqueue(readableController) === false) {
+  if (!ReadableStreamDefaultControllerCanCloseOrEnqueue(readableController)) {
     throw new TypeError('Readable side is not in a state that permits enqueue');
   }
 

@@ -1,7 +1,7 @@
 import NumberIsNaN from '../../stub/number-isnan';
 
 export function IsFiniteNonNegativeNumber(v: number): boolean {
-  if (IsNonNegativeNumber(v) === false) {
+  if (!IsNonNegativeNumber(v)) {
     return false;
   }
 

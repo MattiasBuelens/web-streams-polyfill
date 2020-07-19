@@ -119,7 +119,7 @@ export class ReadableStream<R = any> {
   }
 
   get locked(): boolean {
-    if (IsReadableStream(this) === false) {
+    if (!IsReadableStream(this)) {
       throw streamBrandCheckException('locked');
     }
 
@@ -127,7 +127,7 @@ export class ReadableStream<R = any> {
   }
 
   cancel(reason: any = undefined): Promise<void> {
-    if (IsReadableStream(this) === false) {
+    if (!IsReadableStream(this)) {
       return promiseRejectedWith(streamBrandCheckException('cancel'));
     }
 
@@ -143,7 +143,7 @@ export class ReadableStream<R = any> {
   getReader(
     rawOptions: ReadableStreamGetReaderOptions | null | undefined = undefined
   ): ReadableStreamDefaultReader<R> | ReadableStreamBYOBReader {
-    if (IsReadableStream(this) === false) {
+    if (!IsReadableStream(this)) {
       throw streamBrandCheckException('getReader');
     }
 
@@ -160,7 +160,7 @@ export class ReadableStream<R = any> {
   pipeThrough<T>(transform: ReadableWritablePair<T, R>, options?: PipeOptions): ReadableStream<T>;
   pipeThrough<T>(rawTransform: ReadableWritablePair<T, R> | null | undefined,
                  rawOptions: PipeOptions | null | undefined = {}): ReadableStream<T> {
-    if (IsReadableStream(this) === false) {
+    if (!IsReadableStream(this)) {
       throw streamBrandCheckException('pipeThrough');
     }
     assertRequiredArgument(rawTransform, 1, 'pipeThrough');
@@ -187,7 +187,7 @@ export class ReadableStream<R = any> {
   pipeTo(destination: WritableStream<R>, options?: PipeOptions): Promise<void>;
   pipeTo(destination: WritableStream<R> | null | undefined,
          rawOptions: PipeOptions | null | undefined = {}): Promise<void> {
-    if (IsReadableStream(this) === false) {
+    if (!IsReadableStream(this)) {
       return promiseRejectedWith(streamBrandCheckException('pipeTo'));
     }
 
@@ -224,7 +224,7 @@ export class ReadableStream<R = any> {
   }
 
   tee(): [ReadableStream<R>, ReadableStream<R>] {
-    if (IsReadableStream(this) === false) {
+    if (!IsReadableStream(this)) {
       throw streamBrandCheckException('tee');
     }
 
@@ -234,7 +234,7 @@ export class ReadableStream<R = any> {
 
   values(options?: ReadableStreamIteratorOptions): ReadableStreamAsyncIterator<R>;
   values(rawOptions: ReadableStreamIteratorOptions | null | undefined = undefined): ReadableStreamAsyncIterator<R> {
-    if (IsReadableStream(this) === false) {
+    if (!IsReadableStream(this)) {
       throw streamBrandCheckException('values');
     }
 

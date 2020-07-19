@@ -104,7 +104,7 @@ export class ReadableStreamBYOBReader {
       throw new TypeError('This stream has already been locked for exclusive reading by another reader');
     }
 
-    if (IsReadableByteStreamController(stream._readableStreamController) === false) {
+    if (!IsReadableByteStreamController(stream._readableStreamController)) {
       throw new TypeError('Cannot construct a ReadableStreamBYOBReader for a stream not constructed with a byte ' +
         'source');
     }

@@ -40,7 +40,7 @@ export class ReadableStreamBYOBRequest {
   }
 
   get view(): ArrayBufferView | null {
-    if (IsReadableStreamBYOBRequest(this) === false) {
+    if (!IsReadableStreamBYOBRequest(this)) {
       throw byobRequestBrandCheckException('view');
     }
 
@@ -49,7 +49,7 @@ export class ReadableStreamBYOBRequest {
 
   respond(bytesWritten: number): void;
   respond(bytesWritten: number | undefined): void {
-    if (IsReadableStreamBYOBRequest(this) === false) {
+    if (!IsReadableStreamBYOBRequest(this)) {
       throw byobRequestBrandCheckException('respond');
     }
     assertRequiredArgument(bytesWritten, 1, 'respond');
@@ -71,7 +71,7 @@ export class ReadableStreamBYOBRequest {
 
   respondWithNewView(view: ArrayBufferView): void;
   respondWithNewView(view: ArrayBufferView | undefined): void {
-    if (IsReadableStreamBYOBRequest(this) === false) {
+    if (!IsReadableStreamBYOBRequest(this)) {
       throw byobRequestBrandCheckException('respondWithNewView');
     }
     assertRequiredArgument(view, 1, 'respondWithNewView');
@@ -176,7 +176,7 @@ export class ReadableByteStreamController {
   }
 
   get byobRequest(): ReadableStreamBYOBRequest | null {
-    if (IsReadableByteStreamController(this) === false) {
+    if (!IsReadableByteStreamController(this)) {
       throw byteStreamControllerBrandCheckException('byobRequest');
     }
 
@@ -195,7 +195,7 @@ export class ReadableByteStreamController {
   }
 
   get desiredSize(): number | null {
-    if (IsReadableByteStreamController(this) === false) {
+    if (!IsReadableByteStreamController(this)) {
       throw byteStreamControllerBrandCheckException('desiredSize');
     }
 
@@ -203,7 +203,7 @@ export class ReadableByteStreamController {
   }
 
   close(): void {
-    if (IsReadableByteStreamController(this) === false) {
+    if (!IsReadableByteStreamController(this)) {
       throw byteStreamControllerBrandCheckException('close');
     }
 
@@ -221,7 +221,7 @@ export class ReadableByteStreamController {
 
   enqueue(chunk: ArrayBufferView): void;
   enqueue(chunk: ArrayBufferView | undefined): void {
-    if (IsReadableByteStreamController(this) === false) {
+    if (!IsReadableByteStreamController(this)) {
       throw byteStreamControllerBrandCheckException('enqueue');
     }
 
@@ -249,7 +249,7 @@ export class ReadableByteStreamController {
   }
 
   error(e: any = undefined): void {
-    if (IsReadableByteStreamController(this) === false) {
+    if (!IsReadableByteStreamController(this)) {
       throw byteStreamControllerBrandCheckException('error');
     }
 
@@ -365,7 +365,7 @@ function IsReadableStreamBYOBRequest(x: any): x is ReadableStreamBYOBRequest {
 
 function ReadableByteStreamControllerCallPullIfNeeded(controller: ReadableByteStreamController): void {
   const shouldPull = ReadableByteStreamControllerShouldCallPull(controller);
-  if (shouldPull === false) {
+  if (!shouldPull) {
     return;
   }
 
@@ -374,7 +374,7 @@ function ReadableByteStreamControllerCallPullIfNeeded(controller: ReadableByteSt
     return;
   }
 
-  assert(controller._pullAgain === false);
+  assert(!controller._pullAgain);
 
   controller._pulling = true;
 
@@ -480,7 +480,7 @@ function ReadableByteStreamControllerFillPullIntoDescriptorFromQueue(controller:
     totalBytesToCopyRemaining -= bytesToCopy;
   }
 
-  if (ready === false) {
+  if (!ready) {
     assert(controller._queueTotalSize === 0);
     assert(pullIntoDescriptor.bytesFilled > 0);
     assert(pullIntoDescriptor.bytesFilled < pullIntoDescriptor.elementSize);
@@ -520,7 +520,7 @@ function ReadableByteStreamControllerInvalidateBYOBRequest(controller: ReadableB
 }
 
 function ReadableByteStreamControllerProcessPullIntoDescriptorsUsingQueue(controller: ReadableByteStreamController) {
-  assert(controller._closeRequested === false);
+  assert(!controller._closeRequested);
 
   while (controller._pendingPullIntos.length > 0) {
     if (controller._queueTotalSize === 0) {
@@ -685,7 +685,7 @@ function ReadableByteStreamControllerShouldCallPull(controller: ReadableByteStre
     return false;
   }
 
-  if (controller._started === false) {
+  if (!controller._started) {
     return false;
   }
 
@@ -766,7 +766,7 @@ function ReadableByteStreamControllerEnqueue(controller: ReadableByteStreamContr
     ReadableByteStreamControllerEnqueueChunkToQueue(controller, transferredBuffer, byteOffset, byteLength);
     ReadableByteStreamControllerProcessPullIntoDescriptorsUsingQueue(controller);
   } else {
-    assert(IsReadableStreamLocked(stream) === false);
+    assert(!IsReadableStreamLocked(stream));
     ReadableByteStreamControllerEnqueueChunkToQueue(controller, transferredBuffer, byteOffset, byteLength);
   }
 
@@ -803,7 +803,7 @@ function ReadableByteStreamControllerGetDesiredSize(controller: ReadableByteStre
 
 function ReadableByteStreamControllerRespond(controller: ReadableByteStreamController, bytesWritten: number) {
   bytesWritten = Number(bytesWritten);
-  if (IsFiniteNonNegativeNumber(bytesWritten) === false) {
+  if (!IsFiniteNonNegativeNumber(bytesWritten)) {
     throw new RangeError('bytesWritten must be a finite');
   }
 
@@ -874,8 +874,8 @@ export function SetUpReadableByteStreamController(stream: ReadableByteStream,
     () => {
       controller._started = true;
 
-      assert(controller._pulling === false);
-      assert(controller._pullAgain === false);
+      assert(!controller._pulling);
+      assert(!controller._pullAgain);
 
       ReadableByteStreamControllerCallPullIfNeeded(controller);
     },
@@ -919,7 +919,7 @@ function SetUpReadableStreamBYOBRequest(request: ReadableStreamBYOBRequest,
   assert(IsReadableByteStreamController(controller));
   assert(typeof view === 'object');
   assert(ArrayBuffer.isView(view));
-  assert(IsDetachedBuffer(view.buffer) === false);
+  assert(!IsDetachedBuffer(view.buffer));
   request._associatedReadableByteStreamController = controller;
   request._view = view;
 }

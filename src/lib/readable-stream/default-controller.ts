@@ -43,7 +43,7 @@ export class ReadableStreamDefaultController<R> {
   }
 
   get desiredSize(): number | null {
-    if (IsReadableStreamDefaultController(this) === false) {
+    if (!IsReadableStreamDefaultController(this)) {
       throw defaultControllerBrandCheckException('desiredSize');
     }
 
@@ -51,11 +51,11 @@ export class ReadableStreamDefaultController<R> {
   }
 
   close(): void {
-    if (IsReadableStreamDefaultController(this) === false) {
+    if (!IsReadableStreamDefaultController(this)) {
       throw defaultControllerBrandCheckException('close');
     }
 
-    if (ReadableStreamDefaultControllerCanCloseOrEnqueue(this) === false) {
+    if (!ReadableStreamDefaultControllerCanCloseOrEnqueue(this)) {
       throw new TypeError('The stream is not in a state that permits close');
     }
 
@@ -64,11 +64,11 @@ export class ReadableStreamDefaultController<R> {
 
   enqueue(chunk: R): void;
   enqueue(chunk: R = undefined!): void {
-    if (IsReadableStreamDefaultController(this) === false) {
+    if (!IsReadableStreamDefaultController(this)) {
       throw defaultControllerBrandCheckException('enqueue');
     }
 
-    if (ReadableStreamDefaultControllerCanCloseOrEnqueue(this) === false) {
+    if (!ReadableStreamDefaultControllerCanCloseOrEnqueue(this)) {
       throw new TypeError('The stream is not in a state that permits enqueue');
     }
 
@@ -76,7 +76,7 @@ export class ReadableStreamDefaultController<R> {
   }
 
   error(e: any = undefined): void {
-    if (IsReadableStreamDefaultController(this) === false) {
+    if (!IsReadableStreamDefaultController(this)) {
       throw defaultControllerBrandCheckException('error');
     }
 
@@ -143,7 +143,7 @@ function IsReadableStreamDefaultController<R>(x: any): x is ReadableStreamDefaul
 
 function ReadableStreamDefaultControllerCallPullIfNeeded(controller: ReadableStreamDefaultController<any>): void {
   const shouldPull = ReadableStreamDefaultControllerShouldCallPull(controller);
-  if (shouldPull === false) {
+  if (!shouldPull) {
     return;
   }
 
@@ -152,7 +152,7 @@ function ReadableStreamDefaultControllerCallPullIfNeeded(controller: ReadableStr
     return;
   }
 
-  assert(controller._pullAgain === false);
+  assert(!controller._pullAgain);
 
   controller._pulling = true;
 
@@ -176,11 +176,11 @@ function ReadableStreamDefaultControllerCallPullIfNeeded(controller: ReadableStr
 function ReadableStreamDefaultControllerShouldCallPull(controller: ReadableStreamDefaultController<any>): boolean {
   const stream = controller._controlledReadableStream;
 
-  if (ReadableStreamDefaultControllerCanCloseOrEnqueue(controller) === false) {
+  if (!ReadableStreamDefaultControllerCanCloseOrEnqueue(controller)) {
     return false;
   }
 
-  if (controller._started === false) {
+  if (!controller._started) {
     return false;
   }
 
@@ -206,7 +206,7 @@ function ReadableStreamDefaultControllerClearAlgorithms(controller: ReadableStre
 // A client of ReadableStreamDefaultController may use these functions directly to bypass state check.
 
 export function ReadableStreamDefaultControllerClose(controller: ReadableStreamDefaultController<any>) {
-  if (ReadableStreamDefaultControllerCanCloseOrEnqueue(controller) === false) {
+  if (!ReadableStreamDefaultControllerCanCloseOrEnqueue(controller)) {
     return;
   }
 
@@ -221,7 +221,7 @@ export function ReadableStreamDefaultControllerClose(controller: ReadableStreamD
 }
 
 export function ReadableStreamDefaultControllerEnqueue<R>(controller: ReadableStreamDefaultController<R>, chunk: R): void {
-  if (ReadableStreamDefaultControllerCanCloseOrEnqueue(controller) === false) {
+  if (!ReadableStreamDefaultControllerCanCloseOrEnqueue(controller)) {
     return;
   }
 
@@ -288,7 +288,7 @@ export function ReadableStreamDefaultControllerHasBackpressure(controller: Reada
 export function ReadableStreamDefaultControllerCanCloseOrEnqueue(controller: ReadableStreamDefaultController<any>): boolean {
   const state = controller._controlledReadableStream._state;
 
-  if (controller._closeRequested === false && state === 'readable') {
+  if (!controller._closeRequested && state === 'readable') {
     return true;
   }
 
@@ -329,8 +329,8 @@ export function SetUpReadableStreamDefaultController<R>(stream: ReadableStream<R
     () => {
       controller._started = true;
 
-      assert(controller._pulling === false);
-      assert(controller._pullAgain === false);
+      assert(!controller._pulling);
+      assert(!controller._pullAgain);
 
       ReadableStreamDefaultControllerCallPullIfNeeded(controller);
     },
