@@ -11,7 +11,37 @@
 
 ## Unreleased
 
-* 👓 Align with [spec version `62fe4c8`](https://github.com/whatwg/streams/tree/62fe4c8c0df34cec4ff28db9bfa69aec6c65e38d/) ([#52](https://github.com/MattiasBuelens/web-streams-polyfill/pull/52), [#57](https://github.com/MattiasBuelens/web-streams-polyfill/pull/57), [#59](https://github.com/MattiasBuelens/web-streams-polyfill/pull/59))
+* 💥 Align with [spec version `62fe4c8`](https://github.com/whatwg/streams/tree/62fe4c8c0df34cec4ff28db9bfa69aec6c65e38d/) ([#52](https://github.com/MattiasBuelens/web-streams-polyfill/pull/52), [#57](https://github.com/MattiasBuelens/web-streams-polyfill/pull/57), [#59](https://github.com/MattiasBuelens/web-streams-polyfill/pull/59))  
+  This includes the following **breaking changes**:
+  * All classes are now exposed globally. Concretely, this adds the following classes:
+    * `ReadableStreamDefaultController`
+    * `ReadableByteStreamController`
+    * `ReadableStreamBYOBRequest`
+    * `ReadableStreamDefaultReader`
+    * `ReadableStreamBYOBReader`
+    * `WritableStreamDefaultController`
+    * `WritableStreamDefaultWriter`
+    * `TransformStreamDefaultController`
+  * `ReadableStream.getIterator()` is renamed to `ReadableStream.values()`
+  * `ReadableByteStreamController.byobRequest` can be `null` (instead of `undefined`) if there is no current BYOB request.
+  * `ReadableStreamBYOBRequest.view` can be `null` (instead of `undefined`) if the BYOB request has already been responded to.
+  * Constructors and methods have stricter type checking for object arguments. For example, `new ReadableStream(null)` would previously behave like `new ReadableStream({})`, but now it throws a `TypeError` instead.
+  * Some constructors and methods may throw slightly different errors when given invalid arguments.
+  * Various byte-stream-related APIs now prohibit zero-length views or buffers.
+  * The async iterator of a `ReadableStream` now behaves more like an async generator, e.g. returning promises fulfilled with `{ value: undefined, done: true }` after `return()`ing the iterator, instead of returning a rejected promise.
+* 💥 Updated TypeScript types to align with new specification ([#60](https://github.com/MattiasBuelens/web-streams-polyfill/pull/60))  
+  While these are _technically_ breaking changes, you should only be affected if you manually reference these types from your code.
+  * `PipeOptions` is renamed to `StreamPipeOptions`
+  * `ReadResult` is replaced by `ReadableStreamDefaultReadResult` and `ReadableStreamBYOBReadResult`
+  * `ReadableStreamDefaultControllerCallback` is replaced by `UnderlyingSourceStartCallback` and `UnderlyingSourcePullCallback`
+  * `ReadableByteStreamControllerCallback` is replaced by `UnderlyingByteSourceStartCallback` and `UnderlyingByteSourcePullCallback`
+  * `ReadableStreamErrorCallback` is renamed to `UnderlyingSourceCancelCallback`
+  * `WritableStreamDefaultControllerStartCallback` is renamed to `UnderlyingSinkStartCallback`
+  * `WritableStreamDefaultControllerWriteCallback` is renamed to `UnderlyingSinkWriteCallback`
+  * `WritableStreamDefaultControllerCloseCallback` is renamed to `UnderlyingSinkCloseCallback`
+  * `WritableStreamErrorCallback` is renamed to `UnderlyingSinkAbortCallback`
+  * `TransformStreamDefaultControllerCallback` is replaced by `TransformerStartCallback` and `TransformerFlushCallback`
+  * `TransformStreamDefaultControllerTransformCallback` is renamed to `TransformerTransformCallback`
 
 ## v2.1.1 (2020-04-11)
 
