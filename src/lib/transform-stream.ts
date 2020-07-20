@@ -297,7 +297,7 @@ if (typeof Symbol.toStringTag === 'symbol') {
 
 // Transform Stream Default Controller Abstract Operations
 
-function IsTransformStreamDefaultController<O>(x: any): x is TransformStreamDefaultController<O> {
+function IsTransformStreamDefaultController<O = any>(x: any): x is TransformStreamDefaultController<O> {
   if (!typeIsObject(x)) {
     return false;
   }

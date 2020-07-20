@@ -683,7 +683,7 @@ if (typeof Symbol.toStringTag === 'symbol') {
 
 // Abstract operations for the WritableStreamDefaultWriter.
 
-function IsWritableStreamDefaultWriter(x: any): x is WritableStreamDefaultWriter {
+function IsWritableStreamDefaultWriter<W = any>(x: any): x is WritableStreamDefaultWriter<W> {
   if (!typeIsObject(x)) {
     return false;
   }
@@ -884,7 +884,7 @@ if (typeof Symbol.toStringTag === 'symbol') {
 
 // Abstract operations implementing interface required by the WritableStream.
 
-function IsWritableStreamDefaultController<W>(x: any): x is WritableStreamDefaultController<W> {
+function IsWritableStreamDefaultController(x: any): x is WritableStreamDefaultController<any> {
   if (!typeIsObject(x)) {
     return false;
   }

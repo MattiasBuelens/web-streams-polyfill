@@ -129,7 +129,7 @@ if (typeof Symbol.toStringTag === 'symbol') {
 
 // Abstract operations for the ReadableStreamDefaultController.
 
-function IsReadableStreamDefaultController<R>(x: any): x is ReadableStreamDefaultController<R> {
+function IsReadableStreamDefaultController<R = any>(x: any): x is ReadableStreamDefaultController<R> {
   if (!typeIsObject(x)) {
     return false;
   }

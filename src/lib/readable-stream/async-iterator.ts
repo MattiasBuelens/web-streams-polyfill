@@ -139,7 +139,7 @@ export function AcquireReadableStreamAsyncIterator<R>(stream: ReadableStream<R>,
   return iterator;
 }
 
-function IsReadableStreamAsyncIterator<R>(x: any): x is ReadableStreamAsyncIterator<R> {
+function IsReadableStreamAsyncIterator<R = any>(x: any): x is ReadableStreamAsyncIterator<R> {
   if (!typeIsObject(x)) {
     return false;
   }
