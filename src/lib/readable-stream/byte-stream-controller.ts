@@ -1,18 +1,19 @@
 import assert from '../../stub/assert';
 import { SimpleQueue } from '../simple-queue';
 import { ResetQueue } from '../abstract-ops/queue-with-sizes';
-import { ReadableStreamCreateReadResult, ReadResult } from './generic-reader';
 import {
   ReadableStreamAddReadRequest,
   ReadableStreamFulfillReadRequest,
   ReadableStreamGetNumReadRequests,
-  ReadableStreamHasDefaultReader
+  ReadableStreamHasDefaultReader,
+  ReadRequest
 } from './default-reader';
 import {
   ReadableStreamAddReadIntoRequest,
   ReadableStreamFulfillReadIntoRequest,
   ReadableStreamGetNumReadIntoRequests,
-  ReadableStreamHasBYOBReader
+  ReadableStreamHasBYOBReader,
+  ReadIntoRequest
 } from './byob-reader';
 import NumberIsInteger from '../../stub/number-isinteger';
 import {
@@ -26,7 +27,7 @@ import { typeIsObject } from '../helpers/miscellaneous';
 import { CopyDataBlockBytes, IsDetachedBuffer, TransferArrayBuffer } from '../abstract-ops/ecmascript';
 import { CancelSteps, PullSteps } from '../abstract-ops/internal-methods';
 import { IsFiniteNonNegativeNumber } from '../abstract-ops/miscellaneous';
-import { promiseRejectedWith, promiseResolvedWith, uponPromise } from '../helpers/webidl';
+import { promiseResolvedWith, uponPromise } from '../helpers/webidl';
 import { assertRequiredArgument, convertUnsignedLongLongWithEnforceRange } from '../validators/basic';
 
 export class ReadableStreamBYOBRequest {
@@ -129,7 +130,7 @@ interface DefaultPullIntoDescriptor {
   byteLength: number;
   bytesFilled: number;
   elementSize: number;
-  ctor: ArrayBufferViewConstructor<Uint8Array>;
+  viewConstructor: ArrayBufferViewConstructor<Uint8Array>;
   readerType: 'default';
 }
 
@@ -139,7 +140,7 @@ interface BYOBPullIntoDescriptor<T extends ArrayBufferView = ArrayBufferView> {
   byteLength: number;
   bytesFilled: number;
   elementSize: number;
-  ctor: ArrayBufferViewConstructor<T>;
+  viewConstructor: ArrayBufferViewConstructor<T>;
   readerType: 'byob';
 }
 
@@ -271,7 +272,7 @@ export class ReadableByteStreamController {
   }
 
   /** @internal */
-  [PullSteps](): Promise<ReadResult<ArrayBufferView>> {
+  [PullSteps](readRequest: ReadRequest<Uint8Array>): void {
     const stream = this._controlledReadableByteStream;
     assert(ReadableStreamHasDefaultReader(stream));
 
@@ -283,14 +284,10 @@ export class ReadableByteStreamController {
 
       ReadableByteStreamControllerHandleQueueDrain(this);
 
-      let view: ArrayBufferView;
-      try {
-        view = new Uint8Array(entry.buffer, entry.byteOffset, entry.byteLength);
-      } catch (viewE) {
-        return promiseRejectedWith(viewE);
-      }
+      const view = new Uint8Array(entry.buffer, entry.byteOffset, entry.byteLength);
 
-      return promiseResolvedWith(ReadableStreamCreateReadResult(view, false, stream._reader!._forAuthorCode));
+      readRequest._chunkSteps(view);
+      return;
     }
 
     const autoAllocateChunkSize = this._autoAllocateChunkSize;
@@ -299,7 +296,8 @@ export class ReadableByteStreamController {
       try {
         buffer = new ArrayBuffer(autoAllocateChunkSize);
       } catch (bufferE) {
-        return promiseRejectedWith(bufferE);
+        readRequest._errorSteps(bufferE);
+        return;
       }
 
       const pullIntoDescriptor: DefaultPullIntoDescriptor = {
@@ -308,18 +306,15 @@ export class ReadableByteStreamController {
         byteLength: autoAllocateChunkSize,
         bytesFilled: 0,
         elementSize: 1,
-        ctor: Uint8Array,
+        viewConstructor: Uint8Array,
         readerType: 'default'
       };
 
       this._pendingPullIntos.push(pullIntoDescriptor);
     }
 
-    const promise = ReadableStreamAddReadRequest(stream);
-
+    ReadableStreamAddReadRequest(stream, readRequest);
     ReadableByteStreamControllerCallPullIfNeeded(this);
-
-    return promise;
   }
 }
 
@@ -427,7 +422,7 @@ function ReadableByteStreamControllerConvertPullIntoDescriptor<T extends ArrayBu
   assert(bytesFilled <= pullIntoDescriptor.byteLength);
   assert(bytesFilled % elementSize === 0);
 
-  return new pullIntoDescriptor.ctor(
+  return new pullIntoDescriptor.viewConstructor(
     pullIntoDescriptor.buffer, pullIntoDescriptor.byteOffset, bytesFilled / elementSize) as T;
 }
 
@@ -540,8 +535,11 @@ function ReadableByteStreamControllerProcessPullIntoDescriptorsUsingQueue(contro
   }
 }
 
-export function ReadableByteStreamControllerPullInto<T extends ArrayBufferView>(controller: ReadableByteStreamController,
-                                                                                view: T): Promise<ReadResult<T>> {
+export function ReadableByteStreamControllerPullInto<T extends ArrayBufferView>(
+  controller: ReadableByteStreamController,
+  view: T,
+  readIntoRequest: ReadIntoRequest<T>
+): void {
   const stream = controller._controlledReadableByteStream;
 
   let elementSize = 1;
@@ -558,7 +556,7 @@ export function ReadableByteStreamControllerPullInto<T extends ArrayBufferView>(
     byteLength: view.byteLength,
     bytesFilled: 0,
     elementSize,
-    ctor,
+    viewConstructor: ctor,
     readerType: 'byob'
   };
 
@@ -569,12 +567,14 @@ export function ReadableByteStreamControllerPullInto<T extends ArrayBufferView>(
     // - No change happens on desiredSize
     // - The source has already been notified of that there's at least 1 pending read(view)
 
-    return ReadableStreamAddReadIntoRequest(stream);
+    ReadableStreamAddReadIntoRequest(stream, readIntoRequest);
+    return;
   }
 
   if (stream._state === 'closed') {
     const emptyView = new ctor(pullIntoDescriptor.buffer, pullIntoDescriptor.byteOffset, 0);
-    return promiseResolvedWith(ReadableStreamCreateReadResult(emptyView, true, stream._reader!._forAuthorCode));
+    readIntoRequest._closeSteps(emptyView);
+    return;
   }
 
   if (controller._queueTotalSize > 0) {
@@ -583,24 +583,23 @@ export function ReadableByteStreamControllerPullInto<T extends ArrayBufferView>(
 
       ReadableByteStreamControllerHandleQueueDrain(controller);
 
-      return promiseResolvedWith(ReadableStreamCreateReadResult(filledView, false, stream._reader!._forAuthorCode));
+      readIntoRequest._chunkSteps(filledView);
+      return;
     }
 
     if (controller._closeRequested) {
       const e = new TypeError('Insufficient bytes to fill elements in the given buffer');
       ReadableByteStreamControllerError(controller, e);
 
-      return promiseRejectedWith(e);
+      readIntoRequest._errorSteps(e);
+      return;
     }
   }
 
   controller._pendingPullIntos.push(pullIntoDescriptor);
 
-  const promise = ReadableStreamAddReadIntoRequest<T>(stream);
-
+  ReadableStreamAddReadIntoRequest<T>(stream, readIntoRequest);
   ReadableByteStreamControllerCallPullIfNeeded(controller);
-
-  return promise;
 }
 
 function ReadableByteStreamControllerRespondInClosedState(controller: ReadableByteStreamController,

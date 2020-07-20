@@ -10,7 +10,6 @@ import { AcquireReadableStreamAsyncIterator, ReadableStreamAsyncIterator } from 
 import {
   defaultReaderClosedPromiseReject,
   defaultReaderClosedPromiseResolve,
-  ReadableStreamCreateReadResult,
   ReadResult
 } from './readable-stream/generic-reader';
 import {
@@ -150,11 +149,11 @@ export class ReadableStream<R = any> {
     const options = convertReaderOptions(rawOptions, 'First parameter');
 
     if (options.mode === undefined) {
-      return AcquireReadableStreamDefaultReader(this, true);
+      return AcquireReadableStreamDefaultReader(this);
     }
 
     assert(options.mode === 'byob');
-    return AcquireReadableStreamBYOBReader(this as unknown as ReadableByteStream, true);
+    return AcquireReadableStreamBYOBReader(this as unknown as ReadableByteStream);
   }
 
   pipeThrough<T>(transform: ReadableWritablePair<T, R>, options?: PipeOptions): ReadableStream<T>;
@@ -391,7 +390,7 @@ export function ReadableStreamClose<R>(stream: ReadableStream<R>): void {
 
   if (IsReadableStreamDefaultReader<R>(reader)) {
     reader._readRequests.forEach(readRequest => {
-      readRequest._resolve(ReadableStreamCreateReadResult<R>(undefined, true, reader._forAuthorCode));
+      readRequest._closeSteps();
     });
     reader._readRequests = new SimpleQueue();
   }
@@ -414,7 +413,7 @@ export function ReadableStreamError<R>(stream: ReadableStream<R>, e: any): void 
 
   if (IsReadableStreamDefaultReader<R>(reader)) {
     reader._readRequests.forEach(readRequest => {
-      readRequest._reject(e);
+      readRequest._errorSteps(e);
     });
 
     reader._readRequests = new SimpleQueue();
@@ -422,7 +421,7 @@ export function ReadableStreamError<R>(stream: ReadableStream<R>, e: any): void 
     assert(IsReadableStreamBYOBReader(reader));
 
     reader._readIntoRequests.forEach(readIntoRequest => {
-      readIntoRequest._reject(e);
+      readIntoRequest._errorSteps(e);
     });
 
     reader._readIntoRequests = new SimpleQueue();

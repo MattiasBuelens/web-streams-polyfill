@@ -4,10 +4,10 @@ import { DequeueValue, EnqueueValueWithSize, QueuePair, ResetQueue } from '../ab
 import {
   ReadableStreamAddReadRequest,
   ReadableStreamFulfillReadRequest,
-  ReadableStreamGetNumReadRequests
+  ReadableStreamGetNumReadRequests,
+  ReadRequest
 } from './default-reader';
 import { SimpleQueue } from '../simple-queue';
-import { ReadableStreamCreateReadResult, ReadResult } from './generic-reader';
 import { IsReadableStreamLocked, ReadableStream, ReadableStreamClose, ReadableStreamError } from '../readable-stream';
 import { ValidatedUnderlyingSource } from './underlying-source';
 import { typeIsObject } from '../helpers/miscellaneous';
@@ -92,7 +92,7 @@ export class ReadableStreamDefaultController<R> {
   }
 
   /** @internal */
-  [PullSteps](): Promise<ReadResult<R>> {
+  [PullSteps](readRequest: ReadRequest<R>): void {
     const stream = this._controlledReadableStream;
 
     if (this._queue.length > 0) {
@@ -105,12 +105,11 @@ export class ReadableStreamDefaultController<R> {
         ReadableStreamDefaultControllerCallPullIfNeeded(this);
       }
 
-      return promiseResolvedWith(ReadableStreamCreateReadResult(chunk, false, stream._reader!._forAuthorCode));
+      readRequest._chunkSteps(chunk);
+    } else {
+      ReadableStreamAddReadRequest(stream, readRequest);
+      ReadableStreamDefaultControllerCallPullIfNeeded(this);
     }
-
-    const pendingPromise = ReadableStreamAddReadRequest(stream);
-    ReadableStreamDefaultControllerCallPullIfNeeded(this);
-    return pendingPromise;
   }
 }
 

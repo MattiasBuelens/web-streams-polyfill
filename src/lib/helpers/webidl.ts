@@ -1,3 +1,4 @@
+import { globals } from '../../utils';
 import { rethrowAssertionErrorRejection } from './miscellaneous';
 import assert from '../../stub/assert';
 
@@ -59,6 +60,16 @@ export function transformPromiseWith<T, TResult1 = T, TResult2 = never>(
 export function setPromiseIsHandledToTrue(promise: Promise<unknown>): void {
   PerformPromiseThen(promise, undefined, rethrowAssertionErrorRejection);
 }
+
+export const queueMicrotask: (fn: () => void) => void = (() => {
+  const globalQueueMicrotask = globals && globals.queueMicrotask;
+  if (typeof globalQueueMicrotask === 'function') {
+    return globalQueueMicrotask;
+  }
+
+  const resolvedPromise = promiseResolvedWith(undefined);
+  return (fn: () => void) => PerformPromiseThen(resolvedPromise, fn);
+})();
 
 export function reflectCall<T, A extends any[], R>(F: (this: T, ...args: A) => R, V: T, args: A): R {
   if (typeof F !== 'function') {

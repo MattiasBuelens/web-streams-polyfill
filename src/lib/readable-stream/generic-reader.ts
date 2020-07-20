@@ -10,22 +10,7 @@ export type ReadResult<T> = {
   value: T | undefined;
 }
 
-export function ReadableStreamCreateReadResult<T>(value: T | undefined,
-                                                  done: boolean,
-                                                  forAuthorCode: boolean): ReadResult<T> {
-  let prototype: object | null = null;
-  if (forAuthorCode) {
-    prototype = Object.prototype;
-  }
-  assert(typeof done === 'boolean');
-  const obj: ReadResult<T> = Object.create(prototype);
-  obj.value = value!;
-  obj.done = done;
-  return obj;
-}
-
 export function ReadableStreamReaderGenericInitialize<R>(reader: ReadableStreamReader<R>, stream: ReadableStream<R>) {
-  reader._forAuthorCode = true;
   reader._ownerReadableStream = stream;
   stream._reader = reader;
 

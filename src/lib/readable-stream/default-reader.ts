@@ -1,45 +1,33 @@
 import assert from '../../stub/assert';
 import { SimpleQueue } from '../simple-queue';
 import {
-  ReadableStreamCreateReadResult,
   ReadableStreamReaderGenericCancel,
   ReadableStreamReaderGenericInitialize,
   ReadableStreamReaderGenericRelease,
   readerLockException,
   ReadResult
 } from './generic-reader';
-import { IsReadableStream, IsReadableStreamLocked, ReadableStream } from '../readable-stream';
+import { IsReadableStreamLocked, ReadableStream } from '../readable-stream';
 import { typeIsObject } from '../helpers/miscellaneous';
 import { PullSteps } from '../abstract-ops/internal-methods';
-import { newPromise, promiseRejectedWith, promiseResolvedWith } from '../helpers/webidl';
+import { newPromise, promiseRejectedWith } from '../helpers/webidl';
 import { assertRequiredArgument } from '../validators/basic';
 import { assertReadableStream } from '../validators/readable-stream';
 
 // Abstract operations for the ReadableStream.
 
-export function AcquireReadableStreamDefaultReader<R>(stream: ReadableStream,
-                                                      forAuthorCode = false): ReadableStreamDefaultReader<R> {
-  const reader = new ReadableStreamDefaultReader(stream);
-  reader._forAuthorCode = forAuthorCode;
-  return reader;
+export function AcquireReadableStreamDefaultReader<R>(stream: ReadableStream): ReadableStreamDefaultReader<R> {
+  return new ReadableStreamDefaultReader(stream);
 }
 
 // ReadableStream API exposed for controllers.
 
-export function ReadableStreamAddReadRequest<R>(stream: ReadableStream<R>): Promise<ReadResult<R>> {
+export function ReadableStreamAddReadRequest<R>(stream: ReadableStream<R>,
+                                                readRequest: ReadRequest<R>): void {
   assert(IsReadableStreamDefaultReader(stream._reader));
   assert(stream._state === 'readable');
 
-  const promise = newPromise<ReadResult<R>>((resolve, reject) => {
-    const readRequest: ReadRequest<R> = {
-      _resolve: resolve,
-      _reject: reject
-    };
-
-    (stream._reader! as ReadableStreamDefaultReader<R>)._readRequests.push(readRequest);
-  });
-
-  return promise;
+  (stream._reader! as ReadableStreamDefaultReader<R>)._readRequests.push(readRequest);
 }
 
 export function ReadableStreamFulfillReadRequest<R>(stream: ReadableStream<R>, chunk: R | undefined, done: boolean) {
@@ -48,7 +36,11 @@ export function ReadableStreamFulfillReadRequest<R>(stream: ReadableStream<R>, c
   assert(reader._readRequests.length > 0);
 
   const readRequest = reader._readRequests.shift()!;
-  readRequest._resolve(ReadableStreamCreateReadResult(chunk, done, reader._forAuthorCode));
+  if (done) {
+    readRequest._closeSteps();
+  } else {
+    readRequest._chunkSteps(chunk!);
+  }
 }
 
 export function ReadableStreamGetNumReadRequests<R>(stream: ReadableStream<R>): number {
@@ -72,13 +64,14 @@ export function ReadableStreamHasDefaultReader(stream: ReadableStream): boolean 
 // Readers
 
 export interface ReadRequest<R> {
-  _resolve: (value: ReadResult<R>) => void;
-  _reject: (reason: any) => void;
+  _chunkSteps(chunk: R): void;
+
+  _closeSteps(): void;
+
+  _errorSteps(e: any): void;
 }
 
 export class ReadableStreamDefaultReader<R = any> {
-  /** @internal */
-  _forAuthorCode!: boolean;
   /** @internal */
   _ownerReadableStream!: ReadableStream<R>;
   /** @internal */
@@ -132,7 +125,19 @@ export class ReadableStreamDefaultReader<R = any> {
       return promiseRejectedWith(readerLockException('read from'));
     }
 
-    return ReadableStreamDefaultReaderRead<R>(this);
+    let resolvePromise!: (result: ReadResult<R>) => void;
+    let rejectPromise!: (reason: any) => void;
+    const promise = newPromise<ReadResult<R>>((resolve, reject) => {
+      resolvePromise = resolve;
+      rejectPromise = reject;
+    });
+    const readRequest: ReadRequest<R> = {
+      _chunkSteps: chunk => resolvePromise({ value: chunk, done: false }),
+      _closeSteps: () => resolvePromise({ value: undefined, done: true }),
+      _errorSteps: e => rejectPromise(e)
+    };
+    ReadableStreamDefaultReaderRead(this, readRequest);
+    return promise;
   }
 
   releaseLock(): void {
@@ -179,7 +184,8 @@ export function IsReadableStreamDefaultReader<R = any>(x: any): x is ReadableStr
   return true;
 }
 
-export function ReadableStreamDefaultReaderRead<R>(reader: ReadableStreamDefaultReader<R>): Promise<ReadResult<R>> {
+export function ReadableStreamDefaultReaderRead<R>(reader: ReadableStreamDefaultReader<R>,
+                                                   readRequest: ReadRequest<R>): void {
   const stream = reader._ownerReadableStream;
 
   assert(stream !== undefined);
@@ -187,16 +193,13 @@ export function ReadableStreamDefaultReaderRead<R>(reader: ReadableStreamDefault
   stream._disturbed = true;
 
   if (stream._state === 'closed') {
-    return promiseResolvedWith(ReadableStreamCreateReadResult<R>(undefined, true, reader._forAuthorCode));
+    readRequest._closeSteps();
+  } else if (stream._state === 'errored') {
+    readRequest._errorSteps(stream._storedError);
+  } else {
+    assert(stream._state === 'readable');
+    stream._readableStreamController[PullSteps](readRequest as ReadRequest<any>);
   }
-
-  if (stream._state === 'errored') {
-    return promiseRejectedWith(stream._storedError);
-  }
-
-  assert(stream._state === 'readable');
-
-  return stream._readableStreamController[PullSteps]() as unknown as Promise<ReadResult<R>>;
 }
 
 // Helper functions for the ReadableStreamDefaultReader.

@@ -109,13 +109,18 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
       }
 
       return PerformPromiseThen(writer._readyPromise, () => {
-        return PerformPromiseThen(ReadableStreamDefaultReaderRead(reader), result => {
-          if (result.done) {
-            return true;
-          }
-
-          currentWrite = PerformPromiseThen(WritableStreamDefaultWriterWrite(writer, result.value), undefined, noop);
-          return false;
+        return newPromise<boolean>((resolveRead, rejectRead) => {
+          ReadableStreamDefaultReaderRead(
+            reader,
+            {
+              _chunkSteps: chunk => {
+                currentWrite = PerformPromiseThen(WritableStreamDefaultWriterWrite(writer, chunk), undefined, noop);
+                resolveRead(false);
+              },
+              _closeSteps: () => resolveRead(true),
+              _errorSteps: rejectRead
+            }
+          );
         });
       });
     }

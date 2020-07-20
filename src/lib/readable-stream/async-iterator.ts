@@ -4,7 +4,8 @@ import { ReadableStream } from '../readable-stream';
 import {
   AcquireReadableStreamDefaultReader,
   ReadableStreamDefaultReader,
-  ReadableStreamDefaultReaderRead
+  ReadableStreamDefaultReaderRead,
+  ReadRequest
 } from './default-reader';
 import {
   ReadableStreamReaderGenericCancel,
@@ -15,7 +16,13 @@ import {
 import assert from '../../stub/assert';
 import { AsyncIteratorPrototype } from '@@target/stub/async-iterator-prototype';
 import { typeIsObject } from '../helpers/miscellaneous';
-import { promiseRejectedWith, promiseResolvedWith, transformPromiseWith } from '../helpers/webidl';
+import {
+  newPromise,
+  promiseRejectedWith,
+  promiseResolvedWith,
+  queueMicrotask,
+  transformPromiseWith
+} from '../helpers/webidl';
 
 export interface ReadableStreamAsyncIterator<R> extends AsyncIterator<R> {
   next(): Promise<IteratorResult<R>>;
@@ -58,22 +65,35 @@ export class ReadableStreamAsyncIteratorImpl<R> {
     if (reader._ownerReadableStream === undefined) {
       return promiseRejectedWith(readerLockException('iterate'));
     }
-    return transformPromiseWith(ReadableStreamDefaultReaderRead(reader), (result): ReadResult<R> => {
-      this._ongoingPromise = undefined;
-      assert(typeIsObject(result));
-      assert(typeof result.done === 'boolean');
-      if (result.done) {
+
+    let resolvePromise!: (result: ReadResult<R>) => void;
+    let rejectPromise!: (reason: any) => void;
+    const promise = newPromise<ReadResult<R>>((resolve, reject) => {
+      resolvePromise = resolve;
+      rejectPromise = reject;
+    });
+    const readRequest: ReadRequest<R> = {
+      _chunkSteps: chunk => {
+        this._ongoingPromise = undefined;
+        // This needs to be delayed by one microtask, otherwise we stop pulling too early which breaks a test.
+        // FIXME Is this a bug in the specification, or in the test?
+        queueMicrotask(() => resolvePromise({ value: chunk, done: false }));
+      },
+      _closeSteps: () => {
+        this._ongoingPromise = undefined;
         this._isFinished = true;
         ReadableStreamReaderGenericRelease(reader);
-        return { value: undefined, done: true };
+        resolvePromise({ value: undefined, done: true });
+      },
+      _errorSteps: reason => {
+        this._ongoingPromise = undefined;
+        this._isFinished = true;
+        ReadableStreamReaderGenericRelease(reader);
+        rejectPromise(reason);
       }
-      return { value: result.value, done: false };
-    }, reason => {
-      this._ongoingPromise = undefined;
-      this._isFinished = true;
-      ReadableStreamReaderGenericRelease(reader);
-      throw reason;
-    });
+    };
+    ReadableStreamDefaultReaderRead(reader, readRequest);
+    return promise;
   }
 
   private _returnSteps(value: any): Promise<ReadResult<any>> {
@@ -86,15 +106,15 @@ export class ReadableStreamAsyncIteratorImpl<R> {
     if (reader._ownerReadableStream === undefined) {
       return promiseRejectedWith(readerLockException('finish iterating'));
     }
-    if (reader._readRequests.length > 0) {
-      return promiseRejectedWith(new TypeError(
-        'Tried to release a reader lock when that reader has pending read() calls un-settled'));
-    }
+
+    assert(reader._readRequests.length === 0);
+
     if (!this._preventCancel) {
       const result = ReadableStreamReaderGenericCancel(reader, value);
       ReadableStreamReaderGenericRelease(reader);
       return transformPromiseWith(result, () => ({ value, done: true }));
     }
+
     ReadableStreamReaderGenericRelease(reader);
     return promiseResolvedWith({ value, done: true });
   }
