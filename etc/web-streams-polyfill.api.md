@@ -191,23 +191,26 @@ export interface StreamPipeOptions {
 
 // @public (undocumented)
 export interface Transformer<I = any, O = any> {
-    // Warning: (ae-forgotten-export) The symbol "TransformerFlushCallback" needs to be exported by the entry point polyfill.d.ts
-    //
     // (undocumented)
     flush?: TransformerFlushCallback<O>;
     // (undocumented)
     readableType?: undefined;
-    // Warning: (ae-forgotten-export) The symbol "TransformerStartCallback" needs to be exported by the entry point polyfill.d.ts
-    //
     // (undocumented)
     start?: TransformerStartCallback<O>;
-    // Warning: (ae-forgotten-export) The symbol "TransformerTransformCallback" needs to be exported by the entry point polyfill.d.ts
-    //
     // (undocumented)
     transform?: TransformerTransformCallback<I, O>;
     // (undocumented)
     writableType?: undefined;
 }
+
+// @public (undocumented)
+export type TransformerFlushCallback<O> = (controller: TransformStreamDefaultController<O>) => void | PromiseLike<void>;
+
+// @public (undocumented)
+export type TransformerStartCallback<O> = (controller: TransformStreamDefaultController<O>) => void | PromiseLike<void>;
+
+// @public (undocumented)
+export type TransformerTransformCallback<I, O> = (chunk: I, controller: TransformStreamDefaultController<O>) => void | PromiseLike<void>;
 
 // @public (undocumented)
 export class TransformStream<I = any, O = any> {
@@ -234,55 +237,68 @@ export class TransformStreamDefaultController<O> {
 export interface UnderlyingByteSource {
     // (undocumented)
     autoAllocateChunkSize?: number;
-    // Warning: (ae-forgotten-export) The symbol "UnderlyingSourceCancelCallback" needs to be exported by the entry point polyfill.d.ts
-    //
     // (undocumented)
     cancel?: UnderlyingSourceCancelCallback;
     // (undocumented)
-    pull?: ReadableByteStreamControllerCallback;
-    // Warning: (ae-forgotten-export) The symbol "ReadableByteStreamControllerCallback" needs to be exported by the entry point polyfill.d.ts
-    //
+    pull?: UnderlyingByteSourcePullCallback;
     // (undocumented)
-    start?: ReadableByteStreamControllerCallback;
+    start?: UnderlyingByteSourceStartCallback;
     // (undocumented)
     type: 'bytes';
 }
 
 // @public (undocumented)
+export type UnderlyingByteSourcePullCallback = (controller: ReadableByteStreamController) => void | PromiseLike<void>;
+
+// @public (undocumented)
+export type UnderlyingByteSourceStartCallback = (controller: ReadableByteStreamController) => void | PromiseLike<void>;
+
+// @public (undocumented)
 export interface UnderlyingSink<W = any> {
-    // Warning: (ae-forgotten-export) The symbol "UnderlyingSinkAbortCallback" needs to be exported by the entry point polyfill.d.ts
-    //
     // (undocumented)
     abort?: UnderlyingSinkAbortCallback;
-    // Warning: (ae-forgotten-export) The symbol "UnderlyingSinkCloseCallback" needs to be exported by the entry point polyfill.d.ts
-    //
     // (undocumented)
     close?: UnderlyingSinkCloseCallback;
-    // Warning: (ae-forgotten-export) The symbol "UnderlyingSinkStartCallback" needs to be exported by the entry point polyfill.d.ts
-    //
     // (undocumented)
     start?: UnderlyingSinkStartCallback;
     // (undocumented)
     type?: undefined;
-    // Warning: (ae-forgotten-export) The symbol "UnderlyingSinkWriteCallback" needs to be exported by the entry point polyfill.d.ts
-    //
     // (undocumented)
     write?: UnderlyingSinkWriteCallback<W>;
 }
+
+// @public (undocumented)
+export type UnderlyingSinkAbortCallback = (reason: any) => void | PromiseLike<void>;
+
+// @public (undocumented)
+export type UnderlyingSinkCloseCallback = () => void | PromiseLike<void>;
+
+// @public (undocumented)
+export type UnderlyingSinkStartCallback = (controller: WritableStreamDefaultController) => void | PromiseLike<void>;
+
+// @public (undocumented)
+export type UnderlyingSinkWriteCallback<W> = (chunk: W, controller: WritableStreamDefaultController) => void | PromiseLike<void>;
 
 // @public (undocumented)
 export interface UnderlyingSource<R = any> {
     // (undocumented)
     cancel?: UnderlyingSourceCancelCallback;
     // (undocumented)
-    pull?: ReadableStreamDefaultControllerCallback<R>;
-    // Warning: (ae-forgotten-export) The symbol "ReadableStreamDefaultControllerCallback" needs to be exported by the entry point polyfill.d.ts
-    //
+    pull?: UnderlyingSourcePullCallback<R>;
     // (undocumented)
-    start?: ReadableStreamDefaultControllerCallback<R>;
+    start?: UnderlyingSourceStartCallback<R>;
     // (undocumented)
     type?: undefined;
 }
+
+// @public (undocumented)
+export type UnderlyingSourceCancelCallback = (reason: any) => void | PromiseLike<void>;
+
+// @public (undocumented)
+export type UnderlyingSourcePullCallback<R> = (controller: ReadableStreamDefaultController<R>) => void | PromiseLike<void>;
+
+// @public (undocumented)
+export type UnderlyingSourceStartCallback<R> = (controller: ReadableStreamDefaultController<R>) => void | PromiseLike<void>;
 
 // @public (undocumented)
 export class WritableStream<W = any> {

@@ -3,10 +3,10 @@ import {
   ReadableStreamController,
   UnderlyingByteSource,
   UnderlyingDefaultOrByteSource,
+  UnderlyingDefaultOrByteSourcePullCallback,
+  UnderlyingDefaultOrByteSourceStartCallback,
   UnderlyingSource,
   UnderlyingSourceCancelCallback,
-  UnderlyingSourcePullCallback,
-  UnderlyingSourceStartCallback,
   ValidatedUnderlyingDefaultOrByteSource
 } from '../readable-stream/underlying-source';
 import { promiseCall, reflectCall } from '../helpers/webidl';
@@ -52,7 +52,7 @@ function convertUnderlyingSourceCancelCallback(
 }
 
 function convertUnderlyingSourcePullCallback<R>(
-  fn: UnderlyingSourcePullCallback<R>,
+  fn: UnderlyingDefaultOrByteSourcePullCallback<R>,
   original: UnderlyingDefaultOrByteSource<R>,
   context: string
 ): (controller: ReadableStreamController<R>) => Promise<void> {
@@ -61,10 +61,10 @@ function convertUnderlyingSourcePullCallback<R>(
 }
 
 function convertUnderlyingSourceStartCallback<R>(
-  fn: UnderlyingSourceStartCallback<R>,
+  fn: UnderlyingDefaultOrByteSourceStartCallback<R>,
   original: UnderlyingDefaultOrByteSource<R>,
   context: string
-): UnderlyingSourceStartCallback<R> {
+): UnderlyingDefaultOrByteSourceStartCallback<R> {
   assertFunction(fn, context);
   return (controller: ReadableStreamController<R>) => reflectCall(fn, original, [controller]);
 }

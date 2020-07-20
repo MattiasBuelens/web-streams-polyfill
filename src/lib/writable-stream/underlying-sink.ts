@@ -7,11 +7,6 @@ export type UnderlyingSinkWriteCallback<W>
 export type UnderlyingSinkCloseCallback = () => void | PromiseLike<void>;
 export type UnderlyingSinkAbortCallback = (reason: any) => void | PromiseLike<void>;
 
-export type WritableStreamDefaultControllerStartCallback = UnderlyingSinkStartCallback;
-export type WritableStreamDefaultControllerWriteCallback<W> = UnderlyingSinkWriteCallback<W>;
-export type WritableStreamDefaultControllerCloseCallback = UnderlyingSinkCloseCallback;
-export type WritableStreamErrorCallback = UnderlyingSinkAbortCallback;
-
 export interface UnderlyingSink<W = any> {
   start?: UnderlyingSinkStartCallback;
   write?: UnderlyingSinkWriteCallback<W>;
@@ -20,7 +15,6 @@ export interface UnderlyingSink<W = any> {
   type?: undefined;
 }
 
-/** @internal */
 export interface ValidatedUnderlyingSink<W = any> extends UnderlyingSink<W> {
   write?: (chunk: W, controller: WritableStreamDefaultController) => Promise<void>;
   close?: () => Promise<void>;

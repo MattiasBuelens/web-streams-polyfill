@@ -37,11 +37,13 @@ import {
   SetUpReadableStreamDefaultControllerFromUnderlyingSource
 } from './readable-stream/default-controller';
 import {
-  ReadableByteStreamControllerCallback,
-  ReadableStreamDefaultControllerCallback,
-  ReadableStreamErrorCallback,
   UnderlyingByteSource,
-  UnderlyingSource
+  UnderlyingByteSourcePullCallback,
+  UnderlyingByteSourceStartCallback,
+  UnderlyingSource,
+  UnderlyingSourceCancelCallback,
+  UnderlyingSourcePullCallback,
+  UnderlyingSourceStartCallback
 } from './readable-stream/underlying-source';
 import { noop } from '../utils';
 import { typeIsObject } from './helpers/miscellaneous';
@@ -266,14 +268,16 @@ if (typeof Symbol.asyncIterator === 'symbol') {
 }
 
 export {
-  ReadableByteStreamControllerCallback,
   ReadableStreamAsyncIterator,
-  ReadableStreamDefaultControllerCallback,
-  ReadableStreamErrorCallback,
   ReadableStreamDefaultReadResult,
   ReadableStreamBYOBReadResult,
   UnderlyingByteSource,
   UnderlyingSource,
+  UnderlyingSourceStartCallback,
+  UnderlyingSourcePullCallback,
+  UnderlyingSourceCancelCallback,
+  UnderlyingByteSourceStartCallback,
+  UnderlyingByteSourcePullCallback,
   StreamPipeOptions,
   ReadableWritablePair,
   ReadableStreamIteratorOptions

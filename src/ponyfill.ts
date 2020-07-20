@@ -12,10 +12,19 @@ import {
   ReadableWritablePair,
   StreamPipeOptions,
   UnderlyingByteSource,
-  UnderlyingSource
+  UnderlyingByteSourcePullCallback,
+  UnderlyingByteSourceStartCallback,
+  UnderlyingSource,
+  UnderlyingSourceCancelCallback,
+  UnderlyingSourcePullCallback,
+  UnderlyingSourceStartCallback
 } from './lib/readable-stream';
 import {
   UnderlyingSink,
+  UnderlyingSinkAbortCallback,
+  UnderlyingSinkCloseCallback,
+  UnderlyingSinkStartCallback,
+  UnderlyingSinkWriteCallback,
   WritableStream,
   WritableStreamDefaultController,
   WritableStreamDefaultWriter
@@ -23,13 +32,25 @@ import {
 import { QueuingStrategy, QueuingStrategyInit } from './lib/queuing-strategy';
 import ByteLengthQueuingStrategy from './lib/byte-length-queuing-strategy';
 import CountQueuingStrategy from './lib/count-queuing-strategy';
-import { Transformer, TransformStream, TransformStreamDefaultController } from './lib/transform-stream';
+import {
+  Transformer,
+  TransformerFlushCallback,
+  TransformerStartCallback,
+  TransformerTransformCallback,
+  TransformStream,
+  TransformStreamDefaultController
+} from './lib/transform-stream';
 import { AbortSignal } from './lib/abort-signal';
 
 export {
   ReadableStream,
   UnderlyingSource,
   UnderlyingByteSource,
+  UnderlyingSourceStartCallback,
+  UnderlyingSourcePullCallback,
+  UnderlyingSourceCancelCallback,
+  UnderlyingByteSourceStartCallback,
+  UnderlyingByteSourcePullCallback,
   ReadableWritablePair,
   StreamPipeOptions,
   ReadableStreamDefaultReadResult,
@@ -44,6 +65,10 @@ export {
 
   WritableStream,
   UnderlyingSink,
+  UnderlyingSinkStartCallback,
+  UnderlyingSinkWriteCallback,
+  UnderlyingSinkCloseCallback,
+  UnderlyingSinkAbortCallback,
   WritableStreamDefaultWriter,
   WritableStreamDefaultController,
 
@@ -54,6 +79,9 @@ export {
 
   TransformStream,
   Transformer,
+  TransformerStartCallback,
+  TransformerFlushCallback,
+  TransformerTransformCallback,
   TransformStreamDefaultController,
 
   AbortSignal
