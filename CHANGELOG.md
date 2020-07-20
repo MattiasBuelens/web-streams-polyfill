@@ -9,7 +9,7 @@
 > - 🏠 Internal
 > - 💅 Polish
 
-## Unreleased
+## v3.0.0 (2020-07-20)
 
 * 💥 Align with [spec version `62fe4c8`](https://github.com/whatwg/streams/tree/62fe4c8c0df34cec4ff28db9bfa69aec6c65e38d/) ([#52](https://github.com/MattiasBuelens/web-streams-polyfill/pull/52), [#57](https://github.com/MattiasBuelens/web-streams-polyfill/pull/57), [#59](https://github.com/MattiasBuelens/web-streams-polyfill/pull/59))  
   This includes the following **breaking changes**:
