@@ -148,7 +148,7 @@ export class ReadableStreamDefaultController<R> {
 }
 
 // @public (undocumented)
-export class ReadableStreamDefaultReader<R> {
+export class ReadableStreamDefaultReader<R = any> {
     constructor(stream: ReadableStream<R>);
     // (undocumented)
     cancel(reason?: any): Promise<void>;
@@ -298,7 +298,7 @@ export class WritableStreamDefaultController<W = any> {
 }
 
 // @public (undocumented)
-export class WritableStreamDefaultWriter<W> {
+export class WritableStreamDefaultWriter<W = any> {
     constructor(stream: WritableStream<W>);
     // (undocumented)
     abort(reason?: any): Promise<void>;

@@ -76,7 +76,7 @@ export interface ReadRequest<R> {
   _reject: (reason: any) => void;
 }
 
-export class ReadableStreamDefaultReader<R> {
+export class ReadableStreamDefaultReader<R = any> {
   /** @internal */
   _forAuthorCode!: boolean;
   /** @internal */
@@ -167,7 +167,7 @@ if (typeof Symbol.toStringTag === 'symbol') {
 
 // Abstract operations for the readers.
 
-export function IsReadableStreamDefaultReader<R>(x: any): x is ReadableStreamDefaultReader<R> {
+export function IsReadableStreamDefaultReader<R = any>(x: any): x is ReadableStreamDefaultReader<R> {
   if (!typeIsObject(x)) {
     return false;
   }
