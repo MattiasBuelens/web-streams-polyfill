@@ -129,7 +129,7 @@ interface DefaultPullIntoDescriptor {
   byteLength: number;
   bytesFilled: number;
   elementSize: number;
-  ctor: ArrayBufferViewConstructor<Uint8Array>;
+  viewConstructor: ArrayBufferViewConstructor<Uint8Array>;
   readerType: 'default';
 }
 
@@ -139,7 +139,7 @@ interface BYOBPullIntoDescriptor<T extends ArrayBufferView = ArrayBufferView> {
   byteLength: number;
   bytesFilled: number;
   elementSize: number;
-  ctor: ArrayBufferViewConstructor<T>;
+  viewConstructor: ArrayBufferViewConstructor<T>;
   readerType: 'byob';
 }
 
@@ -308,7 +308,7 @@ export class ReadableByteStreamController {
         byteLength: autoAllocateChunkSize,
         bytesFilled: 0,
         elementSize: 1,
-        ctor: Uint8Array,
+        viewConstructor: Uint8Array,
         readerType: 'default'
       };
 
@@ -427,7 +427,7 @@ function ReadableByteStreamControllerConvertPullIntoDescriptor<T extends ArrayBu
   assert(bytesFilled <= pullIntoDescriptor.byteLength);
   assert(bytesFilled % elementSize === 0);
 
-  return new pullIntoDescriptor.ctor(
+  return new pullIntoDescriptor.viewConstructor(
     pullIntoDescriptor.buffer, pullIntoDescriptor.byteOffset, bytesFilled / elementSize) as T;
 }
 
@@ -558,7 +558,7 @@ export function ReadableByteStreamControllerPullInto<T extends ArrayBufferView>(
     byteLength: view.byteLength,
     bytesFilled: 0,
     elementSize,
-    ctor,
+    viewConstructor: ctor,
     readerType: 'byob'
   };
 
