@@ -56,7 +56,7 @@ const readableByteStream: polyfill.ReadableStream<Uint8Array> = new polyfill.Rea
 const locked: boolean = readableStream.locked;
 
 const defaultReader: polyfill.ReadableStreamDefaultReader<string> = readableStream.getReader();
-const defaultReaderReadPromise: Promise<polyfill.ReadResult<string>> = defaultReader.read();
+const defaultReaderReadPromise: Promise<polyfill.ReadableStreamDefaultReadResult<string>> = defaultReader.read();
 defaultReaderReadPromise.then((result) => {
   const done: boolean = result.done;
   if (result.done) {
@@ -69,8 +69,8 @@ const defaultReaderCancelPromise: Promise<void> = defaultReader.cancel('canceled
 const defaultReaderReleaseLockResult: void = defaultReader.releaseLock();
 
 const byobReader: polyfill.ReadableStreamBYOBReader = readableByteStream.getReader({ mode: 'byob' });
-const byobReaderReadUint32Promise: Promise<polyfill.ReadResult<Uint32Array>> = byobReader.read(new Uint32Array(3));
-const byobReaderReadDataViewPromise: Promise<polyfill.ReadResult<DataView>> = byobReader.read(
+const byobReaderReadUint32Promise: Promise<polyfill.ReadableStreamBYOBReadResult<Uint32Array>> = byobReader.read(new Uint32Array(3));
+const byobReaderReadDataViewPromise: Promise<polyfill.ReadableStreamBYOBReadResult<DataView>> = byobReader.read(
   new DataView(new ArrayBuffer(3))
 );
 byobReaderReadUint32Promise.then((result) => {

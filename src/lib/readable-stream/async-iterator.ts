@@ -5,13 +5,13 @@ import {
   AcquireReadableStreamDefaultReader,
   ReadableStreamDefaultReader,
   ReadableStreamDefaultReaderRead,
+  ReadableStreamDefaultReadResult,
   ReadRequest
 } from './default-reader';
 import {
   ReadableStreamReaderGenericCancel,
   ReadableStreamReaderGenericRelease,
-  readerLockException,
-  ReadResult
+  readerLockException
 } from './generic-reader';
 import assert from '../../stub/assert';
 import { AsyncIteratorPrototype } from '@@target/stub/async-iterator-prototype';
@@ -33,7 +33,7 @@ export interface ReadableStreamAsyncIterator<R> extends AsyncIterator<R> {
 export class ReadableStreamAsyncIteratorImpl<R> {
   private readonly _reader: ReadableStreamDefaultReader<R>;
   private readonly _preventCancel: boolean;
-  private _ongoingPromise: Promise<ReadResult<R>> | undefined = undefined;
+  private _ongoingPromise: Promise<ReadableStreamDefaultReadResult<R>> | undefined = undefined;
   private _isFinished = false;
 
   constructor(reader: ReadableStreamDefaultReader<R>, preventCancel: boolean) {
@@ -41,7 +41,7 @@ export class ReadableStreamAsyncIteratorImpl<R> {
     this._preventCancel = preventCancel;
   }
 
-  next(): Promise<ReadResult<R>> {
+  next(): Promise<ReadableStreamDefaultReadResult<R>> {
     const nextSteps = () => this._nextSteps();
     this._ongoingPromise = this._ongoingPromise ?
       transformPromiseWith(this._ongoingPromise, nextSteps, nextSteps) :
@@ -49,14 +49,14 @@ export class ReadableStreamAsyncIteratorImpl<R> {
     return this._ongoingPromise;
   }
 
-  return(value: any): Promise<ReadResult<any>> {
+  return(value: any): Promise<ReadableStreamDefaultReadResult<any>> {
     const returnSteps = () => this._returnSteps(value);
     return this._ongoingPromise ?
       transformPromiseWith(this._ongoingPromise, returnSteps, returnSteps) :
       returnSteps();
   }
 
-  private _nextSteps(): Promise<ReadResult<R>> {
+  private _nextSteps(): Promise<ReadableStreamDefaultReadResult<R>> {
     if (this._isFinished) {
       return Promise.resolve({ value: undefined, done: true });
     }
@@ -66,9 +66,9 @@ export class ReadableStreamAsyncIteratorImpl<R> {
       return promiseRejectedWith(readerLockException('iterate'));
     }
 
-    let resolvePromise!: (result: ReadResult<R>) => void;
+    let resolvePromise!: (result: ReadableStreamDefaultReadResult<R>) => void;
     let rejectPromise!: (reason: any) => void;
-    const promise = newPromise<ReadResult<R>>((resolve, reject) => {
+    const promise = newPromise<ReadableStreamDefaultReadResult<R>>((resolve, reject) => {
       resolvePromise = resolve;
       rejectPromise = reject;
     });
@@ -96,7 +96,7 @@ export class ReadableStreamAsyncIteratorImpl<R> {
     return promise;
   }
 
-  private _returnSteps(value: any): Promise<ReadResult<any>> {
+  private _returnSteps(value: any): Promise<ReadableStreamDefaultReadResult<any>> {
     if (this._isFinished) {
       return Promise.resolve({ value, done: true });
     }
@@ -124,20 +124,20 @@ declare class ReadableStreamAsyncIteratorInstance<R> implements ReadableStreamAs
   /** @interal */
   _asyncIteratorImpl: ReadableStreamAsyncIteratorImpl<R>;
 
-  next(): Promise<ReadResult<R>>;
+  next(): Promise<ReadableStreamDefaultReadResult<R>>;
 
-  return(value?: any): Promise<ReadResult<any>>;
+  return(value?: any): Promise<ReadableStreamDefaultReadResult<any>>;
 }
 
 const ReadableStreamAsyncIteratorPrototype: ReadableStreamAsyncIteratorInstance<any> = {
-  next(this: ReadableStreamAsyncIteratorInstance<any>): Promise<ReadResult<any>> {
+  next(this: ReadableStreamAsyncIteratorInstance<any>): Promise<ReadableStreamDefaultReadResult<any>> {
     if (!IsReadableStreamAsyncIterator(this)) {
       return promiseRejectedWith(streamAsyncIteratorBrandCheckException('next'));
     }
     return this._asyncIteratorImpl.next();
   },
 
-  return(this: ReadableStreamAsyncIteratorInstance<any>, value: any): Promise<ReadResult<any>> {
+  return(this: ReadableStreamAsyncIteratorInstance<any>, value: any): Promise<ReadableStreamDefaultReadResult<any>> {
     if (!IsReadableStreamAsyncIterator(this)) {
       return promiseRejectedWith(streamAsyncIteratorBrandCheckException('return'));
     }

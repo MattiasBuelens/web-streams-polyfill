@@ -7,26 +7,24 @@ import {
 } from './helpers/webidl';
 import { QueuingStrategy, QueuingStrategySizeCallback } from './queuing-strategy';
 import { AcquireReadableStreamAsyncIterator, ReadableStreamAsyncIterator } from './readable-stream/async-iterator';
-import {
-  defaultReaderClosedPromiseReject,
-  defaultReaderClosedPromiseResolve,
-  ReadResult
-} from './readable-stream/generic-reader';
+import { defaultReaderClosedPromiseReject, defaultReaderClosedPromiseResolve } from './readable-stream/generic-reader';
 import {
   AcquireReadableStreamDefaultReader,
   IsReadableStreamDefaultReader,
-  ReadableStreamDefaultReader
+  ReadableStreamDefaultReader,
+  ReadableStreamDefaultReadResult
 } from './readable-stream/default-reader';
+import {
+  AcquireReadableStreamBYOBReader,
+  IsReadableStreamBYOBReader,
+  ReadableStreamBYOBReader,
+  ReadableStreamBYOBReadResult
+} from './readable-stream/byob-reader';
 import { ReadableStreamPipeTo } from './readable-stream/pipe';
 import { ReadableStreamTee } from './readable-stream/tee';
 import { IsWritableStream, IsWritableStreamLocked, WritableStream } from './writable-stream';
 import NumberIsInteger from '../stub/number-isinteger';
 import { SimpleQueue } from './simple-queue';
-import {
-  AcquireReadableStreamBYOBReader,
-  IsReadableStreamBYOBReader,
-  ReadableStreamBYOBReader
-} from './readable-stream/byob-reader';
 import {
   ReadableByteStreamController,
   ReadableStreamBYOBRequest,
@@ -272,7 +270,8 @@ export {
   ReadableStreamAsyncIterator,
   ReadableStreamDefaultControllerCallback,
   ReadableStreamErrorCallback,
-  ReadResult,
+  ReadableStreamDefaultReadResult,
+  ReadableStreamBYOBReadResult,
   UnderlyingByteSource,
   UnderlyingSource,
   StreamPipeOptions,

@@ -4,8 +4,7 @@ import {
   ReadableStreamReaderGenericCancel,
   ReadableStreamReaderGenericInitialize,
   ReadableStreamReaderGenericRelease,
-  readerLockException,
-  ReadResult
+  readerLockException
 } from './generic-reader';
 import { IsReadableStreamLocked, ReadableStream } from '../readable-stream';
 import { typeIsObject } from '../helpers/miscellaneous';
@@ -13,6 +12,14 @@ import { PullSteps } from '../abstract-ops/internal-methods';
 import { newPromise, promiseRejectedWith } from '../helpers/webidl';
 import { assertRequiredArgument } from '../validators/basic';
 import { assertReadableStream } from '../validators/readable-stream';
+
+export type ReadableStreamDefaultReadResult<T> = {
+  done: false;
+  value: T;
+} | {
+  done: true;
+  value: undefined;
+}
 
 // Abstract operations for the ReadableStream.
 
@@ -116,7 +123,7 @@ export class ReadableStreamDefaultReader<R = any> {
     return ReadableStreamReaderGenericCancel(this, reason);
   }
 
-  read(): Promise<ReadResult<R>> {
+  read(): Promise<ReadableStreamDefaultReadResult<R>> {
     if (!IsReadableStreamDefaultReader(this)) {
       return promiseRejectedWith(defaultReaderBrandCheckException('read'));
     }
@@ -125,9 +132,9 @@ export class ReadableStreamDefaultReader<R = any> {
       return promiseRejectedWith(readerLockException('read from'));
     }
 
-    let resolvePromise!: (result: ReadResult<R>) => void;
+    let resolvePromise!: (result: ReadableStreamDefaultReadResult<R>) => void;
     let rejectPromise!: (reason: any) => void;
-    const promise = newPromise<ReadResult<R>>((resolve, reject) => {
+    const promise = newPromise<ReadableStreamDefaultReadResult<R>>((resolve, reject) => {
       resolvePromise = resolve;
       rejectPromise = reject;
     });

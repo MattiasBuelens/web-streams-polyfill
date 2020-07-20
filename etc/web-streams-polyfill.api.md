@@ -108,10 +108,16 @@ export class ReadableStreamBYOBReader {
     // (undocumented)
     get closed(): Promise<void>;
     // (undocumented)
-    read<T extends ArrayBufferView>(view: T): Promise<ReadResult<T>>;
+    read<T extends ArrayBufferView>(view: T): Promise<ReadableStreamBYOBReadResult<T>>;
     // (undocumented)
     releaseLock(): void;
 }
+
+// @public (undocumented)
+export type ReadableStreamBYOBReadResult<T extends ArrayBufferView> = {
+    done: boolean;
+    value: T;
+};
 
 // @public (undocumented)
 export class ReadableStreamBYOBRequest {
@@ -143,10 +149,19 @@ export class ReadableStreamDefaultReader<R = any> {
     // (undocumented)
     get closed(): Promise<void>;
     // (undocumented)
-    read(): Promise<ReadResult<R>>;
+    read(): Promise<ReadableStreamDefaultReadResult<R>>;
     // (undocumented)
     releaseLock(): void;
 }
+
+// @public (undocumented)
+export type ReadableStreamDefaultReadResult<T> = {
+    done: false;
+    value: T;
+} | {
+    done: true;
+    value: undefined;
+};
 
 // @public (undocumented)
 export interface ReadableStreamIteratorOptions {
@@ -161,15 +176,6 @@ export interface ReadableWritablePair<R, W> {
     // (undocumented)
     writable: WritableStream<W>;
 }
-
-// @public (undocumented)
-export type ReadResult<T> = {
-    done: false;
-    value: T;
-} | {
-    done: true;
-    value: T | undefined;
-};
 
 // @public (undocumented)
 export interface StreamPipeOptions {

@@ -2,14 +2,6 @@ import assert from '../../stub/assert';
 import { ReadableStream, ReadableStreamCancel, ReadableStreamReader } from '../readable-stream';
 import { newPromise, setPromiseIsHandledToTrue } from '../helpers/webidl';
 
-export type ReadResult<T> = {
-  done: false;
-  value: T;
-} | {
-  done: true;
-  value: T | undefined;
-}
-
 export function ReadableStreamReaderGenericInitialize<R>(reader: ReadableStreamReader<R>, stream: ReadableStream<R>) {
   reader._ownerReadableStream = stream;
   stream._reader = reader;
