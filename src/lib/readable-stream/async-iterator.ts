@@ -15,7 +15,7 @@ import {
 } from './generic-reader';
 import assert from '../../stub/assert';
 import { AsyncIteratorPrototype } from '@@target/stub/async-iterator-prototype';
-import { typeIsObject } from '../helpers/miscellaneous';
+import { queueMicrotask, typeIsObject } from '../helpers/miscellaneous';
 import { newPromise, promiseRejectedWith, promiseResolvedWith, transformPromiseWith } from '../helpers/webidl';
 
 export interface ReadableStreamAsyncIterator<R> extends AsyncIterator<R> {
@@ -69,7 +69,9 @@ export class ReadableStreamAsyncIteratorImpl<R> {
     const readRequest: ReadRequest<R> = {
       _chunkSteps: chunk => {
         this._ongoingPromise = undefined;
-        resolvePromise({ value: chunk, done: false });
+        // This needs to be delayed by one microtask, otherwise we stop pulling too early which breaks a test.
+        // FIXME Is this a bug in the specification, or in the test?
+        queueMicrotask(() => resolvePromise({ value: chunk, done: false }));
       },
       _closeSteps: () => {
         this._ongoingPromise = undefined;
