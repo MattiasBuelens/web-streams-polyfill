@@ -69,8 +69,8 @@ export {
   UnderlyingSinkWriteCallback,
   UnderlyingSinkCloseCallback,
   UnderlyingSinkAbortCallback,
-  WritableStreamDefaultWriter,
   WritableStreamDefaultController,
+  WritableStreamDefaultWriter,
 
   QueuingStrategy,
   QueuingStrategyInit,
