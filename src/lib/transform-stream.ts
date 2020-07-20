@@ -80,7 +80,7 @@ export class TransformStream<I = any, O = any> {
   }
 
   get readable(): ReadableStream<O> {
-    if (IsTransformStream(this) === false) {
+    if (!IsTransformStream(this)) {
       throw streamBrandCheckException('readable');
     }
 
@@ -88,7 +88,7 @@ export class TransformStream<I = any, O = any> {
   }
 
   get writable(): WritableStream<I> {
-    if (IsTransformStream(this) === false) {
+    if (!IsTransformStream(this)) {
       throw streamBrandCheckException('writable');
     }
 
@@ -210,7 +210,7 @@ function TransformStreamError(stream: TransformStream, e: any) {
 function TransformStreamErrorWritableAndUnblockWrite(stream: TransformStream, e: any) {
   TransformStreamDefaultControllerClearAlgorithms(stream._transformStreamController);
   WritableStreamDefaultControllerErrorIfNeeded(stream._writable._writableStreamController, e);
-  if (stream._backpressure === true) {
+  if (stream._backpressure) {
     // Pretend that pull() was called to permit any pending write() calls to complete. TransformStreamSetBackpressure()
     // cannot be called from enqueue() or pull() once the ReadableStream is errored, so this will will be the final time
     // _backpressure is set.
@@ -248,7 +248,7 @@ export class TransformStreamDefaultController<O> {
   }
 
   get desiredSize(): number | null {
-    if (IsTransformStreamDefaultController(this) === false) {
+    if (!IsTransformStreamDefaultController(this)) {
       throw defaultControllerBrandCheckException('desiredSize');
     }
 
@@ -258,7 +258,7 @@ export class TransformStreamDefaultController<O> {
 
   enqueue(chunk: O): void;
   enqueue(chunk: O = undefined!): void {
-    if (IsTransformStreamDefaultController(this) === false) {
+    if (!IsTransformStreamDefaultController(this)) {
       throw defaultControllerBrandCheckException('enqueue');
     }
 
@@ -266,7 +266,7 @@ export class TransformStreamDefaultController<O> {
   }
 
   error(reason: any = undefined): void {
-    if (IsTransformStreamDefaultController(this) === false) {
+    if (!IsTransformStreamDefaultController(this)) {
       throw defaultControllerBrandCheckException('error');
     }
 
@@ -274,7 +274,7 @@ export class TransformStreamDefaultController<O> {
   }
 
   terminate(): void {
-    if (IsTransformStreamDefaultController(this) === false) {
+    if (!IsTransformStreamDefaultController(this)) {
       throw defaultControllerBrandCheckException('terminate');
     }
 
@@ -313,7 +313,7 @@ function SetUpTransformStreamDefaultController<I, O>(stream: TransformStream<I, 
                                                      controller: TransformStreamDefaultController<O>,
                                                      transformAlgorithm: (chunk: I) => Promise<void>,
                                                      flushAlgorithm: () => Promise<void>) {
-  assert(IsTransformStream(stream) === true);
+  assert(IsTransformStream(stream));
   assert(stream._transformStreamController === undefined);
 
   controller._controlledTransformStream = stream;
@@ -358,7 +358,7 @@ function TransformStreamDefaultControllerClearAlgorithms(controller: TransformSt
 function TransformStreamDefaultControllerEnqueue<O>(controller: TransformStreamDefaultController<O>, chunk: O) {
   const stream = controller._controlledTransformStream;
   const readableController = stream._readable._readableStreamController as ReadableStreamDefaultController<O>;
-  if (ReadableStreamDefaultControllerCanCloseOrEnqueue(readableController) === false) {
+  if (!ReadableStreamDefaultControllerCanCloseOrEnqueue(readableController)) {
     throw new TypeError('Readable side is not in a state that permits enqueue');
   }
 
@@ -376,7 +376,7 @@ function TransformStreamDefaultControllerEnqueue<O>(controller: TransformStreamD
 
   const backpressure = ReadableStreamDefaultControllerHasBackpressure(readableController);
   if (backpressure !== stream._backpressure) {
-    assert(backpressure === true);
+    assert(backpressure);
     TransformStreamSetBackpressure(stream, true);
   }
 }
@@ -411,7 +411,7 @@ function TransformStreamDefaultSinkWriteAlgorithm<I, O>(stream: TransformStream<
 
   const controller = stream._transformStreamController;
 
-  if (stream._backpressure === true) {
+  if (stream._backpressure) {
     const backpressureChangePromise = stream._backpressureChangePromise;
     assert(backpressureChangePromise !== undefined);
     return transformPromiseWith(backpressureChangePromise, () => {
@@ -449,7 +449,7 @@ function TransformStreamDefaultSinkCloseAlgorithm<I, O>(stream: TransformStream<
       throw readable._storedError;
     }
     const readableController = readable._readableStreamController as ReadableStreamDefaultController<O>;
-    if (ReadableStreamDefaultControllerCanCloseOrEnqueue(readableController) === true) {
+    if (ReadableStreamDefaultControllerCanCloseOrEnqueue(readableController)) {
       ReadableStreamDefaultControllerClose(readableController);
     }
   }, r => {
@@ -462,7 +462,7 @@ function TransformStreamDefaultSinkCloseAlgorithm<I, O>(stream: TransformStream<
 
 function TransformStreamDefaultSourcePullAlgorithm(stream: TransformStream): Promise<void> {
   // Invariant. Enforced by the promises returned by start() and pull().
-  assert(stream._backpressure === true);
+  assert(stream._backpressure);
 
   assert(stream._backpressureChangePromise !== undefined);
 

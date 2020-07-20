@@ -31,7 +31,7 @@ export function AcquireReadableStreamBYOBReader(stream: ReadableStream<Uint8Arra
 // ReadableStream API exposed for controllers.
 
 export function ReadableStreamAddReadIntoRequest<T extends ArrayBufferView>(stream: ReadableByteStream): Promise<ReadResult<T>> {
-  assert(IsReadableStreamBYOBReader(stream._reader) === true);
+  assert(IsReadableStreamBYOBReader(stream._reader));
   assert(stream._state === 'readable' || stream._state === 'closed');
 
   const promise = newPromise<ReadResult<T>>((resolve, reject) => {
@@ -104,7 +104,7 @@ export class ReadableStreamBYOBReader {
       throw new TypeError('This stream has already been locked for exclusive reading by another reader');
     }
 
-    if (IsReadableByteStreamController(stream._readableStreamController) === false) {
+    if (!IsReadableByteStreamController(stream._readableStreamController)) {
       throw new TypeError('Cannot construct a ReadableStreamBYOBReader for a stream not constructed with a byte ' +
         'source');
     }

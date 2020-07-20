@@ -119,7 +119,7 @@ export class ReadableStream<R = any> {
   }
 
   get locked(): boolean {
-    if (IsReadableStream(this) === false) {
+    if (!IsReadableStream(this)) {
       throw streamBrandCheckException('locked');
     }
 
@@ -127,11 +127,11 @@ export class ReadableStream<R = any> {
   }
 
   cancel(reason: any = undefined): Promise<void> {
-    if (IsReadableStream(this) === false) {
+    if (!IsReadableStream(this)) {
       return promiseRejectedWith(streamBrandCheckException('cancel'));
     }
 
-    if (IsReadableStreamLocked(this) === true) {
+    if (IsReadableStreamLocked(this)) {
       return promiseRejectedWith(new TypeError('Cannot cancel a stream that already has a reader'));
     }
 
@@ -143,7 +143,7 @@ export class ReadableStream<R = any> {
   getReader(
     rawOptions: ReadableStreamGetReaderOptions | null | undefined = undefined
   ): ReadableStreamDefaultReader<R> | ReadableStreamBYOBReader {
-    if (IsReadableStream(this) === false) {
+    if (!IsReadableStream(this)) {
       throw streamBrandCheckException('getReader');
     }
 
@@ -160,7 +160,7 @@ export class ReadableStream<R = any> {
   pipeThrough<T>(transform: ReadableWritablePair<T, R>, options?: PipeOptions): ReadableStream<T>;
   pipeThrough<T>(rawTransform: ReadableWritablePair<T, R> | null | undefined,
                  rawOptions: PipeOptions | null | undefined = {}): ReadableStream<T> {
-    if (IsReadableStream(this) === false) {
+    if (!IsReadableStream(this)) {
       throw streamBrandCheckException('pipeThrough');
     }
     assertRequiredArgument(rawTransform, 1, 'pipeThrough');
@@ -168,10 +168,10 @@ export class ReadableStream<R = any> {
     const transform = convertReadableWritablePair(rawTransform, 'First parameter');
     const options = convertPipeOptions(rawOptions, 'Second parameter');
 
-    if (IsReadableStreamLocked(this) === true) {
+    if (IsReadableStreamLocked(this)) {
       throw new TypeError('ReadableStream.prototype.pipeThrough cannot be used on a locked ReadableStream');
     }
-    if (IsWritableStreamLocked(transform.writable) === true) {
+    if (IsWritableStreamLocked(transform.writable)) {
       throw new TypeError('ReadableStream.prototype.pipeThrough cannot be used on a locked WritableStream');
     }
 
@@ -187,7 +187,7 @@ export class ReadableStream<R = any> {
   pipeTo(destination: WritableStream<R>, options?: PipeOptions): Promise<void>;
   pipeTo(destination: WritableStream<R> | null | undefined,
          rawOptions: PipeOptions | null | undefined = {}): Promise<void> {
-    if (IsReadableStream(this) === false) {
+    if (!IsReadableStream(this)) {
       return promiseRejectedWith(streamBrandCheckException('pipeTo'));
     }
 
@@ -207,12 +207,12 @@ export class ReadableStream<R = any> {
       return promiseRejectedWith(e);
     }
 
-    if (IsReadableStreamLocked(this) === true) {
+    if (IsReadableStreamLocked(this)) {
       return promiseRejectedWith(
         new TypeError('ReadableStream.prototype.pipeTo cannot be used on a locked ReadableStream')
       );
     }
-    if (IsWritableStreamLocked(destination) === true) {
+    if (IsWritableStreamLocked(destination)) {
       return promiseRejectedWith(
         new TypeError('ReadableStream.prototype.pipeTo cannot be used on a locked WritableStream')
       );
@@ -224,7 +224,7 @@ export class ReadableStream<R = any> {
   }
 
   tee(): [ReadableStream<R>, ReadableStream<R>] {
-    if (IsReadableStream(this) === false) {
+    if (!IsReadableStream(this)) {
       throw streamBrandCheckException('tee');
     }
 
@@ -234,7 +234,7 @@ export class ReadableStream<R = any> {
 
   values(options?: ReadableStreamIteratorOptions): ReadableStreamAsyncIterator<R>;
   values(rawOptions: ReadableStreamIteratorOptions | null | undefined = undefined): ReadableStreamAsyncIterator<R> {
-    if (IsReadableStream(this) === false) {
+    if (!IsReadableStream(this)) {
       throw streamBrandCheckException('values');
     }
 
@@ -289,7 +289,7 @@ export function CreateReadableStream<R>(startAlgorithm: () => void | PromiseLike
                                         cancelAlgorithm: (reason: any) => Promise<void>,
                                         highWaterMark = 1,
                                         sizeAlgorithm: QueuingStrategySizeCallback<R> = () => 1): ReadableStream<R> {
-  assert(IsNonNegativeNumber(highWaterMark) === true);
+  assert(IsNonNegativeNumber(highWaterMark));
 
   const stream: ReadableStream<R> = Object.create(ReadableStream.prototype);
   InitializeReadableStream(stream);
@@ -308,9 +308,9 @@ export function CreateReadableByteStream(startAlgorithm: () => void | PromiseLik
                                          cancelAlgorithm: (reason: any) => Promise<void>,
                                          highWaterMark = 0,
                                          autoAllocateChunkSize: number | undefined = undefined): ReadableStream<Uint8Array> {
-  assert(IsNonNegativeNumber(highWaterMark) === true);
+  assert(IsNonNegativeNumber(highWaterMark));
   if (autoAllocateChunkSize !== undefined) {
-    assert(NumberIsInteger(autoAllocateChunkSize) === true);
+    assert(NumberIsInteger(autoAllocateChunkSize));
     assert(autoAllocateChunkSize > 0);
   }
 
@@ -345,13 +345,13 @@ export function IsReadableStream(x: unknown): x is ReadableStream {
 }
 
 export function IsReadableStreamDisturbed(stream: ReadableStream): boolean {
-  assert(IsReadableStream(stream) === true);
+  assert(IsReadableStream(stream));
 
   return stream._disturbed;
 }
 
 export function IsReadableStreamLocked(stream: ReadableStream): boolean {
-  assert(IsReadableStream(stream) === true);
+  assert(IsReadableStream(stream));
 
   if (stream._reader === undefined) {
     return false;
@@ -400,7 +400,7 @@ export function ReadableStreamClose<R>(stream: ReadableStream<R>): void {
 }
 
 export function ReadableStreamError<R>(stream: ReadableStream<R>, e: any): void {
-  assert(IsReadableStream(stream) === true);
+  assert(IsReadableStream(stream));
   assert(stream._state === 'readable');
 
   stream._state = 'errored';

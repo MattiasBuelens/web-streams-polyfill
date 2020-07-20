@@ -111,14 +111,14 @@ declare class ReadableStreamAsyncIteratorInstance<R> implements ReadableStreamAs
 
 const ReadableStreamAsyncIteratorPrototype: ReadableStreamAsyncIteratorInstance<any> = {
   next(this: ReadableStreamAsyncIteratorInstance<any>): Promise<ReadResult<any>> {
-    if (IsReadableStreamAsyncIterator(this) === false) {
+    if (!IsReadableStreamAsyncIterator(this)) {
       return promiseRejectedWith(streamAsyncIteratorBrandCheckException('next'));
     }
     return this._asyncIteratorImpl.next();
   },
 
   return(this: ReadableStreamAsyncIteratorInstance<any>, value: any): Promise<ReadResult<any>> {
-    if (IsReadableStreamAsyncIterator(this) === false) {
+    if (!IsReadableStreamAsyncIterator(this)) {
       return promiseRejectedWith(streamAsyncIteratorBrandCheckException('return'));
     }
     return this._asyncIteratorImpl.return(value);

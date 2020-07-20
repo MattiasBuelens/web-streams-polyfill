@@ -32,14 +32,14 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
                                         preventAbort: boolean,
                                         preventCancel: boolean,
                                         signal: AbortSignal | undefined): Promise<void> {
-  assert(IsReadableStream(source) === true);
-  assert(IsWritableStream(dest) === true);
+  assert(IsReadableStream(source));
+  assert(IsWritableStream(dest));
   assert(typeof preventClose === 'boolean');
   assert(typeof preventAbort === 'boolean');
   assert(typeof preventCancel === 'boolean');
   assert(signal === undefined || isAbortSignal(signal));
-  assert(IsReadableStreamLocked(source) === false);
-  assert(IsWritableStreamLocked(dest) === false);
+  assert(!IsReadableStreamLocked(source));
+  assert(!IsWritableStreamLocked(dest));
 
   const reader = AcquireReadableStreamDefaultReader<T>(source);
   const writer = AcquireWritableStreamDefaultWriter<T>(dest);
@@ -57,7 +57,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
       abortAlgorithm = () => {
         const error = new DOMException('Aborted', 'AbortError');
         const actions: Array<() => Promise<void>> = [];
-        if (preventAbort === false) {
+        if (!preventAbort) {
           actions.push(() => {
             if (dest._state === 'writable') {
               return WritableStreamAbort(dest, error);
@@ -65,7 +65,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
             return promiseResolvedWith(undefined);
           });
         }
-        if (preventCancel === false) {
+        if (!preventCancel) {
           actions.push(() => {
             if (source._state === 'readable') {
               return ReadableStreamCancel(source, error);
@@ -76,7 +76,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
         shutdownWithAction(() => Promise.all(actions.map(action => action())), true, error);
       };
 
-      if (signal.aborted === true) {
+      if (signal.aborted) {
         abortAlgorithm();
         return;
       }
@@ -104,13 +104,13 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
     }
 
     function pipeStep(): Promise<boolean> {
-      if (shuttingDown === true) {
+      if (shuttingDown) {
         return promiseResolvedWith(true);
       }
 
       return PerformPromiseThen(writer._readyPromise, () => {
         return PerformPromiseThen(ReadableStreamDefaultReaderRead(reader), result => {
-          if (result.done === true) {
+          if (result.done) {
             return true;
           }
 
@@ -122,7 +122,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
 
     // Errors must be propagated forward
     isOrBecomesErrored(source, reader._closedPromise, storedError => {
-      if (preventAbort === false) {
+      if (!preventAbort) {
         shutdownWithAction(() => WritableStreamAbort(dest, storedError), true, storedError);
       } else {
         shutdown(true, storedError);
@@ -131,7 +131,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
 
     // Errors must be propagated backward
     isOrBecomesErrored(dest, writer._closedPromise, storedError => {
-      if (preventCancel === false) {
+      if (!preventCancel) {
         shutdownWithAction(() => ReadableStreamCancel(source, storedError), true, storedError);
       } else {
         shutdown(true, storedError);
@@ -140,7 +140,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
 
     // Closing must be propagated forward
     isOrBecomesClosed(source, reader._closedPromise, () => {
-      if (preventClose === false) {
+      if (!preventClose) {
         shutdownWithAction(() => WritableStreamDefaultWriterCloseWithErrorPropagation(writer));
       } else {
         shutdown();
@@ -148,10 +148,10 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
     });
 
     // Closing must be propagated backward
-    if (WritableStreamCloseQueuedOrInFlight(dest) === true || dest._state === 'closed') {
+    if (WritableStreamCloseQueuedOrInFlight(dest) || dest._state === 'closed') {
       const destClosed = new TypeError('the destination writable stream closed before all data could be piped to it');
 
-      if (preventCancel === false) {
+      if (!preventCancel) {
         shutdownWithAction(() => ReadableStreamCancel(source, destClosed), true, destClosed);
       } else {
         shutdown(true, destClosed);
@@ -189,12 +189,12 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
     }
 
     function shutdownWithAction(action: () => Promise<unknown>, originalIsError?: boolean, originalError?: any) {
-      if (shuttingDown === true) {
+      if (shuttingDown) {
         return;
       }
       shuttingDown = true;
 
-      if (dest._state === 'writable' && WritableStreamCloseQueuedOrInFlight(dest) === false) {
+      if (dest._state === 'writable' && !WritableStreamCloseQueuedOrInFlight(dest)) {
         uponFulfillment(waitForWritesToFinish(), doTheRest);
       } else {
         doTheRest();
@@ -210,12 +210,12 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
     }
 
     function shutdown(isError?: boolean, error?: any) {
-      if (shuttingDown === true) {
+      if (shuttingDown) {
         return;
       }
       shuttingDown = true;
 
-      if (dest._state === 'writable' && WritableStreamCloseQueuedOrInFlight(dest) === false) {
+      if (dest._state === 'writable' && !WritableStreamCloseQueuedOrInFlight(dest)) {
         uponFulfillment(waitForWritesToFinish(), () => finalize(isError, error));
       } else {
         finalize(isError, error);
