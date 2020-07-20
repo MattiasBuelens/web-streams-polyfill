@@ -15,7 +15,13 @@ import { typeIsObject } from './helpers/miscellaneous';
 import { IsNonNegativeNumber } from './abstract-ops/miscellaneous';
 import { convertQueuingStrategy } from './validators/queuing-strategy';
 import { ExtractHighWaterMark, ExtractSizeAlgorithm } from './abstract-ops/queuing-strategy';
-import { Transformer, ValidatedTransformer } from './transform-stream/transformer';
+import {
+  Transformer,
+  TransformerFlushCallback,
+  TransformerStartCallback,
+  TransformerTransformCallback,
+  ValidatedTransformer
+} from './transform-stream/transformer';
 import { convertTransformer } from './validators/transformer';
 
 // Class TransformStream
@@ -108,7 +114,10 @@ if (typeof Symbol.toStringTag === 'symbol') {
 }
 
 export {
-  Transformer
+  Transformer,
+  TransformerStartCallback,
+  TransformerFlushCallback,
+  TransformerTransformCallback
 };
 
 // Transform Stream Abstract Operations

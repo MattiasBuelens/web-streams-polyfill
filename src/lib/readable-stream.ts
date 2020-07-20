@@ -7,26 +7,24 @@ import {
 } from './helpers/webidl';
 import { QueuingStrategy, QueuingStrategySizeCallback } from './queuing-strategy';
 import { AcquireReadableStreamAsyncIterator, ReadableStreamAsyncIterator } from './readable-stream/async-iterator';
-import {
-  defaultReaderClosedPromiseReject,
-  defaultReaderClosedPromiseResolve,
-  ReadResult
-} from './readable-stream/generic-reader';
+import { defaultReaderClosedPromiseReject, defaultReaderClosedPromiseResolve } from './readable-stream/generic-reader';
 import {
   AcquireReadableStreamDefaultReader,
   IsReadableStreamDefaultReader,
-  ReadableStreamDefaultReader
+  ReadableStreamDefaultReader,
+  ReadableStreamDefaultReadResult
 } from './readable-stream/default-reader';
+import {
+  AcquireReadableStreamBYOBReader,
+  IsReadableStreamBYOBReader,
+  ReadableStreamBYOBReader,
+  ReadableStreamBYOBReadResult
+} from './readable-stream/byob-reader';
 import { ReadableStreamPipeTo } from './readable-stream/pipe';
 import { ReadableStreamTee } from './readable-stream/tee';
 import { IsWritableStream, IsWritableStreamLocked, WritableStream } from './writable-stream';
 import NumberIsInteger from '../stub/number-isinteger';
 import { SimpleQueue } from './simple-queue';
-import {
-  AcquireReadableStreamBYOBReader,
-  IsReadableStreamBYOBReader,
-  ReadableStreamBYOBReader
-} from './readable-stream/byob-reader';
 import {
   ReadableByteStreamController,
   ReadableStreamBYOBRequest,
@@ -39,11 +37,13 @@ import {
   SetUpReadableStreamDefaultControllerFromUnderlyingSource
 } from './readable-stream/default-controller';
 import {
-  ReadableByteStreamControllerCallback,
-  ReadableStreamDefaultControllerCallback,
-  ReadableStreamErrorCallback,
   UnderlyingByteSource,
-  UnderlyingSource
+  UnderlyingByteSourcePullCallback,
+  UnderlyingByteSourceStartCallback,
+  UnderlyingSource,
+  UnderlyingSourceCancelCallback,
+  UnderlyingSourcePullCallback,
+  UnderlyingSourceStartCallback
 } from './readable-stream/underlying-source';
 import { noop } from '../utils';
 import { typeIsObject } from './helpers/miscellaneous';
@@ -56,7 +56,7 @@ import { ExtractHighWaterMark, ExtractSizeAlgorithm } from './abstract-ops/queui
 import { convertUnderlyingDefaultOrByteSource } from './validators/underlying-source';
 import { ReadableStreamGetReaderOptions } from './readable-stream/reader-options';
 import { convertReaderOptions } from './validators/reader-options';
-import { PipeOptions, ValidatedPipeOptions } from './readable-stream/pipe-options';
+import { StreamPipeOptions, ValidatedStreamPipeOptions } from './readable-stream/pipe-options';
 import { ReadableStreamIteratorOptions } from './readable-stream/iterator-options';
 import { convertIteratorOptions } from './validators/iterator-options';
 import { convertPipeOptions } from './validators/pipe-options';
@@ -156,9 +156,9 @@ export class ReadableStream<R = any> {
     return AcquireReadableStreamBYOBReader(this as unknown as ReadableByteStream);
   }
 
-  pipeThrough<T>(transform: ReadableWritablePair<T, R>, options?: PipeOptions): ReadableStream<T>;
+  pipeThrough<T>(transform: ReadableWritablePair<T, R>, options?: StreamPipeOptions): ReadableStream<T>;
   pipeThrough<T>(rawTransform: ReadableWritablePair<T, R> | null | undefined,
-                 rawOptions: PipeOptions | null | undefined = {}): ReadableStream<T> {
+                 rawOptions: StreamPipeOptions | null | undefined = {}): ReadableStream<T> {
     if (!IsReadableStream(this)) {
       throw streamBrandCheckException('pipeThrough');
     }
@@ -183,9 +183,9 @@ export class ReadableStream<R = any> {
     return transform.readable;
   }
 
-  pipeTo(destination: WritableStream<R>, options?: PipeOptions): Promise<void>;
+  pipeTo(destination: WritableStream<R>, options?: StreamPipeOptions): Promise<void>;
   pipeTo(destination: WritableStream<R> | null | undefined,
-         rawOptions: PipeOptions | null | undefined = {}): Promise<void> {
+         rawOptions: StreamPipeOptions | null | undefined = {}): Promise<void> {
     if (!IsReadableStream(this)) {
       return promiseRejectedWith(streamBrandCheckException('pipeTo'));
     }
@@ -199,7 +199,7 @@ export class ReadableStream<R = any> {
       );
     }
 
-    let options: ValidatedPipeOptions;
+    let options: ValidatedStreamPipeOptions;
     try {
       options = convertPipeOptions(rawOptions, 'Second parameter');
     } catch (e) {
@@ -268,14 +268,17 @@ if (typeof Symbol.asyncIterator === 'symbol') {
 }
 
 export {
-  ReadableByteStreamControllerCallback,
   ReadableStreamAsyncIterator,
-  ReadableStreamDefaultControllerCallback,
-  ReadableStreamErrorCallback,
-  ReadResult,
+  ReadableStreamDefaultReadResult,
+  ReadableStreamBYOBReadResult,
   UnderlyingByteSource,
   UnderlyingSource,
-  PipeOptions,
+  UnderlyingSourceStartCallback,
+  UnderlyingSourcePullCallback,
+  UnderlyingSourceCancelCallback,
+  UnderlyingByteSourceStartCallback,
+  UnderlyingByteSourcePullCallback,
+  StreamPipeOptions,
   ReadableWritablePair,
   ReadableStreamIteratorOptions
 };

@@ -27,8 +27,8 @@ const exports = {
   ReadableStreamBYOBReader,
 
   WritableStream,
-  WritableStreamDefaultWriter,
   WritableStreamDefaultController,
+  WritableStreamDefaultWriter,
 
   ByteLengthQueuingStrategy,
   CountQueuingStrategy,

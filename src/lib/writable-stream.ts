@@ -20,7 +20,14 @@ import { AbortSteps, ErrorSteps } from './abstract-ops/internal-methods';
 import { IsNonNegativeNumber } from './abstract-ops/miscellaneous';
 import { ExtractHighWaterMark, ExtractSizeAlgorithm } from './abstract-ops/queuing-strategy';
 import { convertQueuingStrategy } from './validators/queuing-strategy';
-import { UnderlyingSink, ValidatedUnderlyingSink } from './writable-stream/underlying-sink';
+import {
+  UnderlyingSink,
+  UnderlyingSinkAbortCallback,
+  UnderlyingSinkCloseCallback,
+  UnderlyingSinkStartCallback,
+  UnderlyingSinkWriteCallback,
+  ValidatedUnderlyingSink
+} from './writable-stream/underlying-sink';
 import { assertObject, assertRequiredArgument } from './validators/basic';
 import { convertUnderlyingSink } from './validators/underlying-sink';
 import { assertWritableStream } from './validators/writable-stream';
@@ -160,7 +167,11 @@ export {
   WritableStreamDefaultWriterRelease,
   WritableStreamDefaultWriterWrite,
   WritableStreamCloseQueuedOrInFlight,
-  UnderlyingSink
+  UnderlyingSink,
+  UnderlyingSinkStartCallback,
+  UnderlyingSinkWriteCallback,
+  UnderlyingSinkCloseCallback,
+  UnderlyingSinkAbortCallback
 };
 
 // Abstract operations for the WritableStream.

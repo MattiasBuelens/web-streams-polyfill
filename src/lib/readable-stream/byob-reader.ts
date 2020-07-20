@@ -4,8 +4,7 @@ import {
   ReadableStreamReaderGenericCancel,
   ReadableStreamReaderGenericInitialize,
   ReadableStreamReaderGenericRelease,
-  readerLockException,
-  ReadResult
+  readerLockException
 } from './generic-reader';
 import { IsReadableStreamLocked, ReadableByteStream, ReadableStream } from '../readable-stream';
 import {
@@ -17,6 +16,11 @@ import { typeIsObject } from '../helpers/miscellaneous';
 import { newPromise, promiseRejectedWith } from '../helpers/webidl';
 import { assertRequiredArgument } from '../validators/basic';
 import { assertReadableStream } from '../validators/readable-stream';
+
+export type ReadableStreamBYOBReadResult<T extends ArrayBufferView> = {
+  done: boolean;
+  value: T;
+};
 
 // Abstract operations for the ReadableStream.
 
@@ -127,7 +131,7 @@ export class ReadableStreamBYOBReader {
     return ReadableStreamReaderGenericCancel(this, reason);
   }
 
-  read<T extends ArrayBufferView>(view: T): Promise<ReadResult<T>> {
+  read<T extends ArrayBufferView>(view: T): Promise<ReadableStreamBYOBReadResult<T>> {
     if (!IsReadableStreamBYOBReader(this)) {
       return promiseRejectedWith(byobReaderBrandCheckException('read'));
     }
@@ -146,9 +150,9 @@ export class ReadableStreamBYOBReader {
       return promiseRejectedWith(readerLockException('read from'));
     }
 
-    let resolvePromise!: (result: ReadResult<T>) => void;
+    let resolvePromise!: (result: ReadableStreamBYOBReadResult<T>) => void;
     let rejectPromise!: (reason: any) => void;
-    const promise = newPromise<ReadResult<T>>((resolve, reject) => {
+    const promise = newPromise<ReadableStreamBYOBReadResult<T>>((resolve, reject) => {
       resolvePromise = resolve;
       rejectPromise = reject;
     });
