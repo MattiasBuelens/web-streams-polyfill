@@ -1,9 +1,9 @@
 import { assertDictionary } from './basic';
-import { PipeOptions, ValidatedPipeOptions } from '../readable-stream/pipe-options';
+import { StreamPipeOptions, ValidatedStreamPipeOptions } from '../readable-stream/pipe-options';
 import { AbortSignal, isAbortSignal } from '../abort-signal';
 
-export function convertPipeOptions(options: PipeOptions | null | undefined,
-                                   context: string): ValidatedPipeOptions {
+export function convertPipeOptions(options: StreamPipeOptions | null | undefined,
+                                   context: string): ValidatedStreamPipeOptions {
   assertDictionary(options, context);
   const preventAbort = options?.preventAbort;
   const preventCancel = options?.preventCancel;

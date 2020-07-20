@@ -33,18 +33,6 @@ export class CountQueuingStrategy implements QueuingStrategy<any> {
 }
 
 // @public (undocumented)
-export interface PipeOptions {
-    // (undocumented)
-    preventAbort?: boolean;
-    // (undocumented)
-    preventCancel?: boolean;
-    // (undocumented)
-    preventClose?: boolean;
-    // (undocumented)
-    signal?: AbortSignal;
-}
-
-// @public (undocumented)
 export interface QueuingStrategy<T = any> {
     // (undocumented)
     highWaterMark?: number;
@@ -94,9 +82,9 @@ export class ReadableStream<R = any> {
     // (undocumented)
     get locked(): boolean;
     // (undocumented)
-    pipeThrough<T>(transform: ReadableWritablePair<T, R>, options?: PipeOptions): ReadableStream<T>;
+    pipeThrough<T>(transform: ReadableWritablePair<T, R>, options?: StreamPipeOptions): ReadableStream<T>;
     // (undocumented)
-    pipeTo(destination: WritableStream<R>, options?: PipeOptions): Promise<void>;
+    pipeTo(destination: WritableStream<R>, options?: StreamPipeOptions): Promise<void>;
     // (undocumented)
     tee(): [ReadableStream<R>, ReadableStream<R>];
     // (undocumented)
@@ -182,6 +170,18 @@ export type ReadResult<T> = {
     done: true;
     value: T | undefined;
 };
+
+// @public (undocumented)
+export interface StreamPipeOptions {
+    // (undocumented)
+    preventAbort?: boolean;
+    // (undocumented)
+    preventCancel?: boolean;
+    // (undocumented)
+    preventClose?: boolean;
+    // (undocumented)
+    signal?: AbortSignal;
+}
 
 // @public (undocumented)
 export interface Transformer<I = any, O = any> {

@@ -56,7 +56,7 @@ import { ExtractHighWaterMark, ExtractSizeAlgorithm } from './abstract-ops/queui
 import { convertUnderlyingDefaultOrByteSource } from './validators/underlying-source';
 import { ReadableStreamGetReaderOptions } from './readable-stream/reader-options';
 import { convertReaderOptions } from './validators/reader-options';
-import { PipeOptions, ValidatedPipeOptions } from './readable-stream/pipe-options';
+import { StreamPipeOptions, ValidatedStreamPipeOptions } from './readable-stream/pipe-options';
 import { ReadableStreamIteratorOptions } from './readable-stream/iterator-options';
 import { convertIteratorOptions } from './validators/iterator-options';
 import { convertPipeOptions } from './validators/pipe-options';
@@ -156,9 +156,9 @@ export class ReadableStream<R = any> {
     return AcquireReadableStreamBYOBReader(this as unknown as ReadableByteStream);
   }
 
-  pipeThrough<T>(transform: ReadableWritablePair<T, R>, options?: PipeOptions): ReadableStream<T>;
+  pipeThrough<T>(transform: ReadableWritablePair<T, R>, options?: StreamPipeOptions): ReadableStream<T>;
   pipeThrough<T>(rawTransform: ReadableWritablePair<T, R> | null | undefined,
-                 rawOptions: PipeOptions | null | undefined = {}): ReadableStream<T> {
+                 rawOptions: StreamPipeOptions | null | undefined = {}): ReadableStream<T> {
     if (!IsReadableStream(this)) {
       throw streamBrandCheckException('pipeThrough');
     }
@@ -183,9 +183,9 @@ export class ReadableStream<R = any> {
     return transform.readable;
   }
 
-  pipeTo(destination: WritableStream<R>, options?: PipeOptions): Promise<void>;
+  pipeTo(destination: WritableStream<R>, options?: StreamPipeOptions): Promise<void>;
   pipeTo(destination: WritableStream<R> | null | undefined,
-         rawOptions: PipeOptions | null | undefined = {}): Promise<void> {
+         rawOptions: StreamPipeOptions | null | undefined = {}): Promise<void> {
     if (!IsReadableStream(this)) {
       return promiseRejectedWith(streamBrandCheckException('pipeTo'));
     }
@@ -199,7 +199,7 @@ export class ReadableStream<R = any> {
       );
     }
 
-    let options: ValidatedPipeOptions;
+    let options: ValidatedStreamPipeOptions;
     try {
       options = convertPipeOptions(rawOptions, 'Second parameter');
     } catch (e) {
@@ -275,7 +275,7 @@ export {
   ReadResult,
   UnderlyingByteSource,
   UnderlyingSource,
-  PipeOptions,
+  StreamPipeOptions,
   ReadableWritablePair,
   ReadableStreamIteratorOptions
 };

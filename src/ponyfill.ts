@@ -1,5 +1,4 @@
 import {
-  PipeOptions,
   ReadableByteStreamController,
   ReadableStream,
   ReadableStreamAsyncIterator,
@@ -10,6 +9,7 @@ import {
   ReadableStreamIteratorOptions,
   ReadableWritablePair,
   ReadResult,
+  StreamPipeOptions,
   UnderlyingByteSource,
   UnderlyingSource
 } from './lib/readable-stream';
@@ -30,7 +30,7 @@ export {
   UnderlyingSource,
   UnderlyingByteSource,
   ReadableWritablePair,
-  PipeOptions,
+  StreamPipeOptions,
   ReadResult,
   ReadableStreamDefaultController,
   ReadableByteStreamController,
