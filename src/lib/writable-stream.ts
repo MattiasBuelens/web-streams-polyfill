@@ -814,11 +814,9 @@ function WritableStreamDefaultWriterWrite<W>(writer: WritableStreamDefaultWriter
   return promise;
 }
 
-interface WriteRecord<W> {
-  chunk: W;
-}
+const closeSentinel: unique symbol = {} as any;
 
-type QueueRecord<W> = WriteRecord<W> | 'close';
+type QueueRecord<W> = W | typeof closeSentinel;
 
 export class WritableStreamDefaultController<W = any> {
   /** @internal */
@@ -983,8 +981,8 @@ function WritableStreamDefaultControllerClearAlgorithms(controller: WritableStre
   controller._strategySizeAlgorithm = undefined!;
 }
 
-function WritableStreamDefaultControllerClose(controller: WritableStreamDefaultController<any>) {
-  EnqueueValueWithSize(controller, 'close', 0);
+function WritableStreamDefaultControllerClose<W>(controller: WritableStreamDefaultController<W>) {
+  EnqueueValueWithSize(controller, closeSentinel, 0);
   WritableStreamDefaultControllerAdvanceQueueIfNeeded(controller);
 }
 
@@ -1005,10 +1003,8 @@ function WritableStreamDefaultControllerGetDesiredSize(controller: WritableStrea
 function WritableStreamDefaultControllerWrite<W>(controller: WritableStreamDefaultController<W>,
                                                  chunk: W,
                                                  chunkSize: number) {
-  const writeRecord = { chunk };
-
   try {
-    EnqueueValueWithSize(controller, writeRecord, chunkSize);
+    EnqueueValueWithSize(controller, chunk, chunkSize);
   } catch (enqueueE) {
     WritableStreamDefaultControllerErrorIfNeeded(controller, enqueueE);
     return;
@@ -1047,11 +1043,11 @@ function WritableStreamDefaultControllerAdvanceQueueIfNeeded<W>(controller: Writ
     return;
   }
 
-  const writeRecord = PeekQueueValue(controller);
-  if (writeRecord === 'close') {
+  const value = PeekQueueValue(controller);
+  if (value === closeSentinel) {
     WritableStreamDefaultControllerProcessClose(controller);
   } else {
-    WritableStreamDefaultControllerProcessWrite(controller, writeRecord.chunk);
+    WritableStreamDefaultControllerProcessWrite(controller, value);
   }
 }
 
