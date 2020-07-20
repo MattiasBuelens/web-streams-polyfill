@@ -946,8 +946,6 @@ function SetUpWritableStreamDefaultControllerFromUnderlyingSink<W>(stream: Writa
                                                                    underlyingSink: ValidatedUnderlyingSink<W>,
                                                                    highWaterMark: number,
                                                                    sizeAlgorithm: QueuingStrategySizeCallback<W>) {
-  assert(underlyingSink !== undefined);
-
   const controller = Object.create(WritableStreamDefaultController.prototype);
 
   let startAlgorithm: () => void | PromiseLike<void> = () => undefined;

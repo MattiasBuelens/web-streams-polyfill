@@ -325,8 +325,6 @@ function SetUpTransformStreamDefaultController<I, O>(stream: TransformStream<I, 
 
 function SetUpTransformStreamDefaultControllerFromTransformer<I, O>(stream: TransformStream<I, O>,
                                                                     transformer: ValidatedTransformer<I, O>) {
-  assert(transformer !== undefined);
-
   const controller: TransformStreamDefaultController<O> = Object.create(TransformStreamDefaultController.prototype);
 
   let transformAlgorithm = (chunk: I): Promise<void> => {
