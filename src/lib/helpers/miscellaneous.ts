@@ -1,20 +1,9 @@
-import { globals, noop } from '../../utils';
+import { noop } from '../../utils';
 import { AssertionError } from '../../stub/assert';
-import { PerformPromiseThen, promiseResolvedWith } from './webidl';
 
 export function typeIsObject(x: any): x is object {
   return (typeof x === 'object' && x !== null) || typeof x === 'function';
 }
-
-export const queueMicrotask: (fn: () => void) => void = (() => {
-  const globalQueueMicrotask = globals && globals.queueMicrotask;
-  if (typeof globalQueueMicrotask === 'function') {
-    return globalQueueMicrotask;
-  }
-
-  const resolvedPromise = promiseResolvedWith(undefined);
-  return (fn: () => void) => PerformPromiseThen(resolvedPromise, fn);
-})();
 
 export const rethrowAssertionErrorRejection: (e: any) => void =
   DEBUG ? e => {

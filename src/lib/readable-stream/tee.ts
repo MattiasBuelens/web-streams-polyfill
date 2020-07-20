@@ -1,14 +1,13 @@
 import { CreateReadableStream, IsReadableStream, ReadableStream, ReadableStreamCancel } from '../readable-stream';
 import { AcquireReadableStreamDefaultReader, ReadableStreamDefaultReaderRead, ReadRequest } from './default-reader';
 import assert from '../../stub/assert';
-import { newPromise, promiseResolvedWith, uponRejection } from '../helpers/webidl';
+import { newPromise, promiseResolvedWith, queueMicrotask, uponRejection } from '../helpers/webidl';
 import {
   ReadableStreamDefaultController,
   ReadableStreamDefaultControllerClose,
   ReadableStreamDefaultControllerEnqueue,
   ReadableStreamDefaultControllerError
 } from './default-controller';
-import { queueMicrotask } from '../helpers/miscellaneous';
 import { CreateArrayFromList } from '../abstract-ops/ecmascript';
 
 export function ReadableStreamTee<R>(stream: ReadableStream<R>,

@@ -15,8 +15,14 @@ import {
 } from './generic-reader';
 import assert from '../../stub/assert';
 import { AsyncIteratorPrototype } from '@@target/stub/async-iterator-prototype';
-import { queueMicrotask, typeIsObject } from '../helpers/miscellaneous';
-import { newPromise, promiseRejectedWith, promiseResolvedWith, transformPromiseWith } from '../helpers/webidl';
+import { typeIsObject } from '../helpers/miscellaneous';
+import {
+  newPromise,
+  promiseRejectedWith,
+  promiseResolvedWith,
+  queueMicrotask,
+  transformPromiseWith
+} from '../helpers/webidl';
 
 export interface ReadableStreamAsyncIterator<R> extends AsyncIterator<R> {
   next(): Promise<IteratorResult<R>>;
