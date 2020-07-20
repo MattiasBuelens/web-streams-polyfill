@@ -283,12 +283,7 @@ export class ReadableByteStreamController {
 
       ReadableByteStreamControllerHandleQueueDrain(this);
 
-      let view: ArrayBufferView;
-      try {
-        view = new Uint8Array(entry.buffer, entry.byteOffset, entry.byteLength);
-      } catch (viewE) {
-        return promiseRejectedWith(viewE);
-      }
+      const view = new Uint8Array(entry.buffer, entry.byteOffset, entry.byteLength);
 
       return promiseResolvedWith(ReadableStreamCreateReadResult(view, false, stream._reader!._forAuthorCode));
     }
