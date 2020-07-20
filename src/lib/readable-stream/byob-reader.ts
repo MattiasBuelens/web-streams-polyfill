@@ -1,14 +1,13 @@
 import assert from '../../stub/assert';
 import { SimpleQueue } from '../simple-queue';
 import {
-  ReadableStreamCreateReadResult,
   ReadableStreamReaderGenericCancel,
   ReadableStreamReaderGenericInitialize,
   ReadableStreamReaderGenericRelease,
   readerLockException,
   ReadResult
 } from './generic-reader';
-import { IsReadableStream, IsReadableStreamLocked, ReadableByteStream, ReadableStream } from '../readable-stream';
+import { IsReadableStreamLocked, ReadableByteStream, ReadableStream } from '../readable-stream';
 import {
   IsReadableByteStreamController,
   ReadableByteStreamController,
@@ -21,29 +20,18 @@ import { assertReadableStream } from '../validators/readable-stream';
 
 // Abstract operations for the ReadableStream.
 
-export function AcquireReadableStreamBYOBReader(stream: ReadableStream<Uint8Array>,
-                                                forAuthorCode = false): ReadableStreamBYOBReader {
-  const reader = new ReadableStreamBYOBReader(stream);
-  reader._forAuthorCode = forAuthorCode;
-  return reader;
+export function AcquireReadableStreamBYOBReader(stream: ReadableStream<Uint8Array>): ReadableStreamBYOBReader {
+  return new ReadableStreamBYOBReader(stream);
 }
 
 // ReadableStream API exposed for controllers.
 
-export function ReadableStreamAddReadIntoRequest<T extends ArrayBufferView>(stream: ReadableByteStream): Promise<ReadResult<T>> {
+export function ReadableStreamAddReadIntoRequest<T extends ArrayBufferView>(stream: ReadableByteStream,
+                                                                            readIntoRequest: ReadIntoRequest<T>): void {
   assert(IsReadableStreamBYOBReader(stream._reader));
   assert(stream._state === 'readable' || stream._state === 'closed');
 
-  const promise = newPromise<ReadResult<T>>((resolve, reject) => {
-    const readIntoRequest: ReadIntoRequest<T> = {
-      _resolve: resolve,
-      _reject: reject
-    };
-
-    (stream._reader! as ReadableStreamBYOBReader)._readIntoRequests.push(readIntoRequest);
-  });
-
-  return promise;
+  (stream._reader! as ReadableStreamBYOBReader)._readIntoRequests.push(readIntoRequest);
 }
 
 export function ReadableStreamFulfillReadIntoRequest(stream: ReadableByteStream,
@@ -54,7 +42,11 @@ export function ReadableStreamFulfillReadIntoRequest(stream: ReadableByteStream,
   assert(reader._readIntoRequests.length > 0);
 
   const readIntoRequest = reader._readIntoRequests.shift()!;
-  readIntoRequest._resolve(ReadableStreamCreateReadResult(chunk, done, reader._forAuthorCode));
+  if (done) {
+    readIntoRequest._closeSteps(chunk);
+  } else {
+    readIntoRequest._chunkSteps(chunk);
+  }
 }
 
 export function ReadableStreamGetNumReadIntoRequests(stream: ReadableByteStream): number {
@@ -77,14 +69,15 @@ export function ReadableStreamHasBYOBReader(stream: ReadableByteStream): boolean
 
 // Readers
 
-interface ReadIntoRequest<T extends ArrayBufferView> {
-  _resolve: (value: ReadResult<T>) => void;
-  _reject: (reason: any) => void;
+export interface ReadIntoRequest<T extends ArrayBufferView> {
+  _chunkSteps(chunk: T): void;
+
+  _closeSteps(chunk: T): void;
+
+  _errorSteps(e: any): void;
 }
 
 export class ReadableStreamBYOBReader {
-  /** @internal */
-  _forAuthorCode!: boolean;
   /** @internal */
   _ownerReadableStream!: ReadableByteStream;
   /** @internal */
@@ -153,7 +146,19 @@ export class ReadableStreamBYOBReader {
       return promiseRejectedWith(readerLockException('read from'));
     }
 
-    return ReadableStreamBYOBReaderRead(this, view);
+    let resolvePromise!: (result: ReadResult<T>) => void;
+    let rejectPromise!: (reason: any) => void;
+    const promise = newPromise<ReadResult<T>>((resolve, reject) => {
+      resolvePromise = resolve;
+      rejectPromise = reject;
+    });
+    const readIntoRequest: ReadIntoRequest<T> = {
+      _chunkSteps: chunk => resolvePromise({ value: chunk, done: false }),
+      _closeSteps: chunk => resolvePromise({ value: chunk, done: true }),
+      _errorSteps: e => rejectPromise(e)
+    };
+    ReadableStreamBYOBReaderRead(this, view, readIntoRequest);
+    return promise;
   }
 
   releaseLock(): void {
@@ -201,7 +206,8 @@ export function IsReadableStreamBYOBReader(x: any): x is ReadableStreamBYOBReade
 }
 
 function ReadableStreamBYOBReaderRead<T extends ArrayBufferView>(reader: ReadableStreamBYOBReader,
-                                                                 view: T): Promise<ReadResult<T>> {
+                                                                 view: T,
+                                                                 readIntoRequest: ReadIntoRequest<T>): void {
   const stream = reader._ownerReadableStream;
 
   assert(stream !== undefined);
@@ -209,12 +215,14 @@ function ReadableStreamBYOBReaderRead<T extends ArrayBufferView>(reader: Readabl
   stream._disturbed = true;
 
   if (stream._state === 'errored') {
-    return promiseRejectedWith(stream._storedError);
+    readIntoRequest._errorSteps(stream._storedError);
+  } else {
+    ReadableByteStreamControllerPullInto(
+      stream._readableStreamController as ReadableByteStreamController,
+      view,
+      readIntoRequest
+    );
   }
-
-  // Controllers must implement this.
-  return ReadableByteStreamControllerPullInto(stream._readableStreamController as ReadableByteStreamController,
-                                              view);
 }
 
 // Helper functions for the ReadableStreamBYOBReader.
