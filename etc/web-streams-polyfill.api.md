@@ -123,13 +123,13 @@ export type ReadableStreamDefaultReadResult<T> = {
     value: undefined;
 };
 
-// @public (undocumented)
+// @public
 export interface ReadableStreamIteratorOptions {
     // (undocumented)
     preventCancel?: boolean;
 }
 
-// @public (undocumented)
+// @public
 export interface ReadableWritablePair<R, W> {
     // (undocumented)
     readable: ReadableStream<R>;
