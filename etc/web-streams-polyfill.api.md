@@ -71,7 +71,7 @@ export class ReadableStream<R = any> {
     values(options?: ReadableStreamIteratorOptions): ReadableStreamAsyncIterator<R>;
 }
 
-// @public (undocumented)
+// @public
 export interface ReadableStreamAsyncIterator<R> extends AsyncIterator<R> {
     // (undocumented)
     next(): Promise<IteratorResult<R>>;
