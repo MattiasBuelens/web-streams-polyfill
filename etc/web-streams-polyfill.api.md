@@ -145,15 +145,12 @@ export interface StreamPipeOptions {
     signal?: AbortSignal;
 }
 
-// @public (undocumented)
+// @public
 export interface Transformer<I = any, O = any> {
-    // (undocumented)
     flush?: TransformerFlushCallback<O>;
     // (undocumented)
     readableType?: undefined;
-    // (undocumented)
     start?: TransformerStartCallback<O>;
-    // (undocumented)
     transform?: TransformerTransformCallback<I, O>;
     // (undocumented)
     writableType?: undefined;
@@ -168,24 +165,18 @@ export type TransformerStartCallback<O> = (controller: TransformStreamDefaultCon
 // @public (undocumented)
 export type TransformerTransformCallback<I, O> = (chunk: I, controller: TransformStreamDefaultController<O>) => void | PromiseLike<void>;
 
-// @public (undocumented)
+// @public
 export class TransformStream<I = any, O = any> {
     constructor(transformer?: Transformer<I, O>, writableStrategy?: QueuingStrategy<I>, readableStrategy?: QueuingStrategy<O>);
-    // (undocumented)
     get readable(): ReadableStream<O>;
-    // (undocumented)
     get writable(): WritableStream<I>;
 }
 
-// @public (undocumented)
+// @public
 export class TransformStreamDefaultController<O> {
-    // (undocumented)
     get desiredSize(): number | null;
-    // (undocumented)
     enqueue(chunk: O): void;
-    // (undocumented)
     error(reason?: any): void;
-    // (undocumented)
     terminate(): void;
 }
 
