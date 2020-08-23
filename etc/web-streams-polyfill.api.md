@@ -6,11 +6,8 @@
 
 // @public
 export interface AbortSignal {
-    // (undocumented)
     readonly aborted: boolean;
-    // (undocumented)
     addEventListener(type: 'abort', listener: () => void): void;
-    // (undocumented)
     removeEventListener(type: 'abort', listener: () => void): void;
 }
 
