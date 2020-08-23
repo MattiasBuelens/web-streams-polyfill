@@ -51,32 +51,23 @@ export class ReadableByteStreamController {
     error(e?: any): void;
 }
 
-// @public (undocumented)
+// @public
 export class ReadableStream<R = any> {
-    // (undocumented)
     [Symbol.asyncIterator]: (options?: ReadableStreamIteratorOptions) => ReadableStreamAsyncIterator<R>;
     constructor(underlyingSource: UnderlyingByteSource, strategy?: {
         highWaterMark?: number;
         size?: undefined;
     });
     constructor(underlyingSource?: UnderlyingSource<R>, strategy?: QueuingStrategy<R>);
-    // (undocumented)
     cancel(reason?: any): Promise<void>;
-    // (undocumented)
     getReader({ mode }: {
         mode: 'byob';
     }): ReadableStreamBYOBReader;
-    // (undocumented)
     getReader(): ReadableStreamDefaultReader<R>;
-    // (undocumented)
     get locked(): boolean;
-    // (undocumented)
     pipeThrough<T>(transform: ReadableWritablePair<T, R>, options?: StreamPipeOptions): ReadableStream<T>;
-    // (undocumented)
     pipeTo(destination: WritableStream<R>, options?: StreamPipeOptions): Promise<void>;
-    // (undocumented)
     tee(): [ReadableStream<R>, ReadableStream<R>];
-    // (undocumented)
     values(options?: ReadableStreamIteratorOptions): ReadableStreamAsyncIterator<R>;
 }
 
@@ -166,15 +157,11 @@ export interface ReadableWritablePair<R, W> {
     writable: WritableStream<W>;
 }
 
-// @public (undocumented)
+// @public
 export interface StreamPipeOptions {
-    // (undocumented)
     preventAbort?: boolean;
-    // (undocumented)
     preventCancel?: boolean;
-    // (undocumented)
     preventClose?: boolean;
-    // (undocumented)
     signal?: AbortSignal;
 }
 

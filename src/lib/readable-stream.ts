@@ -67,6 +67,11 @@ export type ReadableByteStream = ReadableStream<Uint8Array>;
 
 type ReadableStreamState = 'readable' | 'closed' | 'errored';
 
+/**
+ * A readable stream represents a source of data, from which you can read.
+ *
+ * @public
+ */
 export class ReadableStream<R = any> {
   /** @internal */
   _state!: ReadableStreamState;
@@ -117,6 +122,9 @@ export class ReadableStream<R = any> {
     }
   }
 
+  /**
+   * Whether or not the readable stream is locked to a {@link ReadableStreamDefaultReader | reader}.
+   */
   get locked(): boolean {
     if (!IsReadableStream(this)) {
       throw streamBrandCheckException('locked');
@@ -125,6 +133,12 @@ export class ReadableStream<R = any> {
     return IsReadableStreamLocked(this);
   }
 
+  /**
+   * Cancels the stream, signaling a loss of interest in the stream by a consumer.
+   *
+   * The supplied `reason` argument will be given to the underlying source's {@link UnderlyingSource.cancel | cancel()}
+   * method, which might or might not use it.
+   */
   cancel(reason: any = undefined): Promise<void> {
     if (!IsReadableStream(this)) {
       return promiseRejectedWith(streamBrandCheckException('cancel'));
@@ -137,7 +151,24 @@ export class ReadableStream<R = any> {
     return ReadableStreamCancel(this, reason);
   }
 
+  /**
+   * Creates a {@link ReadableStreamBYOBReader} and locks the stream to the new reader.
+   *
+   * This call behaves the same way as the no-argument variant, except that it only works on readable byte streams,
+   * i.e. streams which were constructed specifically with the ability to handle "bring your own buffer" reading.
+   * The returned BYOB reader provides the ability to directly read individual chunks from the stream via its
+   * {@link ReadableStreamBYOBReader.read | read()} method, into developer-supplied buffers, allowing more precise
+   * control over allocation.
+   */
   getReader({ mode }: { mode: 'byob' }): ReadableStreamBYOBReader;
+  /**
+   * Creates a {@link ReadableStreamDefaultReader} and locks the stream to the new reader.
+   * While the stream is locked, no other reader can be acquired until this one is released.
+   *
+   * This functionality is especially useful for creating abstractions that desire the ability to consume a stream
+   * in its entirety. By getting a reader for the stream, you can ensure nobody else can interleave reads with yours
+   * or cancel the stream, which would interfere with your abstraction.
+   */
   getReader(): ReadableStreamDefaultReader<R>;
   getReader(
     rawOptions: ReadableStreamGetReaderOptions | null | undefined = undefined
@@ -156,6 +187,13 @@ export class ReadableStream<R = any> {
     return AcquireReadableStreamBYOBReader(this as unknown as ReadableByteStream);
   }
 
+  /**
+   * Provides a convenient, chainable way of piping this readable stream through a transform stream
+   * (or any other `{ writable, readable }` pair). It simply {@link ReadableStream.pipeTo | pipes} the stream
+   * into the writable side of the supplied pair, and returns the readable side for further use.
+   *
+   * Piping a stream will lock it for the duration of the pipe, preventing any other consumer from acquiring a reader.
+   */
   pipeThrough<T>(transform: ReadableWritablePair<T, R>, options?: StreamPipeOptions): ReadableStream<T>;
   pipeThrough<T>(rawTransform: ReadableWritablePair<T, R> | null | undefined,
                  rawOptions: StreamPipeOptions | null | undefined = {}): ReadableStream<T> {
@@ -183,6 +221,13 @@ export class ReadableStream<R = any> {
     return transform.readable;
   }
 
+  /**
+   * Pipes this readable stream to a given writable stream. The way in which the piping process behaves under
+   * various error conditions can be customized with a number of passed options. It returns a promise that fulfills
+   * when the piping process completes successfully, or rejects if any errors were encountered.
+   *
+   * Piping a stream will lock it for the duration of the pipe, preventing any other consumer from acquiring a reader.
+   */
   pipeTo(destination: WritableStream<R>, options?: StreamPipeOptions): Promise<void>;
   pipeTo(destination: WritableStream<R> | null | undefined,
          rawOptions: StreamPipeOptions | null | undefined = {}): Promise<void> {
@@ -222,6 +267,17 @@ export class ReadableStream<R = any> {
     );
   }
 
+  /**
+   * Tees this readable stream, returning a two-element array containing the two resulting branches as
+   * new {@link ReadableStream} instances.
+   *
+   * Teeing a stream will lock it, preventing any other consumer from acquiring a reader.
+   * To cancel the stream, cancel both of the resulting branches; a composite cancellation reason will then be
+   * propagated to the stream's underlying source.
+   *
+   * Note that the chunks seen in each branch will be the same object. If the chunks are not immutable,
+   * this could allow interference between the two branches.
+   */
   tee(): [ReadableStream<R>, ReadableStream<R>] {
     if (!IsReadableStream(this)) {
       throw streamBrandCheckException('tee');
@@ -231,6 +287,17 @@ export class ReadableStream<R = any> {
     return CreateArrayFromList(branches);
   }
 
+  /**
+   * Asynchronously iterates over the chunks in the stream's internal queue.
+   *
+   * Asynchronously iterating over the stream will lock it, preventing any other consumer from acquiring a reader.
+   * The lock will be released if the async iterator's {@link ReadableStreamAsyncIterator.return | return()} method
+   * is called, e.g. by breaking out of the loop.
+   *
+   * By default, calling the async iterator's {@link ReadableStreamAsyncIterator.return | return()} method will also
+   * cancel the stream. To prevent this, use the stream's {@link ReadableStream.values | values()} method, passing
+   * `true` for the `preventCancel` option.
+   */
   values(options?: ReadableStreamIteratorOptions): ReadableStreamAsyncIterator<R>;
   values(rawOptions: ReadableStreamIteratorOptions | null | undefined = undefined): ReadableStreamAsyncIterator<R> {
     if (!IsReadableStream(this)) {
@@ -241,6 +308,9 @@ export class ReadableStream<R = any> {
     return AcquireReadableStreamAsyncIterator<R>(this, options.preventCancel);
   }
 
+  /**
+   * {@inheritDoc ReadableStream.values}
+   */
   [Symbol.asyncIterator]: (options?: ReadableStreamIteratorOptions) => ReadableStreamAsyncIterator<R>;
 }
 
