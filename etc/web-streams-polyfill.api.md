@@ -189,17 +189,12 @@ export class TransformStreamDefaultController<O> {
     terminate(): void;
 }
 
-// @public (undocumented)
+// @public
 export interface UnderlyingByteSource {
-    // (undocumented)
     autoAllocateChunkSize?: number;
-    // (undocumented)
     cancel?: UnderlyingSourceCancelCallback;
-    // (undocumented)
     pull?: UnderlyingByteSourcePullCallback;
-    // (undocumented)
     start?: UnderlyingByteSourceStartCallback;
-    // (undocumented)
     type: 'bytes';
 }
 
@@ -235,13 +230,10 @@ export type UnderlyingSinkStartCallback = (controller: WritableStreamDefaultCont
 // @public (undocumented)
 export type UnderlyingSinkWriteCallback<W> = (chunk: W, controller: WritableStreamDefaultController) => void | PromiseLike<void>;
 
-// @public (undocumented)
+// @public
 export interface UnderlyingSource<R = any> {
-    // (undocumented)
     cancel?: UnderlyingSourceCancelCallback;
-    // (undocumented)
     pull?: UnderlyingSourcePullCallback<R>;
-    // (undocumented)
     start?: UnderlyingSourceStartCallback<R>;
     // (undocumented)
     type?: undefined;
