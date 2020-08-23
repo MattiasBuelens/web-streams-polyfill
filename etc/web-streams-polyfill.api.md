@@ -121,20 +121,16 @@ export class ReadableStreamDefaultController<R> {
     error(e?: any): void;
 }
 
-// @public (undocumented)
+// @public
 export class ReadableStreamDefaultReader<R = any> {
     constructor(stream: ReadableStream<R>);
-    // (undocumented)
     cancel(reason?: any): Promise<void>;
-    // (undocumented)
     get closed(): Promise<void>;
-    // (undocumented)
     read(): Promise<ReadableStreamDefaultReadResult<R>>;
-    // (undocumented)
     releaseLock(): void;
 }
 
-// @public (undocumented)
+// @public
 export type ReadableStreamDefaultReadResult<T> = {
     done: false;
     value: T;
