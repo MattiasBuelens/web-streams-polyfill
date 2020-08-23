@@ -37,17 +37,12 @@ export interface QueuingStrategyInit {
     highWaterMark: number;
 }
 
-// @public (undocumented)
+// @public
 export class ReadableByteStreamController {
-    // (undocumented)
     get byobRequest(): ReadableStreamBYOBRequest | null;
-    // (undocumented)
     close(): void;
-    // (undocumented)
     get desiredSize(): number | null;
-    // (undocumented)
     enqueue(chunk: ArrayBufferView): void;
-    // (undocumented)
     error(e?: any): void;
 }
 
@@ -99,25 +94,18 @@ export type ReadableStreamBYOBReadResult<T extends ArrayBufferView> = {
     value: T;
 };
 
-// @public (undocumented)
+// @public
 export class ReadableStreamBYOBRequest {
-    // (undocumented)
     respond(bytesWritten: number): void;
-    // (undocumented)
     respondWithNewView(view: ArrayBufferView): void;
-    // (undocumented)
     get view(): ArrayBufferView | null;
 }
 
-// @public (undocumented)
+// @public
 export class ReadableStreamDefaultController<R> {
-    // (undocumented)
     close(): void;
-    // (undocumented)
     get desiredSize(): number | null;
-    // (undocumented)
     enqueue(chunk: R): void;
-    // (undocumented)
     error(e?: any): void;
 }
 

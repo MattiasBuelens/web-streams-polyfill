@@ -30,6 +30,11 @@ import { IsFiniteNonNegativeNumber } from '../abstract-ops/miscellaneous';
 import { promiseResolvedWith, uponPromise } from '../helpers/webidl';
 import { assertRequiredArgument, convertUnsignedLongLongWithEnforceRange } from '../validators/basic';
 
+/**
+ * A pull-into request in a {@link ReadableByteStreamController}.
+ *
+ * @public
+ */
 export class ReadableStreamBYOBRequest {
   /** @internal */
   _associatedReadableByteStreamController!: ReadableByteStreamController;
@@ -40,6 +45,9 @@ export class ReadableStreamBYOBRequest {
     throw new TypeError('Illegal constructor');
   }
 
+  /**
+   * Returns the view for writing in to, or `null` if the BYOB request has already been responded to.
+   */
   get view(): ArrayBufferView | null {
     if (!IsReadableStreamBYOBRequest(this)) {
       throw byobRequestBrandCheckException('view');
@@ -48,6 +56,13 @@ export class ReadableStreamBYOBRequest {
     return this._view;
   }
 
+  /**
+   * Indicates to the associated readable byte stream that `bytesWritten` bytes were written into
+   * {@link ReadableStreamBYOBRequest.view | view}, causing the result be surfaced to the consumer.
+   *
+   * After this method is called, {@link ReadableStreamBYOBRequest.view | view} will be transferred and no longer
+   * modifiable.
+   */
   respond(bytesWritten: number): void;
   respond(bytesWritten: number | undefined): void {
     if (!IsReadableStreamBYOBRequest(this)) {
@@ -70,6 +85,13 @@ export class ReadableStreamBYOBRequest {
     ReadableByteStreamControllerRespond(this._associatedReadableByteStreamController, bytesWritten);
   }
 
+  /**
+   * Indicates to the associated readable byte stream that instead of writing into
+   * {@link ReadableStreamBYOBRequest.view | view}, the underlying byte source is providing a new `ArrayBufferView`,
+   * which will be given to the consumer of the readable byte stream.
+   *
+   * After this method is called, `view` will be transferred and no longer modifiable.
+   */
   respondWithNewView(view: ArrayBufferView): void;
   respondWithNewView(view: ArrayBufferView | undefined): void {
     if (!IsReadableStreamBYOBRequest(this)) {
@@ -144,6 +166,11 @@ interface BYOBPullIntoDescriptor<T extends ArrayBufferView = ArrayBufferView> {
   readerType: 'byob';
 }
 
+/**
+ * Allows control of a {@link ReadableStream | readable byte stream}'s state and internal queue.
+ *
+ * @public
+ */
 export class ReadableByteStreamController {
   /** @internal */
   _controlledReadableByteStream!: ReadableByteStream;
@@ -176,6 +203,9 @@ export class ReadableByteStreamController {
     throw new TypeError('Illegal constructor');
   }
 
+  /**
+   * Returns the current BYOB pull request, or `null` if there isn't one.
+   */
   get byobRequest(): ReadableStreamBYOBRequest | null {
     if (!IsReadableByteStreamController(this)) {
       throw byteStreamControllerBrandCheckException('byobRequest');
@@ -195,6 +225,10 @@ export class ReadableByteStreamController {
     return this._byobRequest;
   }
 
+  /**
+   * Returns the desired size to fill the controlled stream's internal queue. It can be negative, if the queue is
+   * over-full. An underlying byte source ought to use this information to determine when and how to apply backpressure.
+   */
   get desiredSize(): number | null {
     if (!IsReadableByteStreamController(this)) {
       throw byteStreamControllerBrandCheckException('desiredSize');
@@ -203,6 +237,10 @@ export class ReadableByteStreamController {
     return ReadableByteStreamControllerGetDesiredSize(this);
   }
 
+  /**
+   * Closes the controlled readable stream. Consumers will still be able to read any previously-enqueued chunks from
+   * the stream, but once those are read, the stream will become closed.
+   */
   close(): void {
     if (!IsReadableByteStreamController(this)) {
       throw byteStreamControllerBrandCheckException('close');
@@ -220,6 +258,10 @@ export class ReadableByteStreamController {
     ReadableByteStreamControllerClose(this);
   }
 
+  /**
+   * Enqueues the given chunk chunk in the controlled readable stream.
+   * The chunk has to be an `ArrayBufferView` instance, or else a `TypeError` will be thrown.
+   */
   enqueue(chunk: ArrayBufferView): void;
   enqueue(chunk: ArrayBufferView | undefined): void {
     if (!IsReadableByteStreamController(this)) {
@@ -249,6 +291,9 @@ export class ReadableByteStreamController {
     ReadableByteStreamControllerEnqueue(this, chunk);
   }
 
+  /**
+   * Errors the controlled readable stream, making all future interactions with it fail with the given error `e`.
+   */
   error(e: any = undefined): void {
     if (!IsReadableByteStreamController(this)) {
       throw byteStreamControllerBrandCheckException('error');
