@@ -74,21 +74,17 @@ export interface ReadableStreamAsyncIterator<R> extends AsyncIterator<R> {
     return(value?: any): Promise<IteratorResult<any>>;
 }
 
-// @public (undocumented)
+// @public
 export class ReadableStreamBYOBReader {
     // Warning: (ae-forgotten-export) The symbol "ReadableByteStream" needs to be exported by the entry point polyfill.d.ts
     constructor(stream: ReadableByteStream);
-    // (undocumented)
     cancel(reason?: any): Promise<void>;
-    // (undocumented)
     get closed(): Promise<void>;
-    // (undocumented)
     read<T extends ArrayBufferView>(view: T): Promise<ReadableStreamBYOBReadResult<T>>;
-    // (undocumented)
     releaseLock(): void;
 }
 
-// @public (undocumented)
+// @public
 export type ReadableStreamBYOBReadResult<T extends ArrayBufferView> = {
     done: boolean;
     value: T;
