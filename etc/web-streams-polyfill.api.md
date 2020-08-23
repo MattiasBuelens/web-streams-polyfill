@@ -195,17 +195,13 @@ export type UnderlyingByteSourcePullCallback = (controller: ReadableByteStreamCo
 // @public (undocumented)
 export type UnderlyingByteSourceStartCallback = (controller: ReadableByteStreamController) => void | PromiseLike<void>;
 
-// @public (undocumented)
+// @public
 export interface UnderlyingSink<W = any> {
-    // (undocumented)
     abort?: UnderlyingSinkAbortCallback;
-    // (undocumented)
     close?: UnderlyingSinkCloseCallback;
-    // (undocumented)
     start?: UnderlyingSinkStartCallback;
     // (undocumented)
     type?: undefined;
-    // (undocumented)
     write?: UnderlyingSinkWriteCallback<W>;
 }
 
@@ -239,41 +235,29 @@ export type UnderlyingSourcePullCallback<R> = (controller: ReadableStreamDefault
 // @public (undocumented)
 export type UnderlyingSourceStartCallback<R> = (controller: ReadableStreamDefaultController<R>) => void | PromiseLike<void>;
 
-// @public (undocumented)
+// @public
 export class WritableStream<W = any> {
     constructor(underlyingSink?: UnderlyingSink<W>, strategy?: QueuingStrategy<W>);
-    // (undocumented)
     abort(reason?: any): Promise<void>;
-    // (undocumented)
     close(): Promise<void>;
-    // (undocumented)
     getWriter(): WritableStreamDefaultWriter<W>;
-    // (undocumented)
     get locked(): boolean;
 }
 
-// @public (undocumented)
+// @public
 export class WritableStreamDefaultController<W = any> {
-    // (undocumented)
     error(e?: any): void;
 }
 
-// @public (undocumented)
+// @public
 export class WritableStreamDefaultWriter<W = any> {
     constructor(stream: WritableStream<W>);
-    // (undocumented)
     abort(reason?: any): Promise<void>;
-    // (undocumented)
     close(): Promise<void>;
-    // (undocumented)
     get closed(): Promise<void>;
-    // (undocumented)
     get desiredSize(): number | null;
-    // (undocumented)
     get ready(): Promise<void>;
-    // (undocumented)
     releaseLock(): void;
-    // (undocumented)
     write(chunk: W): Promise<void>;
 }
 
