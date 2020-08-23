@@ -11,37 +11,29 @@ export interface AbortSignal {
     removeEventListener(type: 'abort', listener: () => void): void;
 }
 
-// @public (undocumented)
+// @public
 export class ByteLengthQueuingStrategy implements QueuingStrategy<ArrayBufferView> {
     constructor(options: QueuingStrategyInit);
-    // (undocumented)
     get highWaterMark(): number;
-    // (undocumented)
     get size(): (chunk: ArrayBufferView) => number;
 }
 
-// @public (undocumented)
+// @public
 export class CountQueuingStrategy implements QueuingStrategy<any> {
     constructor(options: QueuingStrategyInit);
-    // (undocumented)
     get highWaterMark(): number;
-    // (undocumented)
     get size(): (chunk: any) => 1;
 }
 
-// @public (undocumented)
+// @public
 export interface QueuingStrategy<T = any> {
-    // (undocumented)
     highWaterMark?: number;
     // Warning: (ae-forgotten-export) The symbol "QueuingStrategySizeCallback" needs to be exported by the entry point polyfill.d.ts
-    //
-    // (undocumented)
     size?: QueuingStrategySizeCallback<T>;
 }
 
 // @public (undocumented)
 export interface QueuingStrategyInit {
-    // (undocumented)
     highWaterMark: number;
 }
 
