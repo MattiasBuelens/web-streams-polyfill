@@ -14,6 +14,11 @@ import { typeIsObject } from '../helpers/miscellaneous';
 import { CancelSteps, PullSteps } from '../abstract-ops/internal-methods';
 import { promiseResolvedWith, uponPromise } from '../helpers/webidl';
 
+/**
+ * Allows control of a {@link ReadableStream | readable stream}'s state and internal queue.
+ *
+ * @public
+ */
 export class ReadableStreamDefaultController<R> {
   /** @internal */
   _controlledReadableStream!: ReadableStream<R>;
@@ -42,6 +47,10 @@ export class ReadableStreamDefaultController<R> {
     throw new TypeError('Illegal constructor');
   }
 
+  /**
+   * Returns the desired size to fill the controlled stream's internal queue. It can be negative, if the queue is
+   * over-full. An underlying source ought to use this information to determine when and how to apply backpressure.
+   */
   get desiredSize(): number | null {
     if (!IsReadableStreamDefaultController(this)) {
       throw defaultControllerBrandCheckException('desiredSize');
@@ -50,6 +59,10 @@ export class ReadableStreamDefaultController<R> {
     return ReadableStreamDefaultControllerGetDesiredSize(this);
   }
 
+  /**
+   * Closes the controlled readable stream. Consumers will still be able to read any previously-enqueued chunks from
+   * the stream, but once those are read, the stream will become closed.
+   */
   close(): void {
     if (!IsReadableStreamDefaultController(this)) {
       throw defaultControllerBrandCheckException('close');
@@ -62,6 +75,9 @@ export class ReadableStreamDefaultController<R> {
     ReadableStreamDefaultControllerClose(this);
   }
 
+  /**
+   * Enqueues the given chunk `chunk` in the controlled readable stream.
+   */
   enqueue(chunk: R): void;
   enqueue(chunk: R = undefined!): void {
     if (!IsReadableStreamDefaultController(this)) {
@@ -75,6 +91,9 @@ export class ReadableStreamDefaultController<R> {
     return ReadableStreamDefaultControllerEnqueue(this, chunk);
   }
 
+  /**
+   * Errors the controlled readable stream, making all future interactions with it fail with the given error `e`.
+   */
   error(e: any = undefined): void {
     if (!IsReadableStreamDefaultController(this)) {
       throw defaultControllerBrandCheckException('error');

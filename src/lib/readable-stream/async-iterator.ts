@@ -24,6 +24,11 @@ import {
   transformPromiseWith
 } from '../helpers/webidl';
 
+/**
+ * An async iterator returned by {@link ReadableStream.values}.
+ *
+ * @public
+ */
 export interface ReadableStreamAsyncIterator<R> extends AsyncIterator<R> {
   next(): Promise<IteratorResult<R>>;
 

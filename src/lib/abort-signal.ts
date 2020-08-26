@@ -6,12 +6,23 @@
  *   This interface is compatible with the `AbortSignal` interface defined in TypeScript's DOM types.
  *   It is redefined here, so it can be polyfilled without a DOM, for example with
  *   {@link https://www.npmjs.com/package/abortcontroller-polyfill | abortcontroller-polyfill} in a Node environment.
+ *
+ * @public
  */
 export interface AbortSignal {
+  /**
+   * Whether the request is aborted.
+   */
   readonly aborted: boolean;
 
+  /**
+   * Add an event listener to be triggered when this signal becomes aborted.
+   */
   addEventListener(type: 'abort', listener: () => void): void;
 
+  /**
+   * Remove an event listener that was previously added with {@link AbortSignal.addEventListener}.
+   */
   removeEventListener(type: 'abort', listener: () => void): void;
 }
 

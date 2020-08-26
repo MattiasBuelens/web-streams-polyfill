@@ -17,6 +17,11 @@ import { newPromise, promiseRejectedWith } from '../helpers/webidl';
 import { assertRequiredArgument } from '../validators/basic';
 import { assertReadableStream } from '../validators/readable-stream';
 
+/**
+ * A result returned by {@link ReadableStreamBYOBReader.read}.
+ *
+ * @public
+ */
 export type ReadableStreamBYOBReadResult<T extends ArrayBufferView> = {
   done: boolean;
   value: T;
@@ -81,6 +86,11 @@ export interface ReadIntoRequest<T extends ArrayBufferView> {
   _errorSteps(e: any): void;
 }
 
+/**
+ * A BYOB reader vended by a {@link ReadableStream}.
+ *
+ * @public
+ */
 export class ReadableStreamBYOBReader {
   /** @internal */
   _ownerReadableStream!: ReadableByteStream;
@@ -111,6 +121,10 @@ export class ReadableStreamBYOBReader {
     this._readIntoRequests = new SimpleQueue();
   }
 
+  /**
+   * Returns a promise that will be fulfilled when the stream becomes closed, or rejected if the stream ever errors or
+   * the reader's lock is released before the stream finishes closing.
+   */
   get closed(): Promise<void> {
     if (!IsReadableStreamBYOBReader(this)) {
       return promiseRejectedWith(byobReaderBrandCheckException('closed'));
@@ -119,6 +133,9 @@ export class ReadableStreamBYOBReader {
     return this._closedPromise;
   }
 
+  /**
+   * If the reader is active, behaves the same as {@link ReadableStream.cancel | stream.cancel(reason)}.
+   */
   cancel(reason: any = undefined): Promise<void> {
     if (!IsReadableStreamBYOBReader(this)) {
       return promiseRejectedWith(byobReaderBrandCheckException('cancel'));
@@ -131,6 +148,11 @@ export class ReadableStreamBYOBReader {
     return ReadableStreamReaderGenericCancel(this, reason);
   }
 
+  /**
+   * Attempts to reads bytes into view, and returns a promise resolved with the result.
+   *
+   * If reading a chunk causes the queue to become empty, more data will be pulled from the underlying source.
+   */
   read<T extends ArrayBufferView>(view: T): Promise<ReadableStreamBYOBReadResult<T>> {
     if (!IsReadableStreamBYOBReader(this)) {
       return promiseRejectedWith(byobReaderBrandCheckException('read'));
@@ -165,6 +187,15 @@ export class ReadableStreamBYOBReader {
     return promise;
   }
 
+  /**
+   * Releases the reader's lock on the corresponding stream. After the lock is released, the reader is no longer active.
+   * If the associated stream is errored when the lock is released, the reader will appear errored in the same way
+   * from now on; otherwise, the reader will appear closed.
+   *
+   * A reader's lock cannot be released while it still has a pending read request, i.e., if a promise returned by
+   * the reader's {@link ReadableStreamBYOBReader.read | read()} method has not yet been settled. Attempting to
+   * do so will throw a `TypeError` and leave the reader locked to the stream.
+   */
   releaseLock(): void {
     if (!IsReadableStreamBYOBReader(this)) {
       throw byobReaderBrandCheckException('releaseLock');

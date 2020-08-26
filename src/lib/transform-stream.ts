@@ -26,6 +26,14 @@ import { convertTransformer } from './validators/transformer';
 
 // Class TransformStream
 
+/**
+ * A transform stream consists of a pair of streams: a {@link WritableStream | writable stream},
+ * known as its writable side, and a {@link ReadableStream | readable stream}, known as its readable side.
+ * In a manner specific to the transform stream in question, writes to the writable side result in new data being
+ * made available for reading from the readable side.
+ *
+ * @public
+ */
 export class TransformStream<I = any, O = any> {
   /** @internal */
   _writable!: WritableStream<I>;
@@ -85,6 +93,9 @@ export class TransformStream<I = any, O = any> {
     }
   }
 
+  /**
+   * The readable side of the transform stream.
+   */
   get readable(): ReadableStream<O> {
     if (!IsTransformStream(this)) {
       throw streamBrandCheckException('readable');
@@ -93,6 +104,9 @@ export class TransformStream<I = any, O = any> {
     return this._readable;
   }
 
+  /**
+   * The writable side of the transform stream.
+   */
   get writable(): WritableStream<I> {
     if (!IsTransformStream(this)) {
       throw streamBrandCheckException('writable');
@@ -244,6 +258,11 @@ function TransformStreamSetBackpressure(stream: TransformStream, backpressure: b
 
 // Class TransformStreamDefaultController
 
+/**
+ * Allows control of the {@link ReadableStream} and {@link WritableStream} of the associated {@link TransformStream}.
+ *
+ * @public
+ */
 export class TransformStreamDefaultController<O> {
   /** @internal */
   _controlledTransformStream: TransformStream<any, O>;
@@ -256,6 +275,9 @@ export class TransformStreamDefaultController<O> {
     throw new TypeError('Illegal constructor');
   }
 
+  /**
+   * Returns the desired size to fill the readable side’s internal queue. It can be negative, if the queue is over-full.
+   */
   get desiredSize(): number | null {
     if (!IsTransformStreamDefaultController(this)) {
       throw defaultControllerBrandCheckException('desiredSize');
@@ -265,6 +287,9 @@ export class TransformStreamDefaultController<O> {
     return ReadableStreamDefaultControllerGetDesiredSize(readableController as ReadableStreamDefaultController<O>);
   }
 
+  /**
+   * Enqueues the given chunk `chunk` in the readable side of the controlled transform stream.
+   */
   enqueue(chunk: O): void;
   enqueue(chunk: O = undefined!): void {
     if (!IsTransformStreamDefaultController(this)) {
@@ -274,6 +299,10 @@ export class TransformStreamDefaultController<O> {
     TransformStreamDefaultControllerEnqueue(this, chunk);
   }
 
+  /**
+   * Errors both the readable side and the writable side of the controlled transform stream, making all future
+   * interactions with it fail with the given error `e`. Any chunks queued for transformation will be discarded.
+   */
   error(reason: any = undefined): void {
     if (!IsTransformStreamDefaultController(this)) {
       throw defaultControllerBrandCheckException('error');
@@ -282,6 +311,10 @@ export class TransformStreamDefaultController<O> {
     TransformStreamDefaultControllerError(this, reason);
   }
 
+  /**
+   * Closes the readable side and errors the writable side of the controlled transform stream. This is useful when the
+   * transformer only needs to consume a portion of the chunks written to the writable side.
+   */
   terminate(): void {
     if (!IsTransformStreamDefaultController(this)) {
       throw defaultControllerBrandCheckException('terminate');

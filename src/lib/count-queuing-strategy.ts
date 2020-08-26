@@ -7,6 +7,11 @@ const countSizeFunction = function size(): 1 {
   return 1;
 };
 
+/**
+ * A queuing strategy that counts the number of chunks.
+ *
+ * @public
+ */
 export default class CountQueuingStrategy implements QueuingStrategy<any> {
   /** @internal */
   readonly _countQueuingStrategyHighWaterMark!: number;
@@ -17,6 +22,9 @@ export default class CountQueuingStrategy implements QueuingStrategy<any> {
     this._countQueuingStrategyHighWaterMark = options.highWaterMark;
   }
 
+  /**
+   * Returns the high water mark provided to the constructor.
+   */
   get highWaterMark(): number {
     if (!IsCountQueuingStrategy(this)) {
       throw countBrandCheckException('highWaterMark');
@@ -24,6 +32,10 @@ export default class CountQueuingStrategy implements QueuingStrategy<any> {
     return this._countQueuingStrategyHighWaterMark;
   }
 
+  /**
+   * Measures the size of `chunk` by always returning 1.
+   * This ensures that the total queue size is a count of the number of chunks in the queue.
+   */
   get size(): (chunk: any) => 1 {
     if (!IsCountQueuingStrategy(this)) {
       throw countBrandCheckException('size');

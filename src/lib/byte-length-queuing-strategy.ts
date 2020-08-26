@@ -7,6 +7,11 @@ const byteLengthSizeFunction = function size(chunk: ArrayBufferView): number {
   return chunk.byteLength;
 };
 
+/**
+ * A queuing strategy that counts the number of bytes in each chunk.
+ *
+ * @public
+ */
 export default class ByteLengthQueuingStrategy implements QueuingStrategy<ArrayBufferView> {
   /** @internal */
   readonly _byteLengthQueuingStrategyHighWaterMark: number;
@@ -17,6 +22,9 @@ export default class ByteLengthQueuingStrategy implements QueuingStrategy<ArrayB
     this._byteLengthQueuingStrategyHighWaterMark = options.highWaterMark;
   }
 
+  /**
+   * Returns the high water mark provided to the constructor.
+   */
   get highWaterMark(): number {
     if (!IsByteLengthQueuingStrategy(this)) {
       throw byteLengthBrandCheckException('highWaterMark');
@@ -24,6 +32,9 @@ export default class ByteLengthQueuingStrategy implements QueuingStrategy<ArrayB
     return this._byteLengthQueuingStrategyHighWaterMark;
   }
 
+  /**
+   * Measures the size of `chunk` by returning the value of its `byteLength` property.
+   */
   get size(): (chunk: ArrayBufferView) => number {
     if (!IsByteLengthQueuingStrategy(this)) {
       throw byteLengthBrandCheckException('size');

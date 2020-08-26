@@ -13,6 +13,11 @@ import { newPromise, promiseRejectedWith } from '../helpers/webidl';
 import { assertRequiredArgument } from '../validators/basic';
 import { assertReadableStream } from '../validators/readable-stream';
 
+/**
+ * A result returned by {@link ReadableStreamDefaultReader.read}.
+ *
+ * @public
+ */
 export type ReadableStreamDefaultReadResult<T> = {
   done: false;
   value: T;
@@ -78,6 +83,11 @@ export interface ReadRequest<R> {
   _errorSteps(e: any): void;
 }
 
+/**
+ * A default reader vended by a {@link ReadableStream}.
+ *
+ * @public
+ */
 export class ReadableStreamDefaultReader<R = any> {
   /** @internal */
   _ownerReadableStream!: ReadableStream<R>;
@@ -103,6 +113,10 @@ export class ReadableStreamDefaultReader<R = any> {
     this._readRequests = new SimpleQueue();
   }
 
+  /**
+   * Returns a promise that will be fulfilled when the stream becomes closed,
+   * or rejected if the stream ever errors or the reader's lock is released before the stream finishes closing.
+   */
   get closed(): Promise<void> {
     if (!IsReadableStreamDefaultReader(this)) {
       return promiseRejectedWith(defaultReaderBrandCheckException('closed'));
@@ -111,6 +125,9 @@ export class ReadableStreamDefaultReader<R = any> {
     return this._closedPromise;
   }
 
+  /**
+   * If the reader is active, behaves the same as {@link ReadableStream.cancel | stream.cancel(reason)}.
+   */
   cancel(reason: any = undefined): Promise<void> {
     if (!IsReadableStreamDefaultReader(this)) {
       return promiseRejectedWith(defaultReaderBrandCheckException('cancel'));
@@ -123,6 +140,11 @@ export class ReadableStreamDefaultReader<R = any> {
     return ReadableStreamReaderGenericCancel(this, reason);
   }
 
+  /**
+   * Returns a promise that allows access to the next chunk from the stream's internal queue, if available.
+   *
+   * If reading a chunk causes the queue to become empty, more data will be pulled from the underlying source.
+   */
   read(): Promise<ReadableStreamDefaultReadResult<R>> {
     if (!IsReadableStreamDefaultReader(this)) {
       return promiseRejectedWith(defaultReaderBrandCheckException('read'));
@@ -147,6 +169,15 @@ export class ReadableStreamDefaultReader<R = any> {
     return promise;
   }
 
+  /**
+   * Releases the reader's lock on the corresponding stream. After the lock is released, the reader is no longer active.
+   * If the associated stream is errored when the lock is released, the reader will appear errored in the same way
+   * from now on; otherwise, the reader will appear closed.
+   *
+   * A reader's lock cannot be released while it still has a pending read request, i.e., if a promise returned by
+   * the reader's {@link ReadableStreamDefaultReader.read | read()} method has not yet been settled. Attempting to
+   * do so will throw a `TypeError` and leave the reader locked to the stream.
+   */
   releaseLock(): void {
     if (!IsReadableStreamDefaultReader(this)) {
       throw defaultReaderBrandCheckException('releaseLock');

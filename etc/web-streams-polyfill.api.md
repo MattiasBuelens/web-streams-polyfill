@@ -6,92 +6,67 @@
 
 // @public
 export interface AbortSignal {
-    // (undocumented)
     readonly aborted: boolean;
-    // (undocumented)
     addEventListener(type: 'abort', listener: () => void): void;
-    // (undocumented)
     removeEventListener(type: 'abort', listener: () => void): void;
 }
 
-// @public (undocumented)
+// @public
 export class ByteLengthQueuingStrategy implements QueuingStrategy<ArrayBufferView> {
     constructor(options: QueuingStrategyInit);
-    // (undocumented)
     get highWaterMark(): number;
-    // (undocumented)
     get size(): (chunk: ArrayBufferView) => number;
 }
 
-// @public (undocumented)
+// @public
 export class CountQueuingStrategy implements QueuingStrategy<any> {
     constructor(options: QueuingStrategyInit);
-    // (undocumented)
     get highWaterMark(): number;
-    // (undocumented)
     get size(): (chunk: any) => 1;
 }
 
-// @public (undocumented)
+// @public
 export interface QueuingStrategy<T = any> {
-    // (undocumented)
     highWaterMark?: number;
     // Warning: (ae-forgotten-export) The symbol "QueuingStrategySizeCallback" needs to be exported by the entry point polyfill.d.ts
-    //
-    // (undocumented)
     size?: QueuingStrategySizeCallback<T>;
 }
 
 // @public (undocumented)
 export interface QueuingStrategyInit {
-    // (undocumented)
     highWaterMark: number;
 }
 
-// @public (undocumented)
+// @public
 export class ReadableByteStreamController {
-    // (undocumented)
     get byobRequest(): ReadableStreamBYOBRequest | null;
-    // (undocumented)
     close(): void;
-    // (undocumented)
     get desiredSize(): number | null;
-    // (undocumented)
     enqueue(chunk: ArrayBufferView): void;
-    // (undocumented)
     error(e?: any): void;
 }
 
-// @public (undocumented)
+// @public
 export class ReadableStream<R = any> {
-    // (undocumented)
     [Symbol.asyncIterator]: (options?: ReadableStreamIteratorOptions) => ReadableStreamAsyncIterator<R>;
     constructor(underlyingSource: UnderlyingByteSource, strategy?: {
         highWaterMark?: number;
         size?: undefined;
     });
     constructor(underlyingSource?: UnderlyingSource<R>, strategy?: QueuingStrategy<R>);
-    // (undocumented)
     cancel(reason?: any): Promise<void>;
-    // (undocumented)
     getReader({ mode }: {
         mode: 'byob';
     }): ReadableStreamBYOBReader;
-    // (undocumented)
     getReader(): ReadableStreamDefaultReader<R>;
-    // (undocumented)
     get locked(): boolean;
-    // (undocumented)
     pipeThrough<T>(transform: ReadableWritablePair<T, R>, options?: StreamPipeOptions): ReadableStream<T>;
-    // (undocumented)
     pipeTo(destination: WritableStream<R>, options?: StreamPipeOptions): Promise<void>;
-    // (undocumented)
     tee(): [ReadableStream<R>, ReadableStream<R>];
-    // (undocumented)
     values(options?: ReadableStreamIteratorOptions): ReadableStreamAsyncIterator<R>;
 }
 
-// @public (undocumented)
+// @public
 export interface ReadableStreamAsyncIterator<R> extends AsyncIterator<R> {
     // (undocumented)
     next(): Promise<IteratorResult<R>>;
@@ -99,62 +74,47 @@ export interface ReadableStreamAsyncIterator<R> extends AsyncIterator<R> {
     return(value?: any): Promise<IteratorResult<any>>;
 }
 
-// @public (undocumented)
+// @public
 export class ReadableStreamBYOBReader {
     // Warning: (ae-forgotten-export) The symbol "ReadableByteStream" needs to be exported by the entry point polyfill.d.ts
     constructor(stream: ReadableByteStream);
-    // (undocumented)
     cancel(reason?: any): Promise<void>;
-    // (undocumented)
     get closed(): Promise<void>;
-    // (undocumented)
     read<T extends ArrayBufferView>(view: T): Promise<ReadableStreamBYOBReadResult<T>>;
-    // (undocumented)
     releaseLock(): void;
 }
 
-// @public (undocumented)
+// @public
 export type ReadableStreamBYOBReadResult<T extends ArrayBufferView> = {
     done: boolean;
     value: T;
 };
 
-// @public (undocumented)
+// @public
 export class ReadableStreamBYOBRequest {
-    // (undocumented)
     respond(bytesWritten: number): void;
-    // (undocumented)
     respondWithNewView(view: ArrayBufferView): void;
-    // (undocumented)
     get view(): ArrayBufferView | null;
 }
 
-// @public (undocumented)
+// @public
 export class ReadableStreamDefaultController<R> {
-    // (undocumented)
     close(): void;
-    // (undocumented)
     get desiredSize(): number | null;
-    // (undocumented)
     enqueue(chunk: R): void;
-    // (undocumented)
     error(e?: any): void;
 }
 
-// @public (undocumented)
+// @public
 export class ReadableStreamDefaultReader<R = any> {
     constructor(stream: ReadableStream<R>);
-    // (undocumented)
     cancel(reason?: any): Promise<void>;
-    // (undocumented)
     get closed(): Promise<void>;
-    // (undocumented)
     read(): Promise<ReadableStreamDefaultReadResult<R>>;
-    // (undocumented)
     releaseLock(): void;
 }
 
-// @public (undocumented)
+// @public
 export type ReadableStreamDefaultReadResult<T> = {
     done: false;
     value: T;
@@ -163,13 +123,13 @@ export type ReadableStreamDefaultReadResult<T> = {
     value: undefined;
 };
 
-// @public (undocumented)
+// @public
 export interface ReadableStreamIteratorOptions {
     // (undocumented)
     preventCancel?: boolean;
 }
 
-// @public (undocumented)
+// @public
 export interface ReadableWritablePair<R, W> {
     // (undocumented)
     readable: ReadableStream<R>;
@@ -177,27 +137,20 @@ export interface ReadableWritablePair<R, W> {
     writable: WritableStream<W>;
 }
 
-// @public (undocumented)
+// @public
 export interface StreamPipeOptions {
-    // (undocumented)
     preventAbort?: boolean;
-    // (undocumented)
     preventCancel?: boolean;
-    // (undocumented)
     preventClose?: boolean;
-    // (undocumented)
     signal?: AbortSignal;
 }
 
-// @public (undocumented)
+// @public
 export interface Transformer<I = any, O = any> {
-    // (undocumented)
     flush?: TransformerFlushCallback<O>;
     // (undocumented)
     readableType?: undefined;
-    // (undocumented)
     start?: TransformerStartCallback<O>;
-    // (undocumented)
     transform?: TransformerTransformCallback<I, O>;
     // (undocumented)
     writableType?: undefined;
@@ -212,38 +165,27 @@ export type TransformerStartCallback<O> = (controller: TransformStreamDefaultCon
 // @public (undocumented)
 export type TransformerTransformCallback<I, O> = (chunk: I, controller: TransformStreamDefaultController<O>) => void | PromiseLike<void>;
 
-// @public (undocumented)
+// @public
 export class TransformStream<I = any, O = any> {
     constructor(transformer?: Transformer<I, O>, writableStrategy?: QueuingStrategy<I>, readableStrategy?: QueuingStrategy<O>);
-    // (undocumented)
     get readable(): ReadableStream<O>;
-    // (undocumented)
     get writable(): WritableStream<I>;
 }
 
-// @public (undocumented)
+// @public
 export class TransformStreamDefaultController<O> {
-    // (undocumented)
     get desiredSize(): number | null;
-    // (undocumented)
     enqueue(chunk: O): void;
-    // (undocumented)
     error(reason?: any): void;
-    // (undocumented)
     terminate(): void;
 }
 
-// @public (undocumented)
+// @public
 export interface UnderlyingByteSource {
-    // (undocumented)
     autoAllocateChunkSize?: number;
-    // (undocumented)
     cancel?: UnderlyingSourceCancelCallback;
-    // (undocumented)
     pull?: UnderlyingByteSourcePullCallback;
-    // (undocumented)
     start?: UnderlyingByteSourceStartCallback;
-    // (undocumented)
     type: 'bytes';
 }
 
@@ -253,17 +195,13 @@ export type UnderlyingByteSourcePullCallback = (controller: ReadableByteStreamCo
 // @public (undocumented)
 export type UnderlyingByteSourceStartCallback = (controller: ReadableByteStreamController) => void | PromiseLike<void>;
 
-// @public (undocumented)
+// @public
 export interface UnderlyingSink<W = any> {
-    // (undocumented)
     abort?: UnderlyingSinkAbortCallback;
-    // (undocumented)
     close?: UnderlyingSinkCloseCallback;
-    // (undocumented)
     start?: UnderlyingSinkStartCallback;
     // (undocumented)
     type?: undefined;
-    // (undocumented)
     write?: UnderlyingSinkWriteCallback<W>;
 }
 
@@ -279,13 +217,10 @@ export type UnderlyingSinkStartCallback = (controller: WritableStreamDefaultCont
 // @public (undocumented)
 export type UnderlyingSinkWriteCallback<W> = (chunk: W, controller: WritableStreamDefaultController) => void | PromiseLike<void>;
 
-// @public (undocumented)
+// @public
 export interface UnderlyingSource<R = any> {
-    // (undocumented)
     cancel?: UnderlyingSourceCancelCallback;
-    // (undocumented)
     pull?: UnderlyingSourcePullCallback<R>;
-    // (undocumented)
     start?: UnderlyingSourceStartCallback<R>;
     // (undocumented)
     type?: undefined;
@@ -300,41 +235,29 @@ export type UnderlyingSourcePullCallback<R> = (controller: ReadableStreamDefault
 // @public (undocumented)
 export type UnderlyingSourceStartCallback<R> = (controller: ReadableStreamDefaultController<R>) => void | PromiseLike<void>;
 
-// @public (undocumented)
+// @public
 export class WritableStream<W = any> {
     constructor(underlyingSink?: UnderlyingSink<W>, strategy?: QueuingStrategy<W>);
-    // (undocumented)
     abort(reason?: any): Promise<void>;
-    // (undocumented)
     close(): Promise<void>;
-    // (undocumented)
     getWriter(): WritableStreamDefaultWriter<W>;
-    // (undocumented)
     get locked(): boolean;
 }
 
-// @public (undocumented)
+// @public
 export class WritableStreamDefaultController<W = any> {
-    // (undocumented)
     error(e?: any): void;
 }
 
-// @public (undocumented)
+// @public
 export class WritableStreamDefaultWriter<W = any> {
     constructor(stream: WritableStream<W>);
-    // (undocumented)
     abort(reason?: any): Promise<void>;
-    // (undocumented)
     close(): Promise<void>;
-    // (undocumented)
     get closed(): Promise<void>;
-    // (undocumented)
     get desiredSize(): number | null;
-    // (undocumented)
     get ready(): Promise<void>;
-    // (undocumented)
     releaseLock(): void;
-    // (undocumented)
     write(chunk: W): Promise<void>;
 }
 
