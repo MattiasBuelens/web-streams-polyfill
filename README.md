@@ -66,7 +66,7 @@ The `polyfill/es2018` and `ponyfill/es2018` variants work in any ES2018-compatib
 
 ### Compliance
 
-The polyfill implements [version `62fe4c8` (20 Jul 2020)][spec-snapshot] of the streams specification.
+The polyfill implements [version `6cd5e81` (5 Aug 2020)][spec-snapshot] of the streams specification.
 
 The polyfill is tested against the same [web platform tests][wpt] that are used by browsers to test their native implementations.
 The polyfill aims to pass all tests, although it allows some exceptions for practical reasons:
@@ -99,12 +99,12 @@ Thanks to these people for their work on [the original polyfill][creatorrr-polyf
 [promise-support]: https://kangax.github.io/compat-table/es6/#test-Promise
 [promise-polyfill]: https://www.npmjs.com/package/promise-polyfill
 [rs-asynciterator]: https://streams.spec.whatwg.org/#rs-asynciterator
-[spec-snapshot]: https://streams.spec.whatwg.org/commit-snapshots/62fe4c8c0df34cec4ff28db9bfa69aec6c65e38d/
+[spec-snapshot]: https://streams.spec.whatwg.org/commit-snapshots/6cd5e81f6191fed9e7d99ee73d4941e3060311ce/
 [wpt]: https://github.com/web-platform-tests/wpt/tree/c5f9e701753a034f99dda16d4716c465bed73e18/streams
 [wpt-bad-buffers]: https://github.com/web-platform-tests/wpt/blob/c5f9e701753a034f99dda16d4716c465bed73e18/streams/readable-byte-streams/bad-buffers-and-views.any.js
 [proposal-arraybuffer-transfer]: https://github.com/domenic/proposal-arraybuffer-transfer
-[ref-impl-transferarraybuffer]: https://github.com/whatwg/streams/blob/62fe4c8c0df34cec4ff28db9bfa69aec6c65e38d/reference-implementation/lib/abstract-ops/ecmascript.js#L16
+[ref-impl-transferarraybuffer]: https://github.com/whatwg/streams/blob/6cd5e81f6191fed9e7d99ee73d4941e3060311ce/reference-implementation/lib/abstract-ops/ecmascript.js#L16
 [issue-3]: https://github.com/MattiasBuelens/web-streams-polyfill/issues/3
-[wpt-async-iterator-prototype]: https://github.com/web-platform-tests/wpt/blob/c5f9e701753a034f99dda16d4716c465bed73e18/streams/readable-streams/async-iterator.any.js#L28
+[wpt-async-iterator-prototype]: https://github.com/web-platform-tests/wpt/blob/e5e5e7a10cbb968b31c51ad87ce8a3da62bb1b34/streams/readable-streams/async-iterator.any.js#L24
 [stub-async-iterator-prototype]: https://github.com/MattiasBuelens/web-streams-polyfill/blob/v2.0.0/src/target/es5/stub/async-iterator-prototype.ts
 [creatorrr-polyfill]: https://github.com/creatorrr/web-streams-polyfill

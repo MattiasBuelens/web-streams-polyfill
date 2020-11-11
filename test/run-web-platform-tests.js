@@ -37,7 +37,9 @@ async function main() {
   const excludedTests = [
     // We cannot polyfill TransferArrayBuffer yet, so disable tests for detached array buffers
     // See https://github.com/MattiasBuelens/web-streams-polyfill/issues/3
-    'readable-byte-streams/bad-buffers-and-views.any.html'
+    'readable-byte-streams/bad-buffers-and-views.any.html',
+    // Disable tests for different size functions per realm, since they need a working <iframe>
+    'queuing-strategies-size-function-per-global.window.html'
   ];
   const ignoredFailures = {};
 

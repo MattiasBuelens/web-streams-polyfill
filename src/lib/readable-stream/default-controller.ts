@@ -281,8 +281,7 @@ export function ReadableStreamDefaultControllerError(controller: ReadableStreamD
 }
 
 export function ReadableStreamDefaultControllerGetDesiredSize(controller: ReadableStreamDefaultController<any>): number | null {
-  const stream = controller._controlledReadableStream;
-  const state = stream._state;
+  const state = controller._controlledReadableStream._state;
 
   if (state === 'errored') {
     return null;

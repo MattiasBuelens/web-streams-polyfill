@@ -12,6 +12,7 @@
 ## Unreleased
 
 * 📝 Add documentation to type definitions ([#62](https://github.com/MattiasBuelens/web-streams-polyfill/pull/62))
+* 👓 Align with [spec version `6cd5e81`](https://github.com/whatwg/streams/tree/6cd5e81f6191fed9e7d99ee73d4941e3060311ce/) ([#63](https://github.com/MattiasBuelens/web-streams-polyfill/pull/63))
 
 ## v3.0.0 (2020-07-20)
 
