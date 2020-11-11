@@ -695,16 +695,16 @@ function ReadableByteStreamControllerRespondInReadableState(controller: Readable
 function ReadableByteStreamControllerRespondInternal(controller: ReadableByteStreamController, bytesWritten: number) {
   const firstDescriptor = controller._pendingPullIntos.peek();
 
-  const stream = controller._controlledReadableByteStream;
+  const state = controller._controlledReadableByteStream._state;
 
-  if (stream._state === 'closed') {
+  if (state === 'closed') {
     if (bytesWritten !== 0) {
       throw new TypeError('bytesWritten must be 0 when calling respond() on a closed stream');
     }
 
     ReadableByteStreamControllerRespondInClosedState(controller, firstDescriptor);
   } else {
-    assert(stream._state === 'readable');
+    assert(state === 'readable');
 
     ReadableByteStreamControllerRespondInReadableState(controller, bytesWritten, firstDescriptor);
   }
@@ -832,8 +832,7 @@ function ReadableByteStreamControllerError(controller: ReadableByteStreamControl
 }
 
 function ReadableByteStreamControllerGetDesiredSize(controller: ReadableByteStreamController): number | null {
-  const stream = controller._controlledReadableByteStream;
-  const state = stream._state;
+  const state = controller._controlledReadableByteStream._state;
 
   if (state === 'errored') {
     return null;
