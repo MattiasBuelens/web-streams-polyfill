@@ -70,11 +70,12 @@ export function defaultReaderClosedPromiseInitializeAsResolved(reader: ReadableS
 }
 
 export function defaultReaderClosedPromiseReject(reader: ReadableStreamReader<any>, reason: any) {
-  assert(reader._closedPromise_resolve !== undefined);
-  assert(reader._closedPromise_reject !== undefined);
+  if (reader._closedPromise_reject === undefined) {
+    return;
+  }
 
   setPromiseIsHandledToTrue(reader._closedPromise);
-  reader._closedPromise_reject!(reason);
+  reader._closedPromise_reject(reason);
   reader._closedPromise_resolve = undefined;
   reader._closedPromise_reject = undefined;
 }
@@ -87,10 +88,11 @@ export function defaultReaderClosedPromiseResetToRejected(reader: ReadableStream
 }
 
 export function defaultReaderClosedPromiseResolve(reader: ReadableStreamReader<any>) {
-  assert(reader._closedPromise_resolve !== undefined);
-  assert(reader._closedPromise_reject !== undefined);
+  if (reader._closedPromise_resolve === undefined) {
+    return;
+  }
 
-  reader._closedPromise_resolve!(undefined);
+  reader._closedPromise_resolve(undefined);
   reader._closedPromise_resolve = undefined;
   reader._closedPromise_reject = undefined;
 }

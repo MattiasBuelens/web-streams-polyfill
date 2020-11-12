@@ -1266,12 +1266,13 @@ function defaultWriterClosedPromiseInitializeAsResolved(writer: WritableStreamDe
 }
 
 function defaultWriterClosedPromiseReject(writer: WritableStreamDefaultWriter, reason: any) {
-  assert(writer._closedPromise_resolve !== undefined);
-  assert(writer._closedPromise_reject !== undefined);
+  if (writer._closedPromise_reject === undefined) {
+    return;
+  }
   assert(writer._closedPromiseState === 'pending');
 
   setPromiseIsHandledToTrue(writer._closedPromise);
-  writer._closedPromise_reject!(reason);
+  writer._closedPromise_reject(reason);
   writer._closedPromise_resolve = undefined;
   writer._closedPromise_reject = undefined;
   writer._closedPromiseState = 'rejected';
@@ -1286,11 +1287,12 @@ function defaultWriterClosedPromiseResetToRejected(writer: WritableStreamDefault
 }
 
 function defaultWriterClosedPromiseResolve(writer: WritableStreamDefaultWriter) {
-  assert(writer._closedPromise_resolve !== undefined);
-  assert(writer._closedPromise_reject !== undefined);
+  if (writer._closedPromise_resolve === undefined) {
+    return;
+  }
   assert(writer._closedPromiseState === 'pending');
 
-  writer._closedPromise_resolve!(undefined);
+  writer._closedPromise_resolve(undefined);
   writer._closedPromise_resolve = undefined;
   writer._closedPromise_reject = undefined;
   writer._closedPromiseState = 'resolved';
@@ -1315,11 +1317,12 @@ function defaultWriterReadyPromiseInitializeAsResolved(writer: WritableStreamDef
 }
 
 function defaultWriterReadyPromiseReject(writer: WritableStreamDefaultWriter, reason: any) {
-  assert(writer._readyPromise_resolve !== undefined);
-  assert(writer._readyPromise_reject !== undefined);
+  if (writer._readyPromise_reject === undefined) {
+    return;
+  }
 
   setPromiseIsHandledToTrue(writer._readyPromise);
-  writer._readyPromise_reject!(reason);
+  writer._readyPromise_reject(reason);
   writer._readyPromise_resolve = undefined;
   writer._readyPromise_reject = undefined;
   writer._readyPromiseState = 'rejected';
@@ -1340,10 +1343,11 @@ function defaultWriterReadyPromiseResetToRejected(writer: WritableStreamDefaultW
 }
 
 function defaultWriterReadyPromiseResolve(writer: WritableStreamDefaultWriter) {
-  assert(writer._readyPromise_resolve !== undefined);
-  assert(writer._readyPromise_reject !== undefined);
+  if (writer._readyPromise_resolve === undefined) {
+    return;
+  }
 
-  writer._readyPromise_resolve!(undefined);
+  writer._readyPromise_resolve(undefined);
   writer._readyPromise_resolve = undefined;
   writer._readyPromise_reject = undefined;
   writer._readyPromiseState = 'fulfilled';
