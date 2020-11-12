@@ -13,6 +13,7 @@
 
 * 📝 Add documentation to type definitions ([#62](https://github.com/MattiasBuelens/web-streams-polyfill/pull/62))
 * 👓 Align with [spec version `6cd5e81`](https://github.com/whatwg/streams/tree/6cd5e81f6191fed9e7d99ee73d4941e3060311ce/) ([#63](https://github.com/MattiasBuelens/web-streams-polyfill/pull/63))
+* 🐛 Fix an issue where the polyfill could throw an error when resolving/rejecting `reader.closed` when it was already resolved/rejected ([#66](https://github.com/MattiasBuelens/web-streams-polyfill/issues/66), [#67](https://github.com/MattiasBuelens/web-streams-polyfill/pull/67))
 
 ## v3.0.0 (2020-07-20)
 
