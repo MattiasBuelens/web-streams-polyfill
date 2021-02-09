@@ -950,6 +950,9 @@ export function SetUpReadableByteStreamControllerFromUnderlyingSource(
   }
 
   const autoAllocateChunkSize = underlyingByteSource.autoAllocateChunkSize;
+  if (autoAllocateChunkSize === 0) {
+    throw new TypeError('autoAllocateChunkSize must be greater than 0');
+  }
 
   SetUpReadableByteStreamController(
     stream, controller, startAlgorithm, pullAlgorithm, cancelAlgorithm, highWaterMark, autoAllocateChunkSize
