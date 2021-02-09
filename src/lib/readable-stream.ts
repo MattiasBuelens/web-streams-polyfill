@@ -461,14 +461,14 @@ export function ReadableStreamClose<R>(stream: ReadableStream<R>): void {
     return;
   }
 
+  defaultReaderClosedPromiseResolve(reader);
+
   if (IsReadableStreamDefaultReader<R>(reader)) {
     reader._readRequests.forEach(readRequest => {
       readRequest._closeSteps();
     });
     reader._readRequests = new SimpleQueue();
   }
-
-  defaultReaderClosedPromiseResolve(reader);
 }
 
 export function ReadableStreamError<R>(stream: ReadableStream<R>, e: any): void {
@@ -483,6 +483,8 @@ export function ReadableStreamError<R>(stream: ReadableStream<R>, e: any): void 
   if (reader === undefined) {
     return;
   }
+
+  defaultReaderClosedPromiseReject(reader, e);
 
   if (IsReadableStreamDefaultReader<R>(reader)) {
     reader._readRequests.forEach(readRequest => {
@@ -499,8 +501,6 @@ export function ReadableStreamError<R>(stream: ReadableStream<R>, e: any): void 
 
     reader._readIntoRequests = new SimpleQueue();
   }
-
-  defaultReaderClosedPromiseReject(reader, e);
 }
 
 // Readers
