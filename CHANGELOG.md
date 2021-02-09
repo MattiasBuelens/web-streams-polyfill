@@ -9,6 +9,10 @@
 > - 🏠 Internal
 > - 💅 Polish
 
+## Unreleased
+
+* 👓 Align with [spec version `200c971`](https://github.com/whatwg/streams/tree/200c971563b1a695fce3eebe6dab45c348ff0ac0/) ([#69](https://github.com/MattiasBuelens/web-streams-polyfill/pull/69))
+
 ## v3.0.1 (2020-11-12)
 
 * 📝 Add documentation to type definitions ([#62](https://github.com/MattiasBuelens/web-streams-polyfill/pull/62))
