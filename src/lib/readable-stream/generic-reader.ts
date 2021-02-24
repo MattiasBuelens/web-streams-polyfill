@@ -20,7 +20,7 @@ export function ReadableStreamReaderGenericInitialize<R>(reader: ReadableStreamR
 // A client of ReadableStreamDefaultReader and ReadableStreamBYOBReader may use these functions directly to bypass state
 // check.
 
-export function ReadableStreamReaderGenericCancel(reader: ReadableStreamReader<any>, reason: any): Promise<void> {
+export function ReadableStreamReaderGenericCancel(reader: ReadableStreamReader<any>, reason: any): Promise<undefined> {
   const stream = reader._ownerReadableStream;
   assert(stream !== undefined);
   return ReadableStreamCancel(stream, reason);

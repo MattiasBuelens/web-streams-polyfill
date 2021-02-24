@@ -139,7 +139,7 @@ export class ReadableStream<R = any> {
    * The supplied `reason` argument will be given to the underlying source's {@link UnderlyingSource.cancel | cancel()}
    * method, which might or might not use it.
    */
-  cancel(reason: any = undefined): Promise<void> {
+  cancel(reason: any = undefined): Promise<undefined> {
     if (!IsReadableStream(this)) {
       return promiseRejectedWith(streamBrandCheckException('cancel'));
     }
@@ -228,9 +228,9 @@ export class ReadableStream<R = any> {
    *
    * Piping a stream will lock it for the duration of the pipe, preventing any other consumer from acquiring a reader.
    */
-  pipeTo(destination: WritableStream<R>, options?: StreamPipeOptions): Promise<void>;
+  pipeTo(destination: WritableStream<R>, options?: StreamPipeOptions): Promise<undefined>;
   pipeTo(destination: WritableStream<R> | null | undefined,
-         rawOptions: StreamPipeOptions | null | undefined = {}): Promise<void> {
+         rawOptions: StreamPipeOptions | null | undefined = {}): Promise<undefined> {
     if (!IsReadableStream(this)) {
       return promiseRejectedWith(streamBrandCheckException('pipeTo'));
     }
@@ -434,7 +434,7 @@ export function IsReadableStreamLocked(stream: ReadableStream): boolean {
 
 // ReadableStream API exposed for controllers.
 
-export function ReadableStreamCancel<R>(stream: ReadableStream<R>, reason: any): Promise<void> {
+export function ReadableStreamCancel<R>(stream: ReadableStream<R>, reason: any): Promise<undefined> {
   stream._disturbed = true;
 
   if (stream._state === 'closed') {

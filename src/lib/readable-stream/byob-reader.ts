@@ -95,7 +95,7 @@ export class ReadableStreamBYOBReader {
   /** @internal */
   _ownerReadableStream!: ReadableByteStream;
   /** @internal */
-  _closedPromise!: Promise<void>;
+  _closedPromise!: Promise<undefined>;
   /** @internal */
   _closedPromise_resolve?: (value?: undefined) => void;
   /** @internal */
@@ -125,7 +125,7 @@ export class ReadableStreamBYOBReader {
    * Returns a promise that will be fulfilled when the stream becomes closed, or rejected if the stream ever errors or
    * the reader's lock is released before the stream finishes closing.
    */
-  get closed(): Promise<void> {
+  get closed(): Promise<undefined> {
     if (!IsReadableStreamBYOBReader(this)) {
       return promiseRejectedWith(byobReaderBrandCheckException('closed'));
     }
@@ -136,7 +136,7 @@ export class ReadableStreamBYOBReader {
   /**
    * If the reader is active, behaves the same as {@link ReadableStream.cancel | stream.cancel(reason)}.
    */
-  cancel(reason: any = undefined): Promise<void> {
+  cancel(reason: any = undefined): Promise<undefined> {
     if (!IsReadableStreamBYOBReader(this)) {
       return promiseRejectedWith(byobReaderBrandCheckException('cancel'));
     }

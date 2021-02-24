@@ -31,7 +31,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
                                         preventClose: boolean,
                                         preventAbort: boolean,
                                         preventCancel: boolean,
-                                        signal: AbortSignal | undefined): Promise<void> {
+                                        signal: AbortSignal | undefined): Promise<undefined> {
   assert(IsReadableStream(source));
   assert(IsWritableStream(dest));
   assert(typeof preventClose === 'boolean');
