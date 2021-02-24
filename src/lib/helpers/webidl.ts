@@ -8,7 +8,7 @@ const originalPromiseResolve = Promise.resolve.bind(originalPromise);
 const originalPromiseReject = Promise.reject.bind(originalPromise);
 
 export function newPromise<T>(executor: (
-  resolve: (value?: T | PromiseLike<T>) => void,
+  resolve: (value: T | PromiseLike<T>) => void,
   reject: (reason?: any) => void
 ) => void): Promise<T> {
   return new originalPromise(executor);
