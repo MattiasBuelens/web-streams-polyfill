@@ -8,7 +8,7 @@ const originalPromiseResolve = Promise.resolve.bind(originalPromise);
 const originalPromiseReject = Promise.reject.bind(originalPromise);
 
 export function newPromise<T>(executor: (
-  resolve: (value?: T | PromiseLike<T>) => void,
+  resolve: (value: T | PromiseLike<T>) => void,
   reject: (reason?: any) => void
 ) => void): Promise<T> {
   return new originalPromise(executor);
@@ -71,14 +71,14 @@ export const queueMicrotask: (fn: () => void) => void = (() => {
   return (fn: () => void) => PerformPromiseThen(resolvedPromise, fn);
 })();
 
-export function reflectCall<T, A extends any[], R>(F: (this: T, ...args: A) => R, V: T, args: A): R {
+export function reflectCall<T, A extends any[], R>(F: (this: T, ...fnArgs: A) => R, V: T, args: A): R {
   if (typeof F !== 'function') {
     throw new TypeError('Argument is not a function');
   }
   return Function.prototype.apply.call(F, V, args);
 }
 
-export function promiseCall<T, A extends any[], R>(F: (this: T, ...args: A) => R | PromiseLike<R>,
+export function promiseCall<T, A extends any[], R>(F: (this: T, ...fnArgs: A) => R | PromiseLike<R>,
                                                    V: T,
                                                    args: A): Promise<R> {
   assert(typeof F === 'function');

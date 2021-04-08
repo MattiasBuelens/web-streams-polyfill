@@ -24,6 +24,7 @@ function isDOMExceptionConstructor(ctor: unknown): ctor is DOMExceptionConstruct
 }
 
 function createDOMExceptionPolyfill(): DOMExceptionConstructor {
+  // eslint-disable-next-line no-shadow
   const ctor = function DOMException(this: DOMException, message?: string, name?: string) {
     this.message = message || '';
     this.name = name || 'Error';
@@ -36,6 +37,7 @@ function createDOMExceptionPolyfill(): DOMExceptionConstructor {
   return ctor;
 }
 
+// eslint-disable-next-line no-redeclare
 const DOMException: DOMExceptionConstructor =
   isDOMExceptionConstructor(NativeDOMException) ? NativeDOMException : createDOMExceptionPolyfill();
 

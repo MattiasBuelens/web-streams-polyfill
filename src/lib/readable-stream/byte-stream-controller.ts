@@ -144,7 +144,7 @@ interface ByteQueueElement {
 
 type PullIntoDescriptor<T extends ArrayBufferView = ArrayBufferView> =
   DefaultPullIntoDescriptor
-  | BYOBPullIntoDescriptor;
+  | BYOBPullIntoDescriptor<T>;
 
 interface DefaultPullIntoDescriptor {
   buffer: ArrayBufferLike;

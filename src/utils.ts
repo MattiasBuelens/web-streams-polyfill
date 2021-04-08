@@ -1,7 +1,7 @@
 /// <reference lib="dom" />
 
-export function noop() {
-  // do nothing
+export function noop(): undefined {
+  return undefined;
 }
 
 function getGlobals() {

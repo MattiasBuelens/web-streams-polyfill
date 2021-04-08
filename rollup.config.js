@@ -71,6 +71,7 @@ function bundle(entry, { esm = false, minify = false, target = 'es5' } = {}) {
       }),
       replace({
         include: 'src/**/*.ts',
+        preventAssignment: true,
         values: {
           DEBUG: debug
         }
