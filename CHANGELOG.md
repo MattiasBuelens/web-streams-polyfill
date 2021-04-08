@@ -12,6 +12,8 @@
 ## Unreleased
 
 * 💅 Change `Promise<void>` to `Promise<undefined>` in TypeScript type definitions ([#72](https://github.com/MattiasBuelens/web-streams-polyfill/pull/72))
+* 🐛 Fix `ReadableStream.tee()` resolving its `cancel()` promise too early ([#73](https://github.com/MattiasBuelens/web-streams-polyfill/pull/73))
+* 👓 Align with [spec version `6762cdb`](https://github.com/whatwg/streams/tree/6762cdb4c6421cfa0da1d834d5a14fdd7326aaa5/) ([#73](https://github.com/MattiasBuelens/web-streams-polyfill/pull/73))
 
 ## v3.0.2 (2020-02-10)
 
