@@ -77,7 +77,9 @@ export function ReadableStreamTee<R>(stream: ReadableStream<R>,
           ReadableStreamDefaultControllerClose(branch2._readableStreamController as ReadableStreamDefaultController<R>);
         }
 
-        resolveCancelPromise(undefined);
+        if (!canceled1 || !canceled2) {
+          resolveCancelPromise(undefined);
+        }
       },
       _errorSteps: () => {
         reading = false;
@@ -120,7 +122,9 @@ export function ReadableStreamTee<R>(stream: ReadableStream<R>,
   uponRejection(reader._closedPromise, (r: any) => {
     ReadableStreamDefaultControllerError(branch1._readableStreamController as ReadableStreamDefaultController<R>, r);
     ReadableStreamDefaultControllerError(branch2._readableStreamController as ReadableStreamDefaultController<R>, r);
-    resolveCancelPromise(undefined);
+    if (!canceled1 || !canceled2) {
+      resolveCancelPromise(undefined);
+    }
   });
 
   return [branch1, branch2];
