@@ -66,8 +66,6 @@ export function ReadableStreamTee<R>(stream: ReadableStream<R>,
               value2
             );
           }
-
-          resolveCancelPromise(undefined);
         });
       },
       _closeSteps: () => {
@@ -77,6 +75,10 @@ export function ReadableStreamTee<R>(stream: ReadableStream<R>,
         }
         if (!canceled2) {
           ReadableStreamDefaultControllerClose(branch2._readableStreamController as ReadableStreamDefaultController<R>);
+        }
+
+        if (!canceled1 || !canceled2) {
+          resolveCancelPromise(undefined);
         }
       },
       _errorSteps: () => {
@@ -120,7 +122,9 @@ export function ReadableStreamTee<R>(stream: ReadableStream<R>,
   uponRejection(reader._closedPromise, (r: any) => {
     ReadableStreamDefaultControllerError(branch1._readableStreamController as ReadableStreamDefaultController<R>, r);
     ReadableStreamDefaultControllerError(branch2._readableStreamController as ReadableStreamDefaultController<R>, r);
-    resolveCancelPromise(undefined);
+    if (!canceled1 || !canceled2) {
+      resolveCancelPromise(undefined);
+    }
   });
 
   return [branch1, branch2];
