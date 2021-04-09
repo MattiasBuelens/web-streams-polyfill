@@ -9,7 +9,7 @@
 > - 🏠 Internal
 > - 💅 Polish
 
-## Unreleased
+## v3.0.3 (2020-04-09)
 
 * 💅 Change `Promise<void>` to `Promise<undefined>` in TypeScript type definitions ([#72](https://github.com/MattiasBuelens/web-streams-polyfill/pull/72))
 * 🐛 Fix `ReadableStream.tee()` resolving its `cancel()` promise too early ([#73](https://github.com/MattiasBuelens/web-streams-polyfill/pull/73))
