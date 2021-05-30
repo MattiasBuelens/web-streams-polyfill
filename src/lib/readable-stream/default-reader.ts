@@ -219,7 +219,7 @@ export function IsReadableStreamDefaultReader<R = any>(x: any): x is ReadableStr
     return false;
   }
 
-  return true;
+  return x instanceof ReadableStreamDefaultReader;
 }
 
 export function ReadableStreamDefaultReaderRead<R>(reader: ReadableStreamDefaultReader<R>,

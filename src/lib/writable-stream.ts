@@ -277,7 +277,7 @@ function IsWritableStream(x: unknown): x is WritableStream {
     return false;
   }
 
-  return true;
+  return x instanceof WritableStream;
 }
 
 function IsWritableStreamLocked(stream: WritableStream): boolean {
@@ -786,7 +786,7 @@ function IsWritableStreamDefaultWriter<W = any>(x: any): x is WritableStreamDefa
     return false;
   }
 
-  return true;
+  return x instanceof WritableStreamDefaultWriter;
 }
 
 // A client of WritableStreamDefaultWriter may use these functions directly to bypass state check.
@@ -997,7 +997,7 @@ function IsWritableStreamDefaultController(x: any): x is WritableStreamDefaultCo
     return false;
   }
 
-  return true;
+  return x instanceof WritableStreamDefaultController;
 }
 
 function SetUpWritableStreamDefaultController<W>(stream: WritableStream<W>,
