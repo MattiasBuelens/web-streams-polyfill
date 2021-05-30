@@ -24,4 +24,33 @@ describe('ReadableStream regressions', () => {
 
     await Promise.all([producer, consumer]);
   });
+
+  // It is not sufficient for our brand checks to check if a (supposedly internal) field exists,
+  // since a stream from a different version of the polyfill would also have such a field.
+  // We must also check if the given stream was constructed with a class from *this* version of the polyfill.
+  // https://github.com/MattiasBuelens/web-streams-polyfill/issues/75
+  // TODO Consider using private symbols or #private fields for brand checks instead? (see #70)
+  describe('issue #75', () => {
+    it('ReadableStream', () => {
+      const fakeReadable = {
+        _readableStreamController: {}
+      };
+      const getReader = ReadableStream.prototype.getReader;
+      expect(() => getReader.call(fakeReadable)).toThrow(jasmine.any(TypeError));
+    });
+    it('WritableStream', () => {
+      const fakeWritable = {
+        _writableStreamController: {}
+      };
+      const getWriter = WritableStream.prototype.getWriter;
+      expect(() => getWriter.call(fakeWritable)).toThrow(jasmine.any(TypeError));
+    });
+    it('TransformStream', () => {
+      const fakeTransformStream = {
+        _transformStreamController: {}
+      };
+      const readableGetter = Object.getOwnPropertyDescriptor(TransformStream.prototype, 'readable');
+      expect(() => readableGetter.call(fakeTransformStream)).toThrow(jasmine.any(TypeError));
+    });
+  });
 });
