@@ -220,7 +220,7 @@ function IsTransformStream(x: unknown): x is TransformStream {
     return false;
   }
 
-  return true;
+  return x instanceof TransformStream;
 }
 
 // This is a no-op if both sides are already errored.
@@ -348,7 +348,7 @@ function IsTransformStreamDefaultController<O = any>(x: any): x is TransformStre
     return false;
   }
 
-  return true;
+  return x instanceof TransformStreamDefaultController;
 }
 
 function SetUpTransformStreamDefaultController<I, O>(stream: TransformStream<I, O>,

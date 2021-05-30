@@ -156,7 +156,7 @@ function IsReadableStreamDefaultController<R = any>(x: any): x is ReadableStream
     return false;
   }
 
-  return true;
+  return x instanceof ReadableStreamDefaultController;
 }
 
 function ReadableStreamDefaultControllerCallPullIfNeeded(controller: ReadableStreamDefaultController<any>): void {

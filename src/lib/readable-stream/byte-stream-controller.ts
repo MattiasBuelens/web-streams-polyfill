@@ -388,7 +388,7 @@ export function IsReadableByteStreamController(x: any): x is ReadableByteStreamC
     return false;
   }
 
-  return true;
+  return x instanceof ReadableByteStreamController;
 }
 
 function IsReadableStreamBYOBRequest(x: any): x is ReadableStreamBYOBRequest {
@@ -400,7 +400,7 @@ function IsReadableStreamBYOBRequest(x: any): x is ReadableStreamBYOBRequest {
     return false;
   }
 
-  return true;
+  return x instanceof ReadableStreamBYOBRequest;
 }
 
 function ReadableByteStreamControllerCallPullIfNeeded(controller: ReadableByteStreamController): void {

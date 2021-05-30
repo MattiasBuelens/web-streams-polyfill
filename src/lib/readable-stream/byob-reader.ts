@@ -237,7 +237,7 @@ export function IsReadableStreamBYOBReader(x: any): x is ReadableStreamBYOBReade
     return false;
   }
 
-  return true;
+  return x instanceof ReadableStreamBYOBReader;
 }
 
 function ReadableStreamBYOBReaderRead<T extends ArrayBufferView>(reader: ReadableStreamBYOBReader,

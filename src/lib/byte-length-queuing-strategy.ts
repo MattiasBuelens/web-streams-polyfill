@@ -69,5 +69,5 @@ export function IsByteLengthQueuingStrategy(x: any): x is ByteLengthQueuingStrat
     return false;
   }
 
-  return true;
+  return x instanceof ByteLengthQueuingStrategy;
 }

@@ -70,5 +70,5 @@ export function IsCountQueuingStrategy(x: any): x is CountQueuingStrategy {
     return false;
   }
 
-  return true;
+  return x instanceof CountQueuingStrategy;
 }

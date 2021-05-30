@@ -413,7 +413,7 @@ export function IsReadableStream(x: unknown): x is ReadableStream {
     return false;
   }
 
-  return true;
+  return x instanceof ReadableStream;
 }
 
 export function IsReadableStreamDisturbed(stream: ReadableStream): boolean {
