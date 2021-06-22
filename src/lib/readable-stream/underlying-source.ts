@@ -1,20 +1,28 @@
 import { ReadableStreamDefaultController } from './default-controller';
 import { ReadableByteStreamController } from './byte-stream-controller';
 
-export type ReadableStreamController<R = any> = ReadableStreamDefaultController<R> | ReadableByteStreamController;
-export type UnderlyingDefaultOrByteSourceStartCallback<R> = (controller: ReadableStreamController<R>) => void | PromiseLike<void>;
-export type UnderlyingDefaultOrByteSourcePullCallback<R> = (controller: ReadableStreamController<R>) => void | PromiseLike<void>;
+export type ReadableStreamController<R = any> =
+  ReadableStreamDefaultController<R> | ReadableByteStreamController;
+export type UnderlyingDefaultOrByteSourceStartCallback<R> =
+  (controller: ReadableStreamController<R>) => void | PromiseLike<void>;
+export type UnderlyingDefaultOrByteSourcePullCallback<R> =
+  (controller: ReadableStreamController<R>) => void | PromiseLike<void>;
 
 /** @public */
-export type UnderlyingSourceStartCallback<R> = (controller: ReadableStreamDefaultController<R>) => void | PromiseLike<void>;
+export type UnderlyingSourceStartCallback<R> =
+  (controller: ReadableStreamDefaultController<R>) => void | PromiseLike<void>;
 /** @public */
-export type UnderlyingSourcePullCallback<R> = (controller: ReadableStreamDefaultController<R>) => void | PromiseLike<void>;
+export type UnderlyingSourcePullCallback<R> =
+  (controller: ReadableStreamDefaultController<R>) => void | PromiseLike<void>;
 /** @public */
-export type UnderlyingByteSourceStartCallback = (controller: ReadableByteStreamController) => void | PromiseLike<void>;
+export type UnderlyingByteSourceStartCallback =
+  (controller: ReadableByteStreamController) => void | PromiseLike<void>;
 /** @public */
-export type UnderlyingByteSourcePullCallback = (controller: ReadableByteStreamController) => void | PromiseLike<void>;
+export type UnderlyingByteSourcePullCallback =
+  (controller: ReadableByteStreamController) => void | PromiseLike<void>;
 /** @public */
-export type UnderlyingSourceCancelCallback = (reason: any) => void | PromiseLike<void>;
+export type UnderlyingSourceCancelCallback =
+  (reason: any) => void | PromiseLike<void>;
 
 export type ReadableStreamType = 'bytes';
 

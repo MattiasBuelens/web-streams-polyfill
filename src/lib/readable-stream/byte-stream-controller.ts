@@ -441,8 +441,10 @@ function ReadableByteStreamControllerClearPendingPullIntos(controller: ReadableB
   controller._pendingPullIntos = new SimpleQueue();
 }
 
-function ReadableByteStreamControllerCommitPullIntoDescriptor<T extends ArrayBufferView>(stream: ReadableByteStream,
-                                                                                         pullIntoDescriptor: PullIntoDescriptor<T>) {
+function ReadableByteStreamControllerCommitPullIntoDescriptor<T extends ArrayBufferView>(
+  stream: ReadableByteStream,
+  pullIntoDescriptor: PullIntoDescriptor<T>
+) {
   assert(stream._state !== 'errored');
 
   let done = false;
@@ -460,7 +462,9 @@ function ReadableByteStreamControllerCommitPullIntoDescriptor<T extends ArrayBuf
   }
 }
 
-function ReadableByteStreamControllerConvertPullIntoDescriptor<T extends ArrayBufferView>(pullIntoDescriptor: PullIntoDescriptor<T>): T {
+function ReadableByteStreamControllerConvertPullIntoDescriptor<T extends ArrayBufferView>(
+  pullIntoDescriptor: PullIntoDescriptor<T>
+): T {
   const bytesFilled = pullIntoDescriptor.bytesFilled;
   const elementSize = pullIntoDescriptor.elementSize;
 
@@ -712,7 +716,9 @@ function ReadableByteStreamControllerRespondInternal(controller: ReadableByteStr
   ReadableByteStreamControllerCallPullIfNeeded(controller);
 }
 
-function ReadableByteStreamControllerShiftPendingPullInto(controller: ReadableByteStreamController): PullIntoDescriptor {
+function ReadableByteStreamControllerShiftPendingPullInto(
+  controller: ReadableByteStreamController
+): PullIntoDescriptor {
   const descriptor = controller._pendingPullIntos.shift()!;
   ReadableByteStreamControllerInvalidateBYOBRequest(controller);
   return descriptor;

@@ -225,8 +225,10 @@ function IsTransformStream(x: unknown): x is TransformStream {
 
 // This is a no-op if both sides are already errored.
 function TransformStreamError(stream: TransformStream, e: any) {
-  ReadableStreamDefaultControllerError(stream._readable._readableStreamController as ReadableStreamDefaultController<any>,
-                                       e);
+  ReadableStreamDefaultControllerError(
+    stream._readable._readableStreamController as ReadableStreamDefaultController<any>,
+    e
+  );
   TransformStreamErrorWritableAndUnblockWrite(stream, e);
 }
 
