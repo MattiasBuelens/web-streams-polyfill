@@ -86,8 +86,11 @@ export class ReadableStreamBYOBReader {
 
 // @public
 export type ReadableStreamBYOBReadResult<T extends ArrayBufferView> = {
-    done: boolean;
+    done: false;
     value: T;
+} | {
+    done: true;
+    value: T | undefined;
 };
 
 // @public

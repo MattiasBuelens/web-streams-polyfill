@@ -24,8 +24,11 @@ import { IsDetachedBuffer } from '../abstract-ops/ecmascript';
  * @public
  */
 export type ReadableStreamBYOBReadResult<T extends ArrayBufferView> = {
-  done: boolean;
+  done: false;
   value: T;
+} | {
+  done: true;
+  value: T | undefined;
 };
 
 // Abstract operations for the ReadableStream.
@@ -82,7 +85,7 @@ export function ReadableStreamHasBYOBReader(stream: ReadableByteStream): boolean
 export interface ReadIntoRequest<T extends ArrayBufferView> {
   _chunkSteps(chunk: T): void;
 
-  _closeSteps(chunk: T): void;
+  _closeSteps(chunk: T | undefined): void;
 
   _errorSteps(e: any): void;
 }

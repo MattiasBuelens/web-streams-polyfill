@@ -309,10 +309,7 @@ export class ReadableByteStreamController {
 
   /** @internal */
   [CancelSteps](reason: any): Promise<void> {
-    if (this._pendingPullIntos.length > 0) {
-      const firstDescriptor = this._pendingPullIntos.peek();
-      firstDescriptor.bytesFilled = 0;
-    }
+    ReadableByteStreamControllerClearPendingPullIntos(this);
 
     ResetQueue(this);
 

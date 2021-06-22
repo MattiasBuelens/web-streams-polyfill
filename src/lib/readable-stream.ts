@@ -448,6 +448,14 @@ export function ReadableStreamCancel<R>(stream: ReadableStream<R>, reason: any):
 
   ReadableStreamClose(stream);
 
+  const reader = stream._reader;
+  if (reader !== undefined && IsReadableStreamBYOBReader(reader)) {
+    reader._readIntoRequests.forEach(readIntoRequest => {
+      readIntoRequest._closeSteps(undefined);
+    });
+    reader._readIntoRequests = new SimpleQueue();
+  }
+
   const sourceCancelPromise = stream._readableStreamController[CancelSteps](reason);
   return transformPromiseWith(sourceCancelPromise, noop);
 }
