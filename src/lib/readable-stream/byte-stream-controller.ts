@@ -31,7 +31,6 @@ import {
   TransferArrayBuffer
 } from '../abstract-ops/ecmascript';
 import { CancelSteps, PullSteps } from '../abstract-ops/internal-methods';
-import { IsFiniteNonNegativeNumber } from '../abstract-ops/miscellaneous';
 import { promiseResolvedWith, uponPromise } from '../helpers/webidl';
 import { assertRequiredArgument, convertUnsignedLongLongWithEnforceRange } from '../validators/basic';
 
@@ -868,11 +867,6 @@ function ReadableByteStreamControllerGetDesiredSize(controller: ReadableByteStre
 }
 
 function ReadableByteStreamControllerRespond(controller: ReadableByteStreamController, bytesWritten: number) {
-  bytesWritten = Number(bytesWritten);
-  if (!IsFiniteNonNegativeNumber(bytesWritten)) {
-    throw new RangeError('bytesWritten must be a finite');
-  }
-
   assert(controller._pendingPullIntos.length > 0);
 
   const firstDescriptor = controller._pendingPullIntos.peek();
