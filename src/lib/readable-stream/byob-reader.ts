@@ -16,6 +16,7 @@ import { typeIsObject } from '../helpers/miscellaneous';
 import { newPromise, promiseRejectedWith } from '../helpers/webidl';
 import { assertRequiredArgument } from '../validators/basic';
 import { assertReadableStream } from '../validators/readable-stream';
+import { IsDetachedBuffer } from '../abstract-ops/ecmascript';
 
 /**
  * A result returned by {@link ReadableStreamBYOBReader.read}.
@@ -166,6 +167,9 @@ export class ReadableStreamBYOBReader {
     }
     if (view.buffer.byteLength === 0) {
       return promiseRejectedWith(new TypeError(`view's buffer must have non-zero byteLength`));
+    }
+    if (IsDetachedBuffer(view.buffer)) {
+      return promiseRejectedWith(new TypeError('view\'s buffer has been detached'));
     }
 
     if (this._ownerReadableStream === undefined) {

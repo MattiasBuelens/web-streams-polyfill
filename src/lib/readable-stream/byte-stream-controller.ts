@@ -24,7 +24,12 @@ import {
 } from '../readable-stream';
 import { ValidatedUnderlyingByteSource } from './underlying-source';
 import { typeIsObject } from '../helpers/miscellaneous';
-import { CopyDataBlockBytes, IsDetachedBuffer, TransferArrayBuffer } from '../abstract-ops/ecmascript';
+import {
+  CanTransferArrayBuffer,
+  CopyDataBlockBytes,
+  IsDetachedBuffer,
+  TransferArrayBuffer
+} from '../abstract-ops/ecmascript';
 import { CancelSteps, PullSteps } from '../abstract-ops/internal-methods';
 import { IsFiniteNonNegativeNumber } from '../abstract-ops/miscellaneous';
 import { promiseResolvedWith, uponPromise } from '../helpers/webidl';
@@ -102,15 +107,13 @@ export class ReadableStreamBYOBRequest {
     if (!ArrayBuffer.isView(view)) {
       throw new TypeError('You can only respond with array buffer views');
     }
-    if (view.byteLength === 0) {
-      throw new TypeError('chunk must have non-zero byteLength');
-    }
-    if (view.buffer.byteLength === 0) {
-      throw new TypeError(`chunk's buffer must have non-zero byteLength`);
-    }
 
     if (this._associatedReadableByteStreamController === undefined) {
       throw new TypeError('This BYOB request has been invalidated');
+    }
+
+    if (IsDetachedBuffer(view.buffer)) {
+      throw new TypeError('The given view\'s buffer has been detached and so cannot be used as a response');
     }
 
     ReadableByteStreamControllerRespondWithNewView(this._associatedReadableByteStreamController, view);
@@ -148,6 +151,7 @@ type PullIntoDescriptor<T extends ArrayBufferView = ArrayBufferView> =
 
 interface DefaultPullIntoDescriptor {
   buffer: ArrayBufferLike;
+  bufferByteLength: number;
   byteOffset: number;
   byteLength: number;
   bytesFilled: number;
@@ -158,6 +162,7 @@ interface DefaultPullIntoDescriptor {
 
 interface BYOBPullIntoDescriptor<T extends ArrayBufferView = ArrayBufferView> {
   buffer: ArrayBufferLike;
+  bufferByteLength: number;
   byteOffset: number;
   byteLength: number;
   bytesFilled: number;
@@ -347,6 +352,7 @@ export class ReadableByteStreamController {
 
       const pullIntoDescriptor: DefaultPullIntoDescriptor = {
         buffer,
+        bufferByteLength: autoAllocateChunkSize,
         byteOffset: 0,
         byteLength: autoAllocateChunkSize,
         bytesFilled: 0,
@@ -537,8 +543,7 @@ function ReadableByteStreamControllerFillHeadPullIntoDescriptor(controller: Read
                                                                 size: number,
                                                                 pullIntoDescriptor: PullIntoDescriptor) {
   assert(controller._pendingPullIntos.length === 0 || controller._pendingPullIntos.peek() === pullIntoDescriptor);
-
-  ReadableByteStreamControllerInvalidateBYOBRequest(controller);
+  assert(controller._byobRequest === null);
   pullIntoDescriptor.bytesFilled += size;
 }
 
@@ -598,9 +603,16 @@ export function ReadableByteStreamControllerPullInto<T extends ArrayBufferView>(
 
   const ctor = view.constructor as ArrayBufferViewConstructor<T>;
 
+  // try {
   const buffer = TransferArrayBuffer(view.buffer);
+  // } catch (e) {
+  //   readIntoRequest._errorSteps(e);
+  //   return;
+  // }
+
   const pullIntoDescriptor: BYOBPullIntoDescriptor<T> = {
     buffer,
+    bufferByteLength: buffer.byteLength,
     byteOffset: view.byteOffset,
     byteLength: view.byteLength,
     bytesFilled: 0,
@@ -653,8 +665,6 @@ export function ReadableByteStreamControllerPullInto<T extends ArrayBufferView>(
 
 function ReadableByteStreamControllerRespondInClosedState(controller: ReadableByteStreamController,
                                                           firstDescriptor: PullIntoDescriptor) {
-  firstDescriptor.buffer = TransferArrayBuffer(firstDescriptor.buffer);
-
   assert(firstDescriptor.bytesFilled === 0);
 
   const stream = controller._controlledReadableByteStream;
@@ -669,14 +679,11 @@ function ReadableByteStreamControllerRespondInClosedState(controller: ReadableBy
 function ReadableByteStreamControllerRespondInReadableState(controller: ReadableByteStreamController,
                                                             bytesWritten: number,
                                                             pullIntoDescriptor: PullIntoDescriptor) {
-  if (pullIntoDescriptor.bytesFilled + bytesWritten > pullIntoDescriptor.byteLength) {
-    throw new RangeError('bytesWritten out of range');
-  }
+  assert(pullIntoDescriptor.bytesFilled + bytesWritten <= pullIntoDescriptor.byteLength);
 
   ReadableByteStreamControllerFillHeadPullIntoDescriptor(controller, bytesWritten, pullIntoDescriptor);
 
   if (pullIntoDescriptor.bytesFilled < pullIntoDescriptor.elementSize) {
-    // TODO: Figure out whether we should detach the buffer or not here.
     return;
   }
 
@@ -689,7 +696,6 @@ function ReadableByteStreamControllerRespondInReadableState(controller: Readable
     ReadableByteStreamControllerEnqueueChunkToQueue(controller, remainder, 0, remainder.byteLength);
   }
 
-  pullIntoDescriptor.buffer = TransferArrayBuffer(pullIntoDescriptor.buffer);
   pullIntoDescriptor.bytesFilled -= remainderSize;
   ReadableByteStreamControllerCommitPullIntoDescriptor(controller._controlledReadableByteStream, pullIntoDescriptor);
 
@@ -698,18 +704,17 @@ function ReadableByteStreamControllerRespondInReadableState(controller: Readable
 
 function ReadableByteStreamControllerRespondInternal(controller: ReadableByteStreamController, bytesWritten: number) {
   const firstDescriptor = controller._pendingPullIntos.peek();
+  assert(CanTransferArrayBuffer(firstDescriptor.buffer));
+
+  ReadableByteStreamControllerInvalidateBYOBRequest(controller);
 
   const state = controller._controlledReadableByteStream._state;
-
   if (state === 'closed') {
-    if (bytesWritten !== 0) {
-      throw new TypeError('bytesWritten must be 0 when calling respond() on a closed stream');
-    }
-
+    assert(bytesWritten === 0);
     ReadableByteStreamControllerRespondInClosedState(controller, firstDescriptor);
   } else {
     assert(state === 'readable');
-
+    assert(bytesWritten > 0);
     ReadableByteStreamControllerRespondInReadableState(controller, bytesWritten, firstDescriptor);
   }
 
@@ -719,8 +724,8 @@ function ReadableByteStreamControllerRespondInternal(controller: ReadableByteStr
 function ReadableByteStreamControllerShiftPendingPullInto(
   controller: ReadableByteStreamController
 ): PullIntoDescriptor {
+  assert(controller._byobRequest === null);
   const descriptor = controller._pendingPullIntos.shift()!;
-  ReadableByteStreamControllerInvalidateBYOBRequest(controller);
   return descriptor;
 }
 
@@ -800,7 +805,22 @@ function ReadableByteStreamControllerEnqueue(controller: ReadableByteStreamContr
   const buffer = chunk.buffer;
   const byteOffset = chunk.byteOffset;
   const byteLength = chunk.byteLength;
+  if (IsDetachedBuffer(buffer)) {
+    throw new TypeError('chunk\'s buffer is detached and so cannot be enqueued');
+  }
   const transferredBuffer = TransferArrayBuffer(buffer);
+
+  if (controller._pendingPullIntos.length > 0) {
+    const firstPendingPullInto = controller._pendingPullIntos.peek();
+    if (IsDetachedBuffer(firstPendingPullInto.buffer)) {
+      throw new TypeError(
+        'The BYOB request\'s buffer has been detached and so cannot be filled with an enqueued chunk'
+      );
+    }
+    firstPendingPullInto.buffer = TransferArrayBuffer(firstPendingPullInto.buffer);
+  }
+
+  ReadableByteStreamControllerInvalidateBYOBRequest(controller);
 
   if (ReadableStreamHasDefaultReader(stream)) {
     if (ReadableStreamGetNumReadRequests(stream) === 0) {
@@ -858,23 +878,60 @@ function ReadableByteStreamControllerRespond(controller: ReadableByteStreamContr
 
   assert(controller._pendingPullIntos.length > 0);
 
+  const firstDescriptor = controller._pendingPullIntos.peek();
+  const state = controller._controlledReadableByteStream._state;
+
+  if (state === 'closed') {
+    if (bytesWritten !== 0) {
+      throw new TypeError('bytesWritten must be 0 when calling respond() on a closed stream');
+    }
+  } else {
+    assert(state === 'readable');
+    if (bytesWritten === 0) {
+      throw new TypeError('bytesWritten must be greater than 0 when calling respond() on a readable stream');
+    }
+    if (firstDescriptor.bytesFilled + bytesWritten > firstDescriptor.byteLength) {
+      throw new RangeError('bytesWritten out of range');
+    }
+  }
+
+  firstDescriptor.buffer = TransferArrayBuffer(firstDescriptor.buffer);
+
   ReadableByteStreamControllerRespondInternal(controller, bytesWritten);
 }
 
 function ReadableByteStreamControllerRespondWithNewView(controller: ReadableByteStreamController,
                                                         view: ArrayBufferView) {
   assert(controller._pendingPullIntos.length > 0);
+  assert(!IsDetachedBuffer(view.buffer));
 
   const firstDescriptor = controller._pendingPullIntos.peek();
+  const state = controller._controlledReadableByteStream._state;
+
+  if (state === 'closed') {
+    if (view.byteLength !== 0) {
+      throw new TypeError('The view\'s length must be 0 when calling respondWithNewView() on a closed stream');
+    }
+  } else {
+    assert(state === 'readable');
+    if (view.byteLength === 0) {
+      throw new TypeError(
+        'The view\'s length must be greater than 0 when calling respondWithNewView() on a readable stream'
+      );
+    }
+  }
 
   if (firstDescriptor.byteOffset + firstDescriptor.bytesFilled !== view.byteOffset) {
     throw new RangeError('The region specified by view does not match byobRequest');
   }
-  if (firstDescriptor.byteLength !== view.byteLength) {
+  if (firstDescriptor.bufferByteLength !== view.buffer.byteLength) {
     throw new RangeError('The buffer of view has different capacity than byobRequest');
   }
+  if (firstDescriptor.bytesFilled + view.byteLength > firstDescriptor.byteLength) {
+    throw new RangeError('The region specified by view is larger than byobRequest');
+  }
 
-  firstDescriptor.buffer = view.buffer;
+  firstDescriptor.buffer = TransferArrayBuffer(view.buffer);
 
   ReadableByteStreamControllerRespondInternal(controller, view.byteLength);
 }

@@ -18,6 +18,13 @@ export function TransferArrayBuffer<T extends ArrayBufferLike>(O: T): T {
 }
 
 // Not implemented correctly
-export function IsDetachedBuffer(O: ArrayBufferLike): boolean { // eslint-disable-line @typescript-eslint/no-unused-vars
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function CanTransferArrayBuffer(O: ArrayBufferLike): boolean {
+  return true;
+}
+
+// Not implemented correctly
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function IsDetachedBuffer(O: ArrayBufferLike): boolean {
   return false;
 }
