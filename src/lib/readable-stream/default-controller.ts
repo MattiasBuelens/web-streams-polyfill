@@ -238,7 +238,10 @@ export function ReadableStreamDefaultControllerClose(controller: ReadableStreamD
   }
 }
 
-export function ReadableStreamDefaultControllerEnqueue<R>(controller: ReadableStreamDefaultController<R>, chunk: R): void {
+export function ReadableStreamDefaultControllerEnqueue<R>(
+  controller: ReadableStreamDefaultController<R>,
+  chunk: R
+): void {
   if (!ReadableStreamDefaultControllerCanCloseOrEnqueue(controller)) {
     return;
   }
@@ -280,7 +283,9 @@ export function ReadableStreamDefaultControllerError(controller: ReadableStreamD
   ReadableStreamError(stream, e);
 }
 
-export function ReadableStreamDefaultControllerGetDesiredSize(controller: ReadableStreamDefaultController<any>): number | null {
+export function ReadableStreamDefaultControllerGetDesiredSize(
+  controller: ReadableStreamDefaultController<any>
+): number | null {
   const state = controller._controlledReadableStream._state;
 
   if (state === 'errored') {
@@ -294,7 +299,9 @@ export function ReadableStreamDefaultControllerGetDesiredSize(controller: Readab
 }
 
 // This is used in the implementation of TransformStream.
-export function ReadableStreamDefaultControllerHasBackpressure(controller: ReadableStreamDefaultController<any>): boolean {
+export function ReadableStreamDefaultControllerHasBackpressure(
+  controller: ReadableStreamDefaultController<any>
+): boolean {
   if (ReadableStreamDefaultControllerShouldCallPull(controller)) {
     return false;
   }
@@ -302,7 +309,9 @@ export function ReadableStreamDefaultControllerHasBackpressure(controller: Reada
   return true;
 }
 
-export function ReadableStreamDefaultControllerCanCloseOrEnqueue(controller: ReadableStreamDefaultController<any>): boolean {
+export function ReadableStreamDefaultControllerCanCloseOrEnqueue(
+  controller: ReadableStreamDefaultController<any>
+): boolean {
   const state = controller._controlledReadableStream._state;
 
   if (!controller._closeRequested && state === 'readable') {

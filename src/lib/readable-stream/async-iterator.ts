@@ -175,7 +175,8 @@ function IsReadableStreamAsyncIterator<R = any>(x: any): x is ReadableStreamAsyn
 
   try {
     // noinspection SuspiciousTypeOfGuard
-    return (x as ReadableStreamAsyncIteratorInstance<any>)._asyncIteratorImpl instanceof ReadableStreamAsyncIteratorImpl;
+    return (x as ReadableStreamAsyncIteratorInstance<any>)._asyncIteratorImpl instanceof
+      ReadableStreamAsyncIteratorImpl;
   } catch {
     return false;
   }

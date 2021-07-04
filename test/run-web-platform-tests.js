@@ -38,12 +38,20 @@ async function main() {
     // We cannot polyfill TransferArrayBuffer yet, so disable tests for detached array buffers
     // See https://github.com/MattiasBuelens/web-streams-polyfill/issues/3
     'readable-byte-streams/bad-buffers-and-views.any.html',
+    'readable-byte-streams/enqueue-with-detached-buffer.window.html',
+    'readable-byte-streams/non-transferable-buffers.any.html',
     // Disable tests for different size functions per realm, since they need a working <iframe>
     'queuing-strategies-size-function-per-global.window.html',
     // We don't implement transferable streams yet
     'transferable/**'
   ];
-  const ignoredFailures = {};
+  const ignoredFailures = {
+    // We cannot transfer byobRequest.view.buffer after respond() or enqueue()
+    'readable-byte-streams/general.any.html': [
+      'ReadableStream with byte source: read(view) with Uint32Array, then fill it by multiple respond() calls',
+      'ReadableStream with byte source: read(view) with Uint32Array, then fill it by multiple enqueue() calls'
+    ]
+  };
 
   const ignoredFailuresMinified = {
     'idlharness.any.html': [

@@ -375,11 +375,13 @@ export function CreateReadableStream<R>(startAlgorithm: () => void | PromiseLike
 }
 
 // Throws if and only if startAlgorithm throws.
-export function CreateReadableByteStream(startAlgorithm: () => void | PromiseLike<void>,
-                                         pullAlgorithm: () => Promise<void>,
-                                         cancelAlgorithm: (reason: any) => Promise<void>,
-                                         highWaterMark = 0,
-                                         autoAllocateChunkSize: number | undefined = undefined): ReadableStream<Uint8Array> {
+export function CreateReadableByteStream(
+  startAlgorithm: () => void | PromiseLike<void>,
+  pullAlgorithm: () => Promise<void>,
+  cancelAlgorithm: (reason: any) => Promise<void>,
+  highWaterMark = 0,
+  autoAllocateChunkSize: number | undefined = undefined
+): ReadableStream<Uint8Array> {
   assert(IsNonNegativeNumber(highWaterMark));
   if (autoAllocateChunkSize !== undefined) {
     assert(NumberIsInteger(autoAllocateChunkSize));
@@ -445,6 +447,14 @@ export function ReadableStreamCancel<R>(stream: ReadableStream<R>, reason: any):
   }
 
   ReadableStreamClose(stream);
+
+  const reader = stream._reader;
+  if (reader !== undefined && IsReadableStreamBYOBReader(reader)) {
+    reader._readIntoRequests.forEach(readIntoRequest => {
+      readIntoRequest._closeSteps(undefined);
+    });
+    reader._readIntoRequests = new SimpleQueue();
+  }
 
   const sourceCancelPromise = stream._readableStreamController[CancelSteps](reason);
   return transformPromiseWith(sourceCancelPromise, noop);

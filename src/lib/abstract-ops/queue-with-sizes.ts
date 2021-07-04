@@ -1,6 +1,6 @@
 import assert from '../../stub/assert';
 import { SimpleQueue } from '../simple-queue';
-import { IsFiniteNonNegativeNumber } from './miscellaneous';
+import { IsNonNegativeNumber } from './miscellaneous';
 
 export interface QueueContainer<T> {
   _queue: SimpleQueue<T>;
@@ -28,8 +28,7 @@ export function DequeueValue<T>(container: QueueContainer<QueuePair<T>>): T {
 export function EnqueueValueWithSize<T>(container: QueueContainer<QueuePair<T>>, value: T, size: number) {
   assert('_queue' in container && '_queueTotalSize' in container);
 
-  size = Number(size);
-  if (!IsFiniteNonNegativeNumber(size)) {
+  if (!IsNonNegativeNumber(size) || size === Infinity) {
     throw new RangeError('Size must be a finite, non-NaN, non-negative number.');
   }
 

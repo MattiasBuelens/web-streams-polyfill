@@ -16,6 +16,7 @@ import { typeIsObject } from '../helpers/miscellaneous';
 import { newPromise, promiseRejectedWith } from '../helpers/webidl';
 import { assertRequiredArgument } from '../validators/basic';
 import { assertReadableStream } from '../validators/readable-stream';
+import { IsDetachedBuffer } from '../abstract-ops/ecmascript';
 
 /**
  * A result returned by {@link ReadableStreamBYOBReader.read}.
@@ -23,8 +24,11 @@ import { assertReadableStream } from '../validators/readable-stream';
  * @public
  */
 export type ReadableStreamBYOBReadResult<T extends ArrayBufferView> = {
-  done: boolean;
+  done: false;
   value: T;
+} | {
+  done: true;
+  value: T | undefined;
 };
 
 // Abstract operations for the ReadableStream.
@@ -81,7 +85,7 @@ export function ReadableStreamHasBYOBReader(stream: ReadableByteStream): boolean
 export interface ReadIntoRequest<T extends ArrayBufferView> {
   _chunkSteps(chunk: T): void;
 
-  _closeSteps(chunk: T): void;
+  _closeSteps(chunk: T | undefined): void;
 
   _errorSteps(e: any): void;
 }
@@ -166,6 +170,9 @@ export class ReadableStreamBYOBReader {
     }
     if (view.buffer.byteLength === 0) {
       return promiseRejectedWith(new TypeError(`view's buffer must have non-zero byteLength`));
+    }
+    if (IsDetachedBuffer(view.buffer)) {
+      return promiseRejectedWith(new TypeError('view\'s buffer has been detached'));
     }
 
     if (this._ownerReadableStream === undefined) {

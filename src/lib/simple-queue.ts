@@ -129,7 +129,7 @@ export class SimpleQueue<T> {
 
   // Return the element that would be returned if shift() was called now,
   // without modifying the queue.
-  peek() {
+  peek(): T {
     assert(this._size > 0); // must not be called on an empty queue
 
     const front = this._front;
