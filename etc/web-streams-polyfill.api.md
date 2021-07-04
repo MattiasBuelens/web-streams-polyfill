@@ -249,7 +249,9 @@ export class WritableStream<W = any> {
 
 // @public
 export class WritableStreamDefaultController<W = any> {
+    get abortReason(): any;
     error(e?: any): void;
+    get signal(): AbortSignal;
 }
 
 // @public
