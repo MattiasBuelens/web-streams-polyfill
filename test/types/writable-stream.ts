@@ -37,7 +37,8 @@ const closePromise: Promise<void> = writableStream.close();
 const abortPromise: Promise<void> = writableStream.abort('aborted');
 
 // Compatibility with stream types from DOM
-const domUnderlyingSink: UnderlyingSink<string> = underlyingSink;
+// FIXME Re-enable when TypeScript types have been updated to match latest spec
+// const domUnderlyingSink: UnderlyingSink<string> = underlyingSink;
 const domWritableStream: WritableStream<string> = writableStream;
-const domController: WritableStreamDefaultController = controller;
+// const domController: WritableStreamDefaultController = controller;
 const domWriter: WritableStreamDefaultWriter<string> = writer;
