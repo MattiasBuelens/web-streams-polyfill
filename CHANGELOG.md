@@ -11,8 +11,10 @@
 
 ## Unreleased
 
+* 🚀 `ReadableStream.tee()` on a readable byte stream now returns two readable byte streams. ([#81](https://github.com/MattiasBuelens/web-streams-polyfill/pull/81))
+* 🚀 Add `WritableStreamDefaultController.signal` and `.abortReason`. ([#81](https://github.com/MattiasBuelens/web-streams-polyfill/pull/81))
 * 🐛 Make sure streams created with a different version of the polyfill do not pass the brand checks. ([#75](https://github.com/MattiasBuelens/web-streams-polyfill/issues/75), [#77](https://github.com/MattiasBuelens/web-streams-polyfill/pull/77))
-* 👓 Align with [spec version `c5ca883`](https://github.com/whatwg/streams/tree/c5ca8837c0b50ad1057351a7676824013c36538e/) ([#79](https://github.com/MattiasBuelens/web-streams-polyfill/pull/79))
+* 👓 Align with [spec version `cada812`](https://github.com/whatwg/streams/tree/cada8129edcc4803b2878a7a3f5e1d8325dc0c23/) ([#79](https://github.com/MattiasBuelens/web-streams-polyfill/pull/79), [#81](https://github.com/MattiasBuelens/web-streams-polyfill/pull/81))
 
 ## v3.0.3 (2020-04-09)
 
