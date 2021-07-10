@@ -25,6 +25,7 @@ import {
 import { ValidatedUnderlyingByteSource } from './underlying-source';
 import { typeIsObject } from '../helpers/miscellaneous';
 import {
+  ArrayBufferSlice,
   CanTransferArrayBuffer,
   CopyDataBlockBytes,
   IsDetachedBuffer,
@@ -677,7 +678,7 @@ function ReadableByteStreamControllerRespondInReadableState(controller: Readable
   const remainderSize = pullIntoDescriptor.bytesFilled % pullIntoDescriptor.elementSize;
   if (remainderSize > 0) {
     const end = pullIntoDescriptor.byteOffset + pullIntoDescriptor.bytesFilled;
-    const remainder = pullIntoDescriptor.buffer.slice(end - remainderSize, end);
+    const remainder = ArrayBufferSlice(pullIntoDescriptor.buffer, end - remainderSize, end);
     ReadableByteStreamControllerEnqueueChunkToQueue(controller, remainder, 0, remainder.byteLength);
   }
 
