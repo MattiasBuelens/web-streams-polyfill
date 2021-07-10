@@ -15,3 +15,8 @@ export function IsNonNegativeNumber(v: number): boolean {
 
   return true;
 }
+
+export function CloneAsUint8Array(O: ArrayBufferView): Uint8Array {
+  const buffer = O.buffer.slice(O.byteOffset, O.byteOffset + O.byteLength);
+  return new Uint8Array(buffer);
+}

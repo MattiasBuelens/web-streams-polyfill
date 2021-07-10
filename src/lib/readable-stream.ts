@@ -23,7 +23,6 @@ import {
 import { ReadableStreamPipeTo } from './readable-stream/pipe';
 import { ReadableStreamTee } from './readable-stream/tee';
 import { IsWritableStream, IsWritableStreamLocked, WritableStream } from './writable-stream';
-import NumberIsInteger from '../stub/number-isinteger';
 import { SimpleQueue } from './simple-queue';
 import {
   ReadableByteStreamController,
@@ -380,23 +379,13 @@ export function CreateReadableStream<R>(startAlgorithm: () => void | PromiseLike
 export function CreateReadableByteStream(
   startAlgorithm: () => void | PromiseLike<void>,
   pullAlgorithm: () => Promise<void>,
-  cancelAlgorithm: (reason: any) => Promise<void>,
-  highWaterMark = 0,
-  autoAllocateChunkSize: number | undefined = undefined
+  cancelAlgorithm: (reason: any) => Promise<void>
 ): ReadableByteStream {
-  assert(IsNonNegativeNumber(highWaterMark));
-  if (autoAllocateChunkSize !== undefined) {
-    assert(NumberIsInteger(autoAllocateChunkSize));
-    assert(autoAllocateChunkSize > 0);
-  }
-
-  const stream: ReadableStream<Uint8Array> = Object.create(ReadableStream.prototype);
+  const stream: ReadableByteStream = Object.create(ReadableStream.prototype);
   InitializeReadableStream(stream);
 
   const controller: ReadableByteStreamController = Object.create(ReadableByteStreamController.prototype);
-
-  SetUpReadableByteStreamController(stream, controller, startAlgorithm, pullAlgorithm, cancelAlgorithm, highWaterMark,
-                                    autoAllocateChunkSize);
+  SetUpReadableByteStreamController(stream, controller, startAlgorithm, pullAlgorithm, cancelAlgorithm, 0, undefined);
 
   return stream;
 }

@@ -50,6 +50,10 @@ async function main() {
     'readable-byte-streams/general.any.html': [
       'ReadableStream with byte source: read(view) with Uint32Array, then fill it by multiple respond() calls',
       'ReadableStream with byte source: read(view) with Uint32Array, then fill it by multiple enqueue() calls'
+    ],
+    // Same thing: the enqueued chunk will have the same buffer as branch1's chunk
+    'readable-byte-streams/tee.any.html': [
+      'ReadableStream teeing with byte source: chunks should be cloned for each branch'
     ]
   };
 
