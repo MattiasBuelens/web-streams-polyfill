@@ -63,7 +63,9 @@ import { convertPipeOptions } from './validators/pipe-options';
 import { ReadableWritablePair } from './readable-stream/readable-writable-pair';
 import { convertReadableWritablePair } from './validators/readable-writable-pair';
 
-export type ReadableByteStream = ReadableStream<Uint8Array>;
+export type ReadableByteStream = ReadableStream<Uint8Array> & {
+  _readableStreamController: ReadableByteStreamController
+};
 
 type ReadableStreamState = 'readable' | 'closed' | 'errored';
 
@@ -381,7 +383,7 @@ export function CreateReadableByteStream(
   cancelAlgorithm: (reason: any) => Promise<void>,
   highWaterMark = 0,
   autoAllocateChunkSize: number | undefined = undefined
-): ReadableStream<Uint8Array> {
+): ReadableByteStream {
   assert(IsNonNegativeNumber(highWaterMark));
   if (autoAllocateChunkSize !== undefined) {
     assert(NumberIsInteger(autoAllocateChunkSize));

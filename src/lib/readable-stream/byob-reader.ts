@@ -33,7 +33,7 @@ export type ReadableStreamBYOBReadResult<T extends ArrayBufferView> = {
 
 // Abstract operations for the ReadableStream.
 
-export function AcquireReadableStreamBYOBReader(stream: ReadableStream<Uint8Array>): ReadableStreamBYOBReader {
+export function AcquireReadableStreamBYOBReader(stream: ReadableByteStream): ReadableStreamBYOBReader {
   return new ReadableStreamBYOBReader(stream);
 }
 
