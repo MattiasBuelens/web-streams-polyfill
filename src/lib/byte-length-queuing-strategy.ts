@@ -3,9 +3,14 @@ import { typeIsObject } from './helpers/miscellaneous';
 import { assertRequiredArgument } from './validators/basic';
 import { convertQueuingStrategyInit } from './validators/queuing-strategy-init';
 
-const byteLengthSizeFunction = function size(chunk: ArrayBufferView): number {
+// The size function must not have a prototype property nor be a constructor
+const byteLengthSizeFunction = (chunk: ArrayBufferView): number => {
   return chunk.byteLength;
 };
+Object.defineProperty(byteLengthSizeFunction, 'name', {
+  value: 'size',
+  configurable: true
+});
 
 /**
  * A queuing strategy that counts the number of bytes in each chunk.

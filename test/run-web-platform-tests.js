@@ -91,6 +91,13 @@ async function main() {
       /interface: attribute/,
       // ES5 build has { writable: true } on prototype objects
       /interface: existence and properties of interface prototype object/
+    ],
+    'queuing-strategies.any.html': [
+      // ES5 build turns arrow functions into regular functions, which cannot be marked as non-constructable
+      'ByteLengthQueuingStrategy: size should not have a prototype property',
+      'CountQueuingStrategy: size should not have a prototype property',
+      'ByteLengthQueuingStrategy: size should not be a constructor',
+      'CountQueuingStrategy: size should not be a constructor'
     ]
   });
 
