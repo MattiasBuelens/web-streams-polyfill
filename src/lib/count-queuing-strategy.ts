@@ -3,9 +3,14 @@ import { typeIsObject } from './helpers/miscellaneous';
 import { assertRequiredArgument } from './validators/basic';
 import { convertQueuingStrategyInit } from './validators/queuing-strategy-init';
 
-const countSizeFunction = function size(): 1 {
+// The size function must not have a prototype property nor be a constructor
+const countSizeFunction = (): 1 => {
   return 1;
 };
+Object.defineProperty(countSizeFunction, 'name', {
+  value: 'size',
+  configurable: true
+});
 
 /**
  * A queuing strategy that counts the number of chunks.

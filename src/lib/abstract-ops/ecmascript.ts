@@ -28,3 +28,15 @@ export function CanTransferArrayBuffer(O: ArrayBufferLike): boolean {
 export function IsDetachedBuffer(O: ArrayBufferLike): boolean {
   return false;
 }
+
+export function ArrayBufferSlice(buffer: ArrayBufferLike, begin: number, end: number): ArrayBufferLike {
+  // ArrayBuffer.prototype.slice is not available on IE10
+  // https://www.caniuse.com/mdn-javascript_builtins_arraybuffer_slice
+  if (buffer.slice) {
+    return buffer.slice(begin, end);
+  }
+  const length = end - begin;
+  const slice = new ArrayBuffer(length);
+  CopyDataBlockBytes(slice, 0, buffer, begin, length);
+  return slice;
+}

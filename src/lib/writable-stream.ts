@@ -31,6 +31,7 @@ import {
 import { assertObject, assertRequiredArgument } from './validators/basic';
 import { convertUnderlyingSink } from './validators/underlying-sink';
 import { assertWritableStream } from './validators/writable-stream';
+import { AbortController, AbortSignal, createAbortController } from './abort-signal';
 
 type WritableStreamState = 'writable' | 'closed' | 'erroring' | 'errored';
 
@@ -291,7 +292,17 @@ function IsWritableStreamLocked(stream: WritableStream): boolean {
 }
 
 function WritableStreamAbort(stream: WritableStream, reason: any): Promise<undefined> {
-  const state = stream._state;
+  if (stream._state === 'closed' || stream._state === 'errored') {
+    return promiseResolvedWith(undefined);
+  }
+  stream._writableStreamController._abortReason = reason;
+  stream._writableStreamController._abortController?.abort();
+
+  // TypeScript narrows the type of `stream._state` down to 'writable' | 'erroring',
+  // but it doesn't know that signaling abort runs author code that might have changed the state.
+  // Widen the type again by casting to WritableStreamState.
+  const state = stream._state as WritableStreamState;
+
   if (state === 'closed' || state === 'errored') {
     return promiseResolvedWith(undefined);
   }
@@ -925,6 +936,10 @@ export class WritableStreamDefaultController<W = any> {
   /** @internal */
   _queueTotalSize!: number;
   /** @internal */
+  _abortReason: any;
+  /** @internal */
+  _abortController: AbortController | undefined;
+  /** @internal */
   _started!: boolean;
   /** @internal */
   _strategySizeAlgorithm!: QueuingStrategySizeCallback<W>;
@@ -942,6 +957,32 @@ export class WritableStreamDefaultController<W = any> {
   }
 
   /**
+   * The reason which was passed to `WritableStream.abort(reason)` when the stream was aborted.
+   */
+  get abortReason(): any {
+    if (!IsWritableStreamDefaultController(this)) {
+      throw defaultControllerBrandCheckException('abortReason');
+    }
+    return this._abortReason;
+  }
+
+  /**
+   * An `AbortSignal` that can be used to abort the pending write or close operation when the stream is aborted.
+   */
+  get signal(): AbortSignal {
+    if (!IsWritableStreamDefaultController(this)) {
+      throw defaultControllerBrandCheckException('signal');
+    }
+    if (this._abortController === undefined) {
+      // Older browsers or older Node versions may not support `AbortController` or `AbortSignal`.
+      // We don't want to bundle and ship an `AbortController` polyfill together with our polyfill,
+      // so instead we only implement support for `signal` if we find a global `AbortController` constructor.
+      throw new TypeError('WritableStreamDefaultController.prototype.signal is not supported');
+    }
+    return this._abortController.signal;
+  }
+
+  /**
    * Closes the controlled writable stream, making all future interactions with it fail with the given error `e`.
    *
    * This method is rarely used, since usually it suffices to return a rejected promise from one of the underlying
@@ -950,8 +991,7 @@ export class WritableStreamDefaultController<W = any> {
    */
   error(e: any = undefined): void {
     if (!IsWritableStreamDefaultController(this)) {
-      throw new TypeError(
-        'WritableStreamDefaultController.prototype.error can only be used on a WritableStreamDefaultController');
+      throw defaultControllerBrandCheckException('error');
     }
     const state = this._controlledWritableStream._state;
     if (state !== 'writable') {
@@ -1019,6 +1059,8 @@ function SetUpWritableStreamDefaultController<W>(stream: WritableStream<W>,
   controller._queueTotalSize = undefined!;
   ResetQueue(controller);
 
+  controller._abortReason = undefined;
+  controller._abortController = createAbortController();
   controller._started = false;
 
   controller._strategySizeAlgorithm = sizeAlgorithm;
@@ -1235,6 +1277,14 @@ function WritableStreamDefaultControllerError(controller: WritableStreamDefaultC
 function streamBrandCheckException(name: string): TypeError {
   return new TypeError(`WritableStream.prototype.${name} can only be used on a WritableStream`);
 }
+
+// Helper functions for the WritableStreamDefaultController.
+
+function defaultControllerBrandCheckException(name: string): TypeError {
+  return new TypeError(
+    `WritableStreamDefaultController.prototype.${name} can only be used on a WritableStreamDefaultController`);
+}
+
 
 // Helper functions for the WritableStreamDefaultWriter.
 

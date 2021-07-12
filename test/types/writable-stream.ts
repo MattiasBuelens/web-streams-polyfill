@@ -22,6 +22,9 @@ const writableStream: polyfill.WritableStream<string> = new polyfill.WritableStr
   { highWaterMark: 0, size: (chunk: string) => 1 }
 );
 
+const controllerSignal: polyfill.AbortSignal = controller.signal;
+const controllerAbortReason: any = controller.abortReason;
+
 const locked: boolean = writableStream.locked;
 
 const writer: polyfill.WritableStreamDefaultWriter<string> = writableStream.getWriter();
@@ -37,7 +40,8 @@ const closePromise: Promise<void> = writableStream.close();
 const abortPromise: Promise<void> = writableStream.abort('aborted');
 
 // Compatibility with stream types from DOM
-const domUnderlyingSink: UnderlyingSink<string> = underlyingSink;
+// FIXME Re-enable when TypeScript types have been updated to match latest spec
+// const domUnderlyingSink: UnderlyingSink<string> = underlyingSink;
 const domWritableStream: WritableStream<string> = writableStream;
-const domController: WritableStreamDefaultController = controller;
+// const domController: WritableStreamDefaultController = controller;
 const domWriter: WritableStreamDefaultWriter<string> = writer;

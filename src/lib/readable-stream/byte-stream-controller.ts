@@ -25,6 +25,7 @@ import {
 import { ValidatedUnderlyingByteSource } from './underlying-source';
 import { typeIsObject } from '../helpers/miscellaneous';
 import {
+  ArrayBufferSlice,
   CanTransferArrayBuffer,
   CopyDataBlockBytes,
   IsDetachedBuffer,
@@ -215,18 +216,7 @@ export class ReadableByteStreamController {
       throw byteStreamControllerBrandCheckException('byobRequest');
     }
 
-    if (this._byobRequest === null && this._pendingPullIntos.length > 0) {
-      const firstDescriptor = this._pendingPullIntos.peek();
-      const view = new Uint8Array(firstDescriptor.buffer,
-                                  firstDescriptor.byteOffset + firstDescriptor.bytesFilled,
-                                  firstDescriptor.byteLength - firstDescriptor.bytesFilled);
-
-      const byobRequest: ReadableStreamBYOBRequest = Object.create(ReadableStreamBYOBRequest.prototype);
-      SetUpReadableStreamBYOBRequest(byobRequest, this, view);
-      this._byobRequest = byobRequest;
-    }
-
-    return this._byobRequest;
+    return ReadableByteStreamControllerGetBYOBRequest(this);
   }
 
   /**
@@ -688,7 +678,7 @@ function ReadableByteStreamControllerRespondInReadableState(controller: Readable
   const remainderSize = pullIntoDescriptor.bytesFilled % pullIntoDescriptor.elementSize;
   if (remainderSize > 0) {
     const end = pullIntoDescriptor.byteOffset + pullIntoDescriptor.bytesFilled;
-    const remainder = pullIntoDescriptor.buffer.slice(end - remainderSize, end);
+    const remainder = ArrayBufferSlice(pullIntoDescriptor.buffer, end - remainderSize, end);
     ReadableByteStreamControllerEnqueueChunkToQueue(controller, remainder, 0, remainder.byteLength);
   }
 
@@ -764,7 +754,7 @@ function ReadableByteStreamControllerClearAlgorithms(controller: ReadableByteStr
 
 // A client of ReadableByteStreamController may use these functions directly to bypass state check.
 
-function ReadableByteStreamControllerClose(controller: ReadableByteStreamController) {
+export function ReadableByteStreamControllerClose(controller: ReadableByteStreamController) {
   const stream = controller._controlledReadableByteStream;
 
   if (controller._closeRequested || stream._state !== 'readable') {
@@ -791,7 +781,7 @@ function ReadableByteStreamControllerClose(controller: ReadableByteStreamControl
   ReadableStreamClose(stream);
 }
 
-function ReadableByteStreamControllerEnqueue(controller: ReadableByteStreamController, chunk: ArrayBufferView) {
+export function ReadableByteStreamControllerEnqueue(controller: ReadableByteStreamController, chunk: ArrayBufferView) {
   const stream = controller._controlledReadableByteStream;
 
   if (controller._closeRequested || stream._state !== 'readable') {
@@ -839,7 +829,7 @@ function ReadableByteStreamControllerEnqueue(controller: ReadableByteStreamContr
   ReadableByteStreamControllerCallPullIfNeeded(controller);
 }
 
-function ReadableByteStreamControllerError(controller: ReadableByteStreamController, e: any) {
+export function ReadableByteStreamControllerError(controller: ReadableByteStreamController, e: any) {
   const stream = controller._controlledReadableByteStream;
 
   if (stream._state !== 'readable') {
@@ -851,6 +841,22 @@ function ReadableByteStreamControllerError(controller: ReadableByteStreamControl
   ResetQueue(controller);
   ReadableByteStreamControllerClearAlgorithms(controller);
   ReadableStreamError(stream, e);
+}
+
+export function ReadableByteStreamControllerGetBYOBRequest(
+  controller: ReadableByteStreamController
+): ReadableStreamBYOBRequest | null {
+  if (controller._byobRequest === null && controller._pendingPullIntos.length > 0) {
+    const firstDescriptor = controller._pendingPullIntos.peek();
+    const view = new Uint8Array(firstDescriptor.buffer,
+                                firstDescriptor.byteOffset + firstDescriptor.bytesFilled,
+                                firstDescriptor.byteLength - firstDescriptor.bytesFilled);
+
+    const byobRequest: ReadableStreamBYOBRequest = Object.create(ReadableStreamBYOBRequest.prototype);
+    SetUpReadableStreamBYOBRequest(byobRequest, controller, view);
+    controller._byobRequest = byobRequest;
+  }
+  return controller._byobRequest;
 }
 
 function ReadableByteStreamControllerGetDesiredSize(controller: ReadableByteStreamController): number | null {
@@ -866,7 +872,7 @@ function ReadableByteStreamControllerGetDesiredSize(controller: ReadableByteStre
   return controller._strategyHWM - controller._queueTotalSize;
 }
 
-function ReadableByteStreamControllerRespond(controller: ReadableByteStreamController, bytesWritten: number) {
+export function ReadableByteStreamControllerRespond(controller: ReadableByteStreamController, bytesWritten: number) {
   assert(controller._pendingPullIntos.length > 0);
 
   const firstDescriptor = controller._pendingPullIntos.peek();
@@ -891,8 +897,8 @@ function ReadableByteStreamControllerRespond(controller: ReadableByteStreamContr
   ReadableByteStreamControllerRespondInternal(controller, bytesWritten);
 }
 
-function ReadableByteStreamControllerRespondWithNewView(controller: ReadableByteStreamController,
-                                                        view: ArrayBufferView) {
+export function ReadableByteStreamControllerRespondWithNewView(controller: ReadableByteStreamController,
+                                                               view: ArrayBufferView) {
   assert(controller._pendingPullIntos.length > 0);
   assert(!IsDetachedBuffer(view.buffer));
 
