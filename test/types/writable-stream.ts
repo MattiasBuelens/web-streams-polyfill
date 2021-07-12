@@ -22,6 +22,9 @@ const writableStream: polyfill.WritableStream<string> = new polyfill.WritableStr
   { highWaterMark: 0, size: (chunk: string) => 1 }
 );
 
+const controllerSignal: polyfill.AbortSignal = controller.signal;
+const controllerAbortReason: any = controller.abortReason;
+
 const locked: boolean = writableStream.locked;
 
 const writer: polyfill.WritableStreamDefaultWriter<string> = writableStream.getWriter();
