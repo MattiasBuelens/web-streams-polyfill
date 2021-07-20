@@ -64,6 +64,8 @@ The `polyfill/es2018` and `ponyfill/es2018` variants work in any ES2018-compatib
 
 [Async iterable support for `ReadableStream`][rs-asynciterator] is available in all variants, but requires an ES2018-compatible environment or a polyfill for `Symbol.asyncIterator`.
 
+[`WritableStreamDefaultController.signal`][ws-controller-signal] is available in all variants, but requires a global `AbortController` constructor. If necessary, consider using a polyfill such as [abortcontroller-polyfill].
+
 ### Compliance
 
 The polyfill implements [version `cada812` (8 Jul 2021)][spec-snapshot] of the streams specification.
@@ -99,6 +101,8 @@ Thanks to these people for their work on [the original polyfill][creatorrr-polyf
 [promise-support]: https://kangax.github.io/compat-table/es6/#test-Promise
 [promise-polyfill]: https://www.npmjs.com/package/promise-polyfill
 [rs-asynciterator]: https://streams.spec.whatwg.org/#rs-asynciterator
+[ws-controller-signal]: https://streams.spec.whatwg.org/#ws-default-controller-signal
+[abortcontroller-polyfill]: https://www.npmjs.com/package/abortcontroller-polyfill
 [spec-snapshot]: https://streams.spec.whatwg.org/commit-snapshots/cada8129edcc4803b2878a7a3f5e1d8325dc0c23/
 [wpt]: https://github.com/web-platform-tests/wpt/tree/87a4c80598aee5178c385628174f1832f5a28ad6/streams
 [wpt-bad-buffers]: https://github.com/web-platform-tests/wpt/blob/87a4c80598aee5178c385628174f1832f5a28ad6/streams/readable-byte-streams/bad-buffers-and-views.any.js

@@ -13,6 +13,7 @@
 
 * 🚀 Calling `ReadableStream.tee()` on a readable byte stream now returns two readable byte streams. ([#81](https://github.com/MattiasBuelens/web-streams-polyfill/pull/81))
 * 🚀 Add `WritableStreamDefaultController.signal` and `.abortReason`. ([#81](https://github.com/MattiasBuelens/web-streams-polyfill/pull/81))
+  * `.signal` requires a global `AbortController` constructor to be available. If necessary, use a polyfill.
 * 🐛 Make sure streams created with a different version of the polyfill do not pass the brand checks. ([#75](https://github.com/MattiasBuelens/web-streams-polyfill/issues/75), [#77](https://github.com/MattiasBuelens/web-streams-polyfill/pull/77))
 * 👓 Align with [spec version `cada812`](https://github.com/whatwg/streams/tree/cada8129edcc4803b2878a7a3f5e1d8325dc0c23/) ([#79](https://github.com/MattiasBuelens/web-streams-polyfill/pull/79), [#81](https://github.com/MattiasBuelens/web-streams-polyfill/pull/81))
 
