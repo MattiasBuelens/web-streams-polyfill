@@ -8,8 +8,8 @@ if (typeof Symbol.asyncIterator === 'symbol') {
   AsyncIteratorPrototype = {
     // 25.1.3.1 %AsyncIteratorPrototype% [ @@asyncIterator ] ( )
     // https://tc39.github.io/ecma262/#sec-asynciteratorprototype-asynciterator
-    [Symbol.asyncIterator]() {
-      return this as any;
+    [Symbol.asyncIterator](this: AsyncIterator<any>) {
+      return this;
     }
   };
   Object.defineProperty(AsyncIteratorPrototype, Symbol.asyncIterator, { enumerable: false });
