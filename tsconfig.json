@@ -16,12 +16,7 @@
     "declarationMap": true,
     "isolatedModules": true,
     "verbatimModuleSyntax": true,
-    "baseUrl": "./src",
-    "paths": {
-      "@@target/*": [
-        "./target/es5/*"
-      ]
-    }
+    "baseUrl": "./src"
   },
   "include": [
     "src/"

@@ -16,7 +16,6 @@ const {
   ignoredFailuresBase,
   ignoredFailuresMinified,
   ignoredFailuresES5,
-  ignoredFailuresES6,
   mergeIgnoredFailures
 } = require('../shared/exclusions');
 
@@ -42,8 +41,6 @@ main().catch(e => {
 });
 
 async function main() {
-  const supportsES2018 = runtimeSupportsAsyncGenerators();
-
   const includedTests = process.argv.length >= 3 ? process.argv.slice(2) : ['**/*.html'];
   const excludedTests = [
     ...excludedTestsBase,
@@ -51,28 +48,15 @@ async function main() {
   ];
 
   const results = [];
-  if (supportsES2018) {
-    results.push(await runTests('polyfill.es2018.js', {
-      includedTests,
-      excludedTests,
-      ignoredFailures: ignoredFailuresBase
-    }));
-    results.push(await runTests('polyfill.es2018.min.js', {
-      includedTests,
-      excludedTests,
-      ignoredFailures: mergeIgnoredFailures(ignoredFailuresBase, ignoredFailuresMinified)
-    }));
-  }
-
   results.push(await runTests('polyfill.es6.js', {
     includedTests,
     excludedTests,
-    ignoredFailures: ignoredFailuresES6
+    ignoredFailures: ignoredFailuresBase
   }));
   results.push(await runTests('polyfill.es6.min.js', {
     includedTests,
     excludedTests,
-    ignoredFailures: mergeIgnoredFailures(ignoredFailuresES6, ignoredFailuresMinified)
+    ignoredFailures: mergeIgnoredFailures(ignoredFailuresBase, ignoredFailuresMinified)
   }));
 
   results.push(await runTests('polyfill.js', {
