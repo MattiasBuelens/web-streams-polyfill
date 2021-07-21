@@ -98,11 +98,9 @@ function bundle(entry, { esm = false, minify = false, target = 'es5' } = {}) {
 
 export default [
   // polyfill
-  bundle('polyfill', { esm: true }),
-  bundle('polyfill', { minify: true }),
+  bundle('polyfill', { esm: true, minify: true }),
   // polyfill/es6
-  bundle('polyfill', { target: 'es6', esm: true }),
-  bundle('polyfill', { target: 'es6', minify: true }),
+  bundle('polyfill', { target: 'es6', esm: true, minify: true }),
   // ponyfill
   bundle('ponyfill', { esm: true }),
   // ponyfill/es6

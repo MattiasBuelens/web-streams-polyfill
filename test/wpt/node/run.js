@@ -48,21 +48,10 @@ async function main() {
   ];
 
   const results = [];
-  results.push(await runTests('polyfill.es6.js', {
-    includedTests,
-    excludedTests,
-    ignoredFailures: ignoredFailuresBase
-  }));
   results.push(await runTests('polyfill.es6.min.js', {
     includedTests,
     excludedTests,
     ignoredFailures: mergeIgnoredFailures(ignoredFailuresBase, ignoredFailuresMinified)
-  }));
-
-  results.push(await runTests('polyfill.js', {
-    includedTests,
-    excludedTests,
-    ignoredFailures: ignoredFailuresES5
   }));
   results.push(await runTests('polyfill.min.js', {
     includedTests,

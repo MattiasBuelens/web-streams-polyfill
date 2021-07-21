@@ -1,6 +1,6 @@
 {
   "name": "web-streams-ponyfill-es2018",
-  "main": "../../dist/ponyfill.es6",
+  "main": "../../dist/ponyfill.es6.js",
   "module": "../../dist/ponyfill.es6.mjs",
   "types": "../../dist/types/ponyfill.d.ts",
   "typesVersions": {
