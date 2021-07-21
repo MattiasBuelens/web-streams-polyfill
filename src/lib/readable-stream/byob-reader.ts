@@ -33,7 +33,7 @@ export type ReadableStreamBYOBReadResult<T extends ArrayBufferView> = {
 
 // Abstract operations for the ReadableStream.
 
-export function AcquireReadableStreamBYOBReader(stream: ReadableStream<Uint8Array>): ReadableStreamBYOBReader {
+export function AcquireReadableStreamBYOBReader(stream: ReadableByteStream): ReadableStreamBYOBReader {
   return new ReadableStreamBYOBReader(stream);
 }
 
@@ -247,9 +247,11 @@ export function IsReadableStreamBYOBReader(x: any): x is ReadableStreamBYOBReade
   return x instanceof ReadableStreamBYOBReader;
 }
 
-function ReadableStreamBYOBReaderRead<T extends ArrayBufferView>(reader: ReadableStreamBYOBReader,
-                                                                 view: T,
-                                                                 readIntoRequest: ReadIntoRequest<T>): void {
+export function ReadableStreamBYOBReaderRead<T extends ArrayBufferView>(
+  reader: ReadableStreamBYOBReader,
+  view: T,
+  readIntoRequest: ReadIntoRequest<T>
+): void {
   const stream = reader._ownerReadableStream;
 
   assert(stream !== undefined);

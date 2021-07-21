@@ -37,3 +37,37 @@ export function isAbortSignal(value: unknown): value is AbortSignal {
     return false;
   }
 }
+
+/**
+ * A controller object that allows you to abort an `AbortSignal` when desired.
+ *
+ * @remarks
+ *   This interface is compatible with the `AbortController` interface defined in TypeScript's DOM types.
+ *   It is redefined here, so it can be polyfilled without a DOM, for example with
+ *   {@link https://www.npmjs.com/package/abortcontroller-polyfill | abortcontroller-polyfill} in a Node environment.
+ *
+ * @internal
+ */
+export interface AbortController {
+  readonly signal: AbortSignal;
+
+  abort(): void;
+}
+
+interface AbortControllerConstructor {
+  new(): AbortController;
+}
+
+const supportsAbortController = typeof (AbortController as any) === 'function';
+
+/**
+ * Construct a new AbortController, if supported by the platform.
+ *
+ * @internal
+ */
+export function createAbortController(): AbortController | undefined {
+  if (supportsAbortController) {
+    return new (AbortController as AbortControllerConstructor)();
+  }
+  return undefined;
+}

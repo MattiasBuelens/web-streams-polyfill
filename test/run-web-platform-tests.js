@@ -50,6 +50,10 @@ async function main() {
     'readable-byte-streams/general.any.html': [
       'ReadableStream with byte source: read(view) with Uint32Array, then fill it by multiple respond() calls',
       'ReadableStream with byte source: read(view) with Uint32Array, then fill it by multiple enqueue() calls'
+    ],
+    // Same thing: the enqueued chunk will have the same buffer as branch1's chunk
+    'readable-byte-streams/tee.any.html': [
+      'ReadableStream teeing with byte source: chunks should be cloned for each branch'
     ]
   };
 
@@ -91,6 +95,13 @@ async function main() {
       /interface: attribute/,
       // ES5 build has { writable: true } on prototype objects
       /interface: existence and properties of interface prototype object/
+    ],
+    'queuing-strategies.any.html': [
+      // ES5 build turns arrow functions into regular functions, which cannot be marked as non-constructable
+      'ByteLengthQueuingStrategy: size should not have a prototype property',
+      'CountQueuingStrategy: size should not have a prototype property',
+      'ByteLengthQueuingStrategy: size should not be a constructor',
+      'CountQueuingStrategy: size should not be a constructor'
     ]
   });
 
