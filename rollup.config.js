@@ -45,15 +45,13 @@ function bundle(entry, { esm = false, minify = false, target = 'es5' } = {}) {
         format: 'umd',
         name: 'WebStreamsPolyfill',
         banner,
-        freeze: false,
-        sourcemap: true
+        freeze: false
       },
       esm ? {
         file: `dist/${outname}${minify ? '.min' : ''}.mjs`,
         format: 'es',
         banner,
-        freeze: false,
-        sourcemap: true
+        freeze: false
       } : undefined
     ].filter(Boolean),
     plugins: [
@@ -78,8 +76,7 @@ function bundle(entry, { esm = false, minify = false, target = 'es5' } = {}) {
       }),
       !debug ? strip({
         include: 'src/**/*.ts',
-        functions: ['assert'],
-        sourceMap: true
+        functions: ['assert']
       }) : undefined,
       minify ? terser({
         keep_classnames: keepRegex, // needed for WPT
