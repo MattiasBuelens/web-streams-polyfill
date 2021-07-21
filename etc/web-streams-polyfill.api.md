@@ -4,6 +4,8 @@
 
 ```ts
 
+/// <reference lib="es2018.asynciterable" />
+
 // @public
 export interface AbortSignal {
     readonly aborted: boolean;
@@ -268,7 +270,6 @@ export class WritableStreamDefaultWriter<W = any> {
     releaseLock(): void;
     write(chunk: W): Promise<void>;
 }
-
 
 // (No @packageDocumentation comment for this package)
 
