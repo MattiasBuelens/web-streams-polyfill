@@ -96,13 +96,8 @@ module.exports = [
   // polyfill/es6
   bundle('polyfill', { target: 'es6', esm: true }),
   bundle('polyfill', { target: 'es6', minify: true }),
-  // polyfill/es2018
-  bundle('polyfill', { target: 'es2018', esm: true }),
-  bundle('polyfill', { target: 'es2018', minify: true }),
   // ponyfill
   bundle('ponyfill', { esm: true }),
   // ponyfill/es6
-  bundle('ponyfill', { target: 'es6', esm: true }),
-  // ponyfill/es2018
-  bundle('ponyfill', { target: 'es2018', esm: true })
+  bundle('ponyfill', { target: 'es6', esm: true })
 ];

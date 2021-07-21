@@ -14,7 +14,6 @@ import {
   readerLockException
 } from './generic-reader';
 import assert from '../../stub/assert';
-import { AsyncIteratorPrototype } from '@@target/stub/async-iterator-prototype';
 import { typeIsObject } from '../helpers/miscellaneous';
 import {
   newPromise,
@@ -149,8 +148,17 @@ const ReadableStreamAsyncIteratorPrototype: ReadableStreamAsyncIteratorInstance<
     return this._asyncIteratorImpl.return(value);
   }
 } as any;
-if (AsyncIteratorPrototype !== undefined) {
-  Object.setPrototypeOf(ReadableStreamAsyncIteratorPrototype, AsyncIteratorPrototype);
+
+if (typeof Symbol.asyncIterator === 'symbol') {
+  Object.defineProperty(ReadableStreamAsyncIteratorPrototype, Symbol.asyncIterator, {
+    // 25.1.3.1 %AsyncIteratorPrototype% [ @@asyncIterator ] ( )
+    // https://tc39.github.io/ecma262/#sec-asynciteratorprototype-asynciterator
+    value(this: ReadableStreamAsyncIteratorInstance<any>): AsyncIterator<any> {
+      return this;
+    },
+    writable: true,
+    configurable: true
+  });
 }
 
 // Abstract operations for the ReadableStream.
