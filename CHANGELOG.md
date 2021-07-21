@@ -17,13 +17,13 @@
 * 🐛 Make sure streams created with a different version of the polyfill do not pass the brand checks. ([#75](https://github.com/MattiasBuelens/web-streams-polyfill/issues/75), [#77](https://github.com/MattiasBuelens/web-streams-polyfill/pull/77))
 * 👓 Align with [spec version `cada812`](https://github.com/whatwg/streams/tree/cada8129edcc4803b2878a7a3f5e1d8325dc0c23/) ([#79](https://github.com/MattiasBuelens/web-streams-polyfill/pull/79), [#81](https://github.com/MattiasBuelens/web-streams-polyfill/pull/81))
 
-## v3.0.3 (2020-04-09)
+## v3.0.3 (2021-04-09)
 
 * 💅 Change `Promise<void>` to `Promise<undefined>` in TypeScript type definitions ([#72](https://github.com/MattiasBuelens/web-streams-polyfill/pull/72))
 * 🐛 Fix `ReadableStream.tee()` resolving its `cancel()` promise too early ([#73](https://github.com/MattiasBuelens/web-streams-polyfill/pull/73))
 * 👓 Align with [spec version `6762cdb`](https://github.com/whatwg/streams/tree/6762cdb4c6421cfa0da1d834d5a14fdd7326aaa5/) ([#73](https://github.com/MattiasBuelens/web-streams-polyfill/pull/73))
 
-## v3.0.2 (2020-02-10)
+## v3.0.2 (2021-02-10)
 
 * 👓 Align with [spec version `200c971`](https://github.com/whatwg/streams/tree/200c971563b1a695fce3eebe6dab45c348ff0ac0/) ([#69](https://github.com/MattiasBuelens/web-streams-polyfill/pull/69))
 
