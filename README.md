@@ -30,9 +30,9 @@ Each variant also includes TypeScript type definitions, compatible with the DOM 
 Usage as a polyfill:
 ```html
 <!-- option 1: hosted by unpkg CDN -->
-<script src="https://unpkg.com/web-streams-polyfill/dist/polyfill.min.js"></script>
+<script src="https://unpkg.com/web-streams-polyfill/dist/polyfill.js"></script>
 <!-- option 2: self hosted -->
-<script src="/path/to/web-streams-polyfill/dist/polyfill.min.js"></script>
+<script src="/path/to/web-streams-polyfill/dist/polyfill.js"></script>
 <script>
 var readable = new ReadableStream();
 </script>

@@ -2,9 +2,9 @@
   "name": "web-streams-polyfill",
   "version": "3.1.1",
   "description": "Web Streams, based on the WHATWG spec reference implementation",
-  "main": "dist/polyfill.min.js",
-  "browser": "dist/polyfill.min.js",
-  "module": "dist/polyfill.min.mjs",
+  "main": "dist/polyfill.js",
+  "browser": "dist/polyfill.js",
+  "module": "dist/polyfill.mjs",
   "types": "dist/types/polyfill.d.ts",
   "scripts": {
     "test": "npm run test:types && npm run test:unit && npm run test:wpt",
