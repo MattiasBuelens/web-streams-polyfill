@@ -10,7 +10,11 @@ const debug = false;
 
 const banner = `
 /**
+ * @license
  * ${pkg.name} v${pkg.version}
+ * Copyright 2024 Mattias Buelens, Diwank Singh Tomer and other contributors.
+ * This code is released under the MIT license.
+ * SPDX-License-Identifier: MIT
  */
 `.trim();
 
