@@ -48,14 +48,14 @@ function bundle(entry, { esm = false, minify = false, target = 'es5' } = {}) {
     input: `src/${entry}.ts`,
     output: [
       {
-        file: `dist/${outname}${minify ? '.min' : ''}.js`,
+        file: `dist/${outname}.js`,
         format: 'umd',
         name: 'WebStreamsPolyfill',
         banner,
         freeze: false
       },
       esm ? {
-        file: `dist/${outname}${minify ? '.min' : ''}.mjs`,
+        file: `dist/${outname}.mjs`,
         format: 'es',
         banner,
         freeze: false

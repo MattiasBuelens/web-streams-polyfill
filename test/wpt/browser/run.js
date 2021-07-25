@@ -49,12 +49,12 @@ async function main() {
     const testOptions = { includedTests, excludedTests, browser, wptPath, urlPrefix };
     results.push(await runTests({
       ...testOptions,
-      entryFile: 'polyfill.es6.min.js',
+      entryFile: 'polyfill.es6.js',
       ignoredFailures: mergeIgnoredFailures(ignoredFailuresBase, ignoredFailuresMinified)
     }));
     results.push(await runTests({
       ...testOptions,
-      entryFile: 'polyfill.min.js',
+      entryFile: 'polyfill.js',
       ignoredFailures: mergeIgnoredFailures(ignoredFailuresES5, ignoredFailuresMinified)
     }));
   } finally {
