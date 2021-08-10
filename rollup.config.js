@@ -1,14 +1,13 @@
-const path = require('path');
-
-const typescript = require('@rollup/plugin-typescript');
-const inject = require('@rollup/plugin-inject');
-const strip = require('@rollup/plugin-strip');
-const replace = require('@rollup/plugin-replace');
-const { terser } = require('rollup-plugin-terser');
+import path from 'path';
+import typescript from '@rollup/plugin-typescript';
+import inject from '@rollup/plugin-inject';
+import strip from '@rollup/plugin-strip';
+import replace from '@rollup/plugin-replace';
+import { terser } from 'rollup-plugin-terser';
+import pkg from './package.json';
 
 const debug = false;
 
-const pkg = require('./package.json');
 const banner = `
 /**
  * ${pkg.name} v${pkg.version}
@@ -89,7 +88,7 @@ function bundle(entry, { esm = false, minify = false, target = 'es5' } = {}) {
   };
 }
 
-module.exports = [
+export default [
   // polyfill
   bundle('polyfill', { esm: true, minify: true }),
   // polyfill/es6
