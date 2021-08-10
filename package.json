@@ -6,6 +6,27 @@
   "browser": "dist/polyfill.js",
   "module": "dist/polyfill.mjs",
   "types": "dist/types/polyfill.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/polyfill.mjs",
+      "require": "./dist/polyfill.js"
+    },
+    "./es6": {
+      "import": "./dist/polyfill.es6.mjs",
+      "require": "./dist/polyfill.es6.js"
+    },
+    "./ponyfill/es6": {
+      "import": "./dist/ponyfill.es6.mjs",
+      "require": "./dist/ponyfill.es6.js"
+    },
+    "./ponyfill": {
+      "import": "./dist/ponyfill.mjs",
+      "require": "./dist/ponyfill.js"
+    },
+    "./dist/*": "./dist/*",
+    "./package": "./package.json",
+    "./package.json": "./package.json"
+  },
   "scripts": {
     "test": "npm run test:types && npm run test:unit && npm run test:wpt",
     "test:wpt": "node --expose_gc ./test/run-web-platform-tests.js",
@@ -20,9 +41,7 @@
     "prepare": "npm run build"
   },
   "files": [
-    "dist",
-    "es6",
-    "ponyfill"
+    "dist"
   ],
   "engines": {
     "node": ">= 8"
