@@ -34,26 +34,47 @@ const keepNames = [
 ];
 const keepRegex = new RegExp(`^(${keepNames.join('|')})$`);
 
-function bundle(entry, { esm = false, minify = false, target = 'es5' } = {}) {
-  const outname = `${entry}${target === 'es5' ? '' : `.${target}`}`;
+function esm({ target = 'es5' } = {}) {
+  // We use code splitting for ESM so the polyfill bundle will `import` the ponyfill bundle.
   return {
+    input: [
+      'src/polyfill.ts',
+      'src/ponyfill.ts'
+    ],
+    output: [
+      {
+        dir: 'dist',
+        entryFileNames: `[name]${target === 'es5' ? '' : `.${target}`}.mjs`,
+        format: 'es',
+        banner,
+        manualChunks: {
+          ponyfill: ['src/ponyfill.ts']
+        }
+      }
+    ],
+    plugins: plugins({ target, minify: false })
+  };
+}
+
+function umd({ target = 'es5' } = {}) {
+  // We don't use code splitting for UMD, but instead build two separate bundles.
+  return ['polyfill', 'ponyfill'].map(entry => ({
     input: `src/${entry}.ts`,
     output: [
       {
-        file: `dist/${outname}.js`,
+        file: `dist/${entry}${target === 'es5' ? '' : `.${target}`}.js`,
         format: 'umd',
         name: 'WebStreamsPolyfill',
         banner,
         freeze: false
-      },
-      esm ? {
-        file: `dist/${outname}.mjs`,
-        format: 'es',
-        banner,
-        freeze: false
-      } : undefined
-    ].filter(Boolean),
-    plugins: [
+      }
+    ],
+    plugins: plugins({ target, minify: true })
+  }));
+}
+
+function plugins({ target, minify }) {
+    return [
       typescript({
         tsconfig: `tsconfig${target === 'es5' ? '' : `-${target}`}.json`,
         declaration: false,
@@ -84,17 +105,12 @@ function bundle(entry, { esm = false, minify = false, target = 'es5' } = {}) {
           toplevel: true
         }
       }) : undefined
-    ].filter(Boolean)
-  };
+    ].filter(Boolean);
 }
 
 export default [
-  // polyfill
-  bundle('polyfill', { esm: true, minify: true }),
-  // polyfill/es6
-  bundle('polyfill', { target: 'es6', esm: true, minify: true }),
-  // ponyfill
-  bundle('ponyfill', { esm: true }),
-  // ponyfill/es6
-  bundle('ponyfill', { target: 'es6', esm: true })
+  esm({ target: 'es5' }),
+  esm({ target: 'es6' }),
+  ...umd({ target: 'es5' }),
+  ...umd({ target: 'es6' })
 ];
