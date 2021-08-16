@@ -60,7 +60,7 @@ function esm({ target = 'es5' } = {}) {
         }
       }
     ],
-    plugins: plugins({ target, minify: false })
+    plugins: plugins({ target })
   };
 }
 
@@ -77,11 +77,11 @@ function umd({ target = 'es5' } = {}) {
         freeze: false
       }
     ],
-    plugins: plugins({ target, minify: true })
+    plugins: plugins({ target })
   }));
 }
 
-function plugins({ target, minify }) {
+function plugins({ target }) {
   return [
     typescript({
       tsconfig: `tsconfig${target === 'es5' ? '' : `-${target}`}.json`,
@@ -106,7 +106,7 @@ function plugins({ target, minify }) {
       include: 'src/**/*.ts',
       functions: ['assert']
     }) : undefined,
-    minify ? terser({
+    !debug ? terser({
       keep_classnames: keepRegex, // needed for WPT
       keep_fnames: keepRegex,
       mangle: {
