@@ -28,8 +28,11 @@
     "./package.json": "./package.json"
   },
   "scripts": {
-    "test": "npm run test:types && npm run test:unit && npm run test:wpt",
+    "test": "npm run test:types && npm run test:unit && npm run test:wpt && npm run test:bundlers",
     "test:wpt": "node --expose_gc ./test/run-web-platform-tests.js",
+    "test:bundlers": "npm run test:rollup && npm run test:webpack",
+    "test:rollup": "cd test/rollup && npm install && npm test",
+    "test:webpack": "cd test/webpack && npm install && npm test",
     "pretest:wpt": "git submodule update --init --recursive",
     "test:types": "tsc -p ./test/types/tsconfig.json",
     "test:unit": "jasmine --config=test/unit/jasmine.json",
