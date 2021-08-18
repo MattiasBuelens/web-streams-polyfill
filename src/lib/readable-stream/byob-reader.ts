@@ -6,7 +6,7 @@ import {
   ReadableStreamReaderGenericRelease,
   readerLockException
 } from './generic-reader';
-import { IsReadableStreamLocked, ReadableByteStream } from '../readable-stream';
+import { IsReadableStreamLocked, ReadableByteStream, ReadableStream } from '../readable-stream';
 import {
   IsReadableByteStreamController,
   ReadableByteStreamController,
@@ -107,7 +107,7 @@ export class ReadableStreamBYOBReader {
   /** @internal */
   _readIntoRequests: SimpleQueue<ReadIntoRequest<any>>;
 
-  constructor(stream: ReadableByteStream) {
+  constructor(stream: ReadableStream<Uint8Array>) {
     assertRequiredArgument(stream, 1, 'ReadableStreamBYOBReader');
     assertReadableStream(stream, 'First parameter');
 
