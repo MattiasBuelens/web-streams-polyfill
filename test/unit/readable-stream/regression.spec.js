@@ -1,4 +1,4 @@
-const { ReadableStream, WritableStream, TransformStream } = require('web-streams-polyfill/ponyfill');
+const { ReadableStream, WritableStream, TransformStream } = require('web-streams-polyfill');
 
 describe('ReadableStream regressions', () => {
   // https://github.com/MattiasBuelens/web-streams-polyfill/issues/66

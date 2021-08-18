@@ -9,23 +9,23 @@ describe('package exports', () => {
     global.ReadableStream = oldGlobalReadableStream;
   });
   it('main export works', () => {
-    global.ReadableStream = undefined;
-    require('web-streams-polyfill');
-    expect(global.ReadableStream).toBeDefined();
+    const polyfill = require('web-streams-polyfill');
+    expect(polyfill.ReadableStream).toBeDefined();
+    expect(global.ReadableStream).toBe(oldGlobalReadableStream);
   });
   it('es5 export works', () => {
+    const polyfill = require('web-streams-polyfill/es5');
+    expect(polyfill.ReadableStream).toBeDefined();
+    expect(global.ReadableStream).toBe(oldGlobalReadableStream);
+  });
+  it('polyfill export works', () => {
     global.ReadableStream = undefined;
-    require('web-streams-polyfill/es5');
+    require('web-streams-polyfill/polyfill');
     expect(global.ReadableStream).toBeDefined();
   });
-  it('ponyfill export works', () => {
-    const polyfill = require('web-streams-polyfill/ponyfill');
-    expect(polyfill.ReadableStream).toBeDefined();
-    expect(global.ReadableStream).toBe(oldGlobalReadableStream);
-  });
-  it('ponyfill/es5 export works', () => {
-    const polyfill = require('web-streams-polyfill/ponyfill/es5');
-    expect(polyfill.ReadableStream).toBeDefined();
-    expect(global.ReadableStream).toBe(oldGlobalReadableStream);
+  it('polyfill/es5 export works', () => {
+    global.ReadableStream = undefined;
+    require('web-streams-polyfill/polyfill/es5');
+    expect(global.ReadableStream).toBeDefined();
   });
 });
