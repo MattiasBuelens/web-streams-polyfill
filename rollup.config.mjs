@@ -66,19 +66,32 @@ function esm({ target } = {}) {
 
 function umd({ target } = {}) {
   // We don't use code splitting for UMD, but instead build two separate bundles.
-  return ['polyfill', 'ponyfill'].map(entry => ({
-    input: `src/${entry}.ts`,
+  return [{
+    input: `src/polyfill.ts`,
     output: [
       {
-        file: `dist/${entry}${target === 'es6' ? '' : `.${target}`}.js`,
+        file: `dist/polyfill${target === 'es6' ? '' : `.${target}`}.js`,
+        format: 'iife',
+        exports: 'none',
+        banner,
+        freeze: false
+      }
+    ],
+    plugins: plugins({ target })
+  }, {
+    input: `src/ponyfill.ts`,
+    output: [
+      {
+        file: `dist/ponyfill${target === 'es6' ? '' : `.${target}`}.js`,
         format: 'umd',
+        exports: 'named',
         name: 'WebStreamsPolyfill',
         banner,
         freeze: false
       }
     ],
     plugins: plugins({ target })
-  }));
+  }];
 }
 
 function plugins({ target }) {
