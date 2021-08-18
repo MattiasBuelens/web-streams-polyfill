@@ -1,4 +1,4 @@
-const { ReadableStream } = require('../../../');
+const { ReadableStream } = require('web-streams-polyfill/ponyfill');
 const { ReadableStream: NodeReadableStream } = require('node:stream/web');
 
 describe('ReadableStream.from()', () => {

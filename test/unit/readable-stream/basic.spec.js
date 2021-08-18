@@ -1,4 +1,4 @@
-const { ReadableStream, WritableStream } = require('../../../');
+const { ReadableStream, WritableStream } = require('web-streams-polyfill/ponyfill');
 const { FakeAbortSignal } = require('../util/fake-abort-signal');
 
 describe('ReadableStream', () => {
