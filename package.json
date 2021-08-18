@@ -18,13 +18,13 @@
       "import": "./dist/polyfill.mjs",
       "require": "./dist/polyfill.js"
     },
-    "./es6": {
-      "import": "./dist/polyfill.es6.mjs",
-      "require": "./dist/polyfill.es6.js"
+    "./es5": {
+      "import": "./dist/polyfill.es5.mjs",
+      "require": "./dist/polyfill.es5.js"
     },
-    "./ponyfill/es6": {
-      "import": "./dist/ponyfill.es6.mjs",
-      "require": "./dist/ponyfill.es6.js"
+    "./ponyfill/es5": {
+      "import": "./dist/ponyfill.es5.mjs",
+      "require": "./dist/ponyfill.es5.js"
     },
     "./ponyfill": {
       "import": "./dist/ponyfill.mjs",
