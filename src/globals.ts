@@ -1,10 +1,10 @@
 /// <reference lib="dom" />
 
-function getGlobals() {
-  if (typeof self !== 'undefined') {
+function getGlobals(): typeof globalThis | undefined {
+  if (typeof globalThis !== 'undefined') {
+    return globalThis;
+  } else if (typeof self !== 'undefined') {
     return self;
-  } else if (typeof window !== 'undefined') {
-    return window;
   } else if (typeof global !== 'undefined') {
     return global;
   }
