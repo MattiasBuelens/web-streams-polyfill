@@ -1,5 +1,5 @@
 const Benchmark = require('benchmark');
-const polyfill = require('../../dist/polyfill.es6.js');
+const polyfill = require('../../dist/polyfill.js');
 const stardazed = require('@stardazed/streams');
 const suite = new Benchmark.Suite();
 

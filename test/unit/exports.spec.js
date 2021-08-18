@@ -5,16 +5,16 @@ describe('package exports', () => {
     const polyfill = require('web-streams-polyfill');
     expect(polyfill.ReadableStream).toBeDefined();
   });
-  it('es6 export works', () => {
-    const polyfill = require('web-streams-polyfill/es6');
+  it('es5 export works', () => {
+    const polyfill = require('web-streams-polyfill/es5');
     expect(polyfill.ReadableStream).toBeDefined();
   });
   it('ponyfill export works', () => {
     const polyfill = require('web-streams-polyfill/ponyfill');
     expect(polyfill.ReadableStream).toBeDefined();
   });
-  it('ponyfill/es6 export works', () => {
-    const polyfill = require('web-streams-polyfill/ponyfill/es6');
+  it('ponyfill/es5 export works', () => {
+    const polyfill = require('web-streams-polyfill/ponyfill/es5');
     expect(polyfill.ReadableStream).toBeDefined();
   });
 });

@@ -38,7 +38,7 @@ const keepNames = [
 ];
 const keepRegex = new RegExp(`^(${keepNames.join('|')})$`);
 
-function esm({ target = 'es5' } = {}) {
+function esm({ target } = {}) {
   // We use code splitting for ESM so the polyfill bundle will `import` the ponyfill bundle.
   return {
     input: [
@@ -48,7 +48,7 @@ function esm({ target = 'es5' } = {}) {
     output: [
       {
         dir: 'dist',
-        entryFileNames: `[name]${target === 'es5' ? '' : `.${target}`}.mjs`,
+        entryFileNames: `[name]${target === 'es6' ? '' : `.${target}`}.mjs`,
         format: 'es',
         banner,
         manualChunks: {
@@ -60,13 +60,13 @@ function esm({ target = 'es5' } = {}) {
   };
 }
 
-function umd({ target = 'es5' } = {}) {
+function umd({ target } = {}) {
   // We don't use code splitting for UMD, but instead build two separate bundles.
   return ['polyfill', 'ponyfill'].map(entry => ({
     input: `src/${entry}.ts`,
     output: [
       {
-        file: `dist/${entry}${target === 'es5' ? '' : `.${target}`}.js`,
+        file: `dist/${entry}${target === 'es6' ? '' : `.${target}`}.js`,
         format: 'umd',
         name: 'WebStreamsPolyfill',
         banner,
@@ -80,7 +80,7 @@ function umd({ target = 'es5' } = {}) {
 function plugins({ target }) {
   return [
     typescript({
-      tsconfig: `tsconfig${target === 'es5' ? '' : `-${target}`}.json`,
+      tsconfig: `tsconfig${target === 'es6' ? '' : `-${target}`}.json`,
       declaration: false,
       declarationMap: false
     }),
