@@ -38,30 +38,7 @@ const keepNames = [
 ];
 const keepRegex = new RegExp(`^(${keepNames.join('|')})$`);
 
-function esm({ target } = {}) {
-  // We use code splitting for ESM so the polyfill bundle will `import` the ponyfill bundle.
-  return {
-    input: [
-      'src/polyfill.ts',
-      'src/ponyfill.ts'
-    ],
-    output: [
-      {
-        dir: 'dist',
-        entryFileNames: `[name]${target === 'es6' ? '' : `.${target}`}.mjs`,
-        format: 'es',
-        banner,
-        manualChunks: {
-          ponyfill: ['src/ponyfill.ts']
-        }
-      }
-    ],
-    plugins: plugins({ target })
-  };
-}
-
-function umd({ target } = {}) {
-  // We don't use code splitting for UMD, but instead build two separate bundles.
+function build({ target } = {}) {
   return [{
     input: `src/polyfill.ts`,
     output: [
@@ -84,6 +61,11 @@ function umd({ target } = {}) {
         name: 'WebStreamsPolyfill',
         banner,
         freeze: false
+      },
+      {
+        file: `dist/ponyfill${target === 'es6' ? '' : `.${target}`}.mjs`,
+        format: 'es',
+        banner
       }
     ],
     plugins: plugins({ target })
@@ -126,8 +108,6 @@ function plugins({ target }) {
 }
 
 export default [
-  esm({ target: 'es5' }),
-  esm({ target: 'es6' }),
-  ...umd({ target: 'es5' }),
-  ...umd({ target: 'es6' })
+  ...build({ target: 'es5' }),
+  ...build({ target: 'es6' })
 ];

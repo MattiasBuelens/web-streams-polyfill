@@ -4,17 +4,11 @@
   "description": "Web Streams, based on the WHATWG spec reference implementation",
   "main": "dist/polyfill.js",
   "browser": "dist/polyfill.js",
-  "module": "dist/polyfill.mjs",
+  "module": "dist/ponyfill.mjs",
   "types": "dist/types/polyfill.d.ts",
   "exports": {
-    ".": {
-      "import": "./dist/polyfill.mjs",
-      "require": "./dist/polyfill.js"
-    },
-    "./es5": {
-      "import": "./dist/polyfill.es5.mjs",
-      "require": "./dist/polyfill.es5.js"
-    },
+    ".": "./dist/polyfill.js",
+    "./es5": "./dist/polyfill.es5.js",
     "./ponyfill/es5": {
       "import": "./dist/ponyfill.es5.mjs",
       "require": "./dist/ponyfill.es5.js"
