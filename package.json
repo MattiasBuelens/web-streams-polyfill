@@ -2,21 +2,21 @@
   "name": "web-streams-polyfill",
   "version": "3.1.1",
   "description": "Web Streams, based on the WHATWG spec reference implementation",
-  "main": "dist/polyfill.js",
-  "browser": "dist/polyfill.js",
+  "main": "dist/ponyfill.js",
+  "browser": "dist/ponyfill.js",
   "module": "dist/ponyfill.mjs",
-  "types": "dist/types/polyfill.d.ts",
+  "types": "dist/types/ponyfill.d.ts",
   "exports": {
-    ".": "./dist/polyfill.js",
-    "./es5": "./dist/polyfill.es5.js",
-    "./ponyfill/es5": {
-      "import": "./dist/ponyfill.es5.mjs",
-      "require": "./dist/ponyfill.es5.js"
-    },
-    "./ponyfill": {
+    ".": {
       "import": "./dist/ponyfill.mjs",
       "require": "./dist/ponyfill.js"
     },
+    "./es5": {
+      "import": "./dist/ponyfill.es5.mjs",
+      "require": "./dist/ponyfill.es5.js"
+    },
+    "./polyfill": "./dist/polyfill.js",
+    "./polyfill/es5": "./dist/polyfill.es5.js",
     "./dist/*": "./dist/*",
     "./package": "./package.json",
     "./package.json": "./package.json"

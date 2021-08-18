@@ -30,7 +30,7 @@ export class CountQueuingStrategy implements QueuingStrategy<any> {
 // @public
 export interface QueuingStrategy<T = any> {
     highWaterMark?: number;
-    // Warning: (ae-forgotten-export) The symbol "QueuingStrategySizeCallback" needs to be exported by the entry point polyfill.d.ts
+    // Warning: (ae-forgotten-export) The symbol "QueuingStrategySizeCallback" needs to be exported by the entry point ponyfill.d.ts
     size?: QueuingStrategySizeCallback<T>;
 }
 
@@ -81,7 +81,7 @@ export interface ReadableStreamAsyncIterator<R> extends AsyncIterator<R> {
 
 // @public
 export class ReadableStreamBYOBReader {
-    // Warning: (ae-forgotten-export) The symbol "ReadableByteStream" needs to be exported by the entry point polyfill.d.ts
+    // Warning: (ae-forgotten-export) The symbol "ReadableByteStream" needs to be exported by the entry point ponyfill.d.ts
     constructor(stream: ReadableByteStream);
     cancel(reason?: any): Promise<void>;
     get closed(): Promise<undefined>;
