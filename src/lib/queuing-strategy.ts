@@ -1,3 +1,7 @@
+/**
+ * {@inheritDoc QueuingStrategy.size}
+ * @public
+ */
 export type QueuingStrategySizeCallback<T = any> = (chunk: T) => number;
 
 /**

@@ -29,7 +29,7 @@ import {
   WritableStreamDefaultController,
   WritableStreamDefaultWriter
 } from './lib/writable-stream';
-import { QueuingStrategy, QueuingStrategyInit } from './lib/queuing-strategy';
+import { QueuingStrategy, QueuingStrategyInit, QueuingStrategySizeCallback } from './lib/queuing-strategy';
 import ByteLengthQueuingStrategy from './lib/byte-length-queuing-strategy';
 import CountQueuingStrategy from './lib/count-queuing-strategy';
 import {
@@ -74,6 +74,7 @@ export {
 
   QueuingStrategy,
   QueuingStrategyInit,
+  QueuingStrategySizeCallback,
   ByteLengthQueuingStrategy,
   CountQueuingStrategy,
 
