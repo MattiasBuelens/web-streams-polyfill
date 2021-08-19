@@ -3,7 +3,6 @@
   "version": "3.3.3",
   "description": "Web Streams, based on the WHATWG spec reference implementation",
   "main": "dist/ponyfill.js",
-  "browser": "dist/ponyfill.js",
   "module": "dist/ponyfill.mjs",
   "types": "dist/types/ponyfill.d.ts",
   "typesVersions": {
