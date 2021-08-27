@@ -94,7 +94,7 @@
     "rollup": "^2.53.3",
     "rollup-plugin-terser": "^7.0.2",
     "tslib": "^2.3.0",
-    "typescript": "^4.3.5",
+    "typescript": "~4.3.5",
     "wpt-runner": "^3.2.1"
   }
 }
