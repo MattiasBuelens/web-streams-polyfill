@@ -136,6 +136,9 @@ typings/
 .serverless
 
 ### Project
-/dist/
+/dist/*.js
+/dist/*.mjs
+/dist/types/ponyfill.d.ts
+/dist/types/tsdoc-metadata.json
 /lib/
 /temp/

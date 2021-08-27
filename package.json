@@ -4,7 +4,6 @@
   "description": "Web Streams, based on the WHATWG spec reference implementation",
   "main": "dist/ponyfill.js",
   "module": "dist/ponyfill.mjs",
-  "types": "dist/types/ponyfill.d.ts",
   "exports": {
     ".": {
       "import": "./dist/ponyfill.mjs",
@@ -19,6 +18,23 @@
     "./dist/*": "./dist/*",
     "./package": "./package.json",
     "./package.json": "./package.json"
+  },
+  "types": "dist/types/ponyfill.d.ts",
+  "typesVersions": {
+    "*": {
+      ".": [
+        "./dist/types/ponyfill.d.ts"
+      ],
+      "./es5": [
+        "./dist/types/ponyfill.d.ts"
+      ],
+      "./polyfill": [
+        "./dist/types/polyfill.d.ts"
+      ],
+      "./polyfill/es5": [
+        "./dist/types/polyfill.d.ts"
+      ]
+    }
   },
   "scripts": {
     "test": "npm run test:types && npm run test:unit && npm run test:wpt && npm run test:bundlers",
