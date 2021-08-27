@@ -5,7 +5,7 @@
   "main": "dist/polyfill",
   "browser": "dist/polyfill.min.js",
   "module": "dist/polyfill.mjs",
-  "types": "dist/types/polyfill.d.ts",
+  "types": "types/polyfill.d.ts",
   "scripts": {
     "test": "npm run test:types && npm run test:unit && npm run test:wpt",
     "test:wpt": "node --expose_gc ./test/run-web-platform-tests.js",
@@ -23,7 +23,8 @@
     "dist",
     "es6",
     "es2018",
-    "ponyfill"
+    "ponyfill",
+    "types"
   ],
   "engines": {
     "node": ">= 18"
