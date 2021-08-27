@@ -16,23 +16,24 @@
     "./polyfill": "./dist/polyfill.js",
     "./polyfill/es5": "./dist/polyfill.es5.js",
     "./dist/*": "./dist/*",
+    "./types/*": "./types/*",
     "./package": "./package.json",
     "./package.json": "./package.json"
   },
-  "types": "dist/types/ponyfill.d.ts",
+  "types": "types/ponyfill.d.ts",
   "typesVersions": {
     ">=3.6": {
       ".": [
-        "./dist/types/ponyfill.d.ts"
+        "./types/ponyfill.d.ts"
       ],
       "./es5": [
-        "./dist/types/ponyfill.d.ts"
+        "./types/ponyfill.d.ts"
       ],
       "./polyfill": [
-        "./dist/types/polyfill.d.ts"
+        "./types/polyfill.d.ts"
       ],
       "./polyfill/es5": [
-        "./dist/types/polyfill.d.ts"
+        "./types/polyfill.d.ts"
       ]
     }
   },
@@ -53,7 +54,8 @@
     "prepare": "npm run build"
   },
   "files": [
-    "dist"
+    "dist",
+    "types"
   ],
   "engines": {
     "node": ">= 12"
