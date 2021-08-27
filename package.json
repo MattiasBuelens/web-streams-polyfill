@@ -4,27 +4,28 @@
   "description": "Web Streams, based on the WHATWG spec reference implementation",
   "main": "dist/ponyfill.js",
   "module": "dist/ponyfill.mjs",
-  "types": "dist/types/ponyfill.d.ts",
+  "types": "types/ponyfill.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/types/ponyfill.d.ts",
+      "types": "./types/ponyfill.d.ts",
       "import": "./dist/ponyfill.mjs",
       "require": "./dist/ponyfill.js"
     },
     "./es5": {
-      "types": "./dist/types/ponyfill.d.ts",
+      "types": "./types/ponyfill.d.ts",
       "import": "./dist/ponyfill.es5.mjs",
       "require": "./dist/ponyfill.es5.js"
     },
     "./polyfill": {
-      "types": "./dist/types/polyfill.d.ts",
+      "types": "./types/polyfill.d.ts",
       "default": "./dist/polyfill.js"
     },
     "./polyfill/es5": {
-      "types": "./dist/types/polyfill.d.ts",
+      "types": "./types/polyfill.d.ts",
       "default": "./dist/polyfill.es5.js"
     },
     "./dist/*": "./dist/*",
+    "./types/*": "./types/*",
     "./package": "./package.json",
     "./package.json": "./package.json"
   },
@@ -47,7 +48,8 @@
     "prepare": "npm run build"
   },
   "files": [
-    "dist"
+    "dist",
+    "types"
   ],
   "engines": {
     "node": ">= 8"

@@ -137,6 +137,7 @@ typings/
 
 ### Project
 /dist/
-!/dist/types/polyfill.d.ts
 /lib/
 /temp/
+/types/ponyfill.d.ts
+/types/tsdoc-metadata.json

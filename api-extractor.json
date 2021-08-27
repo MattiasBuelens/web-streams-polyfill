@@ -195,7 +195,7 @@
      * SUPPORTED TOKENS: <projectFolder>, <packageName>, <unscopedPackageName>
      * DEFAULT VALUE: "<projectFolder>/dist/<unscopedPackageName>.d.ts"
      */
-    "untrimmedFilePath": "<projectFolder>/dist/types/ponyfill.d.ts",
+    "untrimmedFilePath": "<projectFolder>/types/ponyfill.d.ts",
 
     /**
      * Specifies the output path for a .d.ts rollup file to be generated with trimming for a "beta" release.
@@ -256,7 +256,7 @@
      * SUPPORTED TOKENS: <projectFolder>, <packageName>, <unscopedPackageName>
      * DEFAULT VALUE: "<lookup>"
      */
-    "tsdocMetadataFilePath": "<projectFolder>/dist/types/tsdoc-metadata.json"
+    "tsdocMetadataFilePath": "<projectFolder>/types/tsdoc-metadata.json"
   },
   /**
    * Specifies what type of newlines API Extractor should use when writing output files.  By default, the output files
