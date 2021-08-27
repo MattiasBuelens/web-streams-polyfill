@@ -21,7 +21,7 @@
   },
   "types": "dist/types/ponyfill.d.ts",
   "typesVersions": {
-    "*": {
+    ">=3.6": {
       ".": [
         "./dist/types/ponyfill.d.ts"
       ],
