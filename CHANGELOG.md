@@ -9,6 +9,10 @@
 > - 🏠 Internal
 > - 💅 Polish
 
+## Unreleased
+
+* 🐛 Fix compatibility with TypeScript's DOM types for `ReadableStream` and `TransformStream` ([#85](https://github.com/MattiasBuelens/web-streams-polyfill/issues/85), [#86](https://github.com/MattiasBuelens/web-streams-polyfill/pull/86))
+
 ## v3.1.0 (2021-07-21)
 
 * 🚀 Calling `ReadableStream.tee()` on a readable byte stream now returns two readable byte streams. ([#81](https://github.com/MattiasBuelens/web-streams-polyfill/pull/81))
