@@ -30,7 +30,7 @@ import {
  * @public
  */
 export interface ReadableStreamAsyncIterator<R> extends AsyncIterator<R> {
-  next(): Promise<IteratorResult<R>>;
+  next(): Promise<IteratorResult<R, undefined>>;
 
   return(value?: any): Promise<IteratorResult<any>>;
 }
@@ -129,9 +129,9 @@ declare class ReadableStreamAsyncIteratorInstance<R> implements ReadableStreamAs
   /** @interal */
   _asyncIteratorImpl: ReadableStreamAsyncIteratorImpl<R>;
 
-  next(): Promise<ReadableStreamDefaultReadResult<R>>;
+  next(): Promise<IteratorResult<R, undefined>>;
 
-  return(value?: any): Promise<ReadableStreamDefaultReadResult<any>>;
+  return(value?: any): Promise<IteratorResult<any>>;
 }
 
 const ReadableStreamAsyncIteratorPrototype: ReadableStreamAsyncIteratorInstance<any> = {

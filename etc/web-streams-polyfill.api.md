@@ -69,7 +69,7 @@ export class ReadableStream<R = any> {
 // @public
 export interface ReadableStreamAsyncIterator<R> extends AsyncIterator<R> {
     // (undocumented)
-    next(): Promise<IteratorResult<R>>;
+    next(): Promise<IteratorResult<R, undefined>>;
     // (undocumented)
     return(value?: any): Promise<IteratorResult<any>>;
 }
@@ -123,7 +123,7 @@ export type ReadableStreamDefaultReadResult<T> = {
     value: T;
 } | {
     done: true;
-    value: undefined;
+    value?: undefined;
 };
 
 // @public

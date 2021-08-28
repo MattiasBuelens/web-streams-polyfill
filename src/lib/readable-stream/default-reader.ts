@@ -23,7 +23,7 @@ export type ReadableStreamDefaultReadResult<T> = {
   value: T;
 } | {
   done: true;
-  value: undefined;
+  value?: undefined;
 }
 
 // Abstract operations for the ReadableStream.
