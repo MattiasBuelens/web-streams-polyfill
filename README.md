@@ -17,14 +17,18 @@ Web Streams, based on the WHATWG spec reference implementation.
 This library comes in multiple variants:
 * `web-streams-polyfill`: a [ponyfill] that provides the stream implementations 
   without replacing any globals, targeting ES2015+ environments.
-  Recommended for use in Node 6+ applications, or in web libraries supporting modern browsers.
+  * ✅ Node 6+ through `import` or `require()`
+  * ✅ Modern web browsers through `import`/`export` or `<script type="module">`
+  * ✅ Web apps for modern browsers using a bundler (like webpack or Rollup)
 * `web-streams-polyfill/es5`: a ponyfill targeting ES5+ environments.
-  Recommended for use in legacy Node applications, or in web libraries supporting older browsers.
+  * ✅ Legacy Node through `require()`
+  * ✅ Legacy web browsers through [AMD][amd]
+  * ✅ Web apps for legacy browsers using a bundler (like webpack or Rollup)
 * `web-streams-polyfill/polyfill`: a polyfill that replaces the native stream implementations,
   targeting ES2015+ environments.
-  Recommended for use in web apps supporting modern browsers through a `<script>` tag.
+  * ✅ Modern web browsers through regular `<script>`
 * `web-streams-polyfill/polyfill/es5`: a polyfill targeting ES5+ environments.
-  Recommended for use in web apps supporting older browsers through a `<script>` tag.
+  * ✅ Legacy web browsers through regular `<script>`
 
 Each variant also includes TypeScript type definitions, compatible with the DOM type definitions for streams included in TypeScript.
 
@@ -56,9 +60,9 @@ const readable = new ReadableStream();
 
 ### Compatibility
 
-The `polyfill` and `ponyfill` variants work in any ES2015-compatible environment.
+The default and `polyfill` variants work in any ES2015-compatible environment.
 
-The `polyfill/es5` and `ponyfill/es5` variants work in any ES5-compatible environment that has a global `Promise`.
+The `es5` and `polyfill/es5` variants work in any ES5-compatible environment that has a global `Promise`.
 If you need to support older browsers or Node versions that do not have a native `Promise` implementation
 (check the [support table][promise-support]), you must first include a `Promise` polyfill
 (e.g. [promise-polyfill][promise-polyfill]).
@@ -72,7 +76,7 @@ If you need to support older browsers or Node versions that do not have a native
 The polyfill implements [version `cada812` (8 Jul 2021)][spec-snapshot] of the streams specification.
 
 The polyfill is tested against the same [web platform tests][wpt] that are used by browsers to test their native implementations.
-The polyfill aims to pass all tests, although it allows some exceptions for practical reasons:
+It aims to pass all tests, although it allows some exceptions for practical reasons:
 * The default (ES2015) variant passes all of the tests, except for:
   * The ["bad buffers and views" tests for readable byte streams][wpt-bad-buffers].
     These tests require the implementation to synchronously transfer the contents of an `ArrayBuffer`, which is not yet possible from JavaScript (although there is a [proposal][proposal-arraybuffer-transfer] to make it possible).
@@ -88,7 +92,7 @@ The polyfill aims to pass all tests, although it allows some exceptions for prac
   * Not all properties and methods are correctly marked as non-enumerable.
   * Down-leveled class methods are not correctly marked as non-constructable.
 
-The type definitions are compatible with the built-in stream types of TypeScript 3.3.
+The type definitions are compatible with the built-in stream types of TypeScript 3.3 and higher.
 
 ### Contributors
 
@@ -100,6 +104,7 @@ Thanks to these people for their work on [the original polyfill][creatorrr-polyf
 [spec]: https://streams.spec.whatwg.org
 [ref-impl]: https://github.com/whatwg/streams
 [ponyfill]: https://github.com/sindresorhus/ponyfill
+[amd]: https://requirejs.org/docs/whyamd.html
 [promise-support]: https://kangax.github.io/compat-table/es6/#test-Promise
 [promise-polyfill]: https://www.npmjs.com/package/promise-polyfill
 [rs-asynciterator]: https://streams.spec.whatwg.org/#rs-asynciterator
@@ -112,5 +117,5 @@ Thanks to these people for their work on [the original polyfill][creatorrr-polyf
 [ref-impl-transferarraybuffer]: https://github.com/whatwg/streams/blob/cada8129edcc4803b2878a7a3f5e1d8325dc0c23/reference-implementation/lib/abstract-ops/ecmascript.js#L16
 [issue-3]: https://github.com/MattiasBuelens/web-streams-polyfill/issues/3
 [wpt-async-iterator-prototype]: https://github.com/web-platform-tests/wpt/blob/87a4c80598aee5178c385628174f1832f5a28ad6/streams/readable-streams/async-iterator.any.js#L24
-[stub-async-iterator-prototype]: https://github.com/MattiasBuelens/web-streams-polyfill/blob/v2.0.0/src/target/es5/stub/async-iterator-prototype.ts
+[stub-async-iterator-prototype]: https://github.com/MattiasBuelens/web-streams-polyfill/blob/v3.1.0/src/target/es5/stub/async-iterator-prototype.ts
 [creatorrr-polyfill]: https://github.com/creatorrr/web-streams-polyfill
