@@ -140,7 +140,7 @@ export class ReadableStreamBYOBReader {
   /**
    * If the reader is active, behaves the same as {@link ReadableStream.cancel | stream.cancel(reason)}.
    */
-  cancel(reason: any = undefined): Promise<undefined> {
+  cancel(reason: any = undefined): Promise<void> {
     if (!IsReadableStreamBYOBReader(this)) {
       return promiseRejectedWith(byobReaderBrandCheckException('cancel'));
     }

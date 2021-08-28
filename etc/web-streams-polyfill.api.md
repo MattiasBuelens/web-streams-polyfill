@@ -54,14 +54,14 @@ export class ReadableStream<R = any> {
         size?: undefined;
     });
     constructor(underlyingSource?: UnderlyingSource<R>, strategy?: QueuingStrategy<R>);
-    cancel(reason?: any): Promise<undefined>;
+    cancel(reason?: any): Promise<void>;
     getReader({ mode }: {
         mode: 'byob';
     }): ReadableStreamBYOBReader;
     getReader(): ReadableStreamDefaultReader<R>;
     get locked(): boolean;
     pipeThrough<T>(transform: ReadableWritablePair<T, R>, options?: StreamPipeOptions): ReadableStream<T>;
-    pipeTo(destination: WritableStream<R>, options?: StreamPipeOptions): Promise<undefined>;
+    pipeTo(destination: WritableStream<R>, options?: StreamPipeOptions): Promise<void>;
     tee(): [ReadableStream<R>, ReadableStream<R>];
     values(options?: ReadableStreamIteratorOptions): ReadableStreamAsyncIterator<R>;
 }
@@ -78,7 +78,7 @@ export interface ReadableStreamAsyncIterator<R> extends AsyncIterator<R> {
 export class ReadableStreamBYOBReader {
     // Warning: (ae-forgotten-export) The symbol "ReadableByteStream" needs to be exported by the entry point polyfill.d.ts
     constructor(stream: ReadableByteStream);
-    cancel(reason?: any): Promise<undefined>;
+    cancel(reason?: any): Promise<void>;
     get closed(): Promise<undefined>;
     read<T extends ArrayBufferView>(view: T): Promise<ReadableStreamBYOBReadResult<T>>;
     releaseLock(): void;
@@ -111,7 +111,7 @@ export class ReadableStreamDefaultController<R> {
 // @public
 export class ReadableStreamDefaultReader<R = any> {
     constructor(stream: ReadableStream<R>);
-    cancel(reason?: any): Promise<undefined>;
+    cancel(reason?: any): Promise<void>;
     get closed(): Promise<undefined>;
     read(): Promise<ReadableStreamDefaultReadResult<R>>;
     releaseLock(): void;
@@ -241,7 +241,7 @@ export type UnderlyingSourceStartCallback<R> = (controller: ReadableStreamDefaul
 // @public
 export class WritableStream<W = any> {
     constructor(underlyingSink?: UnderlyingSink<W>, strategy?: QueuingStrategy<W>);
-    abort(reason?: any): Promise<undefined>;
+    abort(reason?: any): Promise<void>;
     close(): Promise<undefined>;
     getWriter(): WritableStreamDefaultWriter<W>;
     get locked(): boolean;
@@ -257,13 +257,13 @@ export class WritableStreamDefaultController<W = any> {
 // @public
 export class WritableStreamDefaultWriter<W = any> {
     constructor(stream: WritableStream<W>);
-    abort(reason?: any): Promise<undefined>;
-    close(): Promise<undefined>;
+    abort(reason?: any): Promise<void>;
+    close(): Promise<void>;
     get closed(): Promise<undefined>;
     get desiredSize(): number | null;
     get ready(): Promise<undefined>;
     releaseLock(): void;
-    write(chunk: W): Promise<undefined>;
+    write(chunk: W): Promise<void>;
 }
 
 

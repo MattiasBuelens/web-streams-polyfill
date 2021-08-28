@@ -140,7 +140,7 @@ export class ReadableStream<R = any> {
    * The supplied `reason` argument will be given to the underlying source's {@link UnderlyingSource.cancel | cancel()}
    * method, which might or might not use it.
    */
-  cancel(reason: any = undefined): Promise<undefined> {
+  cancel(reason: any = undefined): Promise<void> {
     if (!IsReadableStream(this)) {
       return promiseRejectedWith(streamBrandCheckException('cancel'));
     }
@@ -229,9 +229,9 @@ export class ReadableStream<R = any> {
    *
    * Piping a stream will lock it for the duration of the pipe, preventing any other consumer from acquiring a reader.
    */
-  pipeTo(destination: WritableStream<R>, options?: StreamPipeOptions): Promise<undefined>;
+  pipeTo(destination: WritableStream<R>, options?: StreamPipeOptions): Promise<void>;
   pipeTo(destination: WritableStream<R> | null | undefined,
-         rawOptions: StreamPipeOptions | null | undefined = {}): Promise<undefined> {
+         rawOptions: StreamPipeOptions | null | undefined = {}): Promise<void> {
     if (!IsReadableStream(this)) {
       return promiseRejectedWith(streamBrandCheckException('pipeTo'));
     }
