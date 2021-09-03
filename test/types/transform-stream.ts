@@ -27,5 +27,5 @@ const readable: polyfill.ReadableStream<number> = transformStream.readable;
 
 // Compatibility with stream types from DOM
 const domTransformer: Transformer<string, number> = transformer;
-// const domTransformStream: TransformStream<string, number> = transformStream;
+const domTransformStream: TransformStream<string, number> = transformStream;
 const domController: TransformStreamDefaultController<number> = controller;

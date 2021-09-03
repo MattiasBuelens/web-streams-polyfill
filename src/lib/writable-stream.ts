@@ -123,7 +123,7 @@ class WritableStream<W = any> {
    * that there was an error doing so. Additionally, it will reject with a `TypeError` (without attempting to cancel
    * the stream) if the stream is currently locked.
    */
-  abort(reason: any = undefined): Promise<undefined> {
+  abort(reason: any = undefined): Promise<void> {
     if (!IsWritableStream(this)) {
       return promiseRejectedWith(streamBrandCheckException('abort'));
     }
@@ -688,7 +688,7 @@ export class WritableStreamDefaultWriter<W = any> {
   /**
    * If the reader is active, behaves the same as {@link WritableStream.abort | stream.abort(reason)}.
    */
-  abort(reason: any = undefined): Promise<undefined> {
+  abort(reason: any = undefined): Promise<void> {
     if (!IsWritableStreamDefaultWriter(this)) {
       return promiseRejectedWith(defaultWriterBrandCheckException('abort'));
     }
@@ -703,7 +703,7 @@ export class WritableStreamDefaultWriter<W = any> {
   /**
    * If the reader is active, behaves the same as {@link WritableStream.close | stream.close()}.
    */
-  close(): Promise<undefined> {
+  close(): Promise<void> {
     if (!IsWritableStreamDefaultWriter(this)) {
       return promiseRejectedWith(defaultWriterBrandCheckException('close'));
     }
@@ -756,8 +756,8 @@ export class WritableStreamDefaultWriter<W = any> {
    * Note that what "success" means is up to the underlying sink; it might indicate simply that the chunk has been
    * accepted, and not necessarily that it is safely saved to its ultimate destination.
    */
-  write(chunk: W): Promise<undefined>;
-  write(chunk: W = undefined!): Promise<undefined> {
+  write(chunk: W): Promise<void>;
+  write(chunk: W = undefined!): Promise<void> {
     if (!IsWritableStreamDefaultWriter(this)) {
       return promiseRejectedWith(defaultWriterBrandCheckException('write'));
     }

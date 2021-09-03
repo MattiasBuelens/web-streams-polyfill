@@ -23,7 +23,7 @@ export type ReadableStreamDefaultReadResult<T> = {
   value: T;
 } | {
   done: true;
-  value: undefined;
+  value?: undefined;
 }
 
 // Abstract operations for the ReadableStream.
@@ -128,7 +128,7 @@ export class ReadableStreamDefaultReader<R = any> {
   /**
    * If the reader is active, behaves the same as {@link ReadableStream.cancel | stream.cancel(reason)}.
    */
-  cancel(reason: any = undefined): Promise<undefined> {
+  cancel(reason: any = undefined): Promise<void> {
     if (!IsReadableStreamDefaultReader(this)) {
       return promiseRejectedWith(defaultReaderBrandCheckException('cancel'));
     }
