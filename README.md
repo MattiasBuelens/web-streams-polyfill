@@ -28,6 +28,9 @@ This library comes in multiple variants:
 Each variant also includes TypeScript type definitions, compatible with the DOM type definitions for streams included in TypeScript.
 These type definitions require TypeScript version 4.7 or higher.
 
+In version 4, the list of variants was reworked to have more modern defaults and to reduce the download size of the package.
+See the [migration guide][migrating] for more information.
+
 Usage as a polyfill:
 ```html
 <!-- option 1: hosted by unpkg CDN -->
@@ -104,6 +107,7 @@ Thanks to these people for their work on [the original polyfill][creatorrr-polyf
 [spec]: https://streams.spec.whatwg.org
 [ref-impl]: https://github.com/whatwg/streams
 [ponyfill]: https://github.com/sindresorhus/ponyfill
+[migrating]: https://github.com/MattiasBuelens/web-streams-polyfill/blob/v4/MIGRATING.md
 [promise-support]: https://kangax.github.io/compat-table/es6/#test-Promise
 [promise-polyfill]: https://www.npmjs.com/package/promise-polyfill
 [rs-asynciterator]: https://streams.spec.whatwg.org/#rs-asynciterator
