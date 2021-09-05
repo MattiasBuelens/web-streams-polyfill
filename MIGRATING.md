@@ -28,7 +28,7 @@ Version 4 also focuses on reducing the download size of the published npm packag
 * The ES2018 variant was removed, since it had only minor differences with the ES2015 variant. If you were using this
   variant, switch to the default export instead.
 
-The following table shows how to upgrade your V3 import to their equivalent V4 import:
+The following table shows how to upgrade your v3 import to their equivalent v4 import:
 
 | v3 import | v4 import | description |
 | --- | --- | --- |
