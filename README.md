@@ -58,7 +58,7 @@ import "web-streams-polyfill/polyfill";
 const readable = new ReadableStream();
 ```
 
-### Compatibility
+## Compatibility
 
 The default and `polyfill` variants work in any ES2015-compatible environment.
 
@@ -71,7 +71,7 @@ If you need to support older browsers or Node versions that do not have a native
 
 [`WritableStreamDefaultController.signal`][ws-controller-signal] is available in all variants, but requires a global `AbortController` constructor. If necessary, consider using a polyfill such as [abortcontroller-polyfill].
 
-### Compliance
+## Compliance
 
 The polyfill implements [version `cada812` (8 Jul 2021)][spec-snapshot] of the streams specification.
 
@@ -94,7 +94,7 @@ It aims to pass all tests, although it allows some exceptions for practical reas
 
 The type definitions are compatible with the built-in stream types of TypeScript 3.3 and higher.
 
-### Contributors
+## Contributors
 
 Thanks to these people for their work on [the original polyfill][creatorrr-polyfill]:
 
