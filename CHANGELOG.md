@@ -9,7 +9,7 @@
 > - 🏠 Internal
 > - 💅 Polish
 
-## Unreleased
+## v3.1.1 (2021-09-06)
 
 * 🐛 Fix compatibility with TypeScript's DOM types for `ReadableStream` and `TransformStream` ([#85](https://github.com/MattiasBuelens/web-streams-polyfill/issues/85), [#86](https://github.com/MattiasBuelens/web-streams-polyfill/pull/86))
 
