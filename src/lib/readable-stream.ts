@@ -195,9 +195,14 @@ export class ReadableStream<R = any> {
    *
    * Piping a stream will lock it for the duration of the pipe, preventing any other consumer from acquiring a reader.
    */
-  pipeThrough<T>(transform: ReadableWritablePair<T, R>, options?: StreamPipeOptions): ReadableStream<T>;
-  pipeThrough<T>(rawTransform: ReadableWritablePair<T, R> | null | undefined,
-                 rawOptions: StreamPipeOptions | null | undefined = {}): ReadableStream<T> {
+  pipeThrough<RS extends ReadableStream>(
+    transform: { readable: RS; writable: WritableStream<R> },
+    options?: StreamPipeOptions
+  ): RS;
+  pipeThrough<RS extends ReadableStream>(
+    rawTransform: { readable: RS; writable: WritableStream<R> } | null | undefined,
+    rawOptions: StreamPipeOptions | null | undefined = {}
+  ): RS {
     if (!IsReadableStream(this)) {
       throw streamBrandCheckException('pipeThrough');
     }

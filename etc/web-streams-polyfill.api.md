@@ -60,7 +60,10 @@ export class ReadableStream<R = any> {
     }): ReadableStreamBYOBReader;
     getReader(): ReadableStreamDefaultReader<R>;
     get locked(): boolean;
-    pipeThrough<T>(transform: ReadableWritablePair<T, R>, options?: StreamPipeOptions): ReadableStream<T>;
+    pipeThrough<RS extends ReadableStream>(transform: {
+        readable: RS;
+        writable: WritableStream<R>;
+    }, options?: StreamPipeOptions): RS;
     pipeTo(destination: WritableStream<R>, options?: StreamPipeOptions): Promise<void>;
     tee(): [ReadableStream<R>, ReadableStream<R>];
     values(options?: ReadableStreamIteratorOptions): ReadableStreamAsyncIterator<R>;

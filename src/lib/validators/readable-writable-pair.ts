@@ -1,10 +1,13 @@
 import { assertDictionary, assertRequiredField } from './basic';
-import { ReadableWritablePair } from '../readable-stream/readable-writable-pair';
+import { ReadableStream } from '../readable-stream';
+import { WritableStream } from '../writable-stream';
 import { assertReadableStream } from './readable-stream';
 import { assertWritableStream } from './writable-stream';
 
-export function convertReadableWritablePair<R, W>(pair: ReadableWritablePair<R, W> | null | undefined,
-                                                  context: string): ReadableWritablePair<R, W> {
+export function convertReadableWritablePair<RS extends ReadableStream, WS extends WritableStream>(
+  pair: { readable: RS; writable: WS } | null | undefined,
+  context: string
+): { readable: RS; writable: WS } {
   assertDictionary(pair, context);
 
   const readable = pair?.readable;
