@@ -107,7 +107,7 @@ export class ReadableStreamBYOBReader {
   /** @internal */
   _readIntoRequests: SimpleQueue<ReadIntoRequest<any>>;
 
-  constructor(stream: ReadableByteStream) {
+  constructor(stream: ReadableStream<Uint8Array>) {
     assertRequiredArgument(stream, 1, 'ReadableStreamBYOBReader');
     assertReadableStream(stream, 'First parameter');
 

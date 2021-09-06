@@ -13,10 +13,7 @@ import {
   WritableStreamDefaultController,
   WritableStreamDefaultWriter
 } from './ponyfill';
-import { globals } from './utils';
-
-// Export
-export * from './ponyfill';
+import { globals } from './globals';
 
 const exports = {
   ReadableStream,
@@ -38,14 +35,12 @@ const exports = {
 };
 
 // Add classes to global scope
-if (typeof globals !== 'undefined') {
-  for (const prop in exports) {
-    if (Object.prototype.hasOwnProperty.call(exports, prop)) {
-      Object.defineProperty(globals, prop, {
-        value: exports[prop as (keyof typeof exports)],
-        writable: true,
-        configurable: true
-      });
-    }
+for (const prop in exports) {
+  if (Object.prototype.hasOwnProperty.call(exports, prop)) {
+    Object.defineProperty(globals!, prop, {
+      value: exports[prop as (keyof typeof exports)],
+      writable: true,
+      configurable: true
+    });
   }
 }

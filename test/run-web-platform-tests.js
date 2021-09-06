@@ -54,6 +54,10 @@ async function main() {
     // Same thing: the enqueued chunk will have the same buffer as branch1's chunk
     'readable-byte-streams/tee.any.html': [
       'ReadableStream teeing with byte source: chunks should be cloned for each branch'
+    ],
+    // Our async iterator won't extend from the built-in %AsyncIteratorPrototype%
+    'readable-streams/async-iterator.any.html': [
+      'Async iterator instances should have the correct list of properties'
     ]
   };
 
@@ -75,14 +79,7 @@ async function main() {
     );
   }
 
-  const ignoredFailuresES6 = merge(ignoredFailures, {
-    'readable-streams/async-iterator.any.html': [
-      // ES6 build will not use correct %AsyncIteratorPrototype%
-      'Async iterator instances should have the correct list of properties'
-    ]
-  });
-
-  const ignoredFailuresES5 = merge(ignoredFailuresES6, {
+  const ignoredFailuresES5 = merge(ignoredFailures, {
     'idlharness.any.html': [
       // ES5 build does not set correct length on constructors with optional arguments
       'ReadableStream interface object length',
@@ -107,28 +104,11 @@ async function main() {
 
   const results = [];
 
-  if (supportsES2018) {
-    results.push(await runTests('polyfill.es2018.js', { excludedTests, ignoredFailures }));
-    results.push(await runTests('polyfill.es2018.min.js', {
-      excludedTests,
-      ignoredFailures: merge(ignoredFailures, ignoredFailuresMinified)
-    }));
-  }
-
-  results.push(await runTests('polyfill.es6.js', {
-    excludedTests,
-    ignoredFailures: ignoredFailuresES6
-  }));
-  results.push(await runTests('polyfill.es6.min.js', {
-    excludedTests,
-    ignoredFailures: merge(ignoredFailuresES6, ignoredFailuresMinified)
-  }));
-
   results.push(await runTests('polyfill.js', {
     excludedTests,
-    ignoredFailures: ignoredFailuresES5
+    ignoredFailures: merge(ignoredFailures, ignoredFailuresMinified)
   }));
-  results.push(await runTests('polyfill.min.js', {
+  results.push(await runTests('polyfill.es5.js', {
     excludedTests,
     ignoredFailures: merge(ignoredFailuresES5, ignoredFailuresMinified)
   }));

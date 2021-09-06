@@ -139,3 +139,5 @@ typings/
 /dist/
 /lib/
 /temp/
+/types/ponyfill.d.ts
+/types/tsdoc-metadata.json

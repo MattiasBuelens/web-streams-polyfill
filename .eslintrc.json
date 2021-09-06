@@ -19,7 +19,8 @@
     "AbortSignal": false,
     "DEBUG": false,
     "GCController": false,
-    "gc": false
+    "gc": false,
+    "globalThis": false
   },
   "rules": {
     // Possible errors
