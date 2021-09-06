@@ -9,11 +9,11 @@
 > - 🏠 Internal
 > - 💅 Polish
 
-## Unreleased
+## v4.0.0-beta.1 (2021-09-06)
 
 * 💥 Rework the list of variants to have more modern defaults.
   The table below shows how to upgrade your v3 import to their equivalent v4 import.
-  See the [migration guide](https://github.com/MattiasBuelens/web-streams-polyfill/blob/next/MIGRATING.md) for more information.
+  See the [migration guide](https://github.com/MattiasBuelens/web-streams-polyfill/v4.0.0-beta.1/next/MIGRATING.md) for more information.
   ([#82](https://github.com/MattiasBuelens/web-streams-polyfill/issues/82), [#83](https://github.com/MattiasBuelens/web-streams-polyfill/pull/83))
 * 💥 Remove the ES2018 variant, in favor of the ES2015 variant.
 * 🚀 Support [importing as ESM in Node](https://nodejs.org/api/esm.html).
