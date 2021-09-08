@@ -2,6 +2,10 @@ import { reflectCall } from 'lib/helpers/webidl';
 import { typeIsObject } from '../helpers/miscellaneous';
 import assert from '../../stub/assert';
 
+declare global {
+  function structuredClone<T>(value: T, options: { transfer: ArrayBuffer[] }): T;
+}
+
 export function CreateArrayFromList<T extends any[]>(elements: T): T {
   // We use arrays to represent lists, so this is basically a no-op.
   // Do a slice though just in case we happen to depend on the unique-ness.
@@ -16,21 +20,26 @@ export function CopyDataBlockBytes(dest: ArrayBuffer,
   new Uint8Array(dest).set(new Uint8Array(src, srcOffset, n), destOffset);
 }
 
-// Not implemented correctly
-export function TransferArrayBuffer<T extends ArrayBufferLike>(O: T): T {
-  return O;
-}
+export let TransferArrayBuffer = <T extends ArrayBufferLike>(O: T): T => {
+  if (typeof structuredClone === 'function') {
+    TransferArrayBuffer = buffer => structuredClone(buffer, { transfer: [buffer] });
+  } else {
+    // Not implemented correctly
+    TransferArrayBuffer = buffer => buffer;
+  }
+  return TransferArrayBuffer(O);
+};
 
 // Not implemented correctly
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function CanTransferArrayBuffer(O: ArrayBufferLike): boolean {
-  return true;
+  return !IsDetachedBuffer(O);
 }
 
 // Not implemented correctly
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function IsDetachedBuffer(O: ArrayBufferLike): boolean {
-  return false;
+  return O.byteLength === 0;
 }
 
 export function ArrayBufferSlice(buffer: ArrayBufferLike, begin: number, end: number): ArrayBufferLike {
