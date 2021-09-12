@@ -6,12 +6,10 @@ import {
   ReadableStreamReaderGenericRelease,
   readerLockException
 } from './generic-reader';
-import { IsReadableStreamLocked, ReadableByteStream, ReadableStream } from '../readable-stream';
-import {
-  IsReadableByteStreamController,
-  ReadableByteStreamController,
-  ReadableByteStreamControllerPullInto
-} from './byte-stream-controller';
+import type { ReadableByteStream, ReadableStream } from '../readable-stream';
+import { IsReadableStreamLocked } from '../readable-stream';
+import type { ReadableByteStreamController } from './byte-stream-controller';
+import { IsReadableByteStreamController, ReadableByteStreamControllerPullInto } from './byte-stream-controller';
 import { typeIsObject } from '../helpers/miscellaneous';
 import { newPromise, promiseRejectedWith } from '../helpers/webidl';
 import { assertRequiredArgument } from '../validators/basic';

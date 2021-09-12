@@ -1,4 +1,4 @@
-import { QueuingStrategy, QueuingStrategyInit } from './queuing-strategy';
+import type { QueuingStrategy, QueuingStrategyInit } from './queuing-strategy';
 import { typeIsObject } from './helpers/miscellaneous';
 import { assertRequiredArgument } from './validators/basic';
 import { convertQueuingStrategyInit } from './validators/queuing-strategy-init';

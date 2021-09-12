@@ -1,13 +1,8 @@
 /// <reference lib="es2018.asynciterable" />
 
-import { ReadableStream } from '../readable-stream';
-import {
-  AcquireReadableStreamDefaultReader,
-  ReadableStreamDefaultReader,
-  ReadableStreamDefaultReaderRead,
-  ReadableStreamDefaultReadResult,
-  ReadRequest
-} from './default-reader';
+import type { ReadableStream } from '../readable-stream';
+import type { ReadableStreamDefaultReader, ReadableStreamDefaultReadResult, ReadRequest } from './default-reader';
+import { AcquireReadableStreamDefaultReader, ReadableStreamDefaultReaderRead } from './default-reader';
 import {
   ReadableStreamReaderGenericCancel,
   ReadableStreamReaderGenericRelease,

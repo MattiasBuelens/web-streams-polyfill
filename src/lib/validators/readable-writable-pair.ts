@@ -1,6 +1,6 @@
 import { assertDictionary, assertRequiredField } from './basic';
-import { ReadableStream } from '../readable-stream';
-import { WritableStream } from '../writable-stream';
+import type { ReadableStream } from '../readable-stream';
+import type { WritableStream } from '../writable-stream';
 import { assertReadableStream } from './readable-stream';
 import { assertWritableStream } from './writable-stream';
 

@@ -6,7 +6,8 @@ import {
   ReadableStreamReaderGenericRelease,
   readerLockException
 } from './generic-reader';
-import { IsReadableStreamLocked, ReadableStream } from '../readable-stream';
+import type { ReadableStream } from '../readable-stream';
+import { IsReadableStreamLocked } from '../readable-stream';
 import { typeIsObject } from '../helpers/miscellaneous';
 import { PullSteps } from '../abstract-ops/internal-methods';
 import { newPromise, promiseRejectedWith } from '../helpers/webidl';

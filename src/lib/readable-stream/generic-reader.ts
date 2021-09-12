@@ -1,5 +1,6 @@
 import assert from '../../stub/assert';
-import { ReadableStream, ReadableStreamCancel, ReadableStreamReader } from '../readable-stream';
+import type { ReadableStream, ReadableStreamReader } from '../readable-stream';
+import { ReadableStreamCancel } from '../readable-stream';
 import { newPromise, setPromiseIsHandledToTrue } from '../helpers/webidl';
 
 export function ReadableStreamReaderGenericInitialize<R>(reader: ReadableStreamReader<R>, stream: ReadableStream<R>) {

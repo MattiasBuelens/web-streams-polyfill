@@ -1,28 +1,24 @@
 import assert from '../../stub/assert';
 import { SimpleQueue } from '../simple-queue';
 import { ResetQueue } from '../abstract-ops/queue-with-sizes';
+import type { ReadRequest } from './default-reader';
 import {
   ReadableStreamAddReadRequest,
   ReadableStreamFulfillReadRequest,
   ReadableStreamGetNumReadRequests,
-  ReadableStreamHasDefaultReader,
-  ReadRequest
+  ReadableStreamHasDefaultReader
 } from './default-reader';
+import type { ReadIntoRequest } from './byob-reader';
 import {
   ReadableStreamAddReadIntoRequest,
   ReadableStreamFulfillReadIntoRequest,
   ReadableStreamGetNumReadIntoRequests,
-  ReadableStreamHasBYOBReader,
-  ReadIntoRequest
+  ReadableStreamHasBYOBReader
 } from './byob-reader';
 import NumberIsInteger from '../../stub/number-isinteger';
-import {
-  IsReadableStreamLocked,
-  ReadableByteStream,
-  ReadableStreamClose,
-  ReadableStreamError
-} from '../readable-stream';
-import { ValidatedUnderlyingByteSource } from './underlying-source';
+import type { ReadableByteStream } from '../readable-stream';
+import { IsReadableStreamLocked, ReadableStreamClose, ReadableStreamError } from '../readable-stream';
+import type { ValidatedUnderlyingByteSource } from './underlying-source';
 import { typeIsObject } from '../helpers/miscellaneous';
 import {
   ArrayBufferSlice,

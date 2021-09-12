@@ -1,6 +1,6 @@
 import { assertDictionary, assertFunction } from './basic';
 import { promiseCall, reflectCall } from '../helpers/webidl';
-import {
+import type {
   UnderlyingSink,
   UnderlyingSinkAbortCallback,
   UnderlyingSinkCloseCallback,
@@ -8,7 +8,7 @@ import {
   UnderlyingSinkWriteCallback,
   ValidatedUnderlyingSink
 } from '../writable-stream/underlying-sink';
-import { WritableStreamDefaultController } from '../writable-stream';
+import type { WritableStreamDefaultController } from '../writable-stream';
 
 export function convertUnderlyingSink<W>(original: UnderlyingSink<W> | null,
                                          context: string): ValidatedUnderlyingSink<W> {

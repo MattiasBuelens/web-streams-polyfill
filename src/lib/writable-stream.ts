@@ -6,32 +6,28 @@ import {
   setPromiseIsHandledToTrue,
   uponPromise
 } from './helpers/webidl';
-import {
-  DequeueValue,
-  EnqueueValueWithSize,
-  PeekQueueValue,
-  QueuePair,
-  ResetQueue
-} from './abstract-ops/queue-with-sizes';
-import { QueuingStrategy, QueuingStrategySizeCallback } from './queuing-strategy';
+import type { QueuePair } from './abstract-ops/queue-with-sizes';
+import { DequeueValue, EnqueueValueWithSize, PeekQueueValue, ResetQueue } from './abstract-ops/queue-with-sizes';
+import type { QueuingStrategy, QueuingStrategySizeCallback } from './queuing-strategy';
 import { SimpleQueue } from './simple-queue';
 import { typeIsObject } from './helpers/miscellaneous';
 import { AbortSteps, ErrorSteps } from './abstract-ops/internal-methods';
 import { IsNonNegativeNumber } from './abstract-ops/miscellaneous';
 import { ExtractHighWaterMark, ExtractSizeAlgorithm } from './abstract-ops/queuing-strategy';
 import { convertQueuingStrategy } from './validators/queuing-strategy';
+import type { ValidatedUnderlyingSink } from './writable-stream/underlying-sink';
 import {
   UnderlyingSink,
   UnderlyingSinkAbortCallback,
   UnderlyingSinkCloseCallback,
   UnderlyingSinkStartCallback,
-  UnderlyingSinkWriteCallback,
-  ValidatedUnderlyingSink
+  UnderlyingSinkWriteCallback
 } from './writable-stream/underlying-sink';
 import { assertObject, assertRequiredArgument } from './validators/basic';
 import { convertUnderlyingSink } from './validators/underlying-sink';
 import { assertWritableStream } from './validators/writable-stream';
-import { AbortController, AbortSignal, createAbortController } from './abort-signal';
+import type { AbortController, AbortSignal } from './abort-signal';
+import { createAbortController } from './abort-signal';
 
 type WritableStreamState = 'writable' | 'closed' | 'erroring' | 'errored';
 

@@ -1,6 +1,7 @@
 import assert from '../stub/assert';
 import { newPromise, promiseRejectedWith, promiseResolvedWith, transformPromiseWith } from './helpers/webidl';
-import { CreateReadableStream, ReadableStream, ReadableStreamDefaultController } from './readable-stream';
+import type { ReadableStream, ReadableStreamDefaultController } from './readable-stream';
+import { CreateReadableStream } from './readable-stream';
 import {
   ReadableStreamDefaultControllerCanCloseOrEnqueue,
   ReadableStreamDefaultControllerClose,
@@ -9,18 +10,19 @@ import {
   ReadableStreamDefaultControllerGetDesiredSize,
   ReadableStreamDefaultControllerHasBackpressure
 } from './readable-stream/default-controller';
-import { QueuingStrategy, QueuingStrategySizeCallback } from './queuing-strategy';
-import { CreateWritableStream, WritableStream, WritableStreamDefaultControllerErrorIfNeeded } from './writable-stream';
+import type { QueuingStrategy, QueuingStrategySizeCallback } from './queuing-strategy';
+import type { WritableStream } from './writable-stream';
+import { CreateWritableStream, WritableStreamDefaultControllerErrorIfNeeded } from './writable-stream';
 import { typeIsObject } from './helpers/miscellaneous';
 import { IsNonNegativeNumber } from './abstract-ops/miscellaneous';
 import { convertQueuingStrategy } from './validators/queuing-strategy';
 import { ExtractHighWaterMark, ExtractSizeAlgorithm } from './abstract-ops/queuing-strategy';
+import type { ValidatedTransformer } from './transform-stream/transformer';
 import {
   Transformer,
   TransformerFlushCallback,
   TransformerStartCallback,
-  TransformerTransformCallback,
-  ValidatedTransformer
+  TransformerTransformCallback
 } from './transform-stream/transformer';
 import { convertTransformer } from './validators/transformer';
 
