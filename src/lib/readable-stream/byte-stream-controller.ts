@@ -996,17 +996,11 @@ export function SetUpReadableByteStreamControllerFromUnderlyingSource(
   const controller: ReadableByteStreamController = Object.create(ReadableByteStreamController.prototype);
 
   let startAlgorithm: () => void | PromiseLike<void> = () => undefined;
-  let pullAlgorithm: () => Promise<void> = () => promiseResolvedWith(undefined);
-  let cancelAlgorithm: (reason: any) => Promise<void> = () => promiseResolvedWith(undefined);
+  let pullAlgorithm: () => Promise<void> = underlyingByteSource.pull !== undefined ? () => underlyingByteSource.pull!(controller) : () => promiseResolvedWith(undefined);
+  let cancelAlgorithm: (reason: any) => Promise<void> = underlyingByteSource.cancel !== undefined ? reason => underlyingByteSource.cancel!(reason) : () => promiseResolvedWith(undefined);
 
   if (underlyingByteSource.start !== undefined) {
     startAlgorithm = () => underlyingByteSource.start!(controller);
-  }
-  if (underlyingByteSource.pull !== undefined) {
-    pullAlgorithm = () => underlyingByteSource.pull!(controller);
-  }
-  if (underlyingByteSource.cancel !== undefined) {
-    cancelAlgorithm = reason => underlyingByteSource.cancel!(reason);
   }
 
   const autoAllocateChunkSize = underlyingByteSource.autoAllocateChunkSize;
