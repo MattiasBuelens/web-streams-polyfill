@@ -187,9 +187,12 @@ function ReadableStreamDefaultControllerCallPullIfNeeded(controller: ReadableStr
         controller._pullAgain = false;
         ReadableStreamDefaultControllerCallPullIfNeeded(controller);
       }
+
+      return null;
     },
     e => {
       ReadableStreamDefaultControllerError(controller, e);
+      return null;
     }
   );
 }
@@ -362,9 +365,11 @@ export function SetUpReadableStreamDefaultController<R>(stream: ReadableStream<R
       assert(!controller._pullAgain);
 
       ReadableStreamDefaultControllerCallPullIfNeeded(controller);
+      return null;
     },
     r => {
       ReadableStreamDefaultControllerError(controller, r);
+      return null;
     }
   );
 }
