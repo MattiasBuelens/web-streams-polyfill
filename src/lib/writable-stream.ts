@@ -447,10 +447,12 @@ function WritableStreamFinishErroring(stream: WritableStream) {
     () => {
       abortRequest._resolve();
       WritableStreamRejectCloseAndClosedPromiseIfNeeded(stream);
+      return null;
     },
     (reason: any) => {
       abortRequest._reject(reason);
       WritableStreamRejectCloseAndClosedPromiseIfNeeded(stream);
+      return null;
     });
 }
 
@@ -1081,11 +1083,13 @@ function SetUpWritableStreamDefaultController<W>(stream: WritableStream<W>,
       assert(stream._state === 'writable' || stream._state === 'erroring');
       controller._started = true;
       WritableStreamDefaultControllerAdvanceQueueIfNeeded(controller);
+      return null;
     },
     r => {
       assert(stream._state === 'writable' || stream._state === 'erroring');
       controller._started = true;
       WritableStreamDealWithRejection(stream, r);
+      return null;
     }
   );
 }
@@ -1096,22 +1100,30 @@ function SetUpWritableStreamDefaultControllerFromUnderlyingSink<W>(stream: Writa
                                                                    sizeAlgorithm: QueuingStrategySizeCallback<W>) {
   const controller = Object.create(WritableStreamDefaultController.prototype);
 
-  let startAlgorithm: () => void | PromiseLike<void> = () => undefined;
-  let writeAlgorithm: (chunk: W) => Promise<void> = () => promiseResolvedWith(undefined);
-  let closeAlgorithm: () => Promise<void> = () => promiseResolvedWith(undefined);
-  let abortAlgorithm: (reason: any) => Promise<void> = () => promiseResolvedWith(undefined);
+  let startAlgorithm: () => void | PromiseLike<void>;
+  let writeAlgorithm: (chunk: W) => Promise<void>;
+  let closeAlgorithm: () => Promise<void>;
+  let abortAlgorithm: (reason: any) => Promise<void>;
 
   if (underlyingSink.start !== undefined) {
     startAlgorithm = () => underlyingSink.start!(controller);
+  } else {
+    startAlgorithm = () => undefined;
   }
   if (underlyingSink.write !== undefined) {
     writeAlgorithm = chunk => underlyingSink.write!(chunk, controller);
+  } else {
+    writeAlgorithm = () => promiseResolvedWith(undefined);
   }
   if (underlyingSink.close !== undefined) {
     closeAlgorithm = () => underlyingSink.close!();
+  } else {
+    closeAlgorithm = () => promiseResolvedWith(undefined);
   }
   if (underlyingSink.abort !== undefined) {
     abortAlgorithm = reason => underlyingSink.abort!(reason);
+  } else {
+    abortAlgorithm = () => promiseResolvedWith(undefined);
   }
 
   SetUpWritableStreamDefaultController(
@@ -1217,9 +1229,11 @@ function WritableStreamDefaultControllerProcessClose(controller: WritableStreamD
     sinkClosePromise,
     () => {
       WritableStreamFinishInFlightClose(stream);
+      return null;
     },
     reason => {
       WritableStreamFinishInFlightCloseWithError(stream, reason);
+      return null;
     }
   );
 }
@@ -1246,12 +1260,14 @@ function WritableStreamDefaultControllerProcessWrite<W>(controller: WritableStre
       }
 
       WritableStreamDefaultControllerAdvanceQueueIfNeeded(controller);
+      return null;
     },
     reason => {
       if (stream._state === 'writable') {
         WritableStreamDefaultControllerClearAlgorithms(controller);
       }
       WritableStreamFinishInFlightWriteWithError(stream, reason);
+      return null;
     }
   );
 }

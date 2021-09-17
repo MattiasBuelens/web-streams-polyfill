@@ -9,6 +9,10 @@
 > - 🏠 Internal
 > - 💅 Polish
 
+## Unreleased
+
+* 🐛 Prevent [warnings from Bluebird](http://bluebirdjs.com/docs/warning-explanations.html#warning-a-promise-was-created-in-a-handler-but-was-not-returned-from-it) about a promise being created within a handler but not being returned from a handler. ([#91](https://github.com/MattiasBuelens/web-streams-polyfill/pull/91))
+
 ## v4.0.0-beta.1 (2021-09-06)
 
 * 💥 Rework the list of variants to have more modern defaults.

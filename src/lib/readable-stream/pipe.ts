@@ -132,6 +132,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
       } else {
         shutdown(true, storedError);
       }
+      return null;
     });
 
     // Errors must be propagated backward
@@ -141,6 +142,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
       } else {
         shutdown(true, storedError);
       }
+      return null;
     });
 
     // Closing must be propagated forward
@@ -150,6 +152,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
       } else {
         shutdown();
       }
+      return null;
     });
 
     // Closing must be propagated backward
@@ -177,7 +180,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
 
     function isOrBecomesErrored(stream: ReadableStream | WritableStream,
                                 promise: Promise<void>,
-                                action: (reason: any) => void) {
+                                action: (reason: any) => null) {
       if (stream._state === 'errored') {
         action(stream._storedError);
       } else {
@@ -185,7 +188,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
       }
     }
 
-    function isOrBecomesClosed(stream: ReadableStream | WritableStream, promise: Promise<void>, action: () => void) {
+    function isOrBecomesClosed(stream: ReadableStream | WritableStream, promise: Promise<void>, action: () => null) {
       if (stream._state === 'closed') {
         action();
       } else {
@@ -205,12 +208,13 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
         doTheRest();
       }
 
-      function doTheRest() {
+      function doTheRest(): null {
         uponPromise(
           action(),
           () => finalize(originalIsError, originalError),
           newError => finalize(true, newError)
         );
+        return null;
       }
     }
 
@@ -227,7 +231,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
       }
     }
 
-    function finalize(isError?: boolean, error?: any) {
+    function finalize(isError?: boolean, error?: any): null {
       WritableStreamDefaultWriterRelease(writer);
       ReadableStreamReaderGenericRelease(reader);
 
@@ -239,6 +243,8 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
       } else {
         resolve(undefined);
       }
+
+      return null;
     }
   });
 }

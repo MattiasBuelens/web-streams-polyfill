@@ -421,9 +421,12 @@ function ReadableByteStreamControllerCallPullIfNeeded(controller: ReadableByteSt
         controller._pullAgain = false;
         ReadableByteStreamControllerCallPullIfNeeded(controller);
       }
+
+      return null;
     },
     e => {
       ReadableByteStreamControllerError(controller, e);
+      return null;
     }
   );
 }
@@ -981,9 +984,11 @@ export function SetUpReadableByteStreamController(stream: ReadableByteStream,
       assert(!controller._pullAgain);
 
       ReadableByteStreamControllerCallPullIfNeeded(controller);
+      return null;
     },
     r => {
       ReadableByteStreamControllerError(controller, r);
+      return null;
     }
   );
 }
@@ -995,18 +1000,24 @@ export function SetUpReadableByteStreamControllerFromUnderlyingSource(
 ) {
   const controller: ReadableByteStreamController = Object.create(ReadableByteStreamController.prototype);
 
-  let startAlgorithm: () => void | PromiseLike<void> = () => undefined;
-  let pullAlgorithm: () => Promise<void> = () => promiseResolvedWith(undefined);
-  let cancelAlgorithm: (reason: any) => Promise<void> = () => promiseResolvedWith(undefined);
+  let startAlgorithm: () => void | PromiseLike<void>;
+  let pullAlgorithm: () => Promise<void>;
+  let cancelAlgorithm: (reason: any) => Promise<void>;
 
   if (underlyingByteSource.start !== undefined) {
     startAlgorithm = () => underlyingByteSource.start!(controller);
+  } else {
+    startAlgorithm = () => undefined;
   }
   if (underlyingByteSource.pull !== undefined) {
     pullAlgorithm = () => underlyingByteSource.pull!(controller);
+  } else {
+    pullAlgorithm = () => promiseResolvedWith(undefined);
   }
   if (underlyingByteSource.cancel !== undefined) {
     cancelAlgorithm = reason => underlyingByteSource.cancel!(reason);
+  } else {
+    cancelAlgorithm = () => promiseResolvedWith(undefined);
   }
 
   const autoAllocateChunkSize = underlyingByteSource.autoAllocateChunkSize;
