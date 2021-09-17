@@ -1096,22 +1096,30 @@ function SetUpWritableStreamDefaultControllerFromUnderlyingSink<W>(stream: Writa
                                                                    sizeAlgorithm: QueuingStrategySizeCallback<W>) {
   const controller = Object.create(WritableStreamDefaultController.prototype);
 
-  let startAlgorithm: () => void | PromiseLike<void> = () => undefined;
-  let writeAlgorithm: (chunk: W) => Promise<void> = () => promiseResolvedWith(undefined);
-  let closeAlgorithm: () => Promise<void> = () => promiseResolvedWith(undefined);
-  let abortAlgorithm: (reason: any) => Promise<void> = () => promiseResolvedWith(undefined);
+  let startAlgorithm: () => void | PromiseLike<void>;
+  let writeAlgorithm: (chunk: W) => Promise<void>;
+  let closeAlgorithm: () => Promise<void>;
+  let abortAlgorithm: (reason: any) => Promise<void>;
 
   if (underlyingSink.start !== undefined) {
     startAlgorithm = () => underlyingSink.start!(controller);
+  } else {
+    startAlgorithm = () => undefined;
   }
   if (underlyingSink.write !== undefined) {
     writeAlgorithm = chunk => underlyingSink.write!(chunk, controller);
+  } else {
+    writeAlgorithm = () => promiseResolvedWith(undefined);
   }
   if (underlyingSink.close !== undefined) {
     closeAlgorithm = () => underlyingSink.close!();
+  } else {
+    closeAlgorithm = () => promiseResolvedWith(undefined);
   }
   if (underlyingSink.abort !== undefined) {
     abortAlgorithm = reason => underlyingSink.abort!(reason);
+  } else {
+    abortAlgorithm = () => promiseResolvedWith(undefined);
   }
 
   SetUpWritableStreamDefaultController(
