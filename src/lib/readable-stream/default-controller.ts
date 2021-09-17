@@ -377,18 +377,24 @@ export function SetUpReadableStreamDefaultControllerFromUnderlyingSource<R>(
 ) {
   const controller: ReadableStreamDefaultController<R> = Object.create(ReadableStreamDefaultController.prototype);
 
-  let startAlgorithm: () => void | PromiseLike<void> = () => undefined;
-  let pullAlgorithm: () => Promise<void> = () => promiseResolvedWith(undefined);
-  let cancelAlgorithm: (reason: any) => Promise<void> = () => promiseResolvedWith(undefined);
+  let startAlgorithm: () => void | PromiseLike<void>;
+  let pullAlgorithm: () => Promise<void>;
+  let cancelAlgorithm: (reason: any) => Promise<void>;
 
   if (underlyingSource.start !== undefined) {
     startAlgorithm = () => underlyingSource.start!(controller);
+  } else {
+    startAlgorithm = () => undefined;
   }
   if (underlyingSource.pull !== undefined) {
     pullAlgorithm = () => underlyingSource.pull!(controller);
+  } else {
+    pullAlgorithm = () => promiseResolvedWith(undefined);
   }
   if (underlyingSource.cancel !== undefined) {
     cancelAlgorithm = reason => underlyingSource.cancel!(reason);
+  } else {
+    cancelAlgorithm = () => promiseResolvedWith(undefined);
   }
 
   SetUpReadableStreamDefaultController(

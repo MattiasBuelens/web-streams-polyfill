@@ -374,22 +374,26 @@ function SetUpTransformStreamDefaultControllerFromTransformer<I, O>(stream: Tran
                                                                     transformer: ValidatedTransformer<I, O>) {
   const controller: TransformStreamDefaultController<O> = Object.create(TransformStreamDefaultController.prototype);
 
-  let transformAlgorithm = (chunk: I): Promise<void> => {
-    try {
-      TransformStreamDefaultControllerEnqueue(controller, chunk as unknown as O);
-      return promiseResolvedWith(undefined);
-    } catch (transformResultE) {
-      return promiseRejectedWith(transformResultE);
-    }
-  };
-
-  let flushAlgorithm: () => Promise<void> = () => promiseResolvedWith(undefined);
+  let transformAlgorithm: (chunk: I) => Promise<void>;
+  let flushAlgorithm: () => Promise<void>;
 
   if (transformer.transform !== undefined) {
     transformAlgorithm = chunk => transformer.transform!(chunk, controller);
+  } else {
+    transformAlgorithm = chunk => {
+      try {
+        TransformStreamDefaultControllerEnqueue(controller, chunk as unknown as O);
+        return promiseResolvedWith(undefined);
+      } catch (transformResultE) {
+        return promiseRejectedWith(transformResultE);
+      }
+    };
   }
+
   if (transformer.flush !== undefined) {
     flushAlgorithm = () => transformer.flush!(controller);
+  } else {
+    flushAlgorithm = () => promiseResolvedWith(undefined);
   }
 
   SetUpTransformStreamDefaultController(stream, controller, transformAlgorithm, flushAlgorithm);
