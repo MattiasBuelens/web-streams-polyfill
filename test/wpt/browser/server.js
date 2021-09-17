@@ -5,10 +5,10 @@ const { URL } = require('url');
 const st = require('st');
 const { AnyHtmlHandler, WindowHandler } = require('wpt-runner/lib/internal/serve.js');
 
-const testharnessPath = path.resolve(__dirname, '../testharness/testharness.js');
-const idlharnessPath = path.resolve(__dirname, '../testharness/idlharness.js');
-const webidl2jsPath = path.resolve(__dirname, '../testharness/webidl2/lib/webidl2.js');
-const testdriverDummyPath = path.resolve(__dirname, './testdriver-dummy.js');
+const testharnessPath = path.resolve(__dirname, '../../web-platform-tests/resources/testharness.js');
+const idlharnessPath = path.resolve(__dirname, '../../web-platform-tests/resources/idlharness.js');
+const webidl2jsPath = path.resolve(__dirname, '../../web-platform-tests/resources/webidl2/lib/webidl2.js');
+const testdriverDummyPath = require.resolve('wpt-runner/lib/testdriver-dummy.js');
 
 function setupServer(testsPath, {
   rootURL = '/'
