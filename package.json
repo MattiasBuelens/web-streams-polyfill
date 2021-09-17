@@ -8,7 +8,7 @@
   "types": "types/polyfill.d.ts",
   "scripts": {
     "test": "npm run test:types && npm run test:unit && npm run test:wpt",
-    "test:wpt": "node --expose_gc ./test/run-web-platform-tests.js",
+    "test:wpt": "node --expose_gc ./test/wpt/node/run.js",
     "pretest:wpt": "git submodule update --init --recursive",
     "test:types": "tsc -p ./test/types/tsconfig.json",
     "test:unit": "jasmine --config=test/unit/jasmine.json",
