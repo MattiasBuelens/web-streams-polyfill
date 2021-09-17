@@ -39,7 +39,7 @@
   },
   "scripts": {
     "test": "npm run test:types && npm run test:unit && npm run test:wpt && npm run test:bundlers",
-    "test:wpt": "node --expose_gc ./test/run-web-platform-tests.js",
+    "test:wpt": "node --expose_gc ./test/wpt/node/run.js",
     "test:bundlers": "npm run test:rollup && npm run test:webpack",
     "test:rollup": "cd test/rollup && npm ci && npm test",
     "test:webpack": "cd test/webpack && npm ci && npm test",

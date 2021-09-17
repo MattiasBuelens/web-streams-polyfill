@@ -8,7 +8,7 @@ const { promisify } = require('util');
 const micromatch = require('micromatch');
 const wptRunner = require('wpt-runner');
 const consoleReporter = require('wpt-runner/lib/console-reporter.js');
-const { FilteringReporter } = require('./wpt-util/filtering-reporter.js');
+const { FilteringReporter } = require('../shared/filtering-reporter.js');
 const allSettled = require('@ungap/promise-all-settled');
 
 const readFileAsync = promisify(fs.readFile);
@@ -128,8 +128,8 @@ async function main() {
 }
 
 async function runTests(entryFile, { excludedTests = [], ignoredFailures = {} } = {}) {
-  const entryPath = path.resolve(__dirname, `../dist/${entryFile}`);
-  const wptPath = path.resolve(__dirname, 'web-platform-tests');
+  const entryPath = path.resolve(__dirname, `../../../dist/${entryFile}`);
+  const wptPath = path.resolve(__dirname, '../../web-platform-tests');
   const testsPath = path.resolve(wptPath, 'streams');
 
   const includedTests = process.argv.length >= 3 ? process.argv.slice(2) : ['**/*.html'];
