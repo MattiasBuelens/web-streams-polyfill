@@ -1,4 +1,5 @@
-import { IsWritableStream, WritableStream } from '../writable-stream';
+import type { WritableStream } from '../writable-stream';
+import { IsWritableStream } from '../writable-stream';
 
 export function assertWritableStream(x: unknown, context: string): asserts x is WritableStream {
   if (!IsWritableStream(x)) {

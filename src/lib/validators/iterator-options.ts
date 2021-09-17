@@ -1,5 +1,5 @@
 import { assertDictionary } from './basic';
-import {
+import type {
   ReadableStreamIteratorOptions,
   ValidatedReadableStreamIteratorOptions
 } from '../readable-stream/iterator-options';

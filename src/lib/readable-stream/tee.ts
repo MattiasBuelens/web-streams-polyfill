@@ -1,29 +1,27 @@
+import type { ReadableByteStream, ReadableStream, ReadableStreamReader } from '../readable-stream';
 import {
   CreateReadableByteStream,
   CreateReadableStream,
   IsReadableStream,
-  ReadableByteStream,
-  ReadableStream,
-  ReadableStreamCancel,
-  ReadableStreamReader
+  ReadableStreamCancel
 } from '../readable-stream';
 import { ReadableStreamReaderGenericRelease } from './generic-reader';
+import type { ReadRequest } from './default-reader';
 import {
   AcquireReadableStreamDefaultReader,
   IsReadableStreamDefaultReader,
-  ReadableStreamDefaultReaderRead,
-  ReadRequest
+  ReadableStreamDefaultReaderRead
 } from './default-reader';
+import type { ReadIntoRequest } from './byob-reader';
 import {
   AcquireReadableStreamBYOBReader,
   IsReadableStreamBYOBReader,
-  ReadableStreamBYOBReaderRead,
-  ReadIntoRequest
+  ReadableStreamBYOBReaderRead
 } from './byob-reader';
 import assert from '../../stub/assert';
 import { newPromise, promiseResolvedWith, queueMicrotask, uponRejection } from '../helpers/webidl';
+import type { ReadableStreamDefaultController } from './default-controller';
 import {
-  ReadableStreamDefaultController,
   ReadableStreamDefaultControllerClose,
   ReadableStreamDefaultControllerEnqueue,
   ReadableStreamDefaultControllerError

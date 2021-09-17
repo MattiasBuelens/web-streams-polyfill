@@ -1,5 +1,5 @@
-import { ReadableStream } from '../readable-stream';
-import { WritableStream } from '../writable-stream';
+import type { ReadableStream } from '../readable-stream';
+import type { WritableStream } from '../writable-stream';
 
 /**
  * A pair of a {@link ReadableStream | readable stream} and {@link WritableStream | writable stream} that can be passed

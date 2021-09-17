@@ -1,5 +1,5 @@
 import { assertDictionary } from './basic';
-import { ReadableStreamGetReaderOptions } from '../readable-stream/reader-options';
+import type { ReadableStreamGetReaderOptions } from '../readable-stream/reader-options';
 
 export function convertReaderOptions(options: ReadableStreamGetReaderOptions | null | undefined,
                                      context: string): ReadableStreamGetReaderOptions {

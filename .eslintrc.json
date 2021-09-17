@@ -232,7 +232,7 @@
     "no-confusing-arrow": "off",
     "no-const-assign": "error",
     "no-dupe-class-members": "off", // incompatible with method overload signatures
-    "no-duplicate-imports": "error",
+    "no-duplicate-imports": "off", // replaced with @typescript-eslint/no-duplicate-imports below
     "no-new-symbol": "error",
     "no-this-before-super": "error",
     "no-useless-computed-key": "error",
@@ -270,6 +270,8 @@
     "@typescript-eslint/no-explicit-any": "off",
     "@typescript-eslint/no-non-null-assertion": "off",
     "@typescript-eslint/no-use-before-define": "off",
-    "@typescript-eslint/no-useless-constructor": "error"
+    "@typescript-eslint/no-useless-constructor": "error",
+    "@typescript-eslint/no-duplicate-imports": "error",
+    "@typescript-eslint/consistent-type-imports": "error"
   }
 }

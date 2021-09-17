@@ -5,7 +5,7 @@ import {
   setPromiseIsHandledToTrue,
   transformPromiseWith
 } from './helpers/webidl';
-import { QueuingStrategy, QueuingStrategySizeCallback } from './queuing-strategy';
+import type { QueuingStrategy, QueuingStrategySizeCallback } from './queuing-strategy';
 import { AcquireReadableStreamAsyncIterator, ReadableStreamAsyncIterator } from './readable-stream/async-iterator';
 import { defaultReaderClosedPromiseReject, defaultReaderClosedPromiseResolve } from './readable-stream/generic-reader';
 import {
@@ -22,7 +22,8 @@ import {
 } from './readable-stream/byob-reader';
 import { ReadableStreamPipeTo } from './readable-stream/pipe';
 import { ReadableStreamTee } from './readable-stream/tee';
-import { IsWritableStream, IsWritableStreamLocked, WritableStream } from './writable-stream';
+import type { WritableStream } from './writable-stream';
+import { IsWritableStream, IsWritableStreamLocked } from './writable-stream';
 import { SimpleQueue } from './simple-queue';
 import {
   ReadableByteStreamController,
@@ -53,9 +54,10 @@ import { assertObject, assertRequiredArgument } from './validators/basic';
 import { convertQueuingStrategy } from './validators/queuing-strategy';
 import { ExtractHighWaterMark, ExtractSizeAlgorithm } from './abstract-ops/queuing-strategy';
 import { convertUnderlyingDefaultOrByteSource } from './validators/underlying-source';
-import { ReadableStreamGetReaderOptions } from './readable-stream/reader-options';
+import type { ReadableStreamGetReaderOptions } from './readable-stream/reader-options';
 import { convertReaderOptions } from './validators/reader-options';
-import { StreamPipeOptions, ValidatedStreamPipeOptions } from './readable-stream/pipe-options';
+import type { ValidatedStreamPipeOptions } from './readable-stream/pipe-options';
+import { StreamPipeOptions } from './readable-stream/pipe-options';
 import { ReadableStreamIteratorOptions } from './readable-stream/iterator-options';
 import { convertIteratorOptions } from './validators/iterator-options';
 import { convertPipeOptions } from './validators/pipe-options';

@@ -1,5 +1,5 @@
-import { ReadableStreamDefaultController } from './default-controller';
-import { ReadableByteStreamController } from './byte-stream-controller';
+import type { ReadableStreamDefaultController } from './default-controller';
+import type { ReadableByteStreamController } from './byte-stream-controller';
 
 export type ReadableStreamController<R = any> =
   ReadableStreamDefaultController<R> | ReadableByteStreamController;
