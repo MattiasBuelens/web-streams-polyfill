@@ -30,10 +30,13 @@ export function PerformPromiseThen<T, TResult1 = T, TResult2 = never>(
   return originalPromiseThen.call(promise, onFulfilled, onRejected) as Promise<TResult1 | TResult2>;
 }
 
+// Bluebird logs a warning when a promise is created within a fulfillment handler, but then isn't returned
+// from that handler. To prevent this, return null instead of void from all handlers.
+// http://bluebirdjs.com/docs/warning-explanations.html#warning-a-promise-was-created-in-a-handler-but-was-not-returned-from-it
 export function uponPromise<T>(
   promise: Promise<T>,
-  onFulfilled?: (value: T) => void | PromiseLike<void>,
-  onRejected?: (reason: any) => void | PromiseLike<void>): void {
+  onFulfilled?: (value: T) => null | PromiseLike<null>,
+  onRejected?: (reason: any) => null | PromiseLike<null>): void {
   PerformPromiseThen(
     PerformPromiseThen(promise, onFulfilled, onRejected),
     undefined,
@@ -41,11 +44,11 @@ export function uponPromise<T>(
   );
 }
 
-export function uponFulfillment<T>(promise: Promise<T>, onFulfilled: (value: T) => void | PromiseLike<void>): void {
+export function uponFulfillment<T>(promise: Promise<T>, onFulfilled: (value: T) => null | PromiseLike<null>): void {
   uponPromise(promise, onFulfilled);
 }
 
-export function uponRejection(promise: Promise<unknown>, onRejected: (reason: any) => void | PromiseLike<void>): void {
+export function uponRejection(promise: Promise<unknown>, onRejected: (reason: any) => null | PromiseLike<null>): void {
   uponPromise(promise, undefined, onRejected);
 }
 

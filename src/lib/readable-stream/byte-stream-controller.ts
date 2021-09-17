@@ -421,9 +421,12 @@ function ReadableByteStreamControllerCallPullIfNeeded(controller: ReadableByteSt
         controller._pullAgain = false;
         ReadableByteStreamControllerCallPullIfNeeded(controller);
       }
+
+      return null;
     },
     e => {
       ReadableByteStreamControllerError(controller, e);
+      return null;
     }
   );
 }
@@ -981,9 +984,11 @@ export function SetUpReadableByteStreamController(stream: ReadableByteStream,
       assert(!controller._pullAgain);
 
       ReadableByteStreamControllerCallPullIfNeeded(controller);
+      return null;
     },
     r => {
       ReadableByteStreamControllerError(controller, r);
+      return null;
     }
   );
 }

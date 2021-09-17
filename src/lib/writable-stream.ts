@@ -447,10 +447,12 @@ function WritableStreamFinishErroring(stream: WritableStream) {
     () => {
       abortRequest._resolve();
       WritableStreamRejectCloseAndClosedPromiseIfNeeded(stream);
+      return null;
     },
     (reason: any) => {
       abortRequest._reject(reason);
       WritableStreamRejectCloseAndClosedPromiseIfNeeded(stream);
+      return null;
     });
 }
 
@@ -1081,11 +1083,13 @@ function SetUpWritableStreamDefaultController<W>(stream: WritableStream<W>,
       assert(stream._state === 'writable' || stream._state === 'erroring');
       controller._started = true;
       WritableStreamDefaultControllerAdvanceQueueIfNeeded(controller);
+      return null;
     },
     r => {
       assert(stream._state === 'writable' || stream._state === 'erroring');
       controller._started = true;
       WritableStreamDealWithRejection(stream, r);
+      return null;
     }
   );
 }
@@ -1225,9 +1229,11 @@ function WritableStreamDefaultControllerProcessClose(controller: WritableStreamD
     sinkClosePromise,
     () => {
       WritableStreamFinishInFlightClose(stream);
+      return null;
     },
     reason => {
       WritableStreamFinishInFlightCloseWithError(stream, reason);
+      return null;
     }
   );
 }
@@ -1254,12 +1260,14 @@ function WritableStreamDefaultControllerProcessWrite<W>(controller: WritableStre
       }
 
       WritableStreamDefaultControllerAdvanceQueueIfNeeded(controller);
+      return null;
     },
     reason => {
       if (stream._state === 'writable') {
         WritableStreamDefaultControllerClearAlgorithms(controller);
       }
       WritableStreamFinishInFlightWriteWithError(stream, reason);
+      return null;
     }
   );
 }
