@@ -175,13 +175,12 @@ async function runTest(page, testUrl, reporter) {
   return await donePromise;
 }
 
-function readTestPaths(testsPath) {
-  return recursiveReadDirAsync(testsPath).then(fileNames => {
-    const testFilePaths = [];
-    for (const fileName of fileNames) {
-      const sourceFile = new SourceFile(testsPath, path.relative(testsPath, fileName));
-      testFilePaths.push(...sourceFile.testPaths());
-    }
-    return testFilePaths.sort();
-  });
+async function readTestPaths(testsPath) {
+  const fileNames = await recursiveReadDirAsync(testsPath);
+  const testFilePaths = [];
+  for (const fileName of fileNames) {
+    const sourceFile = new SourceFile(testsPath, path.relative(testsPath, fileName));
+    testFilePaths.push(...sourceFile.testPaths());
+  }
+  return testFilePaths.sort();
 }
