@@ -28,72 +28,72 @@ function setupServer(testsPath, {
   ];
 
   return http.createServer((req, res) => {
-      const { pathname } = new URL(req.url, `http://${req.headers.host}`);
+    const { pathname } = new URL(req.url, `http://${req.headers.host}`);
 
-      for (const [pathNameSuffix, handler] of routes) {
-        if (pathname.endsWith(pathNameSuffix)) {
-          handler.handleRequest(req, res);
-          return;
-        }
+    for (const [pathNameSuffix, handler] of routes) {
+      if (pathname.endsWith(pathNameSuffix)) {
+        handler.handleRequest(req, res);
+        return;
+      }
+    }
+
+    switch (pathname) {
+      case '/resources/testharness.js': {
+        fs.createReadStream(testharnessPath).pipe(res);
+        break;
       }
 
-      switch (pathname) {
-        case '/resources/testharness.js': {
-          fs.createReadStream(testharnessPath).pipe(res);
-          break;
-        }
-
-        case '/resources/idlharness.js': {
-          fs.createReadStream(idlharnessPath).pipe(res);
-          break;
-        }
-
-        case '/resources/WebIDLParser.js': {
-          fs.createReadStream(webidl2jsPath).pipe(res);
-          break;
-        }
-
-        case '/service-workers/service-worker/resources/test-helpers.sub.js': {
-          res.end('window.service_worker_test = () => {};');
-          break;
-        }
-
-        case '/resources/testharnessreport.js': {
-          res.end('');
-          break;
-        }
-
-        case '/streams/resources/test-initializer.js': {
-          res.end('window.worker_test = () => {};');
-          break;
-        }
-
-        case '/resources/testharness.css': {
-          res.end('');
-          break;
-        }
-
-        case '/resources/testdriver.js': {
-          fs.createReadStream(testdriverDummyPath).pipe(res);
-          break;
-        }
-
-        case '/resources/testdriver-vendor.js': {
-          res.end('');
-          break;
-        }
-
-        case '/favicon.ico': {
-          res.end('');
-          break;
-        }
-
-        default: {
-          staticFileServer(req, res, () => {
-            throw new Error(`Unexpected URL: ${req.url}`);
-          });
-        }
+      case '/resources/idlharness.js': {
+        fs.createReadStream(idlharnessPath).pipe(res);
+        break;
       }
+
+      case '/resources/WebIDLParser.js': {
+        fs.createReadStream(webidl2jsPath).pipe(res);
+        break;
+      }
+
+      case '/service-workers/service-worker/resources/test-helpers.sub.js': {
+        res.end('window.service_worker_test = () => {};');
+        break;
+      }
+
+      case '/resources/testharnessreport.js': {
+        res.end('');
+        break;
+      }
+
+      case '/streams/resources/test-initializer.js': {
+        res.end('window.worker_test = () => {};');
+        break;
+      }
+
+      case '/resources/testharness.css': {
+        res.end('');
+        break;
+      }
+
+      case '/resources/testdriver.js': {
+        fs.createReadStream(testdriverDummyPath).pipe(res);
+        break;
+      }
+
+      case '/resources/testdriver-vendor.js': {
+        res.end('');
+        break;
+      }
+
+      case '/favicon.ico': {
+        res.end('');
+        break;
+      }
+
+      default: {
+        staticFileServer(req, res, () => {
+          throw new Error(`Unexpected URL: ${req.url}`);
+        });
+      }
+    }
   }).listen();
 }
 
