@@ -88,8 +88,12 @@ async function runTests(entryFile, { includedTests = ['**/*.html'], excludedTest
       route.fulfill({
         body: `
             window.fetch_tests_from_worker = () => undefined;
-            window.add_result_callback(window.__wptResultCallback);
-            window.add_completion_callback(window.__wptCompletionCallback);
+            window.add_result_callback(({ name, status, message, stack }) => {
+              window.__wptResultCallback({ name, status, message, stack });
+            });
+            window.add_completion_callback((tests, { status, message, stack }) => {
+              window.__wptCompletionCallback({ status, message, stack });
+            });
           `
       });
     });
@@ -151,7 +155,7 @@ async function runTest(page, testUrl, reporter) {
     }
   });
 
-  await page.exposeFunction('__wptCompletionCallback', (tests, harnessStatus) => {
+  await page.exposeFunction('__wptCompletionCallback', harnessStatus => {
     if (harnessStatus.status === 0) {
       resolveDone(!hasFailed);
     } else if (harnessStatus.status === 1) {
