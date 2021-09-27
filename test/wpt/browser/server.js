@@ -28,7 +28,6 @@ function setupServer(testsPath, {
   ];
 
   return http.createServer((req, res) => {
-    staticFileServer(req, res, () => {
       const { pathname } = new URL(req.url, `http://${req.headers.host}`);
 
       for (const [pathNameSuffix, handler] of routes) {
@@ -90,10 +89,11 @@ function setupServer(testsPath, {
         }
 
         default: {
-          throw new Error(`Unexpected URL: ${req.url}`);
+          staticFileServer(req, res, () => {
+            throw new Error(`Unexpected URL: ${req.url}`);
+          });
         }
       }
-    });
   }).listen();
 }
 
