@@ -60,7 +60,7 @@ function setupServer(testsPath, {
         }
 
         case '/resources/testharnessreport.js': {
-          res.end('window.__setupJSDOMReporter();');
+          res.end('');
           break;
         }
 
@@ -80,6 +80,11 @@ function setupServer(testsPath, {
         }
 
         case '/resources/testdriver-vendor.js': {
+          res.end('');
+          break;
+        }
+
+        case '/favicon.ico': {
           res.end('');
           break;
         }
