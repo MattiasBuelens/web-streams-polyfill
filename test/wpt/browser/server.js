@@ -53,22 +53,7 @@ function setupServer(testsPath, {
         break;
       }
 
-      case '/service-workers/service-worker/resources/test-helpers.sub.js': {
-        res.end('window.service_worker_test = () => {};');
-        break;
-      }
-
       case '/resources/testharnessreport.js': {
-        res.end('');
-        break;
-      }
-
-      case '/streams/resources/test-initializer.js': {
-        res.end('window.worker_test = () => {};');
-        break;
-      }
-
-      case '/resources/testharness.css': {
         res.end('');
         break;
       }
