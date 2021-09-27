@@ -10,6 +10,15 @@ const wptRunner = require('wpt-runner');
 const consoleReporter = require('wpt-runner/lib/console-reporter.js');
 const { FilteringReporter } = require('../shared/filtering-reporter.js');
 const allSettled = require('@ungap/promise-all-settled');
+const {
+  excludedTestsNonES2018,
+  excludedTestsBase,
+  ignoredFailuresBase,
+  ignoredFailuresMinified,
+  ignoredFailuresES5,
+  ignoredFailuresES6,
+  mergeIgnoredFailures
+} = require('../shared/exclusions');
 
 const readFileAsync = promisify(fs.readFile);
 const queueMicrotask = global.queueMicrotask || (fn => Promise.resolve().then(fn));
@@ -35,83 +44,19 @@ async function main() {
   const supportsES2018 = runtimeSupportsAsyncGenerators();
 
   const excludedTests = [
-    // We cannot polyfill TransferArrayBuffer yet, so disable tests for detached array buffers
-    // See https://github.com/MattiasBuelens/web-streams-polyfill/issues/3
-    'readable-byte-streams/bad-buffers-and-views.any.html',
-    'readable-byte-streams/enqueue-with-detached-buffer.window.html',
-    'readable-byte-streams/non-transferable-buffers.any.html',
-    // Disable tests for different size functions per realm, since they need a working <iframe>
-    'queuing-strategies-size-function-per-global.window.html',
-    // We don't implement transferable streams yet
-    'transferable/**'
+    ...excludedTestsBase,
+    ...(runtimeSupportsAsyncGenerators() ? [] : excludedTestsNonES2018)
   ];
-  const ignoredFailures = {
-    // We cannot transfer byobRequest.view.buffer after respond() or enqueue()
-    'readable-byte-streams/general.any.html': [
-      'ReadableStream with byte source: read(view) with Uint32Array, then fill it by multiple respond() calls',
-      'ReadableStream with byte source: read(view) with Uint32Array, then fill it by multiple enqueue() calls'
-    ],
-    // Same thing: the enqueued chunk will have the same buffer as branch1's chunk
-    'readable-byte-streams/tee.any.html': [
-      'ReadableStream teeing with byte source: chunks should be cloned for each branch'
-    ]
-  };
-
-  const ignoredFailuresMinified = {
-    'idlharness.any.html': [
-      // Terser turns `(a = undefined) => {}` into `(a) => {}`, changing the function's length property
-      // Therefore we cannot correctly implement methods with optional arguments
-      /interface: operation (abort|cancel|enqueue|error|getReader|write)/,
-      // Same thing for ReadableStream.values(), which is tested as part of the async iterable declaration
-      'ReadableStream interface: async iterable<any>'
-    ]
-  };
-
-  if (!supportsES2018) {
-    excludedTests.push(
-      // Skip tests that use async generators or for-await-of
-      'readable-streams/async-iterator.any.html',
-      'readable-streams/patched-global.any.html'
-    );
-  }
-
-  const ignoredFailuresES6 = merge(ignoredFailures, {
-    'readable-streams/async-iterator.any.html': [
-      // ES6 build will not use correct %AsyncIteratorPrototype%
-      'Async iterator instances should have the correct list of properties'
-    ]
-  });
-
-  const ignoredFailuresES5 = merge(ignoredFailuresES6, {
-    'idlharness.any.html': [
-      // ES5 build does not set correct length on constructors with optional arguments
-      'ReadableStream interface object length',
-      'WritableStream interface object length',
-      'TransformStream interface object length',
-      // ES5 build does not set correct length on methods with optional arguments
-      /interface: operation \w+\(.*optional.*\)/,
-      'ReadableStream interface: async iterable<any>',
-      // ES5 build does not set correct function name on getters and setters
-      /interface: attribute/,
-      // ES5 build has { writable: true } on prototype objects
-      /interface: existence and properties of interface prototype object/
-    ],
-    'queuing-strategies.any.html': [
-      // ES5 build turns arrow functions into regular functions, which cannot be marked as non-constructable
-      'ByteLengthQueuingStrategy: size should not have a prototype property',
-      'CountQueuingStrategy: size should not have a prototype property',
-      'ByteLengthQueuingStrategy: size should not be a constructor',
-      'CountQueuingStrategy: size should not be a constructor'
-    ]
-  });
 
   const results = [];
-
   if (supportsES2018) {
-    results.push(await runTests('polyfill.es2018.js', { excludedTests, ignoredFailures }));
+    results.push(await runTests('polyfill.es2018.js', {
+      excludedTests,
+      ignoredFailures: ignoredFailuresBase
+    }));
     results.push(await runTests('polyfill.es2018.min.js', {
       excludedTests,
-      ignoredFailures: merge(ignoredFailures, ignoredFailuresMinified)
+      ignoredFailures: mergeIgnoredFailures(ignoredFailuresBase, ignoredFailuresMinified)
     }));
   }
 
@@ -121,7 +66,7 @@ async function main() {
   }));
   results.push(await runTests('polyfill.es6.min.js', {
     excludedTests,
-    ignoredFailures: merge(ignoredFailuresES6, ignoredFailuresMinified)
+    ignoredFailures: mergeIgnoredFailures(ignoredFailuresES6, ignoredFailuresMinified)
   }));
 
   results.push(await runTests('polyfill.js', {
@@ -130,7 +75,7 @@ async function main() {
   }));
   results.push(await runTests('polyfill.min.js', {
     excludedTests,
-    ignoredFailures: merge(ignoredFailuresES5, ignoredFailuresMinified)
+    ignoredFailures: mergeIgnoredFailures(ignoredFailuresES5, ignoredFailuresMinified)
   }));
 
   const failures = results.reduce((sum, result) => sum + result.failures, 0);
@@ -222,12 +167,4 @@ function runtimeSupportsAsyncGenerators() {
   } catch (e) {
     return false;
   }
-}
-
-function merge(left, right) {
-  const result = { ...left };
-  for (const key of Object.keys(right)) {
-    result[key] = [...(result[key] || []), ...right[key]];
-  }
-  return result;
 }
