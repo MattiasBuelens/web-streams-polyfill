@@ -43,6 +43,7 @@ main().catch(e => {
 async function main() {
   const supportsES2018 = runtimeSupportsAsyncGenerators();
 
+  const includedTests = process.argv.length >= 3 ? process.argv.slice(2) : ['**/*.html'];
   const excludedTests = [
     ...excludedTestsBase,
     ...(runtimeSupportsAsyncGenerators() ? [] : excludedTestsNonES2018)
@@ -51,29 +52,35 @@ async function main() {
   const results = [];
   if (supportsES2018) {
     results.push(await runTests('polyfill.es2018.js', {
+      includedTests,
       excludedTests,
       ignoredFailures: ignoredFailuresBase
     }));
     results.push(await runTests('polyfill.es2018.min.js', {
+      includedTests,
       excludedTests,
       ignoredFailures: mergeIgnoredFailures(ignoredFailuresBase, ignoredFailuresMinified)
     }));
   }
 
   results.push(await runTests('polyfill.es6.js', {
+    includedTests,
     excludedTests,
     ignoredFailures: ignoredFailuresES6
   }));
   results.push(await runTests('polyfill.es6.min.js', {
+    includedTests,
     excludedTests,
     ignoredFailures: mergeIgnoredFailures(ignoredFailuresES6, ignoredFailuresMinified)
   }));
 
   results.push(await runTests('polyfill.js', {
+    includedTests,
     excludedTests,
     ignoredFailures: ignoredFailuresES5
   }));
   results.push(await runTests('polyfill.min.js', {
+    includedTests,
     excludedTests,
     ignoredFailures: mergeIgnoredFailures(ignoredFailuresES5, ignoredFailuresMinified)
   }));
@@ -92,12 +99,11 @@ async function main() {
   process.exitCode = failures;
 }
 
-async function runTests(entryFile, { excludedTests = [], ignoredFailures = {} } = {}) {
+async function runTests(entryFile, { includedTests = ['**/*.html'], excludedTests = [], ignoredFailures = {} } = {}) {
   const entryPath = path.resolve(__dirname, `../../../dist/${entryFile}`);
   const wptPath = path.resolve(__dirname, '../../web-platform-tests');
   const testsPath = path.resolve(wptPath, 'streams');
 
-  const includedTests = process.argv.length >= 3 ? process.argv.slice(2) : ['**/*.html'];
   const includeMatcher = micromatch.matcher(includedTests);
   const excludeMatcher = micromatch.matcher(excludedTests);
   const workerTestPattern = /\.(?:dedicated|shared|service)worker(?:\.https)?\.html$/;

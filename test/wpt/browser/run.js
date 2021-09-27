@@ -28,18 +28,22 @@ main().catch(e => {
 });
 
 async function main() {
+  const includedTests = process.argv.length >= 3 ? process.argv.slice(2) : ['**/*.html'];
   const excludedTests = [...excludedTestsBase];
 
   const results = [];
   results.push(await runTests('polyfill.es2018.min.js', {
+    includedTests,
     excludedTests,
     ignoredFailures: mergeIgnoredFailures(ignoredFailuresBase, ignoredFailuresMinified)
   }));
   results.push(await runTests('polyfill.es6.min.js', {
+    includedTests,
     excludedTests,
     ignoredFailures: mergeIgnoredFailures(ignoredFailuresES6, ignoredFailuresMinified)
   }));
   results.push(await runTests('polyfill.min.js', {
+    includedTests,
     excludedTests,
     ignoredFailures: mergeIgnoredFailures(ignoredFailuresES5, ignoredFailuresMinified)
   }));
@@ -55,13 +59,12 @@ async function main() {
   process.exitCode = failures;
 }
 
-async function runTests(entryFile, { excludedTests = [], ignoredFailures = {} } = {}) {
+async function runTests(entryFile, { includedTests = ['**/*.html'], excludedTests = [], ignoredFailures = {} } = {}) {
   const entryPath = path.resolve(__dirname, `../../../dist/${entryFile}`);
   const wptPath = path.resolve(__dirname, '../../web-platform-tests');
   const testsBase = '/streams/';
   const testsPath = path.resolve(wptPath, 'streams');
 
-  const includedTests = process.argv.length >= 3 ? process.argv.slice(2) : ['**/*.html'];
   const includeMatcher = micromatch.matcher(includedTests);
   const excludeMatcher = micromatch.matcher(excludedTests);
   const workerTestPattern = /\.(?:dedicated|shared|service)worker(?:\.https)?\.html$/;
