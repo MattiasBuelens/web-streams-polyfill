@@ -8,7 +8,8 @@
   "types": "types/polyfill.d.ts",
   "scripts": {
     "test": "npm run test:types && npm run test:unit && npm run test:wpt",
-    "test:wpt": "node --expose_gc ./test/wpt/node/run.js",
+    "test:wpt": "npm run test:wpt:node && npm run test:wpt:chromium && npm run test:wpt:firefox",
+    "test:wpt:node": "node --expose_gc ./test/wpt/node/run.js",
     "test:wpt:chromium": "node ./test/wpt/browser/run.js --browser chromium",
     "test:wpt:firefox": "node ./test/wpt/browser/run.js --browser firefox",
     "test:types": "tsc -p ./test/types/tsconfig.json",
