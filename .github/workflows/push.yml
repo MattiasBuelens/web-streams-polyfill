@@ -45,5 +45,7 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm install
-      - run: npx playwright install-deps ${{ matrix.browser }}
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
+      - run: npx playwright install --with-deps ${{ matrix.browser }}
       - run: npm run test:wpt:${{ matrix.browser }}
