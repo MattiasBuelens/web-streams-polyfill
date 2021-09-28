@@ -4,7 +4,8 @@ const path = require('path');
 const http = require('http');
 const { promisify } = require('util');
 const micromatch = require('micromatch');
-const { chromium } = require('playwright');
+const { chromium, firefox } = require('playwright');
+const minimist = require('minimist');
 const recursiveReadDir = require('recursive-readdir');
 const { setupServer } = require('./server.js');
 const consoleReporter = require('wpt-runner/lib/console-reporter.js');
@@ -21,13 +22,18 @@ const {
 const serverCloseAsync = promisify(http.Server.prototype.close);
 const recursiveReadDirAsync = promisify(recursiveReadDir);
 
+const argv = minimist(process.argv.slice(2), {
+  string: ['browser']
+});
+
 main().catch(e => {
   console.error(e.stack);
   process.exitCode = 1;
 });
 
 async function main() {
-  const includedTests = process.argv.length >= 3 ? process.argv.slice(2) : ['**/*.html'];
+  const browserType = argv.browser || 'chromium';
+  const includedTests = argv._.length > 0 ? argv._ : ['**/*.html'];
   const excludedTests = [...excludedTestsBase];
 
   const wptPath = path.resolve(__dirname, '../../web-platform-tests');
@@ -39,7 +45,7 @@ async function main() {
     const urlPrefix = `http://127.0.0.1:${server.address().port}`;
     console.log(`Server running at ${urlPrefix}`);
 
-    browser = await chromium.launch();
+    browser = await browserTypeByName(browserType).launch();
     const testOptions = { includedTests, excludedTests, browser, wptPath, urlPrefix };
     results.push(await runTests({
       ...testOptions,
@@ -184,6 +190,16 @@ async function runTest(page, testUrl, reporter) {
 
   await page.goto(testUrl);
   return await donePromise;
+}
+
+function browserTypeByName(name) {
+  switch (name) {
+    case 'firefox':
+      return firefox;
+    case 'chromium':
+    default:
+      return chromium;
+  }
 }
 
 async function readTestPaths(testsPath) {
