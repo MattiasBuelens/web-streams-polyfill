@@ -1,7 +1,8 @@
-name: Build pull request
+name: Test pull request
 on: [pull_request]
 jobs:
   test-node:
+    name: Node ${{ matrix.node-version }}
     runs-on: ubuntu-latest
     strategy:
       matrix:

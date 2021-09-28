@@ -1,7 +1,8 @@
-name: Build on push
+name: Test on push
 on: [push]
 jobs:
   test-node:
+    name: Node ${{ matrix.node-version }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -27,6 +28,7 @@ jobs:
       - run: npm run test:wpt:node
 
   test-browser:
+    name: ${{ matrix.browser }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
