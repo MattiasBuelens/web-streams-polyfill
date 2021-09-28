@@ -5,7 +5,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [12.x, 14.x]
+        node-version: [12, 14]
     # Run only on non-merged non-draft mergeable pull requests
     if: |
       !(
@@ -21,7 +21,7 @@ jobs:
           ref: ${{ github.event.pull_request.merge_commit_sha }}
           submodules: true
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node-version }}
       - run: npm install
@@ -37,7 +37,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [14.x]
+        node-version: [14]
         browser: [chromium, firefox]
     if: |
       !(
@@ -53,7 +53,7 @@ jobs:
           ref: ${{ github.event.pull_request.merge_commit_sha }}
           submodules: true
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node-version }}
       - run: npm install
