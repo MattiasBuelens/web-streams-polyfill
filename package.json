@@ -45,7 +45,6 @@
     "test:bundlers": "npm run test:rollup && npm run test:webpack",
     "test:rollup": "cd test/rollup && npm ci && npm test",
     "test:webpack": "cd test/webpack && npm ci && npm test",
-    "pretest:wpt": "git submodule update --init --recursive",
     "test:types": "tsc -p ./test/types/tsconfig.json",
     "test:unit": "jasmine --config=test/unit/jasmine.json",
     "lint": "eslint \"src/**/*.ts\"",
