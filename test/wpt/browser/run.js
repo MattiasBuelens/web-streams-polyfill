@@ -32,21 +32,35 @@ async function main() {
   const excludedTests = [...excludedTestsBase];
 
   const results = [];
-  results.push(await runTests('polyfill.es2018.min.js', {
-    includedTests,
-    excludedTests,
-    ignoredFailures: mergeIgnoredFailures(ignoredFailuresBase, ignoredFailuresMinified)
-  }));
-  results.push(await runTests('polyfill.es6.min.js', {
-    includedTests,
-    excludedTests,
-    ignoredFailures: mergeIgnoredFailures(ignoredFailuresES6, ignoredFailuresMinified)
-  }));
-  results.push(await runTests('polyfill.min.js', {
-    includedTests,
-    excludedTests,
-    ignoredFailures: mergeIgnoredFailures(ignoredFailuresES5, ignoredFailuresMinified)
-  }));
+  let browser;
+  try {
+    browser = await chromium.launch();
+    results.push(await runTests({
+      entryFile: 'polyfill.es2018.min.js',
+      includedTests,
+      excludedTests,
+      ignoredFailures: mergeIgnoredFailures(ignoredFailuresBase, ignoredFailuresMinified),
+      browser
+    }));
+    results.push(await runTests({
+      entryFile: 'polyfill.es6.min.js',
+      includedTests,
+      excludedTests,
+      ignoredFailures: mergeIgnoredFailures(ignoredFailuresES6, ignoredFailuresMinified),
+      browser
+    }));
+    results.push(await runTests({
+      entryFile: 'polyfill.min.js',
+      includedTests,
+      excludedTests,
+      ignoredFailures: mergeIgnoredFailures(ignoredFailuresES5, ignoredFailuresMinified),
+      browser
+    }));
+  } finally {
+    if (browser) {
+      await browser.close();
+    }
+  }
 
   const failures = results.reduce((sum, result) => sum + result.failures, 0);
   for (const { entryFile, testResults } of results) {
@@ -59,7 +73,7 @@ async function main() {
   process.exitCode = failures;
 }
 
-async function runTests(entryFile, { includedTests = ['**/*.html'], excludedTests = [], ignoredFailures = {} } = {}) {
+async function runTests({ entryFile, includedTests, excludedTests, ignoredFailures, browser }) {
   const entryPath = path.resolve(__dirname, `../../../dist/${entryFile}`);
   const wptPath = path.resolve(__dirname, '../../web-platform-tests');
   const testsBase = '/streams/';
@@ -81,14 +95,13 @@ async function runTests(entryFile, { includedTests = ['**/*.html'], excludedTest
   console.log(`>>> ${entryFile}`);
 
   let server;
-  let browser;
+  let context;
   try {
     server = setupServer(wptPath, { rootURL: '/' });
     const urlPrefix = `http://127.0.0.1:${server.address().port}`;
     console.log(`Server running at ${urlPrefix}`);
 
-    browser = await chromium.launch();
-    const context = await browser.newContext();
+    context = await browser.newContext();
     await context.addInitScript({ path: entryPath });
     await context.route(`${urlPrefix}/resources/testharnessreport.js`, route => {
       route.fulfill({
@@ -112,8 +125,8 @@ async function runTests(entryFile, { includedTests = ['**/*.html'], excludedTest
       await page.close();
     }
   } finally {
-    if (browser) {
-      await browser.close();
+    if (context) {
+      await context.close();
     }
     if (server) {
       await serverCloseAsync.call(server);
