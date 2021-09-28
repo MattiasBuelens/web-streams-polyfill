@@ -31,34 +31,38 @@ async function main() {
   const includedTests = process.argv.length >= 3 ? process.argv.slice(2) : ['**/*.html'];
   const excludedTests = [...excludedTestsBase];
 
+  const wptPath = path.resolve(__dirname, '../../web-platform-tests');
   const results = [];
+  let server;
   let browser;
   try {
+    server = setupServer(wptPath, { rootURL: '/' });
+    const urlPrefix = `http://127.0.0.1:${server.address().port}`;
+    console.log(`Server running at ${urlPrefix}`);
+
     browser = await chromium.launch();
+    const testOptions = { includedTests, excludedTests, browser, wptPath, urlPrefix };
     results.push(await runTests({
+      ...testOptions,
       entryFile: 'polyfill.es2018.min.js',
-      includedTests,
-      excludedTests,
-      ignoredFailures: mergeIgnoredFailures(ignoredFailuresBase, ignoredFailuresMinified),
-      browser
+      ignoredFailures: mergeIgnoredFailures(ignoredFailuresBase, ignoredFailuresMinified)
     }));
     results.push(await runTests({
+      ...testOptions,
       entryFile: 'polyfill.es6.min.js',
-      includedTests,
-      excludedTests,
-      ignoredFailures: mergeIgnoredFailures(ignoredFailuresES6, ignoredFailuresMinified),
-      browser
+      ignoredFailures: mergeIgnoredFailures(ignoredFailuresES6, ignoredFailuresMinified)
     }));
     results.push(await runTests({
+      ...testOptions,
       entryFile: 'polyfill.min.js',
-      includedTests,
-      excludedTests,
-      ignoredFailures: mergeIgnoredFailures(ignoredFailuresES5, ignoredFailuresMinified),
-      browser
+      ignoredFailures: mergeIgnoredFailures(ignoredFailuresES5, ignoredFailuresMinified)
     }));
   } finally {
     if (browser) {
       await browser.close();
+    }
+    if (server) {
+      await serverCloseAsync.call(server);
     }
   }
 
@@ -73,9 +77,8 @@ async function main() {
   process.exitCode = failures;
 }
 
-async function runTests({ entryFile, includedTests, excludedTests, ignoredFailures, browser }) {
+async function runTests({ entryFile, includedTests, excludedTests, ignoredFailures, browser, wptPath, urlPrefix }) {
   const entryPath = path.resolve(__dirname, `../../../dist/${entryFile}`);
-  const wptPath = path.resolve(__dirname, '../../web-platform-tests');
   const testsBase = '/streams/';
   const testsPath = path.resolve(wptPath, 'streams');
 
@@ -94,13 +97,8 @@ async function runTests({ entryFile, includedTests, excludedTests, ignoredFailur
 
   console.log(`>>> ${entryFile}`);
 
-  let server;
   let context;
   try {
-    server = setupServer(wptPath, { rootURL: '/' });
-    const urlPrefix = `http://127.0.0.1:${server.address().port}`;
-    console.log(`Server running at ${urlPrefix}`);
-
     context = await browser.newContext();
     await context.addInitScript({ path: entryPath });
     await context.route(`${urlPrefix}/resources/testharnessreport.js`, route => {
@@ -116,7 +114,6 @@ async function runTests({ entryFile, includedTests, excludedTests, ignoredFailur
           `
       });
     });
-
     for (const testPath of testPaths) {
       reporter.startSuite(testPath);
       const page = await context.newPage();
@@ -127,9 +124,6 @@ async function runTests({ entryFile, includedTests, excludedTests, ignoredFailur
   } finally {
     if (context) {
       await context.close();
-    }
-    if (server) {
-      await serverCloseAsync.call(server);
     }
   }
 
