@@ -1,7 +1,7 @@
 name: Build pull request
 on: [pull_request]
 jobs:
-  build:
+  test-node:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -24,7 +24,37 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
-      - name: npm install and test
-        run: |
-          npm install
-          npm test
+      - run: npm install
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
+      - run: npm test:types
+      - run: npm test:unit
+      - run: npm test:wpt:node
+
+  test-browser:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [20.x]
+        browser: [chromium, firefox]
+    if: |
+      !(
+        (github.event.action == 'opened' || github.event.action == 'reopened' || github.event.action == 'synchronize')
+        && !github.event.pull_request.draft
+        && !github.event.pull_request.merged
+        && github.event.pull_request.merge_commit_sha != null
+      )
+    steps:
+      - name: Check out merge commit of pull request
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
+          submodules: true
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: npm install
+      - run: npx playwright install-deps ${{ matrix.browser }}
+      - run: npm test:wpt:${{ matrix.browser }}
