@@ -22,9 +22,9 @@ jobs:
       - run: npm install
         env:
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
-      - run: npm test:types
-      - run: npm test:unit
-      - run: npm test:wpt:node
+      - run: npm run test:types
+      - run: npm run test:unit
+      - run: npm run test:wpt:node
 
   test-browser:
     runs-on: ubuntu-latest
@@ -46,4 +46,4 @@ jobs:
           cache: npm
       - run: npm install
       - run: npx playwright install-deps ${{ matrix.browser }}
-      - run: npm test:wpt:${{ matrix.browser }}
+      - run: npm run test:wpt:${{ matrix.browser }}
