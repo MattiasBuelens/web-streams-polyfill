@@ -9,7 +9,8 @@
   "scripts": {
     "test": "npm run test:types && npm run test:unit && npm run test:wpt",
     "test:wpt": "node --expose_gc ./test/wpt/node/run.js",
-    "test:wpt-browser": "node ./test/wpt/browser/run.js",
+    "test:wpt:chromium": "node ./test/wpt/browser/run.js --browser chromium",
+    "test:wpt:firefox": "node ./test/wpt/browser/run.js --browser firefox",
     "pretest:wpt": "git submodule update --init --recursive",
     "test:types": "tsc -p ./test/types/tsconfig.json",
     "test:unit": "jasmine --config=test/unit/jasmine.json",
@@ -62,6 +63,7 @@
     "eslint": "^8.56.0",
     "jasmine": "^5.1.0",
     "micromatch": "^4.0.5",
+    "minimist": "^1.2.5",
     "playwright": "^1.14.1",
     "recursive-readdir": "^2.2.2",
     "rollup": "^4.9.2",
