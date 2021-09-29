@@ -1,22 +1,54 @@
-name: Build on push
+name: Test on push
 on: [push]
 jobs:
-  build:
+  test-node:
+    name: Node ${{ matrix.node-version }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [12.x, 14.x]
+        node-version: [12, 14]
     # Skip job if commit message contains "[skip ci]"
     if: |
       !contains(github.event.head_commit.message, '[skip ci]')
     steps:
       - name: Check out commit
         uses: actions/checkout@v2
+        with:
+          submodules: true
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node-version }}
-      - name: npm install and test
-        run: |
-          npm install
-          npm test
+          cache: npm
+      - run: npm ci
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
+      - run: npm run test:types
+      - run: npm run test:unit
+      - run: npm run test:wpt:node
+      - run: npm run test:bundler
+
+  test-browser:
+    name: ${{ matrix.browser }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox]
+    if: |
+      !contains(github.event.head_commit.message, '[skip ci]')
+    steps:
+      - name: Check out commit
+        uses: actions/checkout@v2
+        with:
+          submodules: true
+      - name: Use Node.js 14
+        uses: actions/setup-node@v2
+        with:
+          node-version: 14
+          cache: npm
+      - run: npm ci
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
+      - run: npx playwright install --with-deps ${{ matrix.browser }}
+      - run: npm run test:wpt:${{ matrix.browser }}

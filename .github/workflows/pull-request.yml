@@ -1,16 +1,15 @@
-name: Build pull request
-on: [pull_request]
+name: Test pull request
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
 jobs:
-  build:
+  test-node:
+    name: Node
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [12.x, 14.x]
     # Run only on non-merged non-draft mergeable pull requests
     if: |
-      !(
-        (github.event.action == 'opened' || github.event.action == 'reopened' || github.event.action == 'synchronize')
-        && !github.event.pull_request.draft
+      (
+        !github.event.pull_request.draft
         && !github.event.pull_request.merged
         && github.event.pull_request.merge_commit_sha != null
       )
@@ -19,11 +18,16 @@ jobs:
         uses: actions/checkout@v2
         with:
           ref: ${{ github.event.pull_request.merge_commit_sha }}
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
+          submodules: true
+      - name: Use Node.js 14
+        uses: actions/setup-node@v2
         with:
-          node-version: ${{ matrix.node-version }}
-      - name: npm install and test
-        run: |
-          npm install
-          npm test
+          node-version: 14
+          cache: npm
+      - run: npm ci
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
+      - run: npm run test:types
+      - run: npm run test:unit
+      - run: npm run test:wpt:node
+      - run: npm run test:bundler
