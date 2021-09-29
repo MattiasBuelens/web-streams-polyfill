@@ -6,7 +6,7 @@ jobs:
     runs-on: ubuntu-latest
     # Run only on non-merged non-draft mergeable pull requests
     if: |
-      !(
+      (
         (github.event.action == 'opened' || github.event.action == 'reopened' || github.event.action == 'synchronize')
         && !github.event.pull_request.draft
         && !github.event.pull_request.merged
