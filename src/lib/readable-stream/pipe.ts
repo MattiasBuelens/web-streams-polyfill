@@ -11,6 +11,7 @@ import {
   newPromise,
   PerformPromiseThen,
   promiseResolvedWith,
+  queueMicrotask,
   setPromiseIsHandledToTrue,
   uponFulfillment,
   uponPromise,
@@ -147,18 +148,20 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
       return null;
     });
 
-    // Closing must be propagated backward
-    if (WritableStreamCloseQueuedOrInFlight(dest) || dest._state === 'closed') {
-      const destClosed = new TypeError('the destination writable stream closed before all data could be piped to it');
+    queueMicrotask(() => {
+      // Closing must be propagated backward
+      if (WritableStreamCloseQueuedOrInFlight(dest) || dest._state === 'closed') {
+        const destClosed = new TypeError('the destination writable stream closed before all data could be piped to it');
 
-      if (!preventCancel) {
-        shutdownWithAction(() => reader.cancel(destClosed), true, destClosed);
-      } else {
-        shutdown(true, destClosed);
+        if (!preventCancel) {
+          shutdownWithAction(() => reader.cancel(destClosed), true, destClosed);
+        } else {
+          shutdown(true, destClosed);
+        }
       }
-    }
 
-    setPromiseIsHandledToTrue(pipeLoop());
+      setPromiseIsHandledToTrue(pipeLoop());
+    });
 
     function waitForWritesToFinish(): Promise<void> {
       // Another write may have started while we were waiting on this currentWrite, so we have to be sure to wait
