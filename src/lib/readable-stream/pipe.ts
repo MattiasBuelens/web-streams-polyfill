@@ -81,10 +81,9 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
 
       if (signal.aborted) {
         abortAlgorithm();
-        return;
+      } else {
+        signal.addEventListener('abort', abortAlgorithm);
       }
-
-      signal.addEventListener('abort', abortAlgorithm);
     }
 
     // Using reader and writer, read all chunks from this and write them to dest
