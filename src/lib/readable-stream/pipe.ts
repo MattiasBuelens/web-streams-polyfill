@@ -39,6 +39,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
   source._disturbed = true;
 
   let shuttingDown = false;
+  let released = false;
   let sourceState: ReadableStreamState = 'readable';
   let destState: WritableStreamState = 'writable';
   let destStoredError: any;
@@ -122,6 +123,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
 
     uponPromise(reader.closed, () => {
       // Closing must be propagated forward
+      assert(!released);
       assert(source._state === 'closed');
       sourceState = 'closed';
       if (!preventClose) {
@@ -138,6 +140,9 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
       }
       return null;
     }, storedError => {
+      if (released) {
+        return null;
+      }
       // Errors must be propagated forward
       assert(source._state === 'errored');
       sourceState = 'errored';
@@ -150,10 +155,14 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
     });
 
     uponPromise(writer.closed, () => {
+      assert(!released);
       assert(dest._state === 'closed');
       destState = 'closed';
       return null;
     }, storedError => {
+      if (released) {
+        return null;
+      }
       // Errors must be propagated backward
       assert(dest._state === 'errored');
       destState = 'errored';
@@ -227,6 +236,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
     }
 
     function finalize(isError?: boolean, error?: any): null {
+      released = true;
       writer.releaseLock();
       reader.releaseLock();
 
