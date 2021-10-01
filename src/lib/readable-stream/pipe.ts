@@ -1,15 +1,12 @@
 import type { ReadableStream, ReadableStreamState } from '../readable-stream';
 import { IsReadableStream } from '../readable-stream';
-import type { WritableStream, WritableStreamState } from '../writable-stream';
-import {
-  IsWritableStream,
-  WritableStreamCloseQueuedOrInFlight,
-  WritableStreamDefaultWriterCloseWithErrorPropagation
-} from '../writable-stream';
+import type { WritableStream, WritableStreamDefaultWriter, WritableStreamState } from '../writable-stream';
+import { IsWritableStream, WritableStreamCloseQueuedOrInFlight } from '../writable-stream';
 import assert from '../../stub/assert';
 import {
   newPromise,
   PerformPromiseThen,
+  promiseRejectedWith,
   promiseResolvedWith,
   queueMicrotask,
   setPromiseIsHandledToTrue,
@@ -44,6 +41,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
   let shuttingDown = false;
   let sourceState: ReadableStreamState = 'readable';
   let destState: WritableStreamState = 'writable';
+  let destStoredError: any;
 
   // This is used to keep track of the spec's requirement that we wait for ongoing writes during shutdown.
   let currentWrite = promiseResolvedWith<void>(undefined);
@@ -127,7 +125,14 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
       assert(source._state === 'closed');
       sourceState = 'closed';
       if (!preventClose) {
-        shutdownWithAction(() => WritableStreamDefaultWriterCloseWithErrorPropagation(writer));
+        shutdownWithAction(() => {
+          return WritableStreamDefaultWriterCloseWithErrorPropagation(
+            dest,
+            writer,
+            destState,
+            destStoredError
+          );
+        });
       } else {
         shutdown();
       }
@@ -152,6 +157,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
       // Errors must be propagated backward
       assert(dest._state === 'errored');
       destState = 'errored';
+      destStoredError = storedError;
       if (!preventCancel) {
         shutdownWithAction(() => reader.cancel(storedError), true, storedError);
       } else {
@@ -236,4 +242,23 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
       return null;
     }
   });
+}
+
+function WritableStreamDefaultWriterCloseWithErrorPropagation(
+  stream: WritableStream,
+  writer: WritableStreamDefaultWriter,
+  state: WritableStreamState,
+  storedError: any
+): Promise<void> {
+  if (WritableStreamCloseQueuedOrInFlight(stream) || state === 'closed') {
+    return promiseResolvedWith(undefined);
+  }
+
+  if (state === 'errored') {
+    return promiseRejectedWith(storedError);
+  }
+
+  assert(state === 'writable' || state === 'erroring');
+
+  return writer.close();
 }
