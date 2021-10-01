@@ -14,8 +14,7 @@ import {
   queueMicrotask,
   setPromiseIsHandledToTrue,
   uponFulfillment,
-  uponPromise,
-  uponRejection
+  uponPromise
 } from '../helpers/webidl';
 import { noop } from '../../utils';
 import type { AbortSignal } from '../abort-signal';
@@ -117,8 +116,18 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
       });
     }
 
-    // Errors must be propagated forward
-    uponRejection(reader.closed, storedError => {
+    uponPromise(reader.closed, () => {
+      // Closing must be propagated forward
+      assert(source._state === 'closed');
+      sourceState = 'closed';
+      if (!preventClose) {
+        shutdownWithAction(() => WritableStreamDefaultWriterCloseWithErrorPropagation(writer));
+      } else {
+        shutdown();
+      }
+      return null;
+    }, storedError => {
+      // Errors must be propagated forward
       assert(source._state === 'errored');
       sourceState = 'errored';
       if (!preventAbort) {
@@ -129,8 +138,12 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
       return null;
     });
 
-    // Errors must be propagated backward
-    uponRejection(writer.closed, storedError => {
+    uponPromise(writer.closed, () => {
+      assert(dest._state === 'closed');
+      destState = 'closed';
+      return null;
+    }, storedError => {
+      // Errors must be propagated backward
       assert(dest._state === 'errored');
       destState = 'errored';
       if (!preventCancel) {
@@ -138,24 +151,6 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
       } else {
         shutdown(true, storedError);
       }
-      return null;
-    });
-
-    // Closing must be propagated forward
-    uponFulfillment(reader.closed, () => {
-      assert(source._state === 'closed');
-      sourceState = 'closed';
-      if (!preventClose) {
-        shutdownWithAction(() => WritableStreamDefaultWriterCloseWithErrorPropagation(writer));
-      } else {
-        shutdown();
-      }
-      return null;
-    });
-
-    uponFulfillment(writer.closed, () => {
-      assert(dest._state === 'closed');
-      destState = 'closed';
       return null;
     });
 
