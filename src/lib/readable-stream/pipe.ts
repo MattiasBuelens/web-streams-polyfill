@@ -44,6 +44,13 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
   let destState: WritableStreamState = 'writable';
   let destStoredError: any;
 
+  // This is used to track when we initially start the pipe loop, and have initialized sourceState and destState.
+  let started = false;
+  let resolveStart: () => void;
+  const startPromise: Promise<void> = newPromise(resolve => {
+    resolveStart = resolve;
+  });
+
   // This is used to keep track of the spec's requirement that we wait for ongoing writes during shutdown.
   let currentWrite = promiseResolvedWith<void>(undefined);
 
@@ -176,6 +183,9 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
     });
 
     queueMicrotask(() => {
+      started = true;
+      resolveStart();
+
       // Closing must be propagated backward
       if (WritableStreamCloseQueuedOrInFlight(dest) || destState === 'closed') {
         const destClosed = new TypeError('the destination writable stream closed before all data could be piped to it');
@@ -206,10 +216,19 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
       }
       shuttingDown = true;
 
-      if (destState === 'writable' && !WritableStreamCloseQueuedOrInFlight(dest)) {
-        uponFulfillment(waitForWritesToFinish(), doTheRest);
+      if (!started) {
+        uponFulfillment(startPromise, onStart);
       } else {
-        doTheRest();
+        onStart();
+      }
+
+      function onStart(): null {
+        if (destState === 'writable' && !WritableStreamCloseQueuedOrInFlight(dest)) {
+          uponFulfillment(waitForWritesToFinish(), doTheRest);
+        } else {
+          doTheRest();
+        }
+        return null;
       }
 
       function doTheRest(): null {
@@ -228,10 +247,19 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
       }
       shuttingDown = true;
 
-      if (destState === 'writable' && !WritableStreamCloseQueuedOrInFlight(dest)) {
-        uponFulfillment(waitForWritesToFinish(), () => finalize(isError, error));
+      if (!started) {
+        uponFulfillment(startPromise, onStart);
       } else {
-        finalize(isError, error);
+        onStart();
+      }
+
+      function onStart(): null {
+        if (destState === 'writable' && !WritableStreamCloseQueuedOrInFlight(dest)) {
+          uponFulfillment(waitForWritesToFinish(), () => finalize(isError, error));
+        } else {
+          finalize(isError, error);
+        }
+        return null;
       }
     }
 
