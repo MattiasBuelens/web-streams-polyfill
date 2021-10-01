@@ -85,7 +85,11 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
     // - Backpressure must be enforced
     // - Shutdown must stop all activity
     function pipeLoop() {
-      return newPromise<void>((resolveLoop, rejectLoop) => {
+      if (shuttingDown) {
+        return;
+      }
+
+      const loop = newPromise<void>((resolveLoop, rejectLoop) => {
         function next(done: boolean) {
           if (done) {
             resolveLoop();
@@ -98,6 +102,8 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
 
         next(false);
       });
+
+      setPromiseIsHandledToTrue(loop);
     }
 
     function pipeStep(): Promise<boolean> {
@@ -166,7 +172,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
         }
       }
 
-      setPromiseIsHandledToTrue(pipeLoop());
+      pipeLoop();
     });
 
     function waitForWritesToFinish(): Promise<void> {
