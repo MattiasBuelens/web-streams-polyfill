@@ -1,6 +1,6 @@
-import type { ReadableStream } from '../readable-stream';
+import type { ReadableStream, ReadableStreamState } from '../readable-stream';
 import { IsReadableStream } from '../readable-stream';
-import type { WritableStream } from '../writable-stream';
+import type { WritableStream, WritableStreamState } from '../writable-stream';
 import {
   IsWritableStream,
   WritableStreamCloseQueuedOrInFlight,
@@ -43,6 +43,8 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
   source._disturbed = true;
 
   let shuttingDown = false;
+  let sourceState: ReadableStreamState = 'readable';
+  let destState: WritableStreamState = 'writable';
 
   // This is used to keep track of the spec's requirement that we wait for ongoing writes during shutdown.
   let currentWrite = promiseResolvedWith<void>(undefined);
@@ -55,7 +57,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
         const actions: Array<() => Promise<void>> = [];
         if (!preventAbort) {
           actions.push(() => {
-            if (dest._state === 'writable') {
+            if (destState === 'writable') {
               return writer.abort(error);
             }
             return promiseResolvedWith(undefined);
@@ -63,7 +65,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
         }
         if (!preventCancel) {
           actions.push(() => {
-            if (source._state === 'readable') {
+            if (sourceState === 'readable') {
               return reader.cancel(error);
             }
             return promiseResolvedWith(undefined);
@@ -118,6 +120,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
     // Errors must be propagated forward
     uponRejection(reader.closed, storedError => {
       assert(source._state === 'errored');
+      sourceState = 'errored';
       if (!preventAbort) {
         shutdownWithAction(() => writer.abort(storedError), true, storedError);
       } else {
@@ -129,6 +132,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
     // Errors must be propagated backward
     uponRejection(writer.closed, storedError => {
       assert(dest._state === 'errored');
+      destState = 'errored';
       if (!preventCancel) {
         shutdownWithAction(() => reader.cancel(storedError), true, storedError);
       } else {
@@ -140,6 +144,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
     // Closing must be propagated forward
     uponFulfillment(reader.closed, () => {
       assert(source._state === 'closed');
+      sourceState = 'closed';
       if (!preventClose) {
         shutdownWithAction(() => WritableStreamDefaultWriterCloseWithErrorPropagation(writer));
       } else {
@@ -148,9 +153,15 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
       return null;
     });
 
+    uponFulfillment(writer.closed, () => {
+      assert(dest._state === 'closed');
+      destState = 'closed';
+      return null;
+    });
+
     queueMicrotask(() => {
       // Closing must be propagated backward
-      if (WritableStreamCloseQueuedOrInFlight(dest) || dest._state === 'closed') {
+      if (WritableStreamCloseQueuedOrInFlight(dest) || destState === 'closed') {
         const destClosed = new TypeError('the destination writable stream closed before all data could be piped to it');
 
         if (!preventCancel) {
@@ -179,7 +190,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
       }
       shuttingDown = true;
 
-      if (dest._state === 'writable' && !WritableStreamCloseQueuedOrInFlight(dest)) {
+      if (destState === 'writable' && !WritableStreamCloseQueuedOrInFlight(dest)) {
         uponFulfillment(waitForWritesToFinish(), doTheRest);
       } else {
         doTheRest();
@@ -201,7 +212,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
       }
       shuttingDown = true;
 
-      if (dest._state === 'writable' && !WritableStreamCloseQueuedOrInFlight(dest)) {
+      if (destState === 'writable' && !WritableStreamCloseQueuedOrInFlight(dest)) {
         uponFulfillment(waitForWritesToFinish(), () => finalize(isError, error));
       } else {
         finalize(isError, error);

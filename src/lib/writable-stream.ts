@@ -29,7 +29,7 @@ import { assertWritableStream } from './validators/writable-stream';
 import type { AbortController, AbortSignal } from './abort-signal';
 import { createAbortController } from './abort-signal';
 
-type WritableStreamState = 'writable' | 'closed' | 'erroring' | 'errored';
+export type WritableStreamState = 'writable' | 'closed' | 'erroring' | 'errored';
 
 interface WriteOrCloseRequest {
   _resolve: (value?: undefined) => void;

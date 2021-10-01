@@ -68,7 +68,7 @@ export type ReadableByteStream = ReadableStream<Uint8Array> & {
   _readableStreamController: ReadableByteStreamController
 };
 
-type ReadableStreamState = 'readable' | 'closed' | 'errored';
+export type ReadableStreamState = 'readable' | 'closed' | 'errored';
 
 /**
  * A readable stream represents a source of data, from which you can read.
