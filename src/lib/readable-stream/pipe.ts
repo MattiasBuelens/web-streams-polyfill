@@ -190,6 +190,8 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
       resolveStart();
 
       // Closing must be propagated backward
+      // FIXME The reference implementation does this synchronously, and expects it to take affect
+      //  *before* any of the error propagations above... :-/
       if (WritableStreamCloseQueuedOrInFlight(dest) || destState === 'closed') {
         const destClosed = new TypeError('the destination writable stream closed before all data could be piped to it');
 
