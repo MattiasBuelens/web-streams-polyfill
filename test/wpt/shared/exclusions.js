@@ -20,6 +20,9 @@ const excludedTestsNonES2018 = [
   'readable-streams/patched-global.any.html'
 ];
 
+const skippedTests = {
+};
+
 const ignoredFailuresBase = {
   // We cannot transfer byobRequest.view.buffer after respond() or enqueue()
   'readable-byte-streams/general.any.html': [
@@ -80,6 +83,7 @@ function mergeIgnoredFailures(left, right) {
 module.exports = {
   excludedTestsBase,
   excludedTestsNonES2018,
+  skippedTests,
   ignoredFailuresBase,
   ignoredFailuresMinified,
   ignoredFailuresES5,

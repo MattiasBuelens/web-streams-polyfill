@@ -22,17 +22,13 @@ class FilteringReporter {
   fail(message) {
     message = message.trim();
     const ignoredFailures = this._ignoredFailures[this._currentSuite];
-    if (ignoredFailures) {
-      for (const ignoredFailure of ignoredFailures) {
-        if (matches(ignoredFailure, message)) {
-          this._ignored++;
-          this._reporter.fail(`${message} (ignored)\n`);
-          return;
-        }
-      }
+    if (ignoredFailures && ignoredFailures.some(ignoredFailure => matches(ignoredFailure, message))) {
+      this._ignored++;
+      this._reporter.fail(`${message} (ignored)\n`);
+    } else {
+      this._failed++;
+      this._reporter.fail(`${message} (UNEXPECTED FAILURE)\n`);
     }
-    this._failed++;
-    this._reporter.fail(`${message} (UNEXPECTED FAILURE)\n`);
   }
 
   reportStack(stack) {
