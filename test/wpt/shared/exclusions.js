@@ -22,6 +22,11 @@ const excludedTestsNonES2018 = [
 ];
 
 const skippedTests = {
+  'piping/abort.any.html': [
+    // This test cheats: pipeTo() releases the reader's lock while there's still a pending read().
+    // The polyfill cannot do this, because it uses the reader.releaseLock() public API.
+    'abort should do nothing after the writable is errored'
+  ]
 };
 
 const ignoredFailuresBase = {
