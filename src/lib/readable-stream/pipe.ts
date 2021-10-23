@@ -138,12 +138,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
       sourceState = 'closed';
       if (!preventClose) {
         shutdownWithAction(() => {
-          return WritableStreamDefaultWriterCloseWithErrorPropagation(
-            dest,
-            writer,
-            destState,
-            destStoredError
-          );
+          return WritableStreamDefaultWriterCloseWithErrorPropagation(dest, writer, destState, destStoredError);
         });
       } else {
         shutdown();
