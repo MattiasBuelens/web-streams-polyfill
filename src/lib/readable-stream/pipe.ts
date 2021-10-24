@@ -248,11 +248,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
       }
 
       function onStart(): null {
-        if (destState === 'writable' && !WritableStreamCloseQueuedOrInFlight(dest)) {
-          uponFulfillment(waitForWritesToFinish(), doTheRest);
-        } else {
-          doTheRest();
-        }
+        uponFulfillment(waitForWritesToFinish(), doTheRest);
         return null;
       }
 
