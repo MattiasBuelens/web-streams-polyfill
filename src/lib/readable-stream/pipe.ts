@@ -1,7 +1,7 @@
 import type { ReadableStream, ReadableStreamState } from '../readable-stream';
 import { IsReadableStream } from '../readable-stream';
-import type { WritableStream, WritableStreamDefaultWriter, WritableStreamState } from '../writable-stream';
-import { IsWritableStream, WritableStreamCloseQueuedOrInFlight } from '../writable-stream';
+import type { WritableStream, WritableStreamState } from '../writable-stream';
+import { IsWritableStream } from '../writable-stream';
 import assert from '../../stub/assert';
 import {
   newPromise,
@@ -43,6 +43,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
   let sourceState: ReadableStreamState = 'readable';
   let destState: WritableStreamState = 'writable';
   let destStoredError: any;
+  let destCloseRequested = false;
 
   // This is used to track when we initially start the pipe loop, and have initialized sourceState and destState.
   let started = false;
@@ -138,7 +139,15 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
       sourceState = 'closed';
       if (!preventClose) {
         shutdownWithAction(() => {
-          return WritableStreamDefaultWriterCloseWithErrorPropagation(dest, writer, destState, destStoredError);
+          if (destCloseRequested || destState === 'closed') {
+            return promiseResolvedWith(undefined);
+          }
+          if (destState === 'errored') {
+            return promiseRejectedWith(destStoredError);
+          }
+          assert(destState === 'writable' || destState === 'erroring');
+          destCloseRequested = true;
+          return writer.close();
         });
       } else {
         shutdown();
@@ -187,7 +196,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
       // Closing must be propagated backward
       // FIXME The reference implementation does this synchronously, and expects it to take affect
       //  *before* any of the error propagations above... :-/
-      if (WritableStreamCloseQueuedOrInFlight(dest) || destState === 'closed') {
+      if (destCloseRequested || destState === 'closed') {
         const destClosed = new TypeError('the destination writable stream closed before all data could be piped to it');
 
         if (!preventCancel) {
@@ -302,23 +311,4 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
       return null;
     }
   });
-}
-
-function WritableStreamDefaultWriterCloseWithErrorPropagation(
-  stream: WritableStream,
-  writer: WritableStreamDefaultWriter,
-  state: WritableStreamState,
-  storedError: any
-): Promise<void> {
-  if (WritableStreamCloseQueuedOrInFlight(stream) || state === 'closed') {
-    return promiseResolvedWith(undefined);
-  }
-
-  if (state === 'errored') {
-    return promiseRejectedWith(storedError);
-  }
-
-  assert(state === 'writable' || state === 'erroring');
-
-  return writer.close();
 }
