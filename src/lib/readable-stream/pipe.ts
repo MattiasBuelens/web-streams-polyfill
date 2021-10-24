@@ -8,7 +8,6 @@ import {
   PerformPromiseThen,
   promiseRejectedWith,
   promiseResolvedWith,
-  queueMicrotask,
   setPromiseIsHandledToTrue,
   transformPromiseWith,
   uponFulfillment,
@@ -189,13 +188,13 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
       return null;
     });
 
-    queueMicrotask(() => {
+    // The reference implementation uses `queueMicrotask()` here, but that is not sufficient to detect
+    // closes or errors through `reader.closed` or `writer.closed`.
+    setTimeout(() => {
       started = true;
       resolveStart();
 
       // Closing must be propagated backward
-      // FIXME The reference implementation does this synchronously, and expects it to take affect
-      //  *before* any of the error propagations above... :-/
       if (destCloseRequested || destState === 'closed') {
         const destClosed = new TypeError('the destination writable stream closed before all data could be piped to it');
 
@@ -207,7 +206,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
       }
 
       pipeLoop();
-    });
+    }, 0);
 
     function waitForWritesToFinish(): Promise<void> {
       let oldCurrentWrite: Promise<unknown> | undefined;
