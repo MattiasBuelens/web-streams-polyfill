@@ -11,6 +11,7 @@ const excludedTestsBase = [
   // We use the public API to implement pipeTo() and tee(),
   // so patching various globals *will* affect the polyfill.
   'readable-streams/patched-global.any.html',
+  'piping/then-interception.any.html',
   'transform-streams/patched-global.any.html'
 ];
 
