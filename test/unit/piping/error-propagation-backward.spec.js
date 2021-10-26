@@ -13,6 +13,7 @@ describe('Piping: backwards error propagation', () => {
     const rs = recordingReadableStream();
     const ws = recordingWritableStream();
     const pipePromise = rs.pipeTo(ws, { preventCancel: true });
+    pipePromise.catch(() => undefined);
 
     await new Promise(r => setTimeout(r, 10));
     ws.controller.error(error1);
