@@ -87,6 +87,9 @@ It aims to pass all tests, although it allows some exceptions for practical reas
   * The [test for the prototype of `ReadableStream`'s async iterator][wpt-async-iterator-prototype].
     Retrieving the correct `%AsyncIteratorPrototype%` requires using an async generator (`async function* () {}`), which is invalid syntax before ES2018.
     Instead, the polyfill [creates its own version][stub-async-iterator-prototype] which is functionally equivalent to the real prototype.
+  * The tests [with patched globals][wpt-rs-patched-global] and [with `Object.prototype.then`][wpt-then-interception].
+    These tests are meant for browsers to ensure user-land modifications cannot affect the internal logic of `pipeTo()` and `tee()`. 
+    However, it's not reasonable or desirable for a user-land polyfill to try and isolate itself completely from using the global `Object`.
 * The ES5 variant passes the same tests as the ES2015 variant, except for various tests about specific characteristics of the constructors, properties and methods.
   These test failures do not affect the run-time behavior of the polyfill.
   For example:
@@ -122,4 +125,6 @@ Thanks to these people for their work on [the original polyfill][creatorrr-polyf
 [issue-3]: https://github.com/MattiasBuelens/web-streams-polyfill/issues/3
 [wpt-async-iterator-prototype]: https://github.com/web-platform-tests/wpt/blob/87a4c80598aee5178c385628174f1832f5a28ad6/streams/readable-streams/async-iterator.any.js#L24
 [stub-async-iterator-prototype]: https://github.com/MattiasBuelens/web-streams-polyfill/blob/v4.0.0-beta.1/src/lib/readable-stream/async-iterator.ts#L153-L161
+[wpt-rs-patched-global]: https://github.com/web-platform-tests/wpt/blob/887350c2f46def5b01c4dd1f8d2eee35dfb9c5bb/streams/readable-streams/patched-global.any.js
+[wpt-then-interception]: https://github.com/web-platform-tests/wpt/blob/cf33f00596af295ee0f207c88e23b5f8b0791307/streams/piping/then-interception.any.js
 [creatorrr-polyfill]: https://github.com/creatorrr/web-streams-polyfill

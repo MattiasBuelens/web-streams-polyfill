@@ -13,6 +13,7 @@ const allSettled = require('@ungap/promise-all-settled');
 const {
   excludedTestsNonES2018,
   excludedTestsBase,
+  skippedTests,
   ignoredFailuresBase,
   ignoredFailuresMinified,
   ignoredFailuresES5,
@@ -72,7 +73,11 @@ async function main() {
   process.exitCode = failures;
 }
 
-async function runTests(entryFile, { includedTests = ['**/*.html'], excludedTests = [], ignoredFailures = {} } = {}) {
+async function runTests(entryFile, {
+  includedTests = ['**/*.html'],
+  excludedTests = [],
+  ignoredFailures = {}
+} = {}) {
   const entryPath = path.resolve(__dirname, `../../../dist/${entryFile}`);
   const wptPath = path.resolve(__dirname, '../../web-platform-tests');
   const testsPath = path.resolve(wptPath, 'streams');
@@ -81,7 +86,8 @@ async function runTests(entryFile, { includedTests = ['**/*.html'], excludedTest
   const excludeMatcher = micromatch.matcher(excludedTests);
   const workerTestPattern = /\.(?:dedicated|shared|service)worker(?:\.https)?\.html$/;
 
-  const reporter = new FilteringReporter(consoleReporter, ignoredFailures);
+  const skippedAndIgnoredFailures = mergeIgnoredFailures(skippedTests, ignoredFailures);
+  const reporter = new FilteringReporter(consoleReporter, skippedAndIgnoredFailures);
 
   const bundledJS = await readFileAsync(entryPath, { encoding: 'utf8' });
 
@@ -106,15 +112,27 @@ async function runTests(entryFile, { includedTests = ['**/*.html'], excludedTest
         };
       };
       window.eval(bundledJS);
+
+      const testPath = window.location.pathname.replace('/streams/', '');
+      hookIntoTestHarnessReport(window, () => {
+        const originalPromiseTest = window.promise_test;
+        window.promise_test = function (func, name, ...extras) {
+          if (skippedTests[testPath] && skippedTests[testPath].some(test => matches(test, name))) {
+            // Replace the actual test with one that always fails
+            func = async () => {
+              window.assert_implements_optional(false, 'skipped');
+            };
+          }
+          return originalPromiseTest(func, name, ...extras);
+        };
+      });
     },
     filter(testPath) {
       // Ignore the worker versions
       if (workerTestPattern.test(testPath)) {
         return false;
       }
-
-      return includeMatcher(testPath) &&
-          !excludeMatcher(testPath);
+      return includeMatcher(testPath) && !excludeMatcher(testPath);
     }
   });
 
@@ -146,4 +164,33 @@ function runtimeSupportsAsyncGenerators() {
   } catch (e) {
     return false;
   }
+}
+
+function hookIntoTestHarnessReport(window, callback) {
+  // HACK: wpt-runner defines a window.__setupJSDOMReporter() function,
+  // which it calls when it loads testharnessreport.js
+  // We patch it before wpt-runner sets this variable,
+  // so we can run extra code when testharnessreport.js is loaded.
+  let __setupJSDOMReporter;
+  Object.defineProperty(window, '__setupJSDOMReporter', {
+    get() {
+      return __setupJSDOMReporter;
+    },
+    set(value) {
+      __setupJSDOMReporter = function () {
+        callback();
+        value();
+      };
+    }
+  });
+}
+
+function matches(test, input) {
+  if (typeof test === 'string') {
+    return input.includes(test);
+  }
+  if (test instanceof RegExp) {
+    return test.test(input);
+  }
+  return false;
 }

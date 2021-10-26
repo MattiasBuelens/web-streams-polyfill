@@ -14,6 +14,7 @@ const { FilteringReporter } = require('../shared/filtering-reporter.js');
 const {
   excludedTestsBase,
   mergeIgnoredFailures,
+  skippedTests,
   ignoredFailuresBase,
   ignoredFailuresMinified,
   ignoredFailuresES5
@@ -93,7 +94,8 @@ async function runTests({ entryFile, includedTests, excludedTests, ignoredFailur
     return includeMatcher(testPath) && !excludeMatcher(testPath);
   });
 
-  const reporter = new FilteringReporter(consoleReporter, ignoredFailures);
+  const skippedAndIgnoredFailures = mergeIgnoredFailures(skippedTests, ignoredFailures);
+  const reporter = new FilteringReporter(consoleReporter, skippedAndIgnoredFailures);
 
   console.log(`>>> ${entryFile}`);
 
@@ -103,22 +105,14 @@ async function runTests({ entryFile, includedTests, excludedTests, ignoredFailur
     await context.addInitScript({ path: entryPath });
     await context.route(`${urlPrefix}/resources/testharnessreport.js`, route => {
       route.fulfill({
-        body: `
-            window.fetch_tests_from_worker = () => undefined;
-            window.add_result_callback(({ name, status, message, stack }) => {
-              window.__wptResultCallback({ name, status, message, stack });
-            });
-            window.add_completion_callback((tests, { status, message, stack }) => {
-              window.__wptCompletionCallback({ status, message, stack });
-            });
-          `
+        path: path.resolve(__dirname, 'testharnessreport.js')
       });
     });
     for (const testPath of testPaths) {
       reporter.startSuite(testPath);
       const page = await context.newPage();
       const testUrl = `${urlPrefix}${testsBase}${testPath}`;
-      await runTest(page, testUrl, reporter);
+      await runTest(page, testUrl, skippedTests[testPath], reporter);
       await page.close();
     }
   } finally {
@@ -136,12 +130,16 @@ async function runTests({ entryFile, includedTests, excludedTests, ignoredFailur
   return { entryFile, failures, testResults };
 }
 
-async function runTest(page, testUrl, reporter) {
+async function runTest(page, testUrl, skippedTestsForPath, reporter) {
   let hasFailed = false;
   let resolveDone;
   const donePromise = new Promise(resolve => {
     resolveDone = resolve;
   });
+
+  await page.addInitScript(skipped => {
+    window.__wptSkippedTests = skipped;
+  }, skippedTestsForPath);
 
   await page.exposeFunction('__wptResultCallback', test => {
     if (test.status === 0) {

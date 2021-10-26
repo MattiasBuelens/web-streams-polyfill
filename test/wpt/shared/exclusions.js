@@ -7,7 +7,12 @@ const excludedTestsBase = [
   // Disable tests for different size functions per realm, since they need a working <iframe>
   'queuing-strategies-size-function-per-global.window.html',
   // We don't implement transferable streams yet
-  'transferable/**'
+  'transferable/**',
+  // We use the public API to implement pipeTo() and tee(),
+  // so patching various globals *will* affect the polyfill.
+  'readable-streams/patched-global.any.html',
+  'piping/then-interception.any.html',
+  'transform-streams/patched-global.any.html'
 ];
 
 const excludedTestsNonES2018 = [
@@ -15,6 +20,9 @@ const excludedTestsNonES2018 = [
   'readable-streams/async-iterator.any.html',
   'readable-streams/patched-global.any.html'
 ];
+
+const skippedTests = {
+};
 
 const ignoredFailuresBase = {
   // We cannot transfer byobRequest.view.buffer after respond() or enqueue()
@@ -76,6 +84,7 @@ function mergeIgnoredFailures(left, right) {
 module.exports = {
   excludedTestsBase,
   excludedTestsNonES2018,
+  skippedTests,
   ignoredFailuresBase,
   ignoredFailuresMinified,
   ignoredFailuresES5,
