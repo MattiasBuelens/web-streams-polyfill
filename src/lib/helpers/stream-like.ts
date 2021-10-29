@@ -63,13 +63,23 @@ interface WritableStreamDefaultWriterLike<W = any> {
 }
 
 export function IsReadableStreamLike(x: unknown): x is ReadableStreamLike {
-  return typeIsObject(x) && typeof (x as ReadableStreamLike).getReader === 'function';
-}
-
-export function IsReadableByteStreamLike(x: unknown): x is ReadableByteStreamLike {
-  if (!IsReadableStreamLike(x)) {
+  if (!typeIsObject(x)) {
     return false;
   }
+  if (typeof (x as ReadableStreamLike).getReader !== 'function') {
+    return false;
+  }
+  try {
+    // noinspection SuspiciousTypeOfGuard
+    return typeof (x as ReadableStreamLike).locked === 'boolean';
+  } catch {
+    // ReadableStream.prototype.locked may throw if its brand check fails
+    return false;
+  }
+}
+
+export function IsReadableByteStreamLike(x: ReadableStreamLike): x is ReadableByteStreamLike {
+  assert(IsReadableStreamLike(x));
 
   // This brand check only works for unlocked streams.
   // If the stream is locked, getReader() will throw even if "byob" is actually supported.
@@ -85,5 +95,17 @@ export function IsReadableByteStreamLike(x: unknown): x is ReadableByteStreamLik
 }
 
 export function IsWritableStreamLike(x: unknown): x is WritableStreamLike {
-  return typeIsObject(x) && typeof (x as WritableStreamLike).getWriter === 'function';
+  if (!typeIsObject(x)) {
+    return false;
+  }
+  if (typeof (x as WritableStreamLike).getWriter !== 'function') {
+    return false;
+  }
+  try {
+    // noinspection SuspiciousTypeOfGuard
+    return typeof (x as WritableStreamLike).locked === 'boolean';
+  } catch {
+    // WritableStream.prototype.locked may throw if its brand check fails
+    return false;
+  }
 }
