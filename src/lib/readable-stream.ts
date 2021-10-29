@@ -23,7 +23,8 @@ import {
 import { ReadableStreamPipeTo } from './readable-stream/pipe';
 import { ReadableStreamTee } from './readable-stream/tee';
 import type { WritableStream } from './writable-stream';
-import { IsWritableStream, IsWritableStreamLocked } from './writable-stream';
+import type { ReadableStreamLike, WritableStreamLike } from './helpers/stream-like';
+import { IsReadableStreamLike, IsWritableStreamLike } from './helpers/stream-like';
 import { SimpleQueue } from './simple-queue';
 import {
   ReadableByteStreamController,
@@ -201,11 +202,12 @@ export class ReadableStream<R = any> {
     transform: { readable: RS; writable: WritableStream<R> },
     options?: StreamPipeOptions
   ): RS;
-  pipeThrough<RS extends ReadableStream>(
-    rawTransform: { readable: RS; writable: WritableStream<R> } | null | undefined,
+  pipeThrough<RS extends ReadableStreamLike>(
+    this: ReadableStreamLike<R>,
+    rawTransform: { readable: RS; writable: WritableStreamLike<R> } | null | undefined,
     rawOptions: StreamPipeOptions | null | undefined = {}
   ): RS {
-    if (!IsReadableStream(this)) {
+    if (!IsReadableStreamLike(this)) {
       throw streamBrandCheckException('pipeThrough');
     }
     assertRequiredArgument(rawTransform, 1, 'pipeThrough');
@@ -213,10 +215,10 @@ export class ReadableStream<R = any> {
     const transform = convertReadableWritablePair(rawTransform, 'First parameter');
     const options = convertPipeOptions(rawOptions, 'Second parameter');
 
-    if (IsReadableStreamLocked(this)) {
+    if (this.locked) {
       throw new TypeError('ReadableStream.prototype.pipeThrough cannot be used on a locked ReadableStream');
     }
-    if (IsWritableStreamLocked(transform.writable)) {
+    if (transform.writable.locked) {
       throw new TypeError('ReadableStream.prototype.pipeThrough cannot be used on a locked WritableStream');
     }
 
@@ -237,16 +239,17 @@ export class ReadableStream<R = any> {
    * Piping a stream will lock it for the duration of the pipe, preventing any other consumer from acquiring a reader.
    */
   pipeTo(destination: WritableStream<R>, options?: StreamPipeOptions): Promise<void>;
-  pipeTo(destination: WritableStream<R> | null | undefined,
+  pipeTo(this: ReadableStreamLike<R>,
+         destination: WritableStreamLike<R> | null | undefined,
          rawOptions: StreamPipeOptions | null | undefined = {}): Promise<void> {
-    if (!IsReadableStream(this)) {
+    if (!IsReadableStreamLike(this)) {
       return promiseRejectedWith(streamBrandCheckException('pipeTo'));
     }
 
     if (destination === undefined) {
       return promiseRejectedWith(`Parameter 1 is required in 'pipeTo'.`);
     }
-    if (!IsWritableStream(destination)) {
+    if (!IsWritableStreamLike(destination)) {
       return promiseRejectedWith(
         new TypeError(`ReadableStream.prototype.pipeTo's first argument must be a WritableStream`)
       );
@@ -259,12 +262,12 @@ export class ReadableStream<R = any> {
       return promiseRejectedWith(e);
     }
 
-    if (IsReadableStreamLocked(this)) {
+    if (this.locked) {
       return promiseRejectedWith(
         new TypeError('ReadableStream.prototype.pipeTo cannot be used on a locked ReadableStream')
       );
     }
-    if (IsWritableStreamLocked(destination)) {
+    if (destination.locked) {
       return promiseRejectedWith(
         new TypeError('ReadableStream.prototype.pipeTo cannot be used on a locked WritableStream')
       );
@@ -286,9 +289,13 @@ export class ReadableStream<R = any> {
    * Note that the chunks seen in each branch will be the same object. If the chunks are not immutable,
    * this could allow interference between the two branches.
    */
-  tee(): [ReadableStream<R>, ReadableStream<R>] {
-    if (!IsReadableStream(this)) {
+  tee(): [ReadableStream<R>, ReadableStream<R>];
+  tee(this: ReadableStreamLike<R>): [ReadableStream<R>, ReadableStream<R>] {
+    if (!IsReadableStreamLike(this)) {
       throw streamBrandCheckException('tee');
+    }
+    if (this.locked) {
+      throw new TypeError('Cannot tee a stream that already has a reader');
     }
 
     const branches = ReadableStreamTee(this, false);
@@ -307,8 +314,9 @@ export class ReadableStream<R = any> {
    * `true` for the `preventCancel` option.
    */
   values(options?: ReadableStreamIteratorOptions): ReadableStreamAsyncIterator<R>;
-  values(rawOptions: ReadableStreamIteratorOptions | null | undefined = undefined): ReadableStreamAsyncIterator<R> {
-    if (!IsReadableStream(this)) {
+  values(this: ReadableStreamLike<R>,
+         rawOptions: ReadableStreamIteratorOptions | null | undefined = undefined): ReadableStreamAsyncIterator<R> {
+    if (!IsReadableStreamLike(this)) {
       throw streamBrandCheckException('values');
     }
 
