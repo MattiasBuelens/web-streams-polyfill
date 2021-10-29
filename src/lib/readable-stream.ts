@@ -48,7 +48,6 @@ import {
 } from './readable-stream/underlying-source';
 import { noop } from '../utils';
 import { typeIsObject } from './helpers/miscellaneous';
-import { CreateArrayFromList } from './abstract-ops/ecmascript';
 import { CancelSteps } from './abstract-ops/internal-methods';
 import { IsNonNegativeNumber } from './abstract-ops/miscellaneous';
 import { assertObject, assertRequiredArgument } from './validators/basic';
@@ -298,8 +297,7 @@ export class ReadableStream<R = any> {
       throw new TypeError('Cannot tee a stream that already has a reader');
     }
 
-    const branches = ReadableStreamTee(this, false);
-    return CreateArrayFromList(branches);
+    return ReadableStreamTee(this, false);
   }
 
   /**
