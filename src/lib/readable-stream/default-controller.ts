@@ -307,23 +307,13 @@ export function ReadableStreamDefaultControllerGetDesiredSize(
 export function ReadableStreamDefaultControllerHasBackpressure(
   controller: ReadableStreamDefaultController<any>
 ): boolean {
-  if (ReadableStreamDefaultControllerShouldCallPull(controller)) {
-    return false;
-  }
-
-  return true;
+  return !ReadableStreamDefaultControllerShouldCallPull(controller);
 }
 
 export function ReadableStreamDefaultControllerCanCloseOrEnqueue(
   controller: ReadableStreamDefaultController<any>
 ): boolean {
-  const state = controller._controlledReadableStream._state;
-
-  if (!controller._closeRequested && state === 'readable') {
-    return true;
-  }
-
-  return false;
+  return !controller._closeRequested && controller._controlledReadableStream._state === 'readable';
 }
 
 export function SetUpReadableStreamDefaultController<R>(stream: ReadableStream<R>,

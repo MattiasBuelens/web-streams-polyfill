@@ -599,13 +599,7 @@ function CreateReadableStream<R>(stream: TransformStream<any, R>,
 }
 
 function ReadableStreamDefaultControllerCanCloseOrEnqueue(stream: TransformStream): boolean {
-  const state = stream._readableState;
-
-  if (!stream._readableCloseRequested && state === 'readable') {
-    return true;
-  }
-
-  return false;
+  return !stream._readableCloseRequested && stream._readableState === 'readable';
 }
 
 function ReadableStreamDefaultControllerClose(stream: TransformStream): void {
