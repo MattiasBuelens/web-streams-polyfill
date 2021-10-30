@@ -675,6 +675,19 @@ function CreateWritableStream<W>(stream: TransformStream<W, any>,
   return new WritableStream({
     start(controller) {
       stream._writableController = controller;
+      const abortSignal = controller.signal;
+      if (abortSignal !== undefined) {
+        // `controller.signal` must be supported in order to synchronously detect `writable.abort()` calls
+        // when there are pending writes.
+        abortSignal.addEventListener('abort', () => {
+          assert(stream._writableState === 'writable' || stream._writableState === 'erroring');
+          if (stream._writableState === 'writable') {
+            stream._writableState = 'erroring';
+            stream._writableStoredError = controller.abortReason;
+          }
+          WritableStreamAssertState(stream);
+        });
+      }
       return startAlgorithm().then(
         () => {
           assert(stream._writableState === 'writable' || stream._writableState === 'erroring');
