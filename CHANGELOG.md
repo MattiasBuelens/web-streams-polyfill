@@ -5,12 +5,15 @@
 > - 👓 Spec Compliance
 > - 🚀 New Feature
 > - 🐛 Bug Fix
+> - 👎 Deprecation
 > - 📝 Documentation
 > - 🏠 Internal
 > - 💅 Polish
 
 ## Unreleased
 
+* 👎 Deprecate `WritableStreamDefaultController.abortReason` ([#102](https://github.com/MattiasBuelens/web-streams-polyfill/pull/102))
+  * Use `WritableStreamDefaultController.signal.reason` instead.
 * 👓 Align with [spec version `4b6b93c`](https://github.com/whatwg/streams/tree/4b6b93c69e531e2fe45a6ed4cb1484a7ba4eb8bb/) ([#103](https://github.com/MattiasBuelens/web-streams-polyfill/pull/103))
 
 ## v3.1.1 (2021-09-06)
