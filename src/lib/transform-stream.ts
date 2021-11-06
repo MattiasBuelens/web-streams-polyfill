@@ -66,6 +66,8 @@ export class TransformStream<I = any, O = any> {
   /** @internal */
   _readableCloseRequested!: boolean;
   /** @internal */
+  _readablePulling!: boolean;
+  /** @internal */
   _backpressure!: boolean;
   /** @internal */
   _backpressureChangePromise!: Promise<void>;
@@ -239,6 +241,7 @@ function InitializeTransformStream<I, O>(stream: TransformStream<I, O>,
   stream._readableState = 'readable';
   stream._readableStoredError = undefined;
   stream._readableCloseRequested = false;
+  stream._readablePulling = false;
   stream._readable = CreateReadableStream(
     stream,
     startAlgorithm,
@@ -585,6 +588,8 @@ function CreateReadableStream<R>(stream: TransformStream<any, R>,
       });
     },
     pull() {
+      assert(!stream._readablePulling);
+      stream._readablePulling = true;
       return pullAlgorithm().catch(e => {
         ReadableStreamDefaultControllerError(stream, e);
       });
@@ -616,6 +621,10 @@ function ReadableStreamDefaultControllerClose(stream: TransformStream): void {
 }
 
 function ReadableStreamDefaultControllerEnqueue<R>(stream: TransformStream, chunk: R): void {
+  // If there is backpressure, enqueue() will not call pull(), and stream._readablePulling will remain false.
+  // If there is no backpressure, enqueue() will call pull() and change stream._readablePulling back to true.
+  stream._readablePulling = false;
+
   try {
     stream._readableController.enqueue(chunk);
     ReadableStreamAssertState(stream);
@@ -641,7 +650,27 @@ function ReadableStreamDefaultControllerGetDesiredSize(stream: TransformStream):
 }
 
 function ReadableStreamDefaultControllerHasBackpressure(stream: TransformStream): boolean {
-  return ReadableStreamDefaultControllerGetDesiredSize(stream)! <= 0;
+  return !ReadableStreamDefaultControllerShouldCallPull(stream);
+}
+
+function ReadableStreamDefaultControllerShouldCallPull(stream: TransformStream): boolean {
+  if (!ReadableStreamDefaultControllerCanCloseOrEnqueue(stream)) {
+    return false;
+  }
+
+  // Instead of checking whether there are any pending read() requests, we check if pull() was called.
+  // if (IsReadableStreamLocked(stream._readable) && ReadableStreamGetNumReadRequests(stream._readable) > 0) {
+  if (stream._readablePulling) {
+    return true;
+  }
+
+  const desiredSize = ReadableStreamDefaultControllerGetDesiredSize(stream);
+  assert(desiredSize !== null);
+  if (desiredSize! > 0) {
+    return true;
+  }
+
+  return false;
 }
 
 function ReadableStreamAssertState(stream: TransformStream): void {
