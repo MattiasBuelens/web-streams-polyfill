@@ -1017,6 +1017,8 @@ export class WritableStreamDefaultController<W = any> {
 }
 
 Object.defineProperties(WritableStreamDefaultController.prototype, {
+  abortReason: { enumerable: true },
+  signal: { enumerable: true },
   error: { enumerable: true }
 });
 if (typeof Symbol.toStringTag === 'symbol') {
