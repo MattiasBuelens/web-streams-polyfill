@@ -958,6 +958,10 @@ export class WritableStreamDefaultController<W = any> {
 
   /**
    * The reason which was passed to `WritableStream.abort(reason)` when the stream was aborted.
+   *
+   * @deprecated
+   *  This property has been removed from the specification, see https://github.com/whatwg/streams/pull/1177.
+   *  Use {@link WritableStreamDefaultController.signal}'s `reason` instead.
    */
   get abortReason(): any {
     if (!IsWritableStreamDefaultController(this)) {
