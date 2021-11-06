@@ -31,6 +31,7 @@ export function ReadableStreamDefaultTee<R>(stream: ReadableStream<R>,
   const reader = stream.getReader();
 
   let reading = false;
+  let readAgain = false;
   let canceled1 = false;
   let canceled2 = false;
   let reason1: any;
@@ -45,13 +46,14 @@ export function ReadableStreamDefaultTee<R>(stream: ReadableStream<R>,
 
   function pullAlgorithm(): Promise<void> {
     if (reading) {
+      readAgain = true;
       return promiseResolvedWith(undefined);
     }
 
     reading = true;
 
     uponPromise(reader.read(), result => {
-      reading = false;
+      readAgain = false;
 
       if (result.done) {
         if (!canceled1) {
@@ -83,6 +85,12 @@ export function ReadableStreamDefaultTee<R>(stream: ReadableStream<R>,
       if (!canceled2) {
         controller2.enqueue(chunk2);
       }
+
+      reading = false;
+      if (readAgain) {
+        pullAlgorithm();
+      }
+
       return null;
     }, () => {
       reading = false;
@@ -149,6 +157,8 @@ export function ReadableByteStreamTee(stream: ReadableByteStream): [ReadableByte
   let reader: ReadableStreamReader<Uint8Array> = stream.getReader();
   let isByobReader = false;
   let reading = false;
+  let readAgainForBranch1 = false;
+  let readAgainForBranch2 = false;
   let canceled1 = false;
   let canceled2 = false;
   let reason1: any;
@@ -184,7 +194,8 @@ export function ReadableByteStreamTee(stream: ReadableByteStream): [ReadableByte
     }
 
     uponPromise((reader as ReadableStreamDefaultReader<Uint8Array>).read(), result => {
-      reading = false;
+      readAgainForBranch1 = false;
+      readAgainForBranch2 = false;
 
       if (result.done) {
         if (!canceled1) {
@@ -220,6 +231,14 @@ export function ReadableByteStreamTee(stream: ReadableByteStream): [ReadableByte
       if (!canceled2) {
         controller2.enqueue(chunk2);
       }
+
+      reading = false;
+      if (readAgainForBranch1) {
+        pull1Algorithm();
+      } else if (readAgainForBranch2) {
+        pull2Algorithm();
+      }
+
       return null;
     }, () => {
       reading = false;
@@ -239,7 +258,8 @@ export function ReadableByteStreamTee(stream: ReadableByteStream): [ReadableByte
     const otherController = forBranch2 ? controller1 : controller2;
 
     uponPromise((reader as ReadableStreamBYOBReader).read(view), result => {
-      reading = false;
+      readAgainForBranch1 = false;
+      readAgainForBranch2 = false;
       const byobCanceled = forBranch2 ? canceled2 : canceled1;
       const otherCanceled = forBranch2 ? canceled1 : canceled2;
       if (result.done) {
@@ -283,6 +303,14 @@ export function ReadableByteStreamTee(stream: ReadableByteStream): [ReadableByte
       } else if (!byobCanceled) {
         byobController.byobRequest!.respondWithNewView(chunk);
       }
+
+      reading = false;
+      if (readAgainForBranch1) {
+        pull1Algorithm();
+      } else if (readAgainForBranch2) {
+        pull2Algorithm();
+      }
+
       return null;
     }, () => {
       reading = false;
@@ -292,6 +320,7 @@ export function ReadableByteStreamTee(stream: ReadableByteStream): [ReadableByte
 
   function pull1Algorithm(): Promise<void> {
     if (reading) {
+      readAgainForBranch1 = true;
       return promiseResolvedWith(undefined);
     }
 
@@ -309,6 +338,7 @@ export function ReadableByteStreamTee(stream: ReadableByteStream): [ReadableByte
 
   function pull2Algorithm(): Promise<void> {
     if (reading) {
+      readAgainForBranch2 = true;
       return promiseResolvedWith(undefined);
     }
 

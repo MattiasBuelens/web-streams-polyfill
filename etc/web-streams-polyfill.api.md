@@ -255,6 +255,7 @@ export class WritableStream<W = any> {
 
 // @public
 export class WritableStreamDefaultController<W = any> {
+    // @deprecated
     get abortReason(): any;
     error(e?: any): void;
     get signal(): AbortSignal;
