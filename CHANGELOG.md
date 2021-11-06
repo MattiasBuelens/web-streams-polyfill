@@ -10,7 +10,7 @@
 > - 🏠 Internal
 > - 💅 Polish
 
-## Unreleased
+## v3.2.0 (2021-11-06)
 
 * 👎 Deprecate `WritableStreamDefaultController.abortReason` ([#102](https://github.com/MattiasBuelens/web-streams-polyfill/pull/102))
   * Use `WritableStreamDefaultController.signal.reason` instead.
