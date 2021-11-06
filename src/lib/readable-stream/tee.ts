@@ -59,6 +59,7 @@ export function ReadableStreamDefaultTee<R>(stream: ReadableStream<R>,
   const reader = AcquireReadableStreamDefaultReader<R>(stream);
 
   let reading = false;
+  let readAgain = false;
   let canceled1 = false;
   let canceled2 = false;
   let reason1: any;
@@ -73,6 +74,7 @@ export function ReadableStreamDefaultTee<R>(stream: ReadableStream<R>,
 
   function pullAlgorithm(): Promise<void> {
     if (reading) {
+      readAgain = true;
       return promiseResolvedWith(undefined);
     }
 
@@ -84,7 +86,7 @@ export function ReadableStreamDefaultTee<R>(stream: ReadableStream<R>,
         // reader._closedPromise below), and we want errors in stream to error both branches immediately. We cannot let
         // successful synchronously-available reads get ahead of asynchronously-available errors.
         queueMicrotask(() => {
-          reading = false;
+          readAgain = false;
           const chunk1 = chunk;
           const chunk2 = chunk;
 
@@ -100,12 +102,16 @@ export function ReadableStreamDefaultTee<R>(stream: ReadableStream<R>,
               chunk1
             );
           }
-
           if (!canceled2) {
             ReadableStreamDefaultControllerEnqueue(
               branch2._readableStreamController as ReadableStreamDefaultController<R>,
               chunk2
             );
+          }
+
+          reading = false;
+          if (readAgain) {
+            pullAlgorithm();
           }
         });
       },
@@ -177,6 +183,8 @@ export function ReadableByteStreamTee(stream: ReadableByteStream): [ReadableByte
 
   let reader: ReadableStreamReader<Uint8Array> = AcquireReadableStreamDefaultReader(stream);
   let reading = false;
+  let readAgainForBranch1 = false;
+  let readAgainForBranch2 = false;
   let canceled1 = false;
   let canceled2 = false;
   let reason1: any;
@@ -217,7 +225,8 @@ export function ReadableByteStreamTee(stream: ReadableByteStream): [ReadableByte
         // reader._closedPromise below), and we want errors in stream to error both branches immediately. We cannot let
         // successful synchronously-available reads get ahead of asynchronously-available errors.
         queueMicrotask(() => {
-          reading = false;
+          readAgainForBranch1 = false;
+          readAgainForBranch2 = false;
 
           const chunk1 = chunk;
           let chunk2 = chunk;
@@ -237,6 +246,13 @@ export function ReadableByteStreamTee(stream: ReadableByteStream): [ReadableByte
           }
           if (!canceled2) {
             ReadableByteStreamControllerEnqueue(branch2._readableStreamController, chunk2);
+          }
+
+          reading = false;
+          if (readAgainForBranch1) {
+            pull1Algorithm();
+          } else if (readAgainForBranch2) {
+            pull2Algorithm();
           }
         });
       },
@@ -283,7 +299,8 @@ export function ReadableByteStreamTee(stream: ReadableByteStream): [ReadableByte
         // reader._closedPromise below), and we want errors in stream to error both branches immediately. We cannot let
         // successful synchronously-available reads get ahead of asynchronously-available errors.
         queueMicrotask(() => {
-          reading = false;
+          readAgainForBranch1 = false;
+          readAgainForBranch2 = false;
 
           const byobCanceled = forBranch2 ? canceled2 : canceled1;
           const otherCanceled = forBranch2 ? canceled1 : canceled2;
@@ -304,6 +321,13 @@ export function ReadableByteStreamTee(stream: ReadableByteStream): [ReadableByte
             ReadableByteStreamControllerEnqueue(otherBranch._readableStreamController, clonedChunk);
           } else if (!byobCanceled) {
             ReadableByteStreamControllerRespondWithNewView(byobBranch._readableStreamController, chunk);
+          }
+
+          reading = false;
+          if (readAgainForBranch1) {
+            pull1Algorithm();
+          } else if (readAgainForBranch2) {
+            pull2Algorithm();
           }
         });
       },
@@ -344,6 +368,7 @@ export function ReadableByteStreamTee(stream: ReadableByteStream): [ReadableByte
 
   function pull1Algorithm(): Promise<void> {
     if (reading) {
+      readAgainForBranch1 = true;
       return promiseResolvedWith(undefined);
     }
 
@@ -361,6 +386,7 @@ export function ReadableByteStreamTee(stream: ReadableByteStream): [ReadableByte
 
   function pull2Algorithm(): Promise<void> {
     if (reading) {
+      readAgainForBranch2 = true;
       return promiseResolvedWith(undefined);
     }
 

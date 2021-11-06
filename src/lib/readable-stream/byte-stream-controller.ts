@@ -810,10 +810,14 @@ export function ReadableByteStreamControllerEnqueue(controller: ReadableByteStre
 
   if (ReadableStreamHasDefaultReader(stream)) {
     if (ReadableStreamGetNumReadRequests(stream) === 0) {
+      assert(controller._pendingPullIntos.length === 0);
       ReadableByteStreamControllerEnqueueChunkToQueue(controller, transferredBuffer, byteOffset, byteLength);
     } else {
       assert(controller._queue.length === 0);
-
+      if (controller._pendingPullIntos.length > 0) {
+        assert(controller._pendingPullIntos.peek().readerType === 'default');
+        ReadableByteStreamControllerShiftPendingPullInto(controller);
+      }
       const transferredView = new Uint8Array(transferredBuffer, byteOffset, byteLength);
       ReadableStreamFulfillReadRequest(stream, transferredView, false);
     }
@@ -928,9 +932,9 @@ export function ReadableByteStreamControllerRespondWithNewView(controller: Reada
     throw new RangeError('The region specified by view is larger than byobRequest');
   }
 
+  const viewByteLength = view.byteLength;
   firstDescriptor.buffer = TransferArrayBuffer(view.buffer);
-
-  ReadableByteStreamControllerRespondInternal(controller, view.byteLength);
+  ReadableByteStreamControllerRespondInternal(controller, viewByteLength);
 }
 
 export function SetUpReadableByteStreamController(stream: ReadableByteStream,
