@@ -42,12 +42,6 @@ const ignoredFailuresBase = {
   // Our async iterator won't extend from the built-in %AsyncIteratorPrototype%
   'readable-streams/async-iterator.any.html': [
     'Async iterator instances should have the correct list of properties'
-  ],
-  'piping/multiple-propagation.any.html': [
-    // FIXME Detect erroring writable stream before errored readable stream somehow?
-    'Piping from an errored readable stream to an erroring writable stream',
-    // FIXME Detect closing/closed writable stream before errored readable stream somehow?
-    'Piping from an errored readable stream to a closing writable stream'
   ]
 };
 
