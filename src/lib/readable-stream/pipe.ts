@@ -307,7 +307,15 @@ export function ReadableStreamPipeTo<T>(source: ReadableStreamLike<T>,
       }
 
       function onStart(): null {
-        uponFulfillment(waitForWritesToFinish(), doTheRest);
+        if (IsWritableStream(dest)) {
+          destState = dest._state;
+          destCloseRequested = WritableStreamCloseQueuedOrInFlight(dest);
+        }
+        if (destState === 'writable' && !destCloseRequested) {
+          uponFulfillment(waitForWritesToFinish(), doTheRest);
+        } else {
+          doTheRest();
+        }
         return null;
       }
 
