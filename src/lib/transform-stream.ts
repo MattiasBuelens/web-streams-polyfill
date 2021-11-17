@@ -507,9 +507,11 @@ function TransformStreamDefaultSinkWriteAlgorithm<I, O>(stream: TransformStream<
     const backpressureChangePromise = stream._backpressureChangePromise;
     assert(backpressureChangePromise !== undefined);
     return transformPromiseWith(backpressureChangePromise, () => {
-      const state = stream._writableState;
+      // Since we can only detect abort() calls through controller.signal, and AbortSignal.reason may not be
+      // supported on this platform, we use a special case for our own WritableStream to access the state and error.
+      const state = IsWritableStream(stream._writable) ? stream._writable._state : stream._writableState;
       if (state === 'erroring') {
-        throw stream._writableStoredError;
+        throw IsWritableStream(stream._writable) ? stream._writable._storedError : stream._writableStoredError;
       }
       assert(state === 'writable');
       return TransformStreamDefaultControllerPerformTransform<I, O>(controller, chunk);
@@ -707,7 +709,9 @@ function CreateWritableStream<W>(stream: TransformStream<W, any>,
             assert(stream._writableState === 'writable' || stream._writableState === 'erroring');
             if (stream._writableState === 'writable') {
               stream._writableState = 'erroring';
-              stream._writableStoredError = abortSignal.reason ?? controller.abortReason;
+              if (abortSignal.reason) {
+                stream._writableStoredError = abortSignal.reason;
+              }
             }
             WritableStreamAssertState(stream);
           });
