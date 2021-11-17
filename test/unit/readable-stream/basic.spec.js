@@ -1,5 +1,6 @@
+require('abort-controller/polyfill');
 const { ReadableStream, WritableStream } = require('web-streams-polyfill');
-const { FakeAbortSignal } = require('../util/fake-abort-signal');
+const { AbortController } = require('abort-controller');
 
 describe('ReadableStream', () => {
   describe('constructor', () => {
@@ -34,8 +35,8 @@ describe('ReadableStream', () => {
         }
       });
       const ws = new WritableStream();
-      const signal = new FakeAbortSignal(false);
-      await rs.pipeTo(ws, { signal });
+      const controller = new AbortController();
+      await rs.pipeTo(ws, { signal: controller.signal });
     });
     it('rejects with an AbortError when aborted', async () => {
       const rs = new ReadableStream({
@@ -45,9 +46,10 @@ describe('ReadableStream', () => {
         }
       });
       const ws = new WritableStream();
-      const signal = new FakeAbortSignal(true);
+      const controller = new AbortController();
+      controller.abort();
       try {
-        await rs.pipeTo(ws, { signal });
+        await rs.pipeTo(ws, { signal: controller.signal });
         fail('should have rejected');
       } catch (e) {
         expect(e.name).toBe('AbortError');

@@ -1,3 +1,4 @@
+require('abort-controller/polyfill');
 const { ReadableStream, WritableStream, TransformStream } = require('web-streams-polyfill');
 
 describe('ReadableStream regressions', () => {

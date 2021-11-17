@@ -16,6 +16,11 @@ export interface AbortSignal {
   readonly aborted: boolean;
 
   /**
+   * The abort reason.
+   */
+  readonly reason?: any;
+
+  /**
    * Add an event listener to be triggered when this signal becomes aborted.
    */
   addEventListener(type: 'abort', listener: () => void): void;
@@ -51,7 +56,7 @@ export function isAbortSignal(value: unknown): value is AbortSignal {
 export interface AbortController {
   readonly signal: AbortSignal;
 
-  abort(): void;
+  abort(reason?: any): void;
 }
 
 interface AbortControllerConstructor {

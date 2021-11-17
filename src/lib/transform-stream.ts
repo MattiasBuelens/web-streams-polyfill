@@ -1,18 +1,10 @@
 import assert from '../stub/assert';
 import { newPromise, promiseRejectedWith, promiseResolvedWith, transformPromiseWith } from './helpers/webidl';
-import type { ReadableStream, ReadableStreamDefaultController } from './readable-stream';
-import { CreateReadableStream } from './readable-stream';
-import {
-  ReadableStreamDefaultControllerCanCloseOrEnqueue,
-  ReadableStreamDefaultControllerClose,
-  ReadableStreamDefaultControllerEnqueue,
-  ReadableStreamDefaultControllerError,
-  ReadableStreamDefaultControllerGetDesiredSize,
-  ReadableStreamDefaultControllerHasBackpressure
-} from './readable-stream/default-controller';
+import type { ReadableStreamDefaultController, ReadableStreamState } from './readable-stream';
+import { IsReadableStream, ReadableStream } from './readable-stream';
 import type { QueuingStrategy, QueuingStrategySizeCallback } from './queuing-strategy';
-import type { WritableStream } from './writable-stream';
-import { CreateWritableStream, WritableStreamDefaultControllerErrorIfNeeded } from './writable-stream';
+import type { WritableStreamDefaultController, WritableStreamState } from './writable-stream';
+import { IsWritableStream, WritableStream } from './writable-stream';
 import { typeIsObject } from './helpers/miscellaneous';
 import { IsNonNegativeNumber } from './abstract-ops/miscellaneous';
 import { convertQueuingStrategy } from './validators/queuing-strategy';
@@ -25,6 +17,7 @@ import {
   TransformerTransformCallback
 } from './transform-stream/transformer';
 import { convertTransformer } from './validators/transformer';
+import type { ReadableStreamLike, WritableStreamLike } from './helpers/stream-like';
 
 // Class TransformStream
 
@@ -37,10 +30,43 @@ import { convertTransformer } from './validators/transformer';
  * @public
  */
 export class TransformStream<I = any, O = any> {
+  /**
+   * The writable side of the transform stream.
+   *
+   * We use `WritableStreamLike` instead of `WritableStream` so we can only use the public API,
+   * and we don't accidentally depend on internal state or abstract operations.
+   * This allows for interoperability with native streams.
+   * @internal
+   */
+  _writable!: WritableStreamLike<I>;
   /** @internal */
-  _writable!: WritableStream<I>;
+  _writableController!: WritableStreamDefaultController;
   /** @internal */
-  _readable!: ReadableStream<O>;
+  _writableState!: WritableStreamState;
+  /** @internal */
+  _writableStoredError!: any;
+  /** @internal */
+  _writableHasInFlightOperation!: boolean;
+  /** @internal */
+  _writableStarted!: boolean;
+  /**
+   * The readable side of the transform stream.
+   *
+   * We use `ReadableStreamLike` instead of `ReadableStream` so we can only use the public API
+   * and allow for interoperability with native streams.
+   * @internal
+   */
+  _readable!: ReadableStreamLike<O>;
+  /** @internal */
+  _readableController!: ReadableStreamDefaultController<O>;
+  /** @internal */
+  _readableState!: ReadableStreamState;
+  /** @internal */
+  _readableStoredError!: any;
+  /** @internal */
+  _readableCloseRequested!: boolean;
+  /** @internal */
+  _readablePulling!: boolean;
   /** @internal */
   _backpressure!: boolean;
   /** @internal */
@@ -103,7 +129,7 @@ export class TransformStream<I = any, O = any> {
       throw streamBrandCheckException('readable');
     }
 
-    return this._readable;
+    return this._readable as ReadableStream<O>;
   }
 
   /**
@@ -114,7 +140,7 @@ export class TransformStream<I = any, O = any> {
       throw streamBrandCheckException('writable');
     }
 
-    return this._writable;
+    return this._writable as WritableStream<I>;
   }
 }
 
@@ -189,8 +215,19 @@ function InitializeTransformStream<I, O>(stream: TransformStream<I, O>,
     return TransformStreamDefaultSinkCloseAlgorithm(stream);
   }
 
-  stream._writable = CreateWritableStream(startAlgorithm, writeAlgorithm, closeAlgorithm, abortAlgorithm,
-                                          writableHighWaterMark, writableSizeAlgorithm);
+  stream._writableState = 'writable';
+  stream._writableStoredError = undefined;
+  stream._writableHasInFlightOperation = false;
+  stream._writableStarted = false;
+  stream._writable = CreateWritableStream(
+    stream,
+    startAlgorithm,
+    writeAlgorithm,
+    closeAlgorithm,
+    abortAlgorithm,
+    writableHighWaterMark,
+    writableSizeAlgorithm
+  );
 
   function pullAlgorithm(): Promise<void> {
     return TransformStreamDefaultSourcePullAlgorithm(stream);
@@ -201,8 +238,18 @@ function InitializeTransformStream<I, O>(stream: TransformStream<I, O>,
     return promiseResolvedWith(undefined);
   }
 
-  stream._readable = CreateReadableStream(startAlgorithm, pullAlgorithm, cancelAlgorithm, readableHighWaterMark,
-                                          readableSizeAlgorithm);
+  stream._readableState = 'readable';
+  stream._readableStoredError = undefined;
+  stream._readableCloseRequested = false;
+  stream._readablePulling = false;
+  stream._readable = CreateReadableStream(
+    stream,
+    startAlgorithm,
+    pullAlgorithm,
+    cancelAlgorithm,
+    readableHighWaterMark,
+    readableSizeAlgorithm
+  );
 
   // The [[backpressure]] slot is set to undefined so that it can be initialised by TransformStreamSetBackpressure.
   stream._backpressure = undefined!;
@@ -227,16 +274,13 @@ function IsTransformStream(x: unknown): x is TransformStream {
 
 // This is a no-op if both sides are already errored.
 function TransformStreamError(stream: TransformStream, e: any) {
-  ReadableStreamDefaultControllerError(
-    stream._readable._readableStreamController as ReadableStreamDefaultController<any>,
-    e
-  );
+  ReadableStreamDefaultControllerError(stream, e);
   TransformStreamErrorWritableAndUnblockWrite(stream, e);
 }
 
 function TransformStreamErrorWritableAndUnblockWrite(stream: TransformStream, e: any) {
   TransformStreamDefaultControllerClearAlgorithms(stream._transformStreamController);
-  WritableStreamDefaultControllerErrorIfNeeded(stream._writable._writableStreamController, e);
+  WritableStreamDefaultControllerErrorIfNeeded(stream, e);
   if (stream._backpressure) {
     // Pretend that pull() was called to permit any pending write() calls to complete. TransformStreamSetBackpressure()
     // cannot be called from enqueue() or pull() once the ReadableStream is errored, so this will will be the final time
@@ -287,8 +331,8 @@ export class TransformStreamDefaultController<O> {
       throw defaultControllerBrandCheckException('desiredSize');
     }
 
-    const readableController = this._controlledTransformStream._readable._readableStreamController;
-    return ReadableStreamDefaultControllerGetDesiredSize(readableController as ReadableStreamDefaultController<O>);
+    const stream = this._controlledTransformStream;
+    return ReadableStreamDefaultControllerGetDesiredSize(stream);
   }
 
   /**
@@ -405,8 +449,7 @@ function TransformStreamDefaultControllerClearAlgorithms(controller: TransformSt
 
 function TransformStreamDefaultControllerEnqueue<O>(controller: TransformStreamDefaultController<O>, chunk: O) {
   const stream = controller._controlledTransformStream;
-  const readableController = stream._readable._readableStreamController as ReadableStreamDefaultController<O>;
-  if (!ReadableStreamDefaultControllerCanCloseOrEnqueue(readableController)) {
+  if (!ReadableStreamDefaultControllerCanCloseOrEnqueue(stream)) {
     throw new TypeError('Readable side is not in a state that permits enqueue');
   }
 
@@ -414,15 +457,15 @@ function TransformStreamDefaultControllerEnqueue<O>(controller: TransformStreamD
   // accept TransformStreamDefaultControllerEnqueue() calls.
 
   try {
-    ReadableStreamDefaultControllerEnqueue(readableController, chunk);
+    ReadableStreamDefaultControllerEnqueue(stream, chunk);
   } catch (e) {
     // This happens when readableStrategy.size() throws.
     TransformStreamErrorWritableAndUnblockWrite(stream, e);
 
-    throw stream._readable._storedError;
+    throw stream._readableStoredError;
   }
 
-  const backpressure = ReadableStreamDefaultControllerHasBackpressure(readableController);
+  const backpressure = ReadableStreamDefaultControllerHasBackpressure(stream);
   if (backpressure !== stream._backpressure) {
     assert(backpressure);
     TransformStreamSetBackpressure(stream, true);
@@ -444,9 +487,10 @@ function TransformStreamDefaultControllerPerformTransform<I, O>(controller: Tran
 
 function TransformStreamDefaultControllerTerminate<O>(controller: TransformStreamDefaultController<O>) {
   const stream = controller._controlledTransformStream;
-  const readableController = stream._readable._readableStreamController as ReadableStreamDefaultController<O>;
 
-  ReadableStreamDefaultControllerClose(readableController);
+  if (ReadableStreamDefaultControllerCanCloseOrEnqueue(stream)) {
+    ReadableStreamDefaultControllerClose(stream);
+  }
 
   const error = new TypeError('TransformStream terminated');
   TransformStreamErrorWritableAndUnblockWrite(stream, error);
@@ -455,7 +499,7 @@ function TransformStreamDefaultControllerTerminate<O>(controller: TransformStrea
 // TransformStreamDefaultSink Algorithms
 
 function TransformStreamDefaultSinkWriteAlgorithm<I, O>(stream: TransformStream<I, O>, chunk: I): Promise<void> {
-  assert(stream._writable._state === 'writable');
+  assert(stream._writableState === 'writable');
 
   const controller = stream._transformStreamController;
 
@@ -463,10 +507,11 @@ function TransformStreamDefaultSinkWriteAlgorithm<I, O>(stream: TransformStream<
     const backpressureChangePromise = stream._backpressureChangePromise;
     assert(backpressureChangePromise !== undefined);
     return transformPromiseWith(backpressureChangePromise, () => {
-      const writable = stream._writable;
-      const state = writable._state;
+      // Since we can only detect abort() calls through controller.signal, and AbortSignal.reason may not be
+      // supported on this platform, we use a special case for our own WritableStream to access the state and error.
+      const state = IsWritableStream(stream._writable) ? stream._writable._state : stream._writableState;
       if (state === 'erroring') {
-        throw writable._storedError;
+        throw IsWritableStream(stream._writable) ? stream._writable._storedError : stream._writableStoredError;
       }
       assert(state === 'writable');
       return TransformStreamDefaultControllerPerformTransform<I, O>(controller, chunk);
@@ -484,22 +529,21 @@ function TransformStreamDefaultSinkAbortAlgorithm(stream: TransformStream, reaso
 }
 
 function TransformStreamDefaultSinkCloseAlgorithm<I, O>(stream: TransformStream<I, O>): Promise<void> {
-  // stream._readable cannot change after construction, so caching it across a call to user code is safe.
-  const readable = stream._readable;
-
   const controller = stream._transformStreamController;
   const flushPromise = controller._flushAlgorithm();
   TransformStreamDefaultControllerClearAlgorithms(controller);
 
   // Return a promise that is fulfilled with undefined on success.
   return transformPromiseWith(flushPromise, () => {
-    if (readable._state === 'errored') {
-      throw readable._storedError;
+    if (stream._readableState === 'errored') {
+      throw stream._readableStoredError;
     }
-    ReadableStreamDefaultControllerClose(readable._readableStreamController as ReadableStreamDefaultController<O>);
+    if (ReadableStreamDefaultControllerCanCloseOrEnqueue(stream)) {
+      ReadableStreamDefaultControllerClose(stream);
+    }
   }, r => {
     TransformStreamError(stream, r);
-    throw readable._storedError;
+    throw stream._readableStoredError;
   });
 }
 
@@ -529,4 +573,314 @@ function defaultControllerBrandCheckException(name: string): TypeError {
 function streamBrandCheckException(name: string): TypeError {
   return new TypeError(
     `TransformStream.prototype.${name} can only be used on a TransformStream`);
+}
+// Stubs for abstract operations used from ReadableStream and WritableStream.
+
+function CreateReadableStream<R>(stream: TransformStream<any, R>,
+                                 startAlgorithm: () => Promise<void>,
+                                 pullAlgorithm: () => Promise<void>,
+                                 cancelAlgorithm: (reason: any) => Promise<void>,
+                                 highWaterMark: number,
+                                 sizeAlgorithm: QueuingStrategySizeCallback<R>): ReadableStream<R> {
+  return new ReadableStream<R>({
+    start(controller) {
+      stream._readableController = controller;
+      return startAlgorithm().catch(e => {
+        ReadableStreamDefaultControllerError(stream, e);
+      });
+    },
+    pull() {
+      assert(!stream._readablePulling);
+      stream._readablePulling = true;
+      return pullAlgorithm().catch(e => {
+        ReadableStreamDefaultControllerError(stream, e);
+      });
+    },
+    cancel(reason) {
+      assert(stream._readableState === 'readable');
+      stream._readableState = 'closed';
+      ReadableStreamAssertState(stream);
+      return cancelAlgorithm(reason);
+    }
+  }, { highWaterMark, size: sizeAlgorithm });
+}
+
+function ReadableStreamDefaultControllerCanCloseOrEnqueue(stream: TransformStream): boolean {
+  return !stream._readableCloseRequested && stream._readableState === 'readable';
+}
+
+function ReadableStreamDefaultControllerClose(stream: TransformStream): void {
+  assert(stream._readableState === 'readable');
+  assert(!stream._readableCloseRequested);
+
+  // This is incorrect: if there are still queued chunks, the stream remains 'readable' until they have been read.
+  // Luckily, this does not matter for ReadableStreamDefaultControllerCanCloseOrEnqueue.
+  stream._readableState = 'closed';
+  stream._readableCloseRequested = true;
+
+  stream._readableController.close();
+  ReadableStreamAssertState(stream);
+}
+
+function ReadableStreamDefaultControllerEnqueue<R>(stream: TransformStream, chunk: R): void {
+  // If there is backpressure, enqueue() will not call pull(), and stream._readablePulling will remain false.
+  // If there is no backpressure, enqueue() will call pull() and change stream._readablePulling back to true.
+  stream._readablePulling = false;
+
+  try {
+    stream._readableController.enqueue(chunk);
+    ReadableStreamAssertState(stream);
+  } catch (e) {
+    ReadableStreamDefaultControllerError(stream, e);
+    ReadableStreamAssertState(stream);
+    throw e;
+  }
+}
+
+function ReadableStreamDefaultControllerError(stream: TransformStream, e: any) {
+  if (stream._readableState === 'readable') {
+    stream._readableState = 'errored';
+    stream._readableStoredError = e;
+  }
+
+  stream._readableController.error(e);
+  ReadableStreamAssertState(stream);
+}
+
+function ReadableStreamDefaultControllerGetDesiredSize(stream: TransformStream): number | null {
+  return stream._readableController.desiredSize;
+}
+
+function ReadableStreamDefaultControllerHasBackpressure(stream: TransformStream): boolean {
+  return !ReadableStreamDefaultControllerShouldCallPull(stream);
+}
+
+function ReadableStreamDefaultControllerShouldCallPull(stream: TransformStream): boolean {
+  if (!ReadableStreamDefaultControllerCanCloseOrEnqueue(stream)) {
+    return false;
+  }
+
+  // Instead of checking whether there are any pending read() requests, we check if pull() was called.
+  // if (IsReadableStreamLocked(stream._readable) && ReadableStreamGetNumReadRequests(stream._readable) > 0) {
+  if (stream._readablePulling) {
+    return true;
+  }
+
+  const desiredSize = ReadableStreamDefaultControllerGetDesiredSize(stream);
+  assert(desiredSize !== null);
+  if (desiredSize! > 0) {
+    return true;
+  }
+
+  return false;
+}
+
+function ReadableStreamAssertState(stream: TransformStream): void {
+  if (DEBUG && IsReadableStream(stream._readable)) {
+    const readable = stream._readable;
+    const controller = stream._readableController;
+    // If closeRequested = true, we cannot know if the readable stream's state is 'readable' or 'closed'.
+    // This also means we cannot know whether readable.cancel() can still change the state to 'errored' or not.
+    // Luckily, this does not matter for ReadableStreamDefaultControllerCanCloseOrEnqueue.
+    if (!(controller._closeRequested && stream._readableCloseRequested)) {
+      assert(readable._state === stream._readableState);
+      assert(readable._storedError === stream._readableStoredError);
+    }
+    assert(controller._closeRequested === stream._readableCloseRequested);
+  }
+}
+
+function CreateWritableStream<W>(stream: TransformStream<W, any>,
+                                 startAlgorithm: () => Promise<void>,
+                                 writeAlgorithm: (chunk: W) => Promise<void>,
+                                 closeAlgorithm: () => Promise<void>,
+                                 abortAlgorithm: (reason: any) => Promise<void>,
+                                 highWaterMark: number,
+                                 sizeAlgorithm: QueuingStrategySizeCallback<W>): WritableStream<W> {
+  return new WritableStream({
+    start(controller) {
+      stream._writableController = controller;
+      try {
+        // `controller.signal` must be supported in order to synchronously detect `writable.abort()` calls
+        // when there are pending writes.
+        const abortSignal = controller.signal;
+        if (abortSignal !== undefined) {
+          abortSignal.addEventListener('abort', () => {
+            assert(stream._writableState === 'writable' || stream._writableState === 'erroring');
+            if (stream._writableState === 'writable') {
+              stream._writableState = 'erroring';
+              if (abortSignal.reason) {
+                stream._writableStoredError = abortSignal.reason;
+              }
+            }
+            WritableStreamAssertState(stream);
+          });
+        }
+      } catch {
+        // WritableStreamDefaultController.prototype.signal throws if its brand check fails
+      }
+      return startAlgorithm().then(
+        () => {
+          assert(stream._writableState === 'writable' || stream._writableState === 'erroring');
+          stream._writableStarted = true;
+          WritableStreamDefaultControllerAdvanceQueueIfNeeded(stream);
+        },
+        r => {
+          assert(stream._writableState === 'writable' || stream._writableState === 'erroring');
+          stream._writableStarted = true;
+          WritableStreamDealWithRejection(stream, r);
+          throw r;
+        }
+      );
+    },
+    write(chunk) {
+      WritableStreamMarkFirstWriteRequestInFlight(stream);
+      return writeAlgorithm(chunk).then(
+        () => {
+          WritableStreamFinishInFlightWrite(stream);
+          assert(stream._writableState === 'writable' || stream._writableState === 'erroring');
+          WritableStreamDefaultControllerAdvanceQueueIfNeeded(stream);
+        },
+        reason => {
+          WritableStreamFinishInFlightWriteWithError(stream, reason);
+          throw reason;
+        });
+    },
+    close() {
+      WritableStreamMarkCloseRequestInFlight(stream);
+      return closeAlgorithm().then(() => {
+        WritableStreamFinishInFlightClose(stream);
+      }, e => {
+        WritableStreamFinishInFlightCloseWithError(stream, e);
+        throw e;
+      });
+    },
+    abort(reason) {
+      stream._writableState = 'errored';
+      stream._writableStoredError = reason;
+      WritableStreamAssertState(stream);
+      return abortAlgorithm(reason);
+    }
+  }, { highWaterMark, size: sizeAlgorithm });
+}
+
+function WritableStreamDealWithRejection(stream: TransformStream, error: any) {
+  const state = stream._writableState;
+
+  if (state === 'writable') {
+    WritableStreamStartErroring(stream, error);
+    return;
+  }
+
+  assert(state === 'erroring');
+  WritableStreamFinishErroring(stream);
+}
+
+function WritableStreamStartErroring(stream: TransformStream, reason: any) {
+  assert(stream._writableStoredError === undefined);
+  assert(stream._writableState === 'writable');
+
+  stream._writableState = 'erroring';
+  stream._writableStoredError = reason;
+
+  if (!WritableStreamHasOperationMarkedInFlight(stream) && stream._writableStarted) {
+    WritableStreamFinishErroring(stream);
+  }
+
+  WritableStreamAssertState(stream);
+}
+
+function WritableStreamFinishErroring(stream: TransformStream) {
+  assert(stream._writableState === 'erroring');
+  assert(!WritableStreamHasOperationMarkedInFlight(stream));
+  stream._writableState = 'errored';
+
+  WritableStreamAssertState(stream);
+}
+
+function WritableStreamFinishInFlightWrite(stream: TransformStream) {
+  assert(stream._writableHasInFlightOperation);
+  stream._writableHasInFlightOperation = false;
+}
+
+function WritableStreamFinishInFlightWriteWithError(stream: TransformStream, error: any) {
+  assert(stream._writableHasInFlightOperation);
+  stream._writableHasInFlightOperation = false;
+
+  assert(stream._writableState === 'writable' || stream._writableState === 'erroring');
+
+  WritableStreamDealWithRejection(stream, error);
+}
+
+function WritableStreamFinishInFlightClose(stream: TransformStream) {
+  assert(stream._writableHasInFlightOperation);
+  stream._writableHasInFlightOperation = false;
+
+  const state = stream._writableState;
+  assert(state === 'writable' || state === 'erroring');
+
+  if (state === 'erroring') {
+    // The error was too late to do anything, so it is ignored.
+    stream._writableStoredError = undefined;
+  }
+
+  stream._writableState = 'closed';
+
+  assert(stream._writableStoredError === undefined);
+  WritableStreamAssertState(stream);
+}
+
+function WritableStreamFinishInFlightCloseWithError(stream: TransformStream, error: any) {
+  assert(stream._writableHasInFlightOperation);
+  stream._writableHasInFlightOperation = false;
+
+  const state = stream._writableState;
+
+  assert(state === 'writable' || state === 'erroring');
+
+  WritableStreamDealWithRejection(stream, error);
+  WritableStreamAssertState(stream);
+}
+
+function WritableStreamHasOperationMarkedInFlight(stream: TransformStream): boolean {
+  return stream._writableHasInFlightOperation;
+}
+
+function WritableStreamMarkCloseRequestInFlight(stream: TransformStream) {
+  assert(!stream._writableHasInFlightOperation);
+  stream._writableHasInFlightOperation = true;
+}
+
+function WritableStreamMarkFirstWriteRequestInFlight(stream: TransformStream) {
+  assert(!stream._writableHasInFlightOperation);
+  stream._writableHasInFlightOperation = true;
+}
+
+function WritableStreamDefaultControllerAdvanceQueueIfNeeded(stream: TransformStream) {
+  const state = stream._writableState;
+  assert(state !== 'closed' && state !== 'errored');
+  if (state === 'erroring') {
+    WritableStreamFinishErroring(stream);
+  }
+  WritableStreamAssertState(stream);
+}
+
+function WritableStreamDefaultControllerErrorIfNeeded(stream: TransformStream, error: any) {
+  stream._writableController.error(error);
+
+  const state = stream._writableState;
+  if (state === 'writable') {
+    WritableStreamStartErroring(stream, error);
+  }
+}
+
+function WritableStreamAssertState(stream: TransformStream): void {
+  if (DEBUG && IsWritableStream(stream._writable)) {
+    // Check state asynchronously, because we update our state before we update the actual writable stream.
+    setTimeout(() => {
+      const writable = stream._writable as WritableStream;
+      assert(writable._state === stream._writableState);
+      assert(writable._storedError === stream._writableStoredError);
+    }, 0);
+  }
 }
