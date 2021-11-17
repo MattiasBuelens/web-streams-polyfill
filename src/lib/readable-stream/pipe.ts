@@ -214,6 +214,12 @@ export function ReadableStreamPipeTo<T>(source: ReadableStreamLike<T>,
       destCloseRequested = WritableStreamCloseQueuedOrInFlight(dest);
     }
 
+    // If we synchronously inspected the stream's state, then we can shutdown immediately.
+    if (IsReadableStream(source) && IsWritableStream(dest)) {
+      started = true;
+      resolveStart();
+    }
+
     // Errors must be propagated forward
     if (sourceState === 'errored') {
       handleSourceError(sourceStoredError);
@@ -244,17 +250,15 @@ export function ReadableStreamPipeTo<T>(source: ReadableStreamLike<T>,
 
     // If we synchronously inspected the stream's state, then we can start the loop immediately.
     // Otherwise, we give `reader.closed` or `writer.closed` a little bit of time to settle.
-    if (IsReadableStream(source) && IsWritableStream(source)) {
-      startPipeLoop();
-    } else {
-      queueMicrotask(startPipeLoop);
-    }
-
-    function startPipeLoop(): void {
-      started = true;
-      resolveStart();
-
+    if (started) {
       pipeLoop();
+    } else {
+      queueMicrotask(() => {
+        started = true;
+        resolveStart();
+
+        pipeLoop();
+      });
     }
 
     function waitForWritesToFinish(): Promise<void> {
