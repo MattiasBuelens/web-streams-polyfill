@@ -293,9 +293,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStreamLike<T>,
       }
     }
 
-    function shutdownWithAction(action: (() => Promise<unknown>) | undefined,
-                                originalIsError?: boolean,
-                                originalError?: any) {
+    function shutdownWithAction(action: (() => Promise<unknown>) | undefined, isError?: boolean, error?: any) {
       if (shuttingDown) {
         return;
       }
@@ -324,11 +322,11 @@ export function ReadableStreamPipeTo<T>(source: ReadableStreamLike<T>,
         if (action) {
           uponPromise(
             action(),
-            () => waitForReadsAndWritesThenFinalize(originalIsError, originalError),
+            () => waitForReadsAndWritesThenFinalize(isError, error),
             newError => waitForReadsAndWritesThenFinalize(true, newError)
           );
         } else {
-          waitForReadsAndWritesThenFinalize(originalIsError, originalError);
+          waitForReadsAndWritesThenFinalize(isError, error);
         }
         return null;
       }
