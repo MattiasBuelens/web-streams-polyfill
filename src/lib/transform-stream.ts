@@ -707,7 +707,7 @@ function CreateWritableStream<W>(stream: TransformStream<W, any>,
             assert(stream._writableState === 'writable' || stream._writableState === 'erroring');
             if (stream._writableState === 'writable') {
               stream._writableState = 'erroring';
-              stream._writableStoredError = controller.abortReason;
+              stream._writableStoredError = abortSignal.reason ?? controller.abortReason;
             }
             WritableStreamAssertState(stream);
           });
