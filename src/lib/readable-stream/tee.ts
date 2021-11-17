@@ -1,31 +1,29 @@
-import type {
-  ReadableByteStream,
-  ReadableStreamBYOBReader,
-  ReadableStreamDefaultReader,
-  ReadableStreamReader
-} from '../readable-stream';
-import { IsReadableStream, ReadableStream } from '../readable-stream';
+import type { ReadableByteStream, ReadableStreamBYOBReader, ReadableStreamDefaultReader } from '../readable-stream';
+import { ReadableStream } from '../readable-stream';
+import type { ReadableByteStreamLike, ReadableStreamLike, ReadableStreamReaderLike } from '../helpers/stream-like';
+import { IsReadableByteStreamLike, IsReadableStreamLike } from '../helpers/stream-like';
 import assert from '../../stub/assert';
 import { newPromise, promiseResolvedWith, uponPromise, uponRejection } from '../helpers/webidl';
 import type { ReadableStreamDefaultController } from './default-controller';
 import type { ReadableByteStreamController } from './byte-stream-controller';
-import { IsReadableByteStreamController } from './byte-stream-controller';
 import { CloneAsUint8Array } from '../abstract-ops/miscellaneous';
 
-export function ReadableStreamTee<R>(stream: ReadableStream<R>,
+export function ReadableStreamTee<R>(stream: ReadableStreamLike<R>,
                                      cloneForBranch2: boolean): [ReadableStream<R>, ReadableStream<R>] {
-  assert(IsReadableStream(stream));
+  assert(IsReadableStreamLike(stream));
+  assert(!stream.locked);
   assert(typeof cloneForBranch2 === 'boolean');
-  if (IsReadableByteStreamController(stream._readableStreamController)) {
+  if (IsReadableByteStreamLike(stream)) {
     return ReadableByteStreamTee(stream as unknown as ReadableByteStream) as
       unknown as [ReadableStream<R>, ReadableStream<R>];
   }
   return ReadableStreamDefaultTee(stream, cloneForBranch2);
 }
 
-export function ReadableStreamDefaultTee<R>(stream: ReadableStream<R>,
+export function ReadableStreamDefaultTee<R>(stream: ReadableStreamLike<R>,
                                             cloneForBranch2: boolean): [ReadableStream<R>, ReadableStream<R>] {
-  assert(IsReadableStream(stream));
+  assert(IsReadableStreamLike(stream));
+  assert(!stream.locked);
   assert(typeof cloneForBranch2 === 'boolean');
 
   const reader = stream.getReader();
@@ -150,11 +148,11 @@ export function ReadableStreamDefaultTee<R>(stream: ReadableStream<R>,
   return [branch1, branch2];
 }
 
-export function ReadableByteStreamTee(stream: ReadableByteStream): [ReadableByteStream, ReadableByteStream] {
-  assert(IsReadableStream(stream));
-  assert(IsReadableByteStreamController(stream._readableStreamController));
+export function ReadableByteStreamTee(stream: ReadableByteStreamLike): [ReadableByteStream, ReadableByteStream] {
+  assert(IsReadableByteStreamLike(stream));
+  assert(!stream.locked);
 
-  let reader: ReadableStreamReader<Uint8Array> = stream.getReader();
+  let reader: ReadableStreamReaderLike<Uint8Array> = stream.getReader();
   let isByobReader = false;
   let reading = false;
   let readAgainForBranch1 = false;
@@ -171,7 +169,7 @@ export function ReadableByteStreamTee(stream: ReadableByteStream): [ReadableByte
     resolveCancelPromise = resolve;
   });
 
-  function forwardReaderError(thisReader: ReadableStreamReader<Uint8Array>) {
+  function forwardReaderError(thisReader: ReadableStreamReaderLike<Uint8Array>) {
     uponRejection(thisReader.closed, r => {
       if (thisReader !== reader) {
         return null;

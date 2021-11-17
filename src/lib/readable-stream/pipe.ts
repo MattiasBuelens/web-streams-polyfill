@@ -1,7 +1,9 @@
-import type { ReadableStream, ReadableStreamState } from '../readable-stream';
+import type { ReadableStreamState } from '../readable-stream';
 import { IsReadableStream } from '../readable-stream';
-import type { WritableStream, WritableStreamState } from '../writable-stream';
+import type { WritableStreamState } from '../writable-stream';
 import { IsWritableStream } from '../writable-stream';
+import type { ReadableStreamLike, WritableStreamLike } from '../helpers/stream-like';
+import { IsReadableStreamLike, IsWritableStreamLike } from '../helpers/stream-like';
 import assert from '../../stub/assert';
 import {
   newPromise,
@@ -17,14 +19,14 @@ import type { AbortSignal } from '../abort-signal';
 import { isAbortSignal } from '../abort-signal';
 import { DOMException } from '../../stub/dom-exception';
 
-export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
-                                        dest: WritableStream<T>,
+export function ReadableStreamPipeTo<T>(source: ReadableStreamLike<T>,
+                                        dest: WritableStreamLike<T>,
                                         preventClose: boolean,
                                         preventAbort: boolean,
                                         preventCancel: boolean,
                                         signal: AbortSignal | undefined): Promise<undefined> {
-  assert(IsReadableStream(source));
-  assert(IsWritableStream(dest));
+  assert(IsReadableStreamLike(source));
+  assert(IsWritableStreamLike(dest));
   assert(typeof preventClose === 'boolean');
   assert(typeof preventAbort === 'boolean');
   assert(typeof preventCancel === 'boolean');
@@ -35,7 +37,9 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
   const reader = source.getReader();
   const writer = dest.getWriter();
 
-  source._disturbed = true;
+  if (IsReadableStream(source)) {
+    source._disturbed = true;
+  }
 
   let shuttingDown = false;
   let released = false;
@@ -134,7 +138,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
     uponPromise(reader.closed, () => {
       // Closing must be propagated forward
       assert(!released);
-      assert(source._state === 'closed');
+      assert(!IsReadableStream(source) || source._state === 'closed');
       sourceState = 'closed';
       if (!preventClose) {
         shutdownWithAction(() => {
@@ -157,7 +161,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
         return null;
       }
       // Errors must be propagated forward
-      assert(source._state === 'errored');
+      assert(!IsReadableStream(source) || source._state === 'errored');
       sourceState = 'errored';
       if (!preventAbort) {
         shutdownWithAction(() => writer.abort(storedError), true, storedError);
@@ -169,7 +173,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
 
     uponPromise(writer.closed, () => {
       assert(!released);
-      assert(dest._state === 'closed');
+      assert(!IsWritableStream(dest) || dest._state === 'closed');
       destState = 'closed';
       return null;
     }, storedError => {
@@ -177,7 +181,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
         return null;
       }
       // Errors must be propagated backward
-      assert(dest._state === 'errored');
+      assert(!IsWritableStream(dest) || dest._state === 'errored');
       destState = 'errored';
       destStoredError = storedError;
       if (!preventCancel) {

@@ -1,7 +1,8 @@
 /// <reference lib="es2018.asynciterable" />
 
-import type { ReadableStream } from '../readable-stream';
-import type { ReadableStreamDefaultReader, ReadableStreamDefaultReadResult } from './default-reader';
+import type { ReadableStreamDefaultReaderLike, ReadableStreamLike } from '../helpers/stream-like';
+import type { ReadableStreamDefaultReadResult } from './default-reader';
+import { IsReadableStreamDefaultReader } from './default-reader';
 import { readerLockException } from './generic-reader';
 import assert from '../../stub/assert';
 import { typeIsObject } from '../helpers/miscellaneous';
@@ -19,12 +20,12 @@ export interface ReadableStreamAsyncIterator<R> extends AsyncIterator<R> {
 }
 
 export class ReadableStreamAsyncIteratorImpl<R> {
-  private _reader: ReadableStreamDefaultReader<R> | undefined;
+  private _reader: ReadableStreamDefaultReaderLike<R> | undefined;
   private readonly _preventCancel: boolean;
   private _ongoingPromise: Promise<ReadableStreamDefaultReadResult<R>> | undefined = undefined;
   private _isFinished = false;
 
-  constructor(reader: ReadableStreamDefaultReader<R>, preventCancel: boolean) {
+  constructor(reader: ReadableStreamDefaultReaderLike<R>, preventCancel: boolean) {
     this._reader = reader;
     this._preventCancel = preventCancel;
   }
@@ -82,7 +83,7 @@ export class ReadableStreamAsyncIteratorImpl<R> {
       return promiseRejectedWith(readerLockException('finish iterating'));
     }
 
-    assert(reader._readRequests.length === 0);
+    assert(!IsReadableStreamDefaultReader(reader) || reader._readRequests.length === 0);
 
     this._reader = undefined;
     if (!this._preventCancel) {
@@ -135,7 +136,7 @@ if (typeof Symbol.asyncIterator === 'symbol') {
 
 // Abstract operations for the ReadableStream.
 
-export function AcquireReadableStreamAsyncIterator<R>(stream: ReadableStream<R>,
+export function AcquireReadableStreamAsyncIterator<R>(stream: ReadableStreamLike<R>,
                                                       preventCancel: boolean): ReadableStreamAsyncIterator<R> {
   const reader = stream.getReader();
   const impl = new ReadableStreamAsyncIteratorImpl(reader, preventCancel);
