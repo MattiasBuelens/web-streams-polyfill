@@ -292,7 +292,9 @@ export function ReadableStreamPipeTo<T>(source: ReadableStreamLike<T>,
       }
     }
 
-    function shutdownWithAction(action: () => Promise<unknown>, originalIsError?: boolean, originalError?: any) {
+    function shutdownWithAction(action: (() => Promise<unknown>) | undefined,
+                                originalIsError?: boolean,
+                                originalError?: any) {
       if (shuttingDown) {
         return;
       }
@@ -310,31 +312,21 @@ export function ReadableStreamPipeTo<T>(source: ReadableStreamLike<T>,
       }
 
       function doTheRest(): null {
-        uponPromise(
-          action(),
-          () => waitForReadsAndWritesThenFinalize(originalIsError, originalError),
-          newError => waitForReadsAndWritesThenFinalize(true, newError)
-        );
+        if (action) {
+          uponPromise(
+            action(),
+            () => waitForReadsAndWritesThenFinalize(originalIsError, originalError),
+            newError => waitForReadsAndWritesThenFinalize(true, newError)
+          );
+        } else {
+          waitForReadsAndWritesThenFinalize(originalIsError, originalError);
+        }
         return null;
       }
     }
 
     function shutdown(isError?: boolean, error?: any) {
-      if (shuttingDown) {
-        return;
-      }
-      shuttingDown = true;
-
-      if (!started) {
-        uponFulfillment(startPromise, onStart);
-      } else {
-        onStart();
-      }
-
-      function onStart(): null {
-        waitForReadsAndWritesThenFinalize(isError, error);
-        return null;
-      }
+      shutdownWithAction(undefined, isError, error);
     }
 
     function waitForReadsAndWritesThenFinalize(isError?: boolean, error?: any): null {
