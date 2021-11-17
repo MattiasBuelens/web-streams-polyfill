@@ -220,20 +220,17 @@ export function ReadableStreamPipeTo<T>(source: ReadableStreamLike<T>,
       resolveStart();
     }
 
-    // Errors must be propagated forward
     if (sourceState === 'errored') {
+      // Errors must be propagated forward
       handleSourceError(sourceStoredError);
-    }
-    // Errors must be propagated backward
-    if (destState === 'errored') {
+    } else if (destState === 'errored') {
+      // Errors must be propagated backward
       handleDestError(destStoredError);
-    }
-    // Closing must be propagated forward
-    if (sourceState === 'closed') {
+    } else if (sourceState === 'closed') {
+      // Closing must be propagated forward
       handleSourceClose();
-    }
-    // Closing must be propagated backward
-    if (destCloseRequested || destState === 'closed') {
+    } else if (destCloseRequested || destState === 'closed') {
+      // Closing must be propagated backward
       const destClosed = new TypeError('the destination writable stream closed before all data could be piped to it');
       if (!preventCancel) {
         shutdownWithAction(() => reader.cancel(destClosed), true, destClosed);
