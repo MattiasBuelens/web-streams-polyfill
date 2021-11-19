@@ -57,6 +57,8 @@
   },
   "files": [
     "dist",
+    "es5",
+    "polyfill",
     "types"
   ],
   "engines": {
