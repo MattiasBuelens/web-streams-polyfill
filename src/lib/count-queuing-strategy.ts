@@ -7,10 +7,14 @@ import { convertQueuingStrategyInit } from './validators/queuing-strategy-init';
 const countSizeFunction = (): 1 => {
   return 1;
 };
-Object.defineProperty(countSizeFunction, 'name', {
-  value: 'size',
-  configurable: true
-});
+
+try {
+  // To avoid exception thrown by PhantomJS
+  Object.defineProperty(countSizeFunction, 'name', {
+    value: 'size',
+    configurable: true
+  });
+} catch {}
 
 /**
  * A queuing strategy that counts the number of chunks.

@@ -7,10 +7,13 @@ import { convertQueuingStrategyInit } from './validators/queuing-strategy-init';
 const byteLengthSizeFunction = (chunk: ArrayBufferView): number => {
   return chunk.byteLength;
 };
-Object.defineProperty(byteLengthSizeFunction, 'name', {
-  value: 'size',
-  configurable: true
-});
+
+try {
+  Object.defineProperty(byteLengthSizeFunction, 'name', {
+    value: 'size',
+    configurable: true
+  });
+} catch {}
 
 /**
  * A queuing strategy that counts the number of bytes in each chunk.
