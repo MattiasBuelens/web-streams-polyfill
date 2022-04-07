@@ -7,10 +7,15 @@ import { convertQueuingStrategyInit } from './validators/queuing-strategy-init';
 const countSizeFunction = (): 1 => {
   return 1;
 };
-Object.defineProperty(countSizeFunction, 'name', {
-  value: 'size',
-  configurable: true
-});
+try {
+  Object.defineProperty(countSizeFunction, 'name', {
+    value: 'size',
+    configurable: true
+  });
+} catch {
+  // This property is non-configurable in older browsers, so ignore if this throws.
+  // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/name#browser_compatibility
+}
 
 /**
  * A queuing strategy that counts the number of chunks.

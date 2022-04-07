@@ -33,6 +33,10 @@
 | `web-streams-polyfill/ponyfill/es6` | `web-streams-polyfill` | ES2015+ ponyfill |
 | `web-streams-polyfill/ponyfill/es2018` | `web-streams-polyfill` | ES2015+ ponyfill |
 
+## v3.2.1 (2022-04-07)
+
+* 🐛 Fix an error in very old browsers where `Function.name` is non-configurable. ([#112](https://github.com/MattiasBuelens/web-streams-polyfill/pull/112))
+
 ## v3.2.0 (2021-11-06)
 
 * 👎 Deprecate `WritableStreamDefaultController.abortReason` ([#102](https://github.com/MattiasBuelens/web-streams-polyfill/pull/102))
