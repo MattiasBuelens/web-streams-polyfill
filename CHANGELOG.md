@@ -10,7 +10,7 @@
 > - 🏠 Internal
 > - 💅 Polish
 
-## Unreleased
+## v3.2.1 (2022-04-07)
 
 * 🐛 Fix an error in very old browsers where `Function.name` is non-configurable. ([#112](https://github.com/MattiasBuelens/web-streams-polyfill/pull/112))
 
