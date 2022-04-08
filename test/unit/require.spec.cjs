@@ -7,21 +7,29 @@ describe('require() package exports', () => {
     global.ReadableStream = oldGlobalReadableStream;
   });
   it('main export works', () => {
+    const resolved = require.resolve('web-streams-polyfill');
+    expect(resolved).toMatch(/ponyfill\.js$/);
     const polyfill = requireUncached('web-streams-polyfill');
     expect(polyfill.ReadableStream).toBeDefined();
     expect(global.ReadableStream).toBe(oldGlobalReadableStream);
   });
   it('es5 export works', () => {
+    const resolved = require.resolve('web-streams-polyfill/es5');
+    expect(resolved).toMatch(/ponyfill\.es5\.js$/);
     const polyfill = requireUncached('web-streams-polyfill/es5');
     expect(polyfill.ReadableStream).toBeDefined();
     expect(global.ReadableStream).toBe(oldGlobalReadableStream);
   });
   it('polyfill export works', () => {
+    const resolved = require.resolve('web-streams-polyfill/polyfill');
+    expect(resolved).toMatch(/polyfill\.js$/);
     global.ReadableStream = undefined;
     requireUncached('web-streams-polyfill/polyfill');
     expect(global.ReadableStream).toBeDefined();
   });
   it('polyfill/es5 export works', () => {
+    const resolved = require.resolve('web-streams-polyfill/polyfill/es5');
+    expect(resolved).toMatch(/polyfill\.es5\.js$/);
     global.ReadableStream = undefined;
     requireUncached('web-streams-polyfill/polyfill/es5');
     expect(global.ReadableStream).toBeDefined();
@@ -37,21 +45,29 @@ describe('fallback package exports', () => {
     global.ReadableStream = oldGlobalReadableStream;
   });
   it('main export works', () => {
+    const resolved = require.resolve('../../');
+    expect(resolved).toMatch(/ponyfill\.js$/);
     const polyfill = requireUncached('../../');
     expect(polyfill.ReadableStream).toBeDefined();
     expect(global.ReadableStream).toBe(oldGlobalReadableStream);
   });
   it('es5 export works', () => {
+    const resolved = require.resolve('../../es5');
+    expect(resolved).toMatch(/ponyfill\.es5\.js$/);
     const polyfill = requireUncached('../../es5');
     expect(polyfill.ReadableStream).toBeDefined();
     expect(global.ReadableStream).toBe(oldGlobalReadableStream);
   });
   it('polyfill export works', () => {
+    const resolved = require.resolve('../../polyfill');
+    expect(resolved).toMatch(/polyfill\.js$/);
     global.ReadableStream = undefined;
     requireUncached('../../polyfill');
     expect(global.ReadableStream).toBeDefined();
   });
   it('polyfill/es5 export works', () => {
+    const resolved = require.resolve('../../polyfill/es5');
+    expect(resolved).toMatch(/polyfill\.es5\.js$/);
     global.ReadableStream = undefined;
     requireUncached('../../polyfill/es5');
     expect(global.ReadableStream).toBeDefined();
