@@ -7,22 +7,22 @@
   "types": "types/ponyfill.d.ts",
   "exports": {
     ".": {
+      "types": "./types/ponyfill.d.ts",
       "import": "./dist/ponyfill.mjs",
-      "require": "./dist/ponyfill.js",
-      "types": "./types/ponyfill.d.ts"
+      "require": "./dist/ponyfill.js"
     },
     "./es5": {
+      "types": "./types/ponyfill.d.ts",
       "import": "./dist/ponyfill.es5.mjs",
-      "require": "./dist/ponyfill.es5.js",
-      "types": "./types/ponyfill.d.ts"
+      "require": "./dist/ponyfill.es5.js"
     },
     "./polyfill": {
-      "default": "./dist/polyfill.js",
-      "types": "./types/polyfill.d.ts"
+      "types": "./types/polyfill.d.ts",
+      "default": "./dist/polyfill.js"
     },
     "./polyfill/es5": {
-      "default": "./dist/polyfill.es5.js",
-      "types": "./types/polyfill.d.ts"
+      "types": "./types/polyfill.d.ts",
+      "default": "./dist/polyfill.es5.js"
     },
     "./dist/*": "./dist/*",
     "./types/*": "./types/*",
