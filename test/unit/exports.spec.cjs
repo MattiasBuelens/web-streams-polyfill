@@ -1,4 +1,4 @@
-describe('package exports', () => {
+describe('require() package exports', () => {
   let oldGlobalReadableStream;
   beforeEach(() => {
     oldGlobalReadableStream = global.ReadableStream;
