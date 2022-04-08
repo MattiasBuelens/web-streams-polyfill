@@ -6,7 +6,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [12, 14]
+        node-version: [14, 16]
     # Skip job if commit message contains "[skip ci]"
     if: |
       !contains(github.event.head_commit.message, '[skip ci]')
@@ -42,10 +42,10 @@ jobs:
         uses: actions/checkout@v2
         with:
           submodules: true
-      - name: Use Node.js 14
+      - name: Use Node.js 16
         uses: actions/setup-node@v2
         with:
-          node-version: 14
+          node-version: 16
           cache: npm
       - run: npm ci
         env:

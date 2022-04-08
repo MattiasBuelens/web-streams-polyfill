@@ -19,10 +19,10 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.merge_commit_sha }}
           submodules: true
-      - name: Use Node.js 14
+      - name: Use Node.js 16
         uses: actions/setup-node@v2
         with:
-          node-version: 14
+          node-version: 16
           cache: npm
       - run: npm ci
         env:
