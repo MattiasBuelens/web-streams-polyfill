@@ -325,7 +325,7 @@ export class ReadableStream<R = any> {
   /**
    * {@inheritDoc ReadableStream.values}
    */
-  [Symbol.asyncIterator]: (options?: ReadableStreamIteratorOptions) => ReadableStreamAsyncIterator<R>;
+  [Symbol.asyncIterator]!: (options?: ReadableStreamIteratorOptions) => ReadableStreamAsyncIterator<R>;
 }
 
 Object.defineProperties(ReadableStream.prototype, {
