@@ -5,16 +5,16 @@ import { IsReadableStream, ReadableStream } from './readable-stream';
 import type { QueuingStrategy, QueuingStrategySizeCallback } from './queuing-strategy';
 import type { WritableStreamDefaultController, WritableStreamState } from './writable-stream';
 import { IsWritableStream, WritableStream } from './writable-stream';
-import { typeIsObject } from './helpers/miscellaneous';
+import { setFunctionName, typeIsObject } from './helpers/miscellaneous';
 import { IsNonNegativeNumber } from './abstract-ops/miscellaneous';
 import { convertQueuingStrategy } from './validators/queuing-strategy';
 import { ExtractHighWaterMark, ExtractSizeAlgorithm } from './abstract-ops/queuing-strategy';
-import type { ValidatedTransformer } from './transform-stream/transformer';
-import {
+import type {
   Transformer,
   TransformerFlushCallback,
   TransformerStartCallback,
-  TransformerTransformCallback
+  TransformerTransformCallback,
+  ValidatedTransformer
 } from './transform-stream/transformer';
 import { convertTransformer } from './validators/transformer';
 import type { ReadableStreamLike, WritableStreamLike } from './helpers/stream-like';
@@ -378,6 +378,9 @@ Object.defineProperties(TransformStreamDefaultController.prototype, {
   terminate: { enumerable: true },
   desiredSize: { enumerable: true }
 });
+setFunctionName(TransformStreamDefaultController.prototype.enqueue, 'enqueue');
+setFunctionName(TransformStreamDefaultController.prototype.error, 'error');
+setFunctionName(TransformStreamDefaultController.prototype.terminate, 'terminate');
 if (typeof Symbol.toStringTag === 'symbol') {
   Object.defineProperty(TransformStreamDefaultController.prototype, Symbol.toStringTag, {
     value: 'TransformStreamDefaultController',
@@ -574,6 +577,7 @@ function streamBrandCheckException(name: string): TypeError {
   return new TypeError(
     `TransformStream.prototype.${name} can only be used on a TransformStream`);
 }
+
 // Stubs for abstract operations used from ReadableStream and WritableStream.
 
 function CreateReadableStream<R>(stream: TransformStream<any, R>,

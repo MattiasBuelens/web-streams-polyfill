@@ -12,7 +12,7 @@ import type { SimpleQueue } from '../simple-queue';
 import type { ReadableStream } from '../readable-stream';
 import { IsReadableStreamLocked, ReadableStreamClose, ReadableStreamError } from '../readable-stream';
 import type { ValidatedUnderlyingSource } from './underlying-source';
-import { typeIsObject } from '../helpers/miscellaneous';
+import { setFunctionName, typeIsObject } from '../helpers/miscellaneous';
 import { CancelSteps, PullSteps } from '../abstract-ops/internal-methods';
 import { promiseResolvedWith, uponPromise } from '../helpers/webidl';
 
@@ -140,6 +140,9 @@ Object.defineProperties(ReadableStreamDefaultController.prototype, {
   error: { enumerable: true },
   desiredSize: { enumerable: true }
 });
+setFunctionName(ReadableStreamDefaultController.prototype.close, 'close');
+setFunctionName(ReadableStreamDefaultController.prototype.enqueue, 'enqueue');
+setFunctionName(ReadableStreamDefaultController.prototype.error, 'error');
 if (typeof Symbol.toStringTag === 'symbol') {
   Object.defineProperty(ReadableStreamDefaultController.prototype, Symbol.toStringTag, {
     value: 'ReadableStreamDefaultController',

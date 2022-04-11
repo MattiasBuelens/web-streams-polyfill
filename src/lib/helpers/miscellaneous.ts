@@ -16,3 +16,15 @@ export const rethrowAssertionErrorRejection: (e: any) => void =
       }, 0);
     }
   } : noop;
+
+export function setFunctionName(fn: Function, name: string): void {
+  try {
+    Object.defineProperty(fn, 'name', {
+      value: name,
+      configurable: true
+    });
+  } catch {
+    // This property is non-configurable in older browsers, so ignore if this throws.
+    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/name#browser_compatibility
+  }
+}

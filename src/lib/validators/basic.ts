@@ -34,17 +34,17 @@ export function assertObject(x: unknown,
   }
 }
 
-export function assertRequiredArgument<T extends any>(x: T | undefined,
-                                                      position: number,
-                                                      context: string): asserts x is T {
+export function assertRequiredArgument<T>(x: T | undefined,
+                                          position: number,
+                                          context: string): asserts x is T {
   if (x === undefined) {
     throw new TypeError(`Parameter ${position} is required in '${context}'.`);
   }
 }
 
-export function assertRequiredField<T extends any>(x: T | undefined,
-                                                   field: string,
-                                                   context: string): asserts x is T {
+export function assertRequiredField<T>(x: T | undefined,
+                                       field: string,
+                                       context: string): asserts x is T {
   if (x === undefined) {
     throw new TypeError(`${field} is required in '${context}'.`);
   }

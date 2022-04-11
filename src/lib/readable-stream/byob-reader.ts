@@ -10,7 +10,7 @@ import type { ReadableByteStream, ReadableStream } from '../readable-stream';
 import { IsReadableStreamLocked } from '../readable-stream';
 import type { ReadableByteStreamController } from './byte-stream-controller';
 import { IsReadableByteStreamController, ReadableByteStreamControllerPullInto } from './byte-stream-controller';
-import { typeIsObject } from '../helpers/miscellaneous';
+import { setFunctionName, typeIsObject } from '../helpers/miscellaneous';
 import { newPromise, promiseRejectedWith } from '../helpers/webidl';
 import { assertRequiredArgument } from '../validators/basic';
 import { assertReadableStream } from '../validators/readable-stream';
@@ -224,6 +224,9 @@ Object.defineProperties(ReadableStreamBYOBReader.prototype, {
   releaseLock: { enumerable: true },
   closed: { enumerable: true }
 });
+setFunctionName(ReadableStreamBYOBReader.prototype.cancel, 'cancel');
+setFunctionName(ReadableStreamBYOBReader.prototype.read, 'read');
+setFunctionName(ReadableStreamBYOBReader.prototype.releaseLock, 'releaseLock');
 if (typeof Symbol.toStringTag === 'symbol') {
   Object.defineProperty(ReadableStreamBYOBReader.prototype, Symbol.toStringTag, {
     value: 'ReadableStreamBYOBReader',
