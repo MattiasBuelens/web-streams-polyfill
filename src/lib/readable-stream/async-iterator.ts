@@ -125,7 +125,7 @@ export class ReadableStreamAsyncIteratorImpl<R> {
   }
 }
 
-declare class ReadableStreamAsyncIteratorInstance<R> implements ReadableStreamAsyncIterator<R> {
+interface ReadableStreamAsyncIteratorInstance<R> extends ReadableStreamAsyncIterator<R> {
   /** @interal */
   _asyncIteratorImpl: ReadableStreamAsyncIteratorImpl<R>;
 
