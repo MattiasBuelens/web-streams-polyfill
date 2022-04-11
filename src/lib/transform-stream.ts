@@ -11,7 +11,7 @@ import {
 } from './readable-stream/default-controller';
 import { QueuingStrategy, QueuingStrategySizeCallback } from './queuing-strategy';
 import { CreateWritableStream, WritableStream, WritableStreamDefaultControllerErrorIfNeeded } from './writable-stream';
-import { typeIsObject } from './helpers/miscellaneous';
+import { setFunctionName, typeIsObject } from './helpers/miscellaneous';
 import { IsNonNegativeNumber } from './abstract-ops/miscellaneous';
 import { convertQueuingStrategy } from './validators/queuing-strategy';
 import { ExtractHighWaterMark, ExtractSizeAlgorithm } from './abstract-ops/queuing-strategy';
@@ -332,6 +332,9 @@ Object.defineProperties(TransformStreamDefaultController.prototype, {
   terminate: { enumerable: true },
   desiredSize: { enumerable: true }
 });
+setFunctionName(TransformStreamDefaultController.prototype.enqueue, 'enqueue');
+setFunctionName(TransformStreamDefaultController.prototype.error, 'error');
+setFunctionName(TransformStreamDefaultController.prototype.terminate, 'terminate');
 if (typeof Symbol.toStringTag === 'symbol') {
   Object.defineProperty(TransformStreamDefaultController.prototype, Symbol.toStringTag, {
     value: 'TransformStreamDefaultController',

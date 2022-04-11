@@ -15,7 +15,7 @@ import {
 } from './abstract-ops/queue-with-sizes';
 import { QueuingStrategy, QueuingStrategySizeCallback } from './queuing-strategy';
 import { SimpleQueue } from './simple-queue';
-import { typeIsObject } from './helpers/miscellaneous';
+import { setFunctionName, typeIsObject } from './helpers/miscellaneous';
 import { AbortSteps, ErrorSteps } from './abstract-ops/internal-methods';
 import { IsNonNegativeNumber } from './abstract-ops/miscellaneous';
 import { ExtractHighWaterMark, ExtractSizeAlgorithm } from './abstract-ops/queuing-strategy';
@@ -182,6 +182,9 @@ Object.defineProperties(WritableStream.prototype, {
   getWriter: { enumerable: true },
   locked: { enumerable: true }
 });
+setFunctionName(WritableStream.prototype.abort, 'abort');
+setFunctionName(WritableStream.prototype.close, 'close');
+setFunctionName(WritableStream.prototype.getWriter, 'getWriter');
 if (typeof Symbol.toStringTag === 'symbol') {
   Object.defineProperty(WritableStream.prototype, Symbol.toStringTag, {
     value: 'WritableStream',
@@ -779,6 +782,10 @@ Object.defineProperties(WritableStreamDefaultWriter.prototype, {
   desiredSize: { enumerable: true },
   ready: { enumerable: true }
 });
+setFunctionName(WritableStreamDefaultWriter.prototype.abort, 'abort');
+setFunctionName(WritableStreamDefaultWriter.prototype.close, 'close');
+setFunctionName(WritableStreamDefaultWriter.prototype.releaseLock, 'releaseLock');
+setFunctionName(WritableStreamDefaultWriter.prototype.write, 'write');
 if (typeof Symbol.toStringTag === 'symbol') {
   Object.defineProperty(WritableStreamDefaultWriter.prototype, Symbol.toStringTag, {
     value: 'WritableStreamDefaultWriter',
