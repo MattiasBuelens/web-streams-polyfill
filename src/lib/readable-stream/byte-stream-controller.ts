@@ -19,7 +19,7 @@ import NumberIsInteger from '../../stub/number-isinteger';
 import type { ReadableByteStream } from '../readable-stream';
 import { IsReadableStreamLocked, ReadableStreamClose, ReadableStreamError } from '../readable-stream';
 import type { ValidatedUnderlyingByteSource } from './underlying-source';
-import { typeIsObject } from '../helpers/miscellaneous';
+import { setFunctionName, typeIsObject } from '../helpers/miscellaneous';
 import {
   ArrayBufferSlice,
   CanTransferArrayBuffer,
@@ -121,6 +121,8 @@ Object.defineProperties(ReadableStreamBYOBRequest.prototype, {
   respondWithNewView: { enumerable: true },
   view: { enumerable: true }
 });
+setFunctionName(ReadableStreamBYOBRequest.prototype.respond, 'respond');
+setFunctionName(ReadableStreamBYOBRequest.prototype.respondWithNewView, 'respondWithNewView');
 if (typeof Symbol.toStringTag === 'symbol') {
   Object.defineProperty(ReadableStreamBYOBRequest.prototype, Symbol.toStringTag, {
     value: 'ReadableStreamBYOBRequest',
@@ -358,6 +360,9 @@ Object.defineProperties(ReadableByteStreamController.prototype, {
   byobRequest: { enumerable: true },
   desiredSize: { enumerable: true }
 });
+setFunctionName(ReadableByteStreamController.prototype.close, 'close');
+setFunctionName(ReadableByteStreamController.prototype.enqueue, 'enqueue');
+setFunctionName(ReadableByteStreamController.prototype.error, 'error');
 if (typeof Symbol.toStringTag === 'symbol') {
   Object.defineProperty(ReadableByteStreamController.prototype, Symbol.toStringTag, {
     value: 'ReadableByteStreamController',

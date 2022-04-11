@@ -47,7 +47,7 @@ import type {
   UnderlyingSourceStartCallback
 } from './readable-stream/underlying-source';
 import { noop } from '../utils';
-import { typeIsObject } from './helpers/miscellaneous';
+import { setFunctionName, typeIsObject } from './helpers/miscellaneous';
 import { CancelSteps } from './abstract-ops/internal-methods';
 import { IsNonNegativeNumber } from './abstract-ops/miscellaneous';
 import { assertObject, assertRequiredArgument } from './validators/basic';
@@ -336,6 +336,12 @@ Object.defineProperties(ReadableStream.prototype, {
   values: { enumerable: true },
   locked: { enumerable: true }
 });
+setFunctionName(ReadableStream.prototype.cancel, 'cancel');
+setFunctionName(ReadableStream.prototype.getReader, 'getReader');
+setFunctionName(ReadableStream.prototype.pipeThrough, 'pipeThrough');
+setFunctionName(ReadableStream.prototype.pipeTo, 'pipeTo');
+setFunctionName(ReadableStream.prototype.tee, 'tee');
+setFunctionName(ReadableStream.prototype.values, 'values');
 if (typeof Symbol.toStringTag === 'symbol') {
   Object.defineProperty(ReadableStream.prototype, Symbol.toStringTag, {
     value: 'ReadableStream',
