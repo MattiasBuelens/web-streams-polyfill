@@ -723,37 +723,36 @@ function CreateWritableStream<W>(stream: TransformStream<W, any>,
       } catch {
         // WritableStreamDefaultController.prototype.signal throws if its brand check fails
       }
-      return startAlgorithm().then(
-        () => {
-          assert(stream._writableState === 'writable' || stream._writableState === 'erroring');
-          stream._writableStarted = true;
-          WritableStreamDefaultControllerAdvanceQueueIfNeeded(stream);
-        },
-        r => {
-          assert(stream._writableState === 'writable' || stream._writableState === 'erroring');
-          stream._writableStarted = true;
-          WritableStreamDealWithRejection(stream, r);
-          throw r;
-        }
+      return transformPromiseWith(startAlgorithm(), () => {
+        assert(stream._writableState === 'writable' || stream._writableState === 'erroring');
+        stream._writableStarted = true;
+        WritableStreamDefaultControllerAdvanceQueueIfNeeded(stream);
+        return null as any;
+      }, r => {
+        assert(stream._writableState === 'writable' || stream._writableState === 'erroring');
+        stream._writableStarted = true;
+        WritableStreamDealWithRejection(stream, r);
+        throw r;
+      }
       );
     },
     write(chunk) {
       WritableStreamMarkFirstWriteRequestInFlight(stream);
-      return writeAlgorithm(chunk).then(
-        () => {
-          WritableStreamFinishInFlightWrite(stream);
-          assert(stream._writableState === 'writable' || stream._writableState === 'erroring');
-          WritableStreamDefaultControllerAdvanceQueueIfNeeded(stream);
-        },
-        reason => {
-          WritableStreamFinishInFlightWriteWithError(stream, reason);
-          throw reason;
-        });
+      return transformPromiseWith(writeAlgorithm(chunk), (): void => {
+        WritableStreamFinishInFlightWrite(stream);
+        assert(stream._writableState === 'writable' || stream._writableState === 'erroring');
+        WritableStreamDefaultControllerAdvanceQueueIfNeeded(stream);
+        return null as any;
+      }, reason => {
+        WritableStreamFinishInFlightWriteWithError(stream, reason);
+        throw reason;
+      });
     },
     close() {
       WritableStreamMarkCloseRequestInFlight(stream);
-      return closeAlgorithm().then(() => {
+      return transformPromiseWith(closeAlgorithm(), (): void => {
         WritableStreamFinishInFlightClose(stream);
+        return null as any;
       }, e => {
         WritableStreamFinishInFlightCloseWithError(stream, e);
         throw e;
