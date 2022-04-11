@@ -7,22 +7,22 @@
   "types": "types/ponyfill.d.ts",
   "exports": {
     ".": {
+      "types": "./types/ponyfill.d.ts",
       "import": "./dist/ponyfill.mjs",
-      "require": "./dist/ponyfill.js",
-      "types": "./types/ponyfill.d.ts"
+      "require": "./dist/ponyfill.js"
     },
     "./es5": {
+      "types": "./types/ponyfill.d.ts",
       "import": "./dist/ponyfill.es5.mjs",
-      "require": "./dist/ponyfill.es5.js",
-      "types": "./types/ponyfill.d.ts"
+      "require": "./dist/ponyfill.es5.js"
     },
     "./polyfill": {
-      "default": "./dist/polyfill.js",
-      "types": "./types/polyfill.d.ts"
+      "types": "./types/polyfill.d.ts",
+      "default": "./dist/polyfill.js"
     },
     "./polyfill/es5": {
-      "default": "./dist/polyfill.es5.js",
-      "types": "./types/polyfill.d.ts"
+      "types": "./types/polyfill.d.ts",
+      "default": "./dist/polyfill.es5.js"
     },
     "./dist/*": "./dist/*",
     "./types/*": "./types/*",
@@ -39,7 +39,7 @@
     "test:bundler:rollup": "cd test/rollup && npm ci && npm test",
     "test:bundler:webpack": "cd test/webpack && npm ci && npm test",
     "test:types": "tsc -p ./test/types/tsconfig.json",
-    "test:unit": "jasmine --config=test/unit/jasmine.json",
+    "test:unit": "node --experimental-import-meta-resolve ./node_modules/jasmine/bin/jasmine.js --config=test/unit/jasmine.json",
     "lint": "eslint \"src/**/*.ts\"",
     "build": "npm run build:bundle && npm run build:types",
     "build:bundle": "rollup -c",
@@ -80,13 +80,14 @@
     "@rollup/plugin-replace": "^3.0.0",
     "@rollup/plugin-strip": "^2.1.0",
     "@rollup/plugin-typescript": "^8.2.5",
+    "@types/jasmine": "^4.0.2",
     "@types/node": "^14.17.12",
     "@typescript-eslint/eslint-plugin": "^4.29.3",
     "@typescript-eslint/parser": "^4.29.3",
     "@ungap/promise-all-settled": "^1.1.2",
     "abort-controller": "^3.0.0",
     "eslint": "^7.32.0",
-    "jasmine": "^3.9.0",
+    "jasmine": "^4.0.2",
     "micromatch": "^4.0.4",
     "minimist": "^1.2.5",
     "playwright": "^1.14.1",
@@ -94,7 +95,7 @@
     "rollup": "^2.56.3",
     "rollup-plugin-terser": "^7.0.2",
     "tslib": "^2.3.0",
-    "typescript": "^4.5.2",
+    "typescript": "^4.7.0-beta",
     "wpt-runner": "^3.2.1"
   }
 }
