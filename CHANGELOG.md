@@ -10,8 +10,10 @@
 > - 🏠 Internal
 > - 💅 Polish
 
-## Unreleased
+## v4.0.0-beta.2 (2022-04-12)
 
+* 🚀 Support calling `ReadableStream.pipeTo(writable)` and `.pipeThrough({ readable, writable })` when `writable` is a native (i.e. not polyfilled) `WritableStream`. ([#99](https://github.com/MattiasBuelens/web-streams-polyfill/pull/99), [#101](https://github.com/MattiasBuelens/web-streams-polyfill/pull/101))
+* 💅 Add fallback for package exports for backwards compatibility with older Node versions. ([#107](https://github.com/MattiasBuelens/web-streams-polyfill/pull/107))
 * 🐛 Prevent [warnings from Bluebird](http://bluebirdjs.com/docs/warning-explanations.html#warning-a-promise-was-created-in-a-handler-but-was-not-returned-from-it) about a promise being created within a handler but not being returned from a handler. ([#91](https://github.com/MattiasBuelens/web-streams-polyfill/pull/91))
 
 ## v4.0.0-beta.1 (2021-09-06)

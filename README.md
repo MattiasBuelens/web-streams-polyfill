@@ -114,7 +114,7 @@ Thanks to these people for their work on [the original polyfill][creatorrr-polyf
 [ref-impl]: https://github.com/whatwg/streams
 [ponyfill]: https://github.com/sindresorhus/ponyfill
 [amd]: https://requirejs.org/docs/whyamd.html
-[migrating]: https://github.com/MattiasBuelens/web-streams-polyfill/blob/v4.0.0-beta.1/MIGRATING.md
+[migrating]: https://github.com/MattiasBuelens/web-streams-polyfill/blob/v4.0.0-beta.2/MIGRATING.md
 [promise-support]: https://kangax.github.io/compat-table/es6/#test-Promise
 [promise-polyfill]: https://www.npmjs.com/package/promise-polyfill
 [rs-asynciterator]: https://streams.spec.whatwg.org/#rs-asynciterator
@@ -127,7 +127,7 @@ Thanks to these people for their work on [the original polyfill][creatorrr-polyf
 [ref-impl-transferarraybuffer]: https://github.com/whatwg/streams/blob/4b6b93c69e531e2fe45a6ed4cb1484a7ba4eb8bb/reference-implementation/lib/abstract-ops/ecmascript.js#L16
 [issue-3]: https://github.com/MattiasBuelens/web-streams-polyfill/issues/3
 [wpt-async-iterator-prototype]: https://github.com/web-platform-tests/wpt/blob/96ca25f0f7526282c0d47e6bf6a7edd439da1968/streams/readable-streams/async-iterator.any.js#L24
-[stub-async-iterator-prototype]: https://github.com/MattiasBuelens/web-streams-polyfill/blob/v4.0.0-beta.1/src/lib/readable-stream/async-iterator.ts#L153-L161
+[stub-async-iterator-prototype]: https://github.com/MattiasBuelens/web-streams-polyfill/blob/v4.0.0-beta.2/src/lib/readable-stream/async-iterator.ts#L126-L134
 [wpt-rs-patched-global]: https://github.com/web-platform-tests/wpt/blob/887350c2f46def5b01c4dd1f8d2eee35dfb9c5bb/streams/readable-streams/patched-global.any.js
 [wpt-then-interception]: https://github.com/web-platform-tests/wpt/blob/cf33f00596af295ee0f207c88e23b5f8b0791307/streams/piping/then-interception.any.js
 [wpt-pipe-sync-state-1]: https://github.com/web-platform-tests/wpt/blob/e1e713c842e54ea0a9410ddc988b63d0e1d31973/streams/piping/multiple-propagation.any.js#L30-L53

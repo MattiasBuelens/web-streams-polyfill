@@ -20,7 +20,7 @@ publishing npm packages.
   Node 12.20.0 or higher to resolve these variants. If you're using a bundler (like webpack or Rollup), you need to make
   sure it's up-to-date too.
   * For backwards compatibility, a fallback is provided that uses the same structure as in version 3. This should help
-    for older versions of Node or when using TypeScript 4.5 or lower, which do not (yet) understand package entry points.
+    for older versions of Node or when using TypeScript 4.6 or lower, which do not (yet) understand package entry points.
     If you still have problems with importing these variants, [file an issue](https://github.com/MattiasBuelens/web-streams-polyfill/issues).
 
 Version 4 also focuses on reducing the download size of the published npm package.
