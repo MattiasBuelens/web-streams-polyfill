@@ -15,13 +15,13 @@ import { AbortSteps, ErrorSteps } from './abstract-ops/internal-methods';
 import { IsNonNegativeNumber } from './abstract-ops/miscellaneous';
 import { ExtractHighWaterMark, ExtractSizeAlgorithm } from './abstract-ops/queuing-strategy';
 import { convertQueuingStrategy } from './validators/queuing-strategy';
-import type { ValidatedUnderlyingSink } from './writable-stream/underlying-sink';
-import {
+import type {
   UnderlyingSink,
   UnderlyingSinkAbortCallback,
   UnderlyingSinkCloseCallback,
   UnderlyingSinkStartCallback,
-  UnderlyingSinkWriteCallback
+  UnderlyingSinkWriteCallback,
+  ValidatedUnderlyingSink
 } from './writable-stream/underlying-sink';
 import { assertObject, assertRequiredArgument } from './validators/basic';
 import { convertUnderlyingSink } from './validators/underlying-sink';
@@ -225,7 +225,7 @@ function CreateWritableStream<W>(startAlgorithm: () => void | PromiseLike<void>,
   const controller: WritableStreamDefaultController<W> = Object.create(WritableStreamDefaultController.prototype);
 
   SetUpWritableStreamDefaultController(stream, controller, startAlgorithm, writeAlgorithm, closeAlgorithm,
-                                       abortAlgorithm, highWaterMark, sizeAlgorithm);
+    abortAlgorithm, highWaterMark, sizeAlgorithm);
   return stream;
 }
 

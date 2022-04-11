@@ -9,12 +9,12 @@ import { typeIsObject } from './helpers/miscellaneous';
 import { IsNonNegativeNumber } from './abstract-ops/miscellaneous';
 import { convertQueuingStrategy } from './validators/queuing-strategy';
 import { ExtractHighWaterMark, ExtractSizeAlgorithm } from './abstract-ops/queuing-strategy';
-import type { ValidatedTransformer } from './transform-stream/transformer';
-import {
+import type {
   Transformer,
   TransformerFlushCallback,
   TransformerStartCallback,
-  TransformerTransformCallback
+  TransformerTransformCallback,
+  ValidatedTransformer
 } from './transform-stream/transformer';
 import { convertTransformer } from './validators/transformer';
 import type { ReadableStreamLike, WritableStreamLike } from './helpers/stream-like';

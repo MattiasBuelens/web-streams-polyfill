@@ -1,46 +1,46 @@
 import {
   ReadableByteStreamController,
   ReadableStream,
-  ReadableStreamAsyncIterator,
+  type ReadableStreamAsyncIterator,
   ReadableStreamBYOBReader,
-  ReadableStreamBYOBReadResult,
+  type ReadableStreamBYOBReadResult,
   ReadableStreamBYOBRequest,
   ReadableStreamDefaultController,
   ReadableStreamDefaultReader,
-  ReadableStreamDefaultReadResult,
-  ReadableStreamIteratorOptions,
-  ReadableWritablePair,
-  StreamPipeOptions,
-  UnderlyingByteSource,
-  UnderlyingByteSourcePullCallback,
-  UnderlyingByteSourceStartCallback,
-  UnderlyingSource,
-  UnderlyingSourceCancelCallback,
-  UnderlyingSourcePullCallback,
-  UnderlyingSourceStartCallback
+  type ReadableStreamDefaultReadResult,
+  type ReadableStreamIteratorOptions,
+  type ReadableWritablePair,
+  type StreamPipeOptions,
+  type UnderlyingByteSource,
+  type UnderlyingByteSourcePullCallback,
+  type UnderlyingByteSourceStartCallback,
+  type UnderlyingSource,
+  type UnderlyingSourceCancelCallback,
+  type UnderlyingSourcePullCallback,
+  type UnderlyingSourceStartCallback
 } from './lib/readable-stream';
 import {
-  UnderlyingSink,
-  UnderlyingSinkAbortCallback,
-  UnderlyingSinkCloseCallback,
-  UnderlyingSinkStartCallback,
-  UnderlyingSinkWriteCallback,
+  type UnderlyingSink,
+  type UnderlyingSinkAbortCallback,
+  type UnderlyingSinkCloseCallback,
+  type UnderlyingSinkStartCallback,
+  type UnderlyingSinkWriteCallback,
   WritableStream,
   WritableStreamDefaultController,
   WritableStreamDefaultWriter
 } from './lib/writable-stream';
-import { QueuingStrategy, QueuingStrategyInit, QueuingStrategySizeCallback } from './lib/queuing-strategy';
+import type { QueuingStrategy, QueuingStrategyInit, QueuingStrategySizeCallback } from './lib/queuing-strategy';
 import ByteLengthQueuingStrategy from './lib/byte-length-queuing-strategy';
 import CountQueuingStrategy from './lib/count-queuing-strategy';
 import {
-  Transformer,
-  TransformerFlushCallback,
-  TransformerStartCallback,
-  TransformerTransformCallback,
+  type Transformer,
+  type TransformerFlushCallback,
+  type TransformerStartCallback,
+  type TransformerTransformCallback,
   TransformStream,
   TransformStreamDefaultController
 } from './lib/transform-stream';
-import { AbortSignal } from './lib/abort-signal';
+import type { AbortSignal } from './lib/abort-signal';
 
 export {
   ReadableStream,
