@@ -10,6 +10,7 @@
 export interface AbortSignal {
     readonly aborted: boolean;
     addEventListener(type: 'abort', listener: () => void): void;
+    readonly reason?: any;
     removeEventListener(type: 'abort', listener: () => void): void;
 }
 

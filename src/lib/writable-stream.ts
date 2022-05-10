@@ -302,7 +302,7 @@ function WritableStreamAbort(stream: WritableStream, reason: any): Promise<undef
     return promiseResolvedWith(undefined);
   }
   stream._writableStreamController._abortReason = reason;
-  stream._writableStreamController._abortController?.abort();
+  stream._writableStreamController._abortController?.abort(reason);
 
   // TypeScript narrows the type of `stream._state` down to 'writable' | 'erroring',
   // but it doesn't know that signaling abort runs author code that might have changed the state.
