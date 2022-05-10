@@ -210,11 +210,7 @@ export class ReadableStreamBYOBReader {
       return;
     }
 
-    if (this._readIntoRequests.length > 0) {
-      throw new TypeError('Tried to release a reader lock when that reader has pending read() calls un-settled');
-    }
-
-    ReadableStreamReaderGenericRelease(this);
+    ReadableStreamBYOBReaderRelease(this);
   }
 }
 
@@ -268,6 +264,20 @@ export function ReadableStreamBYOBReaderRead<T extends ArrayBufferView>(
       readIntoRequest
     );
   }
+}
+
+export function ReadableStreamBYOBReaderRelease(reader: ReadableStreamBYOBReader) {
+  ReadableStreamReaderGenericRelease(reader);
+  const e = new TypeError('Reader was released');
+  ReadableStreamBYOBReaderErrorReadIntoRequests(reader, e);
+}
+
+export function ReadableStreamBYOBReaderErrorReadIntoRequests(reader: ReadableStreamBYOBReader, e: any) {
+  const readIntoRequests = reader._readIntoRequests;
+  reader._readIntoRequests = new SimpleQueue();
+  readIntoRequests.forEach(readIntoRequest => {
+    readIntoRequest._errorSteps(e);
+  });
 }
 
 // Helper functions for the ReadableStreamBYOBReader.

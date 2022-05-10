@@ -2,6 +2,7 @@ import assert from '../../stub/assert';
 import type { ReadableStream, ReadableStreamReader } from '../readable-stream';
 import { ReadableStreamCancel } from '../readable-stream';
 import { newPromise, setPromiseIsHandledToTrue } from '../helpers/webidl';
+import { ReleaseSteps } from '../abstract-ops/internal-methods';
 
 export function ReadableStreamReaderGenericInitialize<R>(reader: ReadableStreamReader<R>, stream: ReadableStream<R>) {
   reader._ownerReadableStream = stream;
@@ -28,10 +29,11 @@ export function ReadableStreamReaderGenericCancel(reader: ReadableStreamReader<a
 }
 
 export function ReadableStreamReaderGenericRelease(reader: ReadableStreamReader<any>) {
-  assert(reader._ownerReadableStream !== undefined);
-  assert(reader._ownerReadableStream._reader === reader);
+  const stream = reader._ownerReadableStream;
+  assert(stream !== undefined);
+  assert(stream._reader === reader);
 
-  if (reader._ownerReadableStream._state === 'readable') {
+  if (stream._state === 'readable') {
     defaultReaderClosedPromiseReject(
       reader,
       new TypeError(`Reader was released and can no longer be used to monitor the stream's closedness`));
@@ -41,7 +43,9 @@ export function ReadableStreamReaderGenericRelease(reader: ReadableStreamReader<
       new TypeError(`Reader was released and can no longer be used to monitor the stream's closedness`));
   }
 
-  reader._ownerReadableStream._reader = undefined;
+  stream._readableStreamController[ReleaseSteps]();
+
+  stream._reader = undefined;
   reader._ownerReadableStream = undefined!;
 }
 

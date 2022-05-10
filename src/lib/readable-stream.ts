@@ -12,12 +12,14 @@ import {
   AcquireReadableStreamDefaultReader,
   IsReadableStreamDefaultReader,
   ReadableStreamDefaultReader,
+  ReadableStreamDefaultReaderErrorReadRequests,
   type ReadableStreamDefaultReadResult
 } from './readable-stream/default-reader';
 import {
   AcquireReadableStreamBYOBReader,
   IsReadableStreamBYOBReader,
   ReadableStreamBYOBReader,
+  ReadableStreamBYOBReaderErrorReadIntoRequests,
   type ReadableStreamBYOBReadResult
 } from './readable-stream/byob-reader';
 import { ReadableStreamPipeTo } from './readable-stream/pipe';
@@ -459,10 +461,11 @@ export function ReadableStreamCancel<R>(stream: ReadableStream<R>, reason: any):
 
   const reader = stream._reader;
   if (reader !== undefined && IsReadableStreamBYOBReader(reader)) {
-    reader._readIntoRequests.forEach(readIntoRequest => {
+    const readIntoRequests = reader._readIntoRequests;
+    reader._readIntoRequests = new SimpleQueue();
+    readIntoRequests.forEach(readIntoRequest => {
       readIntoRequest._closeSteps(undefined);
     });
-    reader._readIntoRequests = new SimpleQueue();
   }
 
   const sourceCancelPromise = stream._readableStreamController[CancelSteps](reason);
@@ -483,10 +486,11 @@ export function ReadableStreamClose<R>(stream: ReadableStream<R>): void {
   defaultReaderClosedPromiseResolve(reader);
 
   if (IsReadableStreamDefaultReader<R>(reader)) {
-    reader._readRequests.forEach(readRequest => {
+    const readRequests = reader._readRequests;
+    reader._readRequests = new SimpleQueue();
+    readRequests.forEach(readRequest => {
       readRequest._closeSteps();
     });
-    reader._readRequests = new SimpleQueue();
   }
 }
 
@@ -506,19 +510,10 @@ export function ReadableStreamError<R>(stream: ReadableStream<R>, e: any): void 
   defaultReaderClosedPromiseReject(reader, e);
 
   if (IsReadableStreamDefaultReader<R>(reader)) {
-    reader._readRequests.forEach(readRequest => {
-      readRequest._errorSteps(e);
-    });
-
-    reader._readRequests = new SimpleQueue();
+    ReadableStreamDefaultReaderErrorReadRequests(reader, e);
   } else {
     assert(IsReadableStreamBYOBReader(reader));
-
-    reader._readIntoRequests.forEach(readIntoRequest => {
-      readIntoRequest._errorSteps(e);
-    });
-
-    reader._readIntoRequests = new SimpleQueue();
+    ReadableStreamBYOBReaderErrorReadIntoRequests(reader, e);
   }
 }
 
