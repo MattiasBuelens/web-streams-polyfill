@@ -76,7 +76,7 @@ If you need to support older browsers or Node versions that do not have a native
 
 ## Compliance
 
-The polyfill implements [version `4b6b93c` (25 Oct 2021)][spec-snapshot] of the streams specification.
+The polyfill implements [version `e9355ce` (18 Apr 2022)][spec-snapshot] of the streams specification.
 
 The polyfill is tested against the same [web platform tests][wpt] that are used by browsers to test their native implementations.
 It aims to pass all tests, although it allows some exceptions for practical reasons:
@@ -120,13 +120,13 @@ Thanks to these people for their work on [the original polyfill][creatorrr-polyf
 [rs-asynciterator]: https://streams.spec.whatwg.org/#rs-asynciterator
 [ws-controller-signal]: https://streams.spec.whatwg.org/#ws-default-controller-signal
 [abortcontroller-polyfill]: https://www.npmjs.com/package/abortcontroller-polyfill
-[spec-snapshot]: https://streams.spec.whatwg.org/commit-snapshots/4b6b93c69e531e2fe45a6ed4cb1484a7ba4eb8bb/
-[wpt]: https://github.com/web-platform-tests/wpt/tree/96ca25f0f7526282c0d47e6bf6a7edd439da1968/streams
-[wpt-bad-buffers]: https://github.com/web-platform-tests/wpt/blob/96ca25f0f7526282c0d47e6bf6a7edd439da1968/streams/readable-byte-streams/bad-buffers-and-views.any.js
+[spec-snapshot]: https://streams.spec.whatwg.org/commit-snapshots/e9355ce79925947e8eb496563d599c329769d315/
+[wpt]: https://github.com/web-platform-tests/wpt/tree/6a46d9cb8d20c510a620141c721b81b460a4ee55/streams
+[wpt-bad-buffers]: https://github.com/web-platform-tests/wpt/blob/6a46d9cb8d20c510a620141c721b81b460a4ee55/streams/readable-byte-streams/bad-buffers-and-views.any.js
 [proposal-arraybuffer-transfer]: https://github.com/domenic/proposal-arraybuffer-transfer
-[ref-impl-transferarraybuffer]: https://github.com/whatwg/streams/blob/4b6b93c69e531e2fe45a6ed4cb1484a7ba4eb8bb/reference-implementation/lib/abstract-ops/ecmascript.js#L16
+[ref-impl-transferarraybuffer]: https://github.com/whatwg/streams/blob/e9355ce79925947e8eb496563d599c329769d315/reference-implementation/lib/abstract-ops/ecmascript.js#L16
 [issue-3]: https://github.com/MattiasBuelens/web-streams-polyfill/issues/3
-[wpt-async-iterator-prototype]: https://github.com/web-platform-tests/wpt/blob/96ca25f0f7526282c0d47e6bf6a7edd439da1968/streams/readable-streams/async-iterator.any.js#L24
+[wpt-async-iterator-prototype]: https://github.com/web-platform-tests/wpt/blob/6a46d9cb8d20c510a620141c721b81b460a4ee55/streams/readable-streams/async-iterator.any.js#L24
 [stub-async-iterator-prototype]: https://github.com/MattiasBuelens/web-streams-polyfill/blob/v4.0.0-beta.2/src/lib/readable-stream/async-iterator.ts#L126-L134
 [wpt-rs-patched-global]: https://github.com/web-platform-tests/wpt/blob/887350c2f46def5b01c4dd1f8d2eee35dfb9c5bb/streams/readable-streams/patched-global.any.js
 [wpt-then-interception]: https://github.com/web-platform-tests/wpt/blob/cf33f00596af295ee0f207c88e23b5f8b0791307/streams/piping/then-interception.any.js
