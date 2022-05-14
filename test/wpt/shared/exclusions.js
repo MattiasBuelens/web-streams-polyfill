@@ -12,7 +12,10 @@ const excludedTestsBase = [
   // so patching various globals *will* affect the polyfill.
   'readable-streams/patched-global.any.html',
   'piping/then-interception.any.html',
-  'transform-streams/patched-global.any.html'
+  'transform-streams/patched-global.any.html',
+  // The crash tests require creating and terminating workers and iframes.
+  'readable-streams/cross-realm-crash.window.html',
+  'readable-streams/crashtests/**'
 ];
 
 const excludedTestsNonES2018 = [
