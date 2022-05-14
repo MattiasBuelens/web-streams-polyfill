@@ -185,6 +185,7 @@ export function ReadableByteStreamTee(stream: ReadableByteStreamLike): [Readable
 
   function pullWithDefaultReader() {
     if (isByobReader) {
+      // assert(reader._readIntoRequests.length === 0);
       reader.releaseLock();
       reader = stream.getReader();
       forwardReaderError(reader);
@@ -246,6 +247,7 @@ export function ReadableByteStreamTee(stream: ReadableByteStreamLike): [Readable
 
   function pullWithBYOBReader(view: ArrayBufferView, forBranch2: boolean) {
     if (!isByobReader) {
+      // assert(reader._readRequests.length === 0);
       reader.releaseLock();
       reader = stream.getReader({ mode: 'byob' });
       forwardReaderError(reader);

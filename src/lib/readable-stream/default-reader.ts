@@ -188,11 +188,7 @@ export class ReadableStreamDefaultReader<R = any> {
       return;
     }
 
-    if (this._readRequests.length > 0) {
-      throw new TypeError('Tried to release a reader lock when that reader has pending read() calls un-settled');
-    }
-
-    ReadableStreamReaderGenericRelease(this);
+    ReadableStreamDefaultReaderRelease(this);
   }
 }
 
@@ -242,6 +238,20 @@ export function ReadableStreamDefaultReaderRead<R>(reader: ReadableStreamDefault
     assert(stream._state === 'readable');
     stream._readableStreamController[PullSteps](readRequest as ReadRequest<any>);
   }
+}
+
+export function ReadableStreamDefaultReaderRelease(reader: ReadableStreamDefaultReader) {
+  ReadableStreamReaderGenericRelease(reader);
+  const e = new TypeError('Reader was released');
+  ReadableStreamDefaultReaderErrorReadRequests(reader, e);
+}
+
+export function ReadableStreamDefaultReaderErrorReadRequests(reader: ReadableStreamDefaultReader, e: any) {
+  const readRequests = reader._readRequests;
+  reader._readRequests = new SimpleQueue();
+  readRequests.forEach(readRequest => {
+    readRequest._errorSteps(e);
+  });
 }
 
 // Helper functions for the ReadableStreamDefaultReader.
