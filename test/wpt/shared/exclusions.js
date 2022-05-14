@@ -7,7 +7,10 @@ const excludedTestsBase = [
   // Disable tests for different size functions per realm, since they need a working <iframe>
   'queuing-strategies-size-function-per-global.window.html',
   // We don't implement transferable streams yet
-  'transferable/**'
+  'transferable/**',
+  // The crash tests require creating and terminating workers and iframes.
+  'readable-streams/cross-realm-crash.window.html',
+  'readable-streams/crashtests/**'
 ];
 
 const excludedTestsNonES2018 = [
