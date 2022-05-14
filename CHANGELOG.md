@@ -10,6 +10,10 @@
 > - 🏠 Internal
 > - 💅 Polish
 
+## Unreleased
+
+* 👓 Align with [spec version `e9355ce`](https://github.com/whatwg/streams/tree/e9355ce79925947e8eb496563d599c329769d315/) ([#115](https://github.com/MattiasBuelens/web-streams-polyfill/issues/115), [#117](https://github.com/MattiasBuelens/web-streams-polyfill/pull/117))
+
 ## v4.0.0-beta.2 (2022-04-12)
 
 * 🚀 Support calling `ReadableStream.pipeTo(writable)` and `.pipeThrough({ readable, writable })` when `writable` is a native (i.e. not polyfilled) `WritableStream`. ([#99](https://github.com/MattiasBuelens/web-streams-polyfill/pull/99), [#101](https://github.com/MattiasBuelens/web-streams-polyfill/pull/101))
