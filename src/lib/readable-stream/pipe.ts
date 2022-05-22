@@ -58,7 +58,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStreamLike<T>,
   });
 
   // This is used to keep track of the spec's requirement that we wait for ongoing writes during shutdown.
-  let currentWrite: Promise<unknown> | undefined;
+  let currentWrite: Promise<unknown> = Promise.resolve(undefined);
 
   return newPromise((resolve, reject) => {
     let abortAlgorithm: () => void;
