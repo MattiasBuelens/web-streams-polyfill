@@ -1,9 +1,10 @@
 require('abort-controller/polyfill');
 const { ReadableStream, WritableStream, TransformStream } = require('web-streams-polyfill');
+const { delay } = require('../util/delay');
 
 describe('ReadableStream regressions', () => {
   // https://github.com/MattiasBuelens/web-streams-polyfill/issues/66
-  it('#66', async () => {
+  it('issue #66', async () => {
     const { readable, writable } = new TransformStream();
 
     const producer = (async () => {
@@ -53,5 +54,28 @@ describe('ReadableStream regressions', () => {
       const readableGetter = Object.getOwnPropertyDescriptor(TransformStream.prototype, 'readable');
       expect(() => readableGetter.call(fakeTransformStream)).toThrow(jasmine.any(TypeError));
     });
+  });
+
+  // https://github.com/MattiasBuelens/web-streams-polyfill/issues/118
+  it('issue #118', async () => {
+    const readable = new ReadableStream();
+    const abortController = new AbortController();
+    const events = [];
+
+    readable.pipeTo(new WritableStream(), {
+      preventCancel: true,
+      signal: abortController.signal
+    }).then(() => {
+      events.push('resolve');
+    }, () => {
+      events.push('rejected');
+    });
+
+    await delay(100);
+    events.push('abort');
+    abortController.abort();
+
+    await delay(100);
+    expect(events).toEqual(['abort', 'rejected']);
   });
 });
