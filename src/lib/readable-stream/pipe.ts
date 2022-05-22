@@ -148,10 +148,10 @@ export function ReadableStreamPipeTo<T>(source: ReadableStreamLike<T>,
           if (destCloseRequested || destState === 'closed') {
             return promiseResolvedWith(undefined);
           }
-          if (destState === 'errored') {
+          if (destState === 'erroring' || destState === 'errored') {
             return promiseRejectedWith(destStoredError);
           }
-          assert(destState === 'writable' || destState === 'erroring');
+          assert(destState === 'writable');
           destCloseRequested = true;
           return writer.close();
         }, false, undefined);
@@ -189,7 +189,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStreamLike<T>,
         return null;
       }
       // Errors must be propagated backward
-      assert(!IsWritableStream(dest) || dest._state === 'errored');
+      assert(!IsWritableStream(dest) || dest._state === 'erroring' || dest._state === 'errored');
       destState = 'errored';
       destStoredError = storedError;
       if (!preventCancel) {
@@ -220,7 +220,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStreamLike<T>,
     if (sourceState === 'errored') {
       // Errors must be propagated forward
       handleSourceError(sourceStoredError);
-    } else if (destState === 'errored') {
+    } else if (destState === 'erroring' || destState === 'errored') {
       // Errors must be propagated backward
       handleDestError(destStoredError);
     } else if (sourceState === 'closed') {
