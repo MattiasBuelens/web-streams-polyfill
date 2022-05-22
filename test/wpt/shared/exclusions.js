@@ -25,11 +25,6 @@ const excludedTestsNonES2018 = [
 ];
 
 const skippedTests = {
-  'piping/error-propagation-backward.any.html': [
-    // This test cheats: pipeTo() releases the reader's lock while there's still a pending read().
-    // The polyfill cannot do this, because it uses the reader.releaseLock() public API.
-    'Errors must be propagated backward: becomes errored after piping; preventCancel = true'
-  ]
 };
 
 const ignoredFailuresBase = {
