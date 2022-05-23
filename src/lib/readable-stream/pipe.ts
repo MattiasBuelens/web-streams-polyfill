@@ -162,7 +162,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStreamLike<T>,
     }
 
     function handleSourceError(storedError: any): null {
-      if (released) {
+      if (shuttingDown) {
         return null;
       }
       // Errors must be propagated forward
@@ -178,7 +178,9 @@ export function ReadableStreamPipeTo<T>(source: ReadableStreamLike<T>,
     }
 
     function handleDestClose(): null {
-      assert(!released);
+      if (released) {
+        return null;
+      }
       assert(!IsWritableStream(dest) || dest._state === 'closed');
       destState = 'closed';
       return null;
