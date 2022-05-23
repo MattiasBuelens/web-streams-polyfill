@@ -285,7 +285,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStreamLike<T>,
       }
 
       function onStart(): null {
-        if (currentWrite !== undefined) {
+        if (destState === 'writable' && !destCloseRequested) {
           uponFulfillment(waitForWritesToFinish(), doTheRest);
         } else {
           doTheRest();
