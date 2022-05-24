@@ -1,5 +1,6 @@
 /// <reference types="node" />
 import { globals } from '../globals';
+import { setFunctionName } from '../lib/helpers/miscellaneous';
 
 interface DOMException extends Error {
   name: string;
@@ -50,6 +51,7 @@ function createPolyfill(): DOMExceptionConstructor {
       Error.captureStackTrace(this, this.constructor);
     }
   } as any;
+  setFunctionName(ctor, 'DOMException');
   ctor.prototype = Object.create(Error.prototype);
   Object.defineProperty(ctor.prototype, 'constructor', { value: ctor, writable: true, configurable: true });
   return ctor;
