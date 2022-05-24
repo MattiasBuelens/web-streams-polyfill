@@ -10,6 +10,10 @@
 > - 🏠 Internal
 > - 💅 Polish
 
+## Unreleased
+
+* Use native `DOMException` on Node 15 and higher. ([#109](https://github.com/MattiasBuelens/web-streams-polyfill/issues/109), [#110](https://github.com/MattiasBuelens/web-streams-polyfill/pull/120))
+
 ## v4.0.0-beta.3 (2022-05-24)
 
 * 👓 Align with [spec version `e9355ce`](https://github.com/whatwg/streams/tree/e9355ce79925947e8eb496563d599c329769d315/). ([#115](https://github.com/MattiasBuelens/web-streams-polyfill/issues/115), [#117](https://github.com/MattiasBuelens/web-streams-polyfill/pull/117))
