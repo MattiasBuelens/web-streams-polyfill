@@ -13,6 +13,9 @@ function isDOMExceptionConstructor(ctor: unknown): ctor is DOMExceptionConstruct
   if (!(typeof ctor === 'function' || typeof ctor === 'object')) {
     return false;
   }
+  if ((ctor as DOMExceptionConstructor).name !== 'DOMException') {
+    return false;
+  }
   try {
     new (ctor as DOMExceptionConstructor)();
     return true;
