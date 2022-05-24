@@ -57,9 +57,8 @@ export function ReadableStreamPipeTo<T>(source: ReadableStreamLike<T>,
     resolveStart = resolve;
   });
 
-  // This is used to keep track of the spec's requirement that we wait for ongoing reads and writes during shutdown.
-  let currentRead: Promise<unknown> | undefined;
-  let currentWrite: Promise<unknown> | undefined;
+  // This is used to keep track of the spec's requirement that we wait for ongoing writes during shutdown.
+  let currentWrite: Promise<unknown> = Promise.resolve(undefined);
 
   return newPromise((resolve, reject) => {
     let abortAlgorithm: () => void;
@@ -124,7 +123,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStreamLike<T>,
       }
 
       return PerformPromiseThen(writer.ready, () => {
-        const read = PerformPromiseThen(reader.read(), result => {
+        return PerformPromiseThen(reader.read(), result => {
           if (result.done) {
             return true;
           }
@@ -132,8 +131,6 @@ export function ReadableStreamPipeTo<T>(source: ReadableStreamLike<T>,
           setPromiseIsHandledToTrue(currentWrite);
           return false;
         });
-        currentRead = read;
-        return read;
       });
     }
 
@@ -151,13 +148,13 @@ export function ReadableStreamPipeTo<T>(source: ReadableStreamLike<T>,
           if (destCloseRequested || destState === 'closed') {
             return promiseResolvedWith(undefined);
           }
-          if (destState === 'errored') {
+          if (destState === 'erroring' || destState === 'errored') {
             return promiseRejectedWith(destStoredError);
           }
-          assert(destState === 'writable' || destState === 'erroring');
+          assert(destState === 'writable');
           destCloseRequested = true;
           return writer.close();
-        }, false, undefined, true);
+        }, false, undefined);
       } else {
         shutdown();
       }
@@ -165,7 +162,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStreamLike<T>,
     }
 
     function handleSourceError(storedError: any): null {
-      if (released) {
+      if (shuttingDown) {
         return null;
       }
       // Errors must be propagated forward
@@ -181,7 +178,9 @@ export function ReadableStreamPipeTo<T>(source: ReadableStreamLike<T>,
     }
 
     function handleDestClose(): null {
-      assert(!released);
+      if (released) {
+        return null;
+      }
       assert(!IsWritableStream(dest) || dest._state === 'closed');
       destState = 'closed';
       return null;
@@ -192,7 +191,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStreamLike<T>,
         return null;
       }
       // Errors must be propagated backward
-      assert(!IsWritableStream(dest) || dest._state === 'errored');
+      assert(!IsWritableStream(dest) || dest._state === 'erroring' || dest._state === 'errored');
       destState = 'errored';
       destStoredError = storedError;
       if (!preventCancel) {
@@ -223,7 +222,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStreamLike<T>,
     if (sourceState === 'errored') {
       // Errors must be propagated forward
       handleSourceError(sourceStoredError);
-    } else if (destState === 'errored') {
+    } else if (destState === 'erroring' || destState === 'errored') {
       // Errors must be propagated backward
       handleDestError(destStoredError);
     } else if (sourceState === 'closed') {
@@ -273,30 +272,9 @@ export function ReadableStreamPipeTo<T>(source: ReadableStreamLike<T>,
       }
     }
 
-    function waitForReadsAndWritesToFinish(): Promise<void> {
-      let oldCurrentRead: Promise<unknown> | undefined;
-      let oldCurrentWrite: Promise<unknown> | undefined;
-      return promiseResolvedWith(check());
-
-      function check(): undefined | Promise<undefined> {
-        // Another read or write may have started while we were waiting on this currentRead or currentWrite,
-        // so we have to be sure to wait for that too.
-        if (oldCurrentRead !== currentRead) {
-          oldCurrentRead = currentRead;
-          return transformPromiseWith(currentRead!, check, check);
-        }
-        if (oldCurrentWrite !== currentWrite) {
-          oldCurrentWrite = currentWrite;
-          return transformPromiseWith(currentWrite!, check, check);
-        }
-        return undefined;
-      }
-    }
-
     function shutdownWithAction(action: (() => Promise<unknown>) | undefined,
                                 isError?: boolean,
-                                error?: any,
-                                waitForReads?: boolean) {
+                                error?: any) {
       if (shuttingDown) {
         return;
       }
@@ -309,9 +287,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStreamLike<T>,
       }
 
       function onStart(): null {
-        if (waitForReads && (currentRead !== undefined || currentWrite !== undefined)) {
-          uponFulfillment(waitForReadsAndWritesToFinish(), doTheRest);
-        } else if (currentWrite !== undefined) {
+        if (destState === 'writable' && !destCloseRequested) {
           uponFulfillment(waitForWritesToFinish(), doTheRest);
         } else {
           doTheRest();
@@ -323,11 +299,11 @@ export function ReadableStreamPipeTo<T>(source: ReadableStreamLike<T>,
         if (action) {
           uponPromise(
             action(),
-            () => waitForReadsAndWritesThenFinalize(isError, error),
-            newError => waitForReadsAndWritesThenFinalize(true, newError)
+            () => finalize(isError, error),
+            newError => finalize(true, newError)
           );
         } else {
-          waitForReadsAndWritesThenFinalize(isError, error);
+          finalize(isError, error);
         }
         return null;
       }
@@ -335,15 +311,6 @@ export function ReadableStreamPipeTo<T>(source: ReadableStreamLike<T>,
 
     function shutdown(isError?: boolean, error?: any) {
       shutdownWithAction(undefined, isError, error);
-    }
-
-    function waitForReadsAndWritesThenFinalize(isError?: boolean, error?: any): null {
-      if (currentRead !== undefined || currentWrite !== undefined) {
-        uponFulfillment(waitForReadsAndWritesToFinish(), () => finalize(isError, error));
-      } else {
-        finalize(isError, error);
-      }
-      return null;
     }
 
     function finalize(isError?: boolean, error?: any): null {
