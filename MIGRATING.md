@@ -27,7 +27,7 @@ Version 4 also focuses on reducing the download size of the published npm packag
 
 * All published JavaScript code is now minified, without source maps. If you need to debug the polyfill, you
   can [clone it](https://github.com/MattiasBuelens/web-streams-polyfill)
-  and [build it yourself](https://github.com/MattiasBuelens/web-streams-polyfill/blob/v3.1.0/CONTRIBUTING.md).
+  and [build it yourself](https://github.com/MattiasBuelens/web-streams-polyfill/blob/v4.0.0-beta.3/CONTRIBUTING.md).
 * The ES2018 variant was removed, since it had only minor differences with the ES2015 variant. If you were using this
   variant, switch to the default export instead.
 
