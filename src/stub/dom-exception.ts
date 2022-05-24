@@ -1,5 +1,5 @@
 /// <reference types="node" />
-import { NativeDOMException } from './native';
+import { globals } from '../globals';
 
 interface DOMException extends Error {
   name: string;
@@ -20,7 +20,28 @@ function isDOMExceptionConstructor(ctor: unknown): ctor is DOMExceptionConstruct
   }
 }
 
-function createDOMExceptionPolyfill(): DOMExceptionConstructor {
+// - Web browsers
+// - Node 18 and higher (https://github.com/nodejs/node/commit/e4b1fb5e6422c1ff151234bb9de792d45dd88d87)
+function getFromGlobal(): DOMExceptionConstructor | undefined {
+  const ctor = globals?.DOMException;
+  return isDOMExceptionConstructor(ctor) ? ctor : undefined;
+}
+
+// - Node 15 and higher (https://github.com/nodejs/node/commit/eee522ac29864a55a8bc6686e6b38e93270aa1ca)
+function getFromMessageChannel(): DOMExceptionConstructor | undefined {
+  try {
+    const port = new MessageChannel().port1;
+    const buffer = new ArrayBuffer(0);
+    port.postMessage(buffer, [buffer, buffer]);
+    return undefined;
+  } catch (err) {
+    const ctor = (err as DOMException).constructor;
+    return isDOMExceptionConstructor(ctor) ? ctor : undefined;
+  }
+}
+
+// - Other platforms
+function createPolyfill(): DOMExceptionConstructor {
   // eslint-disable-next-line no-shadow
   const ctor = function DOMException(this: DOMException, message?: string, name?: string) {
     this.message = message || '';
@@ -36,6 +57,8 @@ function createDOMExceptionPolyfill(): DOMExceptionConstructor {
 
 // eslint-disable-next-line no-redeclare
 const DOMException: DOMExceptionConstructor =
-  isDOMExceptionConstructor(NativeDOMException) ? NativeDOMException : createDOMExceptionPolyfill();
+  getFromGlobal() ||
+  getFromMessageChannel() ||
+  createPolyfill();
 
 export { DOMException };
