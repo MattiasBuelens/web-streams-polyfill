@@ -13,6 +13,7 @@
 ## Unreleased
 
 * 👓 Align with [spec version `e9355ce`](https://github.com/whatwg/streams/tree/e9355ce79925947e8eb496563d599c329769d315/) ([#115](https://github.com/MattiasBuelens/web-streams-polyfill/issues/115), [#117](https://github.com/MattiasBuelens/web-streams-polyfill/pull/117))
+* 🐛 Fix `pipeTo()` never rejecting when aborting its `signal` and `preventCancel` is set to `true`. ([#118](https://github.com/MattiasBuelens/web-streams-polyfill/issues/118), [#119](https://github.com/MattiasBuelens/web-streams-polyfill/pull/119))
 
 ## v4.0.0-beta.2 (2022-04-12)
 
