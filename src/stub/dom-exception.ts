@@ -39,15 +39,21 @@ function getFromGlobal(): DOMExceptionConstructor | undefined {
  * https://www.npmjs.com/package/node-domexception
  */
 function getFromMessageChannel(): DOMExceptionConstructor | undefined {
+  let port: MessagePort;
+  let buffer: ArrayBuffer;
   try {
-    const port = new MessageChannel().port1;
-    const buffer = new ArrayBuffer(0);
-    port.postMessage(buffer, [buffer, buffer]);
+    port = new MessageChannel().port1;
+    buffer = new ArrayBuffer(0);
+  } catch {
     return undefined;
+  }
+  try {
+    port.postMessage(buffer, [buffer, buffer]);
   } catch (err) {
     const ctor = (err as DOMException).constructor;
     return isDOMExceptionConstructor(ctor) ? ctor : undefined;
   }
+  return undefined;
 }
 
 /**
