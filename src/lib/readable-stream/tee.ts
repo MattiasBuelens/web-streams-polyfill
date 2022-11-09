@@ -1,15 +1,41 @@
-import type {
-  ReadableByteStream,
-  ReadableStreamBYOBReader,
-  ReadableStreamDefaultReader,
-  ReadableStreamReader
+import type { ReadableByteStream, ReadableStream, ReadableStreamReader } from '../readable-stream';
+import {
+  CreateReadableByteStream,
+  CreateReadableStream,
+  IsReadableStream,
+  ReadableStreamCancel
 } from '../readable-stream';
-import { IsReadableStream, ReadableStream } from '../readable-stream';
+import { ReadableStreamReaderGenericRelease } from './generic-reader';
+import type { ReadRequest } from './default-reader';
+import {
+  AcquireReadableStreamDefaultReader,
+  IsReadableStreamDefaultReader,
+  ReadableStreamDefaultReaderRead
+} from './default-reader';
+import type { ReadIntoRequest } from './byob-reader';
+import {
+  AcquireReadableStreamBYOBReader,
+  IsReadableStreamBYOBReader,
+  ReadableStreamBYOBReaderRead
+} from './byob-reader';
 import assert from '../../stub/assert';
-import { newPromise, promiseResolvedWith, uponPromise, uponRejection } from '../helpers/webidl';
+import { newPromise, promiseResolvedWith, queueMicrotask, uponRejection } from '../helpers/webidl';
 import type { ReadableStreamDefaultController } from './default-controller';
-import type { ReadableByteStreamController } from './byte-stream-controller';
-import { IsReadableByteStreamController } from './byte-stream-controller';
+import {
+  ReadableStreamDefaultControllerClose,
+  ReadableStreamDefaultControllerEnqueue,
+  ReadableStreamDefaultControllerError
+} from './default-controller';
+import {
+  IsReadableByteStreamController,
+  ReadableByteStreamControllerClose,
+  ReadableByteStreamControllerEnqueue,
+  ReadableByteStreamControllerError,
+  ReadableByteStreamControllerGetBYOBRequest,
+  ReadableByteStreamControllerRespond,
+  ReadableByteStreamControllerRespondWithNewView
+} from './byte-stream-controller';
+import { CreateArrayFromList } from '../abstract-ops/ecmascript';
 import { CloneAsUint8Array } from '../abstract-ops/miscellaneous';
 
 export function ReadableStreamTee<R>(stream: ReadableStream<R>,
@@ -28,7 +54,7 @@ export function ReadableStreamDefaultTee<R>(stream: ReadableStream<R>,
   assert(IsReadableStream(stream));
   assert(typeof cloneForBranch2 === 'boolean');
 
-  const reader = stream.getReader();
+  const reader = AcquireReadableStreamDefaultReader<R>(stream);
 
   let reading = false;
   let readAgain = false;
@@ -36,11 +62,11 @@ export function ReadableStreamDefaultTee<R>(stream: ReadableStream<R>,
   let canceled2 = false;
   let reason1: any;
   let reason2: any;
-  let controller1: ReadableStreamDefaultController<R>;
-  let controller2: ReadableStreamDefaultController<R>;
+  let branch1: ReadableStream<R>;
+  let branch2: ReadableStream<R>;
 
-  let resolveCancelPromise: (value: void | Promise<void>) => void;
-  const cancelPromise = newPromise<void>(resolve => {
+  let resolveCancelPromise: (value: undefined | Promise<undefined>) => void;
+  const cancelPromise = newPromise<undefined>(resolve => {
     resolveCancelPromise = resolve;
   });
 
@@ -52,50 +78,59 @@ export function ReadableStreamDefaultTee<R>(stream: ReadableStream<R>,
 
     reading = true;
 
-    uponPromise(reader.read(), result => {
-      readAgain = false;
+    const readRequest: ReadRequest<R> = {
+      _chunkSteps: chunk => {
+        // This needs to be delayed a microtask because it takes at least a microtask to detect errors (using
+        // reader._closedPromise below), and we want errors in stream to error both branches immediately. We cannot let
+        // successful synchronously-available reads get ahead of asynchronously-available errors.
+        queueMicrotask(() => {
+          readAgain = false;
+          const chunk1 = chunk;
+          const chunk2 = chunk;
 
-      if (result.done) {
+          // There is no way to access the cloning code right now in the reference implementation.
+          // If we add one then we'll need an implementation for serializable objects.
+          // if (!canceled2 && cloneForBranch2) {
+          //   chunk2 = StructuredDeserialize(StructuredSerialize(chunk2));
+          // }
+
+          if (!canceled1) {
+            ReadableStreamDefaultControllerEnqueue(
+              branch1._readableStreamController as ReadableStreamDefaultController<R>,
+              chunk1
+            );
+          }
+          if (!canceled2) {
+            ReadableStreamDefaultControllerEnqueue(
+              branch2._readableStreamController as ReadableStreamDefaultController<R>,
+              chunk2
+            );
+          }
+
+          reading = false;
+          if (readAgain) {
+            pullAlgorithm();
+          }
+        });
+      },
+      _closeSteps: () => {
+        reading = false;
         if (!canceled1) {
-          controller1.close();
+          ReadableStreamDefaultControllerClose(branch1._readableStreamController as ReadableStreamDefaultController<R>);
         }
         if (!canceled2) {
-          controller2.close();
+          ReadableStreamDefaultControllerClose(branch2._readableStreamController as ReadableStreamDefaultController<R>);
         }
 
         if (!canceled1 || !canceled2) {
           resolveCancelPromise(undefined);
         }
-        return null;
+      },
+      _errorSteps: () => {
+        reading = false;
       }
-
-      const chunk = result.value;
-      const chunk1 = chunk;
-      const chunk2 = chunk;
-
-      // There is no way to access the cloning code right now in the reference implementation.
-      // If we add one then we'll need an implementation for serializable objects.
-      // if (!canceled2 && cloneForBranch2) {
-      //   chunk2 = StructuredDeserialize(StructuredSerialize(chunk2));
-      // }
-
-      if (!canceled1) {
-        controller1.enqueue(chunk1);
-      }
-      if (!canceled2) {
-        controller2.enqueue(chunk2);
-      }
-
-      reading = false;
-      if (readAgain) {
-        pullAlgorithm();
-      }
-
-      return null;
-    }, () => {
-      reading = false;
-      return null;
-    });
+    };
+    ReadableStreamDefaultReaderRead(reader, readRequest);
 
     return promiseResolvedWith(undefined);
   }
@@ -104,8 +139,8 @@ export function ReadableStreamDefaultTee<R>(stream: ReadableStream<R>,
     canceled1 = true;
     reason1 = reason;
     if (canceled2) {
-      const compositeReason = [reason1, reason2];
-      const cancelResult = reader.cancel(compositeReason);
+      const compositeReason = CreateArrayFromList([reason1, reason2]);
+      const cancelResult = ReadableStreamCancel(stream, compositeReason);
       resolveCancelPromise(cancelResult);
     }
     return cancelPromise;
@@ -115,32 +150,23 @@ export function ReadableStreamDefaultTee<R>(stream: ReadableStream<R>,
     canceled2 = true;
     reason2 = reason;
     if (canceled1) {
-      const compositeReason = [reason1, reason2];
-      const cancelResult = reader.cancel(compositeReason);
+      const compositeReason = CreateArrayFromList([reason1, reason2]);
+      const cancelResult = ReadableStreamCancel(stream, compositeReason);
       resolveCancelPromise(cancelResult);
     }
     return cancelPromise;
   }
 
-  const branch1 = new ReadableStream<R>({
-    start(c) {
-      controller1 = c;
-    },
-    pull: pullAlgorithm,
-    cancel: cancel1Algorithm
-  });
+  function startAlgorithm() {
+    // do nothing
+  }
 
-  const branch2 = new ReadableStream<R>({
-    start(c) {
-      controller2 = c;
-    },
-    pull: pullAlgorithm,
-    cancel: cancel2Algorithm
-  });
+  branch1 = CreateReadableStream(startAlgorithm, pullAlgorithm, cancel1Algorithm);
+  branch2 = CreateReadableStream(startAlgorithm, pullAlgorithm, cancel2Algorithm);
 
-  uponRejection(reader.closed, (r: any) => {
-    controller1.error(r);
-    controller2.error(r);
+  uponRejection(reader._closedPromise, (r: any) => {
+    ReadableStreamDefaultControllerError(branch1._readableStreamController as ReadableStreamDefaultController<R>, r);
+    ReadableStreamDefaultControllerError(branch2._readableStreamController as ReadableStreamDefaultController<R>, r);
     if (!canceled1 || !canceled2) {
       resolveCancelPromise(undefined);
     }
@@ -154,8 +180,7 @@ export function ReadableByteStreamTee(stream: ReadableByteStream): [ReadableByte
   assert(IsReadableStream(stream));
   assert(IsReadableByteStreamController(stream._readableStreamController));
 
-  let reader: ReadableStreamReader<Uint8Array> = stream.getReader();
-  let isByobReader = false;
+  let reader: ReadableStreamReader<Uint8Array> = AcquireReadableStreamDefaultReader(stream);
   let reading = false;
   let readAgainForBranch1 = false;
   let readAgainForBranch2 = false;
@@ -163,21 +188,21 @@ export function ReadableByteStreamTee(stream: ReadableByteStream): [ReadableByte
   let canceled2 = false;
   let reason1: any;
   let reason2: any;
-  let controller1: ReadableByteStreamController;
-  let controller2: ReadableByteStreamController;
+  let branch1: ReadableByteStream;
+  let branch2: ReadableByteStream;
 
-  let resolveCancelPromise: (value: void | Promise<void>) => void;
+  let resolveCancelPromise: (value: undefined | Promise<undefined>) => void;
   const cancelPromise = newPromise<void>(resolve => {
     resolveCancelPromise = resolve;
   });
 
   function forwardReaderError(thisReader: ReadableStreamReader<Uint8Array>) {
-    uponRejection(thisReader.closed, r => {
+    uponRejection(thisReader._closedPromise, r => {
       if (thisReader !== reader) {
         return null;
       }
-      controller1.error(r);
-      controller2.error(r);
+      ReadableByteStreamControllerError(branch1._readableStreamController, r);
+      ReadableByteStreamControllerError(branch2._readableStreamController, r);
       if (!canceled1 || !canceled2) {
         resolveCancelPromise(undefined);
       }
@@ -186,138 +211,159 @@ export function ReadableByteStreamTee(stream: ReadableByteStream): [ReadableByte
   }
 
   function pullWithDefaultReader() {
-    if (isByobReader) {
-      // assert(reader._readIntoRequests.length === 0);
-      reader.releaseLock();
-      reader = stream.getReader();
+    if (IsReadableStreamBYOBReader(reader)) {
+      assert(reader._readIntoRequests.length === 0);
+      ReadableStreamReaderGenericRelease(reader);
+
+      reader = AcquireReadableStreamDefaultReader(stream);
       forwardReaderError(reader);
-      isByobReader = false;
     }
 
-    uponPromise((reader as ReadableStreamDefaultReader<Uint8Array>).read(), result => {
-      readAgainForBranch1 = false;
-      readAgainForBranch2 = false;
+    const readRequest: ReadRequest<Uint8Array> = {
+      _chunkSteps: chunk => {
+        // This needs to be delayed a microtask because it takes at least a microtask to detect errors (using
+        // reader._closedPromise below), and we want errors in stream to error both branches immediately. We cannot let
+        // successful synchronously-available reads get ahead of asynchronously-available errors.
+        queueMicrotask(() => {
+          readAgainForBranch1 = false;
+          readAgainForBranch2 = false;
 
-      if (result.done) {
+          const chunk1 = chunk;
+          let chunk2 = chunk;
+          if (!canceled1 && !canceled2) {
+            try {
+              chunk2 = CloneAsUint8Array(chunk);
+            } catch (cloneE) {
+              ReadableByteStreamControllerError(branch1._readableStreamController, cloneE);
+              ReadableByteStreamControllerError(branch2._readableStreamController, cloneE);
+              resolveCancelPromise(ReadableStreamCancel(stream, cloneE));
+              return;
+            }
+          }
+
+          if (!canceled1) {
+            ReadableByteStreamControllerEnqueue(branch1._readableStreamController, chunk1);
+          }
+          if (!canceled2) {
+            ReadableByteStreamControllerEnqueue(branch2._readableStreamController, chunk2);
+          }
+
+          reading = false;
+          if (readAgainForBranch1) {
+            pull1Algorithm();
+          } else if (readAgainForBranch2) {
+            pull2Algorithm();
+          }
+        });
+      },
+      _closeSteps: () => {
+        reading = false;
         if (!canceled1) {
-          controller1.close();
+          ReadableByteStreamControllerClose(branch1._readableStreamController);
         }
         if (!canceled2) {
-          controller2.close();
+          ReadableByteStreamControllerClose(branch2._readableStreamController);
         }
-        controller1.byobRequest?.respond(0);
-        controller2.byobRequest?.respond(0);
+        if (branch1._readableStreamController._pendingPullIntos.length > 0) {
+          ReadableByteStreamControllerRespond(branch1._readableStreamController, 0);
+        }
+        if (branch2._readableStreamController._pendingPullIntos.length > 0) {
+          ReadableByteStreamControllerRespond(branch2._readableStreamController, 0);
+        }
         if (!canceled1 || !canceled2) {
           resolveCancelPromise(undefined);
         }
-        return null;
+      },
+      _errorSteps: () => {
+        reading = false;
       }
-
-      const chunk = result.value;
-      const chunk1 = chunk;
-      let chunk2 = chunk;
-      if (!canceled1 && !canceled2) {
-        try {
-          chunk2 = CloneAsUint8Array(chunk);
-        } catch (cloneE) {
-          controller1.error(cloneE);
-          controller2.error(cloneE);
-          resolveCancelPromise(reader.cancel(cloneE));
-          return null;
-        }
-      }
-      if (!canceled1) {
-        controller1.enqueue(chunk1);
-      }
-      if (!canceled2) {
-        controller2.enqueue(chunk2);
-      }
-
-      reading = false;
-      if (readAgainForBranch1) {
-        pull1Algorithm();
-      } else if (readAgainForBranch2) {
-        pull2Algorithm();
-      }
-
-      return null;
-    }, () => {
-      reading = false;
-      return null;
-    });
+    };
+    ReadableStreamDefaultReaderRead(reader, readRequest);
   }
 
   function pullWithBYOBReader(view: ArrayBufferView, forBranch2: boolean) {
-    if (!isByobReader) {
-      // assert(reader._readRequests.length === 0);
-      reader.releaseLock();
-      reader = stream.getReader({ mode: 'byob' });
+    if (IsReadableStreamDefaultReader<Uint8Array>(reader)) {
+      assert(reader._readRequests.length === 0);
+      ReadableStreamReaderGenericRelease(reader);
+
+      reader = AcquireReadableStreamBYOBReader(stream);
       forwardReaderError(reader);
-      isByobReader = true;
     }
 
-    const byobController = forBranch2 ? controller2 : controller1;
-    const otherController = forBranch2 ? controller1 : controller2;
+    const byobBranch = forBranch2 ? branch2 : branch1;
+    const otherBranch = forBranch2 ? branch1 : branch2;
 
-    uponPromise((reader as ReadableStreamBYOBReader).read(view), result => {
-      readAgainForBranch1 = false;
-      readAgainForBranch2 = false;
-      const byobCanceled = forBranch2 ? canceled2 : canceled1;
-      const otherCanceled = forBranch2 ? canceled1 : canceled2;
-      if (result.done) {
+    const readIntoRequest: ReadIntoRequest<ArrayBufferView> = {
+      _chunkSteps: chunk => {
+        // This needs to be delayed a microtask because it takes at least a microtask to detect errors (using
+        // reader._closedPromise below), and we want errors in stream to error both branches immediately. We cannot let
+        // successful synchronously-available reads get ahead of asynchronously-available errors.
+        queueMicrotask(() => {
+          readAgainForBranch1 = false;
+          readAgainForBranch2 = false;
+
+          const byobCanceled = forBranch2 ? canceled2 : canceled1;
+          const otherCanceled = forBranch2 ? canceled1 : canceled2;
+
+          if (!otherCanceled) {
+            let clonedChunk;
+            try {
+              clonedChunk = CloneAsUint8Array(chunk);
+            } catch (cloneE) {
+              ReadableByteStreamControllerError(byobBranch._readableStreamController, cloneE);
+              ReadableByteStreamControllerError(otherBranch._readableStreamController, cloneE);
+              resolveCancelPromise(ReadableStreamCancel(stream, cloneE));
+              return;
+            }
+            if (!byobCanceled) {
+              ReadableByteStreamControllerRespondWithNewView(byobBranch._readableStreamController, chunk);
+            }
+            ReadableByteStreamControllerEnqueue(otherBranch._readableStreamController, clonedChunk);
+          } else if (!byobCanceled) {
+            ReadableByteStreamControllerRespondWithNewView(byobBranch._readableStreamController, chunk);
+          }
+
+          reading = false;
+          if (readAgainForBranch1) {
+            pull1Algorithm();
+          } else if (readAgainForBranch2) {
+            pull2Algorithm();
+          }
+        });
+      },
+      _closeSteps: chunk => {
+        reading = false;
+
+        const byobCanceled = forBranch2 ? canceled2 : canceled1;
+        const otherCanceled = forBranch2 ? canceled1 : canceled2;
+
         if (!byobCanceled) {
-          byobController.close();
+          ReadableByteStreamControllerClose(byobBranch._readableStreamController);
         }
         if (!otherCanceled) {
-          otherController.close();
+          ReadableByteStreamControllerClose(otherBranch._readableStreamController);
         }
-        const chunk = result.value;
+
         if (chunk !== undefined) {
           assert(chunk.byteLength === 0);
+
           if (!byobCanceled) {
-            byobController.byobRequest!.respondWithNewView(chunk);
+            ReadableByteStreamControllerRespondWithNewView(byobBranch._readableStreamController, chunk);
           }
-          if (!otherCanceled) {
-            otherController.byobRequest?.respond(0);
+          if (!otherCanceled && otherBranch._readableStreamController._pendingPullIntos.length > 0) {
+            ReadableByteStreamControllerRespond(otherBranch._readableStreamController, 0);
           }
         }
+
         if (!byobCanceled || !otherCanceled) {
           resolveCancelPromise(undefined);
         }
-        return null;
+      },
+      _errorSteps: () => {
+        reading = false;
       }
-
-      const chunk = result.value;
-      if (!otherCanceled) {
-        let clonedChunk;
-        try {
-          clonedChunk = CloneAsUint8Array(chunk);
-        } catch (cloneE) {
-          byobController.error(cloneE);
-          otherController.error(cloneE);
-          resolveCancelPromise(reader.cancel(cloneE));
-          return null;
-        }
-        if (!byobCanceled) {
-          byobController.byobRequest!.respondWithNewView(chunk);
-        }
-        otherController.enqueue(clonedChunk);
-      } else if (!byobCanceled) {
-        byobController.byobRequest!.respondWithNewView(chunk);
-      }
-
-      reading = false;
-      if (readAgainForBranch1) {
-        pull1Algorithm();
-      } else if (readAgainForBranch2) {
-        pull2Algorithm();
-      }
-
-      return null;
-    }, () => {
-      reading = false;
-      return null;
-    });
+    };
+    ReadableStreamBYOBReaderRead(reader, view, readIntoRequest);
   }
 
   function pull1Algorithm(): Promise<void> {
@@ -328,11 +374,11 @@ export function ReadableByteStreamTee(stream: ReadableByteStream): [ReadableByte
 
     reading = true;
 
-    const byobRequest = controller1.byobRequest;
+    const byobRequest = ReadableByteStreamControllerGetBYOBRequest(branch1._readableStreamController);
     if (byobRequest === null) {
       pullWithDefaultReader();
     } else {
-      pullWithBYOBReader(byobRequest.view!, false);
+      pullWithBYOBReader(byobRequest._view!, false);
     }
 
     return promiseResolvedWith(undefined);
@@ -346,11 +392,11 @@ export function ReadableByteStreamTee(stream: ReadableByteStream): [ReadableByte
 
     reading = true;
 
-    const byobRequest = controller2.byobRequest;
+    const byobRequest = ReadableByteStreamControllerGetBYOBRequest(branch2._readableStreamController);
     if (byobRequest === null) {
       pullWithDefaultReader();
     } else {
-      pullWithBYOBReader(byobRequest.view!, true);
+      pullWithBYOBReader(byobRequest._view!, true);
     }
 
     return promiseResolvedWith(undefined);
@@ -360,8 +406,8 @@ export function ReadableByteStreamTee(stream: ReadableByteStream): [ReadableByte
     canceled1 = true;
     reason1 = reason;
     if (canceled2) {
-      const compositeReason = [reason1, reason2];
-      const cancelResult = reader.cancel(compositeReason);
+      const compositeReason = CreateArrayFromList([reason1, reason2]);
+      const cancelResult = ReadableStreamCancel(stream, compositeReason);
       resolveCancelPromise(cancelResult);
     }
     return cancelPromise;
@@ -371,30 +417,19 @@ export function ReadableByteStreamTee(stream: ReadableByteStream): [ReadableByte
     canceled2 = true;
     reason2 = reason;
     if (canceled1) {
-      const compositeReason = [reason1, reason2];
-      const cancelResult = reader.cancel(compositeReason);
+      const compositeReason = CreateArrayFromList([reason1, reason2]);
+      const cancelResult = ReadableStreamCancel(stream, compositeReason);
       resolveCancelPromise(cancelResult);
     }
     return cancelPromise;
   }
 
-  const branch1 = new ReadableStream<Uint8Array>({
-    type: 'bytes',
-    start(c) {
-      controller1 = c;
-    },
-    pull: pull1Algorithm,
-    cancel: cancel1Algorithm
-  }) as ReadableByteStream;
+  function startAlgorithm(): void {
+    return;
+  }
 
-  const branch2 = new ReadableStream<Uint8Array>({
-    type: 'bytes',
-    start(c) {
-      controller2 = c;
-    },
-    pull: pull2Algorithm,
-    cancel: cancel2Algorithm
-  }) as ReadableByteStream;
+  branch1 = CreateReadableByteStream(startAlgorithm, pull1Algorithm, cancel1Algorithm);
+  branch2 = CreateReadableByteStream(startAlgorithm, pull2Algorithm, cancel2Algorithm);
 
   forwardReaderError(reader);
 

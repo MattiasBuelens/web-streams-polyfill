@@ -8,11 +8,6 @@ const excludedTestsBase = [
   'queuing-strategies-size-function-per-global.window.html',
   // We don't implement transferable streams yet
   'transferable/**',
-  // We use the public API to implement pipeTo() and tee(),
-  // so patching various globals *will* affect the polyfill.
-  'readable-streams/patched-global.any.html',
-  'piping/then-interception.any.html',
-  'transform-streams/patched-global.any.html',
   // The crash tests require creating and terminating workers and iframes.
   'readable-streams/cross-realm-crash.window.html',
   'readable-streams/crashtests/**'
