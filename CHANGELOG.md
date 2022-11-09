@@ -10,6 +10,11 @@
 > - 🏠 Internal
 > - 💅 Polish
 
+## Unreleased
+
+* 💥 Remove support for calling `ReadableStream.pipeTo(writable)` and `.pipeThrough({ readable, writable })` when `writable` is a native (i.e. not polyfilled) `WritableStream` ([#122](https://github.com/MattiasBuelens/web-streams-polyfill/pull/122)).
+  Reverts [#99](https://github.com/MattiasBuelens/web-streams-polyfill/pull/99) and [#101](https://github.com/MattiasBuelens/web-streams-polyfill/pull/101).
+
 ## v4.0.0-beta.3 (2022-05-24)
 
 * 👓 Align with [spec version `e9355ce`](https://github.com/whatwg/streams/tree/e9355ce79925947e8eb496563d599c329769d315/). ([#115](https://github.com/MattiasBuelens/web-streams-polyfill/issues/115), [#117](https://github.com/MattiasBuelens/web-streams-polyfill/pull/117))
