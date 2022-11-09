@@ -491,7 +491,7 @@ function ReadableByteStreamControllerEnqueueClonedChunkToQueue(controller: Reada
                                                                byteLength: number) {
   let clonedChunk;
   try {
-    clonedChunk = buffer.slice(byteOffset, byteOffset + byteLength);
+    clonedChunk = ArrayBufferSlice(buffer, byteOffset, byteOffset + byteLength);
   } catch (cloneE) {
     ReadableByteStreamControllerError(controller, cloneE);
     throw cloneE;
