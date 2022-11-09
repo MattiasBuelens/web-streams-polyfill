@@ -28,6 +28,7 @@ import { convertUnderlyingSink } from './validators/underlying-sink';
 import { assertWritableStream } from './validators/writable-stream';
 import type { AbortController, AbortSignal } from './abort-signal';
 import { createAbortController } from './abort-signal';
+import { TransformStreamDefaultController } from './transform-stream';
 
 export type WritableStreamState = 'writable' | 'closed' | 'erroring' | 'errored';
 
