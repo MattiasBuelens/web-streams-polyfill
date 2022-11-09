@@ -90,9 +90,6 @@ It aims to pass all tests, although it allows some exceptions for practical reas
   * The tests [with patched globals][wpt-rs-patched-global] and [with `Object.prototype.then`][wpt-then-interception].
     These tests are meant for browsers to ensure user-land modifications cannot affect the internal logic of `pipeTo()` and `tee()`. 
     However, it's not reasonable or desirable for a user-land polyfill to try and isolate itself completely from using the global `Object`.
-  * Certain `pipeTo()` tests that require synchronous inspection of the stream's state  ([1][wpt-pipe-sync-state-1], [2][wpt-pipe-sync-state-2]).
-    Because the polyfill uses the public `getReader()` and `getWriter()` API to implement `pipeTo()`, it can only *asynchronously* observe if and when a stream becomes closed or errored.
-    Therefore, when the readable and the writable end become errored *at the exact same time*, it's difficult for the polyfill to observe these state changes in exactly the same order. 
 * The ES5 variant passes the same tests as the ES2015 variant, except for various tests about specific characteristics of the constructors, properties and methods.
   These test failures do not affect the run-time behavior of the polyfill.
   For example:
@@ -130,6 +127,4 @@ Thanks to these people for their work on [the original polyfill][creatorrr-polyf
 [stub-async-iterator-prototype]: https://github.com/MattiasBuelens/web-streams-polyfill/blob/v4.0.0-beta.3/src/lib/readable-stream/async-iterator.ts#L126-L134
 [wpt-rs-patched-global]: https://github.com/web-platform-tests/wpt/blob/887350c2f46def5b01c4dd1f8d2eee35dfb9c5bb/streams/readable-streams/patched-global.any.js
 [wpt-then-interception]: https://github.com/web-platform-tests/wpt/blob/cf33f00596af295ee0f207c88e23b5f8b0791307/streams/piping/then-interception.any.js
-[wpt-pipe-sync-state-1]: https://github.com/web-platform-tests/wpt/blob/e1e713c842e54ea0a9410ddc988b63d0e1d31973/streams/piping/multiple-propagation.any.js#L30-L53
-[wpt-pipe-sync-state-2]: https://github.com/web-platform-tests/wpt/blob/e1e713c842e54ea0a9410ddc988b63d0e1d31973/streams/piping/multiple-propagation.any.js#L114-L138
 [creatorrr-polyfill]: https://github.com/creatorrr/web-streams-polyfill
