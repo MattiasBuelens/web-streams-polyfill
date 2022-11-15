@@ -24,7 +24,7 @@ import {
 } from './readable-stream/byob-reader';
 import { ReadableStreamPipeTo } from './readable-stream/pipe';
 import { ReadableStreamTee } from './readable-stream/tee';
-import { ReadableStreamFromIterable } from './readable-stream/from';
+import { ReadableStreamFrom } from './readable-stream/from';
 import { IsWritableStream, IsWritableStreamLocked, WritableStream } from './writable-stream';
 import { SimpleQueue } from './simple-queue';
 import {
@@ -336,8 +336,8 @@ export class ReadableStream<R = any> {
    * such as an array, an async generator, or a Node.js readable stream.
    */
   // eslint-disable-next-line no-shadow
-  static from<R>(asyncIterable: Iterable<R> | AsyncIterable<R>): ReadableStream<R> {
-    return ReadableStreamFromIterable(asyncIterable);
+  static from<R>(asyncIterable: Iterable<R> | AsyncIterable<R> | ReadableStream<R>): ReadableStream<R> {
+    return ReadableStreamFrom(asyncIterable);
   }
 }
 
