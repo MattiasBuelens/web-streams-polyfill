@@ -2,15 +2,12 @@ import assert from '../stub/assert';
 import {
   newPromise,
   promiseRejectedWith,
-  promiseResolvedWith, setPromiseIsHandledToTrue,
+  promiseResolvedWith,
+  setPromiseIsHandledToTrue,
   transformPromiseWith,
   uponPromise
 } from './helpers/webidl';
-import {
-  CreateReadableStream,
-  ReadableStream,
-  type ReadableStreamDefaultController
-} from './readable-stream';
+import { CreateReadableStream, type DefaultReadableStream, ReadableStream } from './readable-stream';
 import {
   ReadableStreamDefaultControllerCanCloseOrEnqueue,
   ReadableStreamDefaultControllerClose,
@@ -49,7 +46,7 @@ export class TransformStream<I = any, O = any> {
   /** @internal */
   _writable!: WritableStream<I>;
   /** @internal */
-  _readable!: ReadableStream<O>;
+  _readable!: DefaultReadableStream<O>;
   /** @internal */
   _backpressure!: boolean;
   /** @internal */
@@ -237,10 +234,7 @@ function IsTransformStream(x: unknown): x is TransformStream {
 
 // This is a no-op if both sides are already errored.
 function TransformStreamError(stream: TransformStream, e: any) {
-  ReadableStreamDefaultControllerError(
-    stream._readable._readableStreamController as ReadableStreamDefaultController<any>,
-    e
-  );
+  ReadableStreamDefaultControllerError(stream._readable._readableStreamController, e);
   TransformStreamErrorWritableAndUnblockWrite(stream, e);
 }
 
@@ -310,7 +304,7 @@ export class TransformStreamDefaultController<O> {
     }
 
     const readableController = this._controlledTransformStream._readable._readableStreamController;
-    return ReadableStreamDefaultControllerGetDesiredSize(readableController as ReadableStreamDefaultController<O>);
+    return ReadableStreamDefaultControllerGetDesiredSize(readableController);
   }
 
   /**
@@ -444,7 +438,7 @@ function TransformStreamDefaultControllerClearAlgorithms(controller: TransformSt
 
 function TransformStreamDefaultControllerEnqueue<O>(controller: TransformStreamDefaultController<O>, chunk: O) {
   const stream = controller._controlledTransformStream;
-  const readableController = stream._readable._readableStreamController as ReadableStreamDefaultController<O>;
+  const readableController = stream._readable._readableStreamController;
   if (!ReadableStreamDefaultControllerCanCloseOrEnqueue(readableController)) {
     throw new TypeError('Readable side is not in a state that permits enqueue');
   }
@@ -483,7 +477,7 @@ function TransformStreamDefaultControllerPerformTransform<I, O>(controller: Tran
 
 function TransformStreamDefaultControllerTerminate<O>(controller: TransformStreamDefaultController<O>) {
   const stream = controller._controlledTransformStream;
-  const readableController = stream._readable._readableStreamController as ReadableStreamDefaultController<O>;
+  const readableController = stream._readable._readableStreamController;
 
   ReadableStreamDefaultControllerClose(readableController);
 
@@ -538,18 +532,12 @@ function TransformStreamDefaultSinkAbortAlgorithm<I, O>(stream: TransformStream<
     if (readable._state === 'errored') {
       defaultControllerFinishPromiseReject(controller, readable._storedError);
     } else {
-      ReadableStreamDefaultControllerError(
-        readable._readableStreamController as ReadableStreamDefaultController<O>,
-        reason
-      );
+      ReadableStreamDefaultControllerError(readable._readableStreamController, reason);
       defaultControllerFinishPromiseResolve(controller);
     }
     return null;
   }, r => {
-    ReadableStreamDefaultControllerError(
-      readable._readableStreamController as ReadableStreamDefaultController<O>,
-      r
-    );
+    ReadableStreamDefaultControllerError(readable._readableStreamController, r);
     defaultControllerFinishPromiseReject(controller, r);
     return null;
   });
@@ -580,12 +568,12 @@ function TransformStreamDefaultSinkCloseAlgorithm<I, O>(stream: TransformStream<
     if (readable._state === 'errored') {
       defaultControllerFinishPromiseReject(controller, readable._storedError);
     } else {
-      ReadableStreamDefaultControllerClose(readable._readableStreamController as ReadableStreamDefaultController<O>);
+      ReadableStreamDefaultControllerClose(readable._readableStreamController);
       defaultControllerFinishPromiseResolve(controller);
     }
     return null;
   }, r => {
-    ReadableStreamDefaultControllerError(readable._readableStreamController as ReadableStreamDefaultController<O>, r);
+    ReadableStreamDefaultControllerError(readable._readableStreamController, r);
     defaultControllerFinishPromiseReject(controller, r);
     return null;
   });

@@ -1,12 +1,12 @@
-import { CreateReadableStream, type ReadableStream, type ReadableStreamDefaultController } from '../readable-stream';
+import { CreateReadableStream, type DefaultReadableStream } from '../readable-stream';
 import { ReadableStreamDefaultControllerClose, ReadableStreamDefaultControllerEnqueue } from './default-controller';
 import { GetIterator, GetMethod, IteratorComplete, IteratorNext, IteratorValue } from '../abstract-ops/ecmascript';
 import { promiseRejectedWith, promiseResolvedWith, reflectCall, transformPromiseWith } from '../helpers/webidl';
 import { typeIsObject } from '../helpers/miscellaneous';
 import { noop } from '../../utils';
 
-export function ReadableStreamFromIterable<R>(asyncIterable: Iterable<R> | AsyncIterable<R>): ReadableStream<R> {
-  let stream: ReadableStream<R>;
+export function ReadableStreamFromIterable<R>(asyncIterable: Iterable<R> | AsyncIterable<R>): DefaultReadableStream<R> {
+  let stream: DefaultReadableStream<R>;
   const iteratorRecord = GetIterator(asyncIterable, 'async');
 
   const startAlgorithm = noop;
@@ -25,15 +25,10 @@ export function ReadableStreamFromIterable<R>(asyncIterable: Iterable<R> | Async
       }
       const done = IteratorComplete(iterResult);
       if (done) {
-        ReadableStreamDefaultControllerClose(
-          stream._readableStreamController as ReadableStreamDefaultController<R>
-        );
+        ReadableStreamDefaultControllerClose(stream._readableStreamController);
       } else {
         const value = IteratorValue(iterResult);
-        ReadableStreamDefaultControllerEnqueue(
-          stream._readableStreamController as ReadableStreamDefaultController<R>,
-          value
-        );
+        ReadableStreamDefaultControllerEnqueue(stream._readableStreamController, value);
       }
     });
   }

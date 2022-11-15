@@ -68,6 +68,10 @@ import { convertPipeOptions } from './validators/pipe-options';
 import type { ReadableWritablePair } from './readable-stream/readable-writable-pair';
 import { convertReadableWritablePair } from './validators/readable-writable-pair';
 
+export type DefaultReadableStream<R = any> = ReadableStream<R> & {
+  _readableStreamController: ReadableStreamDefaultController<R>
+};
+
 export type ReadableByteStream = ReadableStream<Uint8Array> & {
   _readableStreamController: ReadableByteStreamController
 };
@@ -390,14 +394,16 @@ export type {
 // Abstract operations for the ReadableStream.
 
 // Throws if and only if startAlgorithm throws.
-export function CreateReadableStream<R>(startAlgorithm: () => void | PromiseLike<void>,
-                                        pullAlgorithm: () => Promise<void>,
-                                        cancelAlgorithm: (reason: any) => Promise<void>,
-                                        highWaterMark = 1,
-                                        sizeAlgorithm: QueuingStrategySizeCallback<R> = () => 1): ReadableStream<R> {
+export function CreateReadableStream<R>(
+  startAlgorithm: () => void | PromiseLike<void>,
+  pullAlgorithm: () => Promise<void>,
+  cancelAlgorithm: (reason: any) => Promise<void>,
+  highWaterMark = 1,
+  sizeAlgorithm: QueuingStrategySizeCallback<R> = () => 1
+): DefaultReadableStream<R> {
   assert(IsNonNegativeNumber(highWaterMark));
 
-  const stream: ReadableStream<R> = Object.create(ReadableStream.prototype);
+  const stream: DefaultReadableStream<R> = Object.create(ReadableStream.prototype);
   InitializeReadableStream(stream);
 
   const controller: ReadableStreamDefaultController<R> = Object.create(ReadableStreamDefaultController.prototype);
