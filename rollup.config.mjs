@@ -1,10 +1,14 @@
+import fs from 'fs';
 import path from 'path';
+import url from 'url';
 import typescript from '@rollup/plugin-typescript';
 import inject from '@rollup/plugin-inject';
 import strip from '@rollup/plugin-strip';
 import replace from '@rollup/plugin-replace';
-import { terser } from 'rollup-plugin-terser';
-import pkg from './package.json';
+import terser from '@rollup/plugin-terser';
+
+const dirname = url.fileURLToPath(new URL('.', import.meta.url));
+const pkg = JSON.parse(fs.readFileSync('./package.json', 'utf8'));
 
 const debug = false;
 
@@ -69,7 +73,7 @@ function bundle(entry, { esm = false, minify = false, target = 'es5' } = {}) {
         include: 'src/**/*.ts',
         exclude: 'src/stub/symbol.ts',
         modules: {
-          Symbol: path.resolve(__dirname, './src/stub/symbol.ts')
+          Symbol: path.resolve(dirname, './src/stub/symbol.ts')
         }
       }),
       replace({
