@@ -9,13 +9,13 @@ import {
   ReadableStreamDefaultControllerGetDesiredSize,
   ReadableStreamDefaultControllerHasBackpressure
 } from './readable-stream/default-controller';
-import { QueuingStrategy, QueuingStrategySizeCallback } from './queuing-strategy';
+import type { QueuingStrategy, QueuingStrategySizeCallback } from './queuing-strategy';
 import { CreateWritableStream, WritableStream, WritableStreamDefaultControllerErrorIfNeeded } from './writable-stream';
 import { setFunctionName, typeIsObject } from './helpers/miscellaneous';
 import { IsNonNegativeNumber } from './abstract-ops/miscellaneous';
 import { convertQueuingStrategy } from './validators/queuing-strategy';
 import { ExtractHighWaterMark, ExtractSizeAlgorithm } from './abstract-ops/queuing-strategy';
-import {
+import type {
   Transformer,
   TransformerFlushCallback,
   TransformerStartCallback,
@@ -127,7 +127,7 @@ if (typeof Symbol.toStringTag === 'symbol') {
   });
 }
 
-export {
+export type {
   Transformer,
   TransformerStartCallback,
   TransformerFlushCallback,

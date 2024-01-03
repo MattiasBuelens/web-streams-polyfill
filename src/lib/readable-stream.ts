@@ -5,20 +5,20 @@ import {
   setPromiseIsHandledToTrue,
   transformPromiseWith
 } from './helpers/webidl';
-import { QueuingStrategy, QueuingStrategySizeCallback } from './queuing-strategy';
-import { AcquireReadableStreamAsyncIterator, ReadableStreamAsyncIterator } from './readable-stream/async-iterator';
+import type { QueuingStrategy, QueuingStrategySizeCallback } from './queuing-strategy';
+import { AcquireReadableStreamAsyncIterator, type ReadableStreamAsyncIterator } from './readable-stream/async-iterator';
 import { defaultReaderClosedPromiseReject, defaultReaderClosedPromiseResolve } from './readable-stream/generic-reader';
 import {
   AcquireReadableStreamDefaultReader,
   IsReadableStreamDefaultReader,
   ReadableStreamDefaultReader,
-  ReadableStreamDefaultReadResult
+  type ReadableStreamDefaultReadResult
 } from './readable-stream/default-reader';
 import {
   AcquireReadableStreamBYOBReader,
   IsReadableStreamBYOBReader,
   ReadableStreamBYOBReader,
-  ReadableStreamBYOBReadResult
+  type ReadableStreamBYOBReadResult
 } from './readable-stream/byob-reader';
 import { ReadableStreamPipeTo } from './readable-stream/pipe';
 import { ReadableStreamTee } from './readable-stream/tee';
@@ -35,7 +35,7 @@ import {
   SetUpReadableStreamDefaultController,
   SetUpReadableStreamDefaultControllerFromUnderlyingSource
 } from './readable-stream/default-controller';
-import {
+import type {
   UnderlyingByteSource,
   UnderlyingByteSourcePullCallback,
   UnderlyingByteSourceStartCallback,
@@ -53,13 +53,13 @@ import { assertObject, assertRequiredArgument } from './validators/basic';
 import { convertQueuingStrategy } from './validators/queuing-strategy';
 import { ExtractHighWaterMark, ExtractSizeAlgorithm } from './abstract-ops/queuing-strategy';
 import { convertUnderlyingDefaultOrByteSource } from './validators/underlying-source';
-import { ReadableStreamGetReaderOptions } from './readable-stream/reader-options';
+import type { ReadableStreamGetReaderOptions } from './readable-stream/reader-options';
 import { convertReaderOptions } from './validators/reader-options';
-import { StreamPipeOptions, ValidatedStreamPipeOptions } from './readable-stream/pipe-options';
-import { ReadableStreamIteratorOptions } from './readable-stream/iterator-options';
+import type { StreamPipeOptions, ValidatedStreamPipeOptions } from './readable-stream/pipe-options';
+import type { ReadableStreamIteratorOptions } from './readable-stream/iterator-options';
 import { convertIteratorOptions } from './validators/iterator-options';
 import { convertPipeOptions } from './validators/pipe-options';
-import { ReadableWritablePair } from './readable-stream/readable-writable-pair';
+import type { ReadableWritablePair } from './readable-stream/readable-writable-pair';
 import { convertReadableWritablePair } from './validators/readable-writable-pair';
 
 export type ReadableByteStream = ReadableStream<Uint8Array> & {
@@ -349,7 +349,7 @@ if (typeof Symbol.asyncIterator === 'symbol') {
   });
 }
 
-export {
+export type {
   ReadableStreamAsyncIterator,
   ReadableStreamDefaultReadResult,
   ReadableStreamBYOBReadResult,

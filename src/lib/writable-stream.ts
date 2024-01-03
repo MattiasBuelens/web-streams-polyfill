@@ -10,17 +10,17 @@ import {
   DequeueValue,
   EnqueueValueWithSize,
   PeekQueueValue,
-  QueuePair,
+  type QueuePair,
   ResetQueue
 } from './abstract-ops/queue-with-sizes';
-import { QueuingStrategy, QueuingStrategySizeCallback } from './queuing-strategy';
+import type { QueuingStrategy, QueuingStrategySizeCallback } from './queuing-strategy';
 import { SimpleQueue } from './simple-queue';
 import { setFunctionName, typeIsObject } from './helpers/miscellaneous';
 import { AbortSteps, ErrorSteps } from './abstract-ops/internal-methods';
 import { IsNonNegativeNumber } from './abstract-ops/miscellaneous';
 import { ExtractHighWaterMark, ExtractSizeAlgorithm } from './abstract-ops/queuing-strategy';
 import { convertQueuingStrategy } from './validators/queuing-strategy';
-import {
+import type {
   UnderlyingSink,
   UnderlyingSinkAbortCallback,
   UnderlyingSinkCloseCallback,
@@ -31,7 +31,7 @@ import {
 import { assertObject, assertRequiredArgument } from './validators/basic';
 import { convertUnderlyingSink } from './validators/underlying-sink';
 import { assertWritableStream } from './validators/writable-stream';
-import { AbortController, AbortSignal, createAbortController } from './abort-signal';
+import { type AbortController, type AbortSignal, createAbortController } from './abort-signal';
 
 type WritableStreamState = 'writable' | 'closed' | 'erroring' | 'errored';
 
@@ -203,7 +203,10 @@ export {
   WritableStreamDefaultWriterCloseWithErrorPropagation,
   WritableStreamDefaultWriterRelease,
   WritableStreamDefaultWriterWrite,
-  WritableStreamCloseQueuedOrInFlight,
+  WritableStreamCloseQueuedOrInFlight
+};
+
+export type {
   UnderlyingSink,
   UnderlyingSinkStartCallback,
   UnderlyingSinkWriteCallback,

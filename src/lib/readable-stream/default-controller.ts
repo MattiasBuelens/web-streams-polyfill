@@ -1,15 +1,15 @@
-import { QueuingStrategySizeCallback } from '../queuing-strategy';
+import type { QueuingStrategySizeCallback } from '../queuing-strategy';
 import assert from '../../stub/assert';
-import { DequeueValue, EnqueueValueWithSize, QueuePair, ResetQueue } from '../abstract-ops/queue-with-sizes';
+import { DequeueValue, EnqueueValueWithSize, type QueuePair, ResetQueue } from '../abstract-ops/queue-with-sizes';
 import {
   ReadableStreamAddReadRequest,
   ReadableStreamFulfillReadRequest,
   ReadableStreamGetNumReadRequests,
-  ReadRequest
+  type ReadRequest
 } from './default-reader';
 import { SimpleQueue } from '../simple-queue';
 import { IsReadableStreamLocked, ReadableStream, ReadableStreamClose, ReadableStreamError } from '../readable-stream';
-import { ValidatedUnderlyingSource } from './underlying-source';
+import type { ValidatedUnderlyingSource } from './underlying-source';
 import { setFunctionName, typeIsObject } from '../helpers/miscellaneous';
 import { CancelSteps, PullSteps } from '../abstract-ops/internal-methods';
 import { promiseResolvedWith, uponPromise } from '../helpers/webidl';

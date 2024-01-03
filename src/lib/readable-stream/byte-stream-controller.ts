@@ -6,23 +6,23 @@ import {
   ReadableStreamFulfillReadRequest,
   ReadableStreamGetNumReadRequests,
   ReadableStreamHasDefaultReader,
-  ReadRequest
+  type ReadRequest
 } from './default-reader';
 import {
   ReadableStreamAddReadIntoRequest,
   ReadableStreamFulfillReadIntoRequest,
   ReadableStreamGetNumReadIntoRequests,
   ReadableStreamHasBYOBReader,
-  ReadIntoRequest
+  type ReadIntoRequest
 } from './byob-reader';
 import NumberIsInteger from '../../stub/number-isinteger';
 import {
   IsReadableStreamLocked,
-  ReadableByteStream,
+  type ReadableByteStream,
   ReadableStreamClose,
   ReadableStreamError
 } from '../readable-stream';
-import { ValidatedUnderlyingByteSource } from './underlying-source';
+import type { ValidatedUnderlyingByteSource } from './underlying-source';
 import { setFunctionName, typeIsObject } from '../helpers/miscellaneous';
 import {
   ArrayBufferSlice,

@@ -5,8 +5,8 @@ import {
   AcquireReadableStreamDefaultReader,
   ReadableStreamDefaultReader,
   ReadableStreamDefaultReaderRead,
-  ReadableStreamDefaultReadResult,
-  ReadRequest
+  type ReadableStreamDefaultReadResult,
+  type ReadRequest
 } from './default-reader';
 import {
   ReadableStreamReaderGenericCancel,

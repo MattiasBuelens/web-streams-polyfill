@@ -1,6 +1,6 @@
 import { assertDictionary } from './basic';
-import { StreamPipeOptions, ValidatedStreamPipeOptions } from '../readable-stream/pipe-options';
-import { AbortSignal, isAbortSignal } from '../abort-signal';
+import type { StreamPipeOptions, ValidatedStreamPipeOptions } from '../readable-stream/pipe-options';
+import { type AbortSignal, isAbortSignal } from '../abort-signal';
 
 export function convertPipeOptions(options: StreamPipeOptions | null | undefined,
                                    context: string): ValidatedStreamPipeOptions {
