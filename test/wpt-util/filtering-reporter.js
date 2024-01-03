@@ -20,9 +20,9 @@ class FilteringReporter {
   }
 
   fail(message) {
+    message = message.trim();
     const ignoredFailures = this._ignoredFailures[this._currentSuite];
     if (ignoredFailures) {
-      message = message.trim();
       for (const ignoredFailure of ignoredFailures) {
         if (matches(ignoredFailure, message)) {
           this._ignored++;
@@ -32,7 +32,7 @@ class FilteringReporter {
       }
     }
     this._failed++;
-    this._reporter.fail(message);
+    this._reporter.fail(`${message} (UNEXPECTED FAILURE)\n`);
   }
 
   reportStack(stack) {

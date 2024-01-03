@@ -13,7 +13,7 @@ import {
   WritableStreamDefaultController,
   WritableStreamDefaultWriter
 } from './ponyfill';
-import { globals } from './utils';
+import { globals } from './globals';
 
 // Export
 export * from './ponyfill';

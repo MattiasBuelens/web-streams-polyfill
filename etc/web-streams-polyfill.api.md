@@ -4,6 +4,8 @@
 
 ```ts
 
+/// <reference lib="es2018.asynciterable" />
+
 // @public
 export interface AbortSignal {
     readonly aborted: boolean;
@@ -28,7 +30,6 @@ export class CountQueuingStrategy implements QueuingStrategy<any> {
 // @public
 export interface QueuingStrategy<T = any> {
     highWaterMark?: number;
-    // Warning: (ae-forgotten-export) The symbol "QueuingStrategySizeCallback" needs to be exported by the entry point polyfill.d.ts
     size?: QueuingStrategySizeCallback<T>;
 }
 
@@ -36,6 +37,9 @@ export interface QueuingStrategy<T = any> {
 export interface QueuingStrategyInit {
     highWaterMark: number;
 }
+
+// @public
+export type QueuingStrategySizeCallback<T = any> = (chunk: T) => number;
 
 // @public
 export class ReadableByteStreamController {
@@ -79,8 +83,7 @@ export interface ReadableStreamAsyncIterator<R> extends AsyncIterator<R> {
 
 // @public
 export class ReadableStreamBYOBReader {
-    // Warning: (ae-forgotten-export) The symbol "ReadableByteStream" needs to be exported by the entry point polyfill.d.ts
-    constructor(stream: ReadableByteStream);
+    constructor(stream: ReadableStream<Uint8Array>);
     cancel(reason?: any): Promise<void>;
     get closed(): Promise<undefined>;
     read<T extends ArrayBufferView>(view: T): Promise<ReadableStreamBYOBReadResult<T>>;
@@ -269,7 +272,6 @@ export class WritableStreamDefaultWriter<W = any> {
     releaseLock(): void;
     write(chunk: W): Promise<void>;
 }
-
 
 // (No @packageDocumentation comment for this package)
 

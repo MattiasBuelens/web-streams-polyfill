@@ -40,7 +40,8 @@ const closePromise: Promise<void> = writableStream.close();
 const abortPromise: Promise<void> = writableStream.abort('aborted');
 
 // Compatibility with stream types from DOM
-// FIXME Re-enable when TypeScript types have been updated to match latest spec
+// FIXME Remove deprecated WritableStreamDefaultController.abortReason
+// FIXME Align our AbortSignal definition with TypeScript's version
 // const domUnderlyingSink: UnderlyingSink<string> = underlyingSink;
 const domWritableStream: WritableStream<string> = writableStream;
 // const domController: WritableStreamDefaultController = controller;

@@ -1,4 +1,4 @@
-import { QueuingStrategy, QueuingStrategySizeCallback } from '../queuing-strategy';
+import type { QueuingStrategy, QueuingStrategySizeCallback } from '../queuing-strategy';
 import NumberIsNaN from '../../stub/number-isnan';
 
 export function ExtractHighWaterMark(strategy: QueuingStrategy, defaultHWM: number): number {

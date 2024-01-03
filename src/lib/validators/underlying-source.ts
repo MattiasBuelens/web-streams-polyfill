@@ -1,5 +1,5 @@
 import { assertDictionary, assertFunction, convertUnsignedLongLongWithEnforceRange } from './basic';
-import {
+import type {
   ReadableStreamController,
   UnderlyingByteSource,
   UnderlyingDefaultOrByteSource,

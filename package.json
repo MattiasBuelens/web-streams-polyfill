@@ -5,14 +5,7 @@
   "main": "dist/polyfill",
   "browser": "dist/polyfill.min.js",
   "module": "dist/polyfill.mjs",
-  "types": "dist/types/polyfill.d.ts",
-  "typesVersions": {
-    ">=3.6": {
-      "dist/types/*": [
-        "dist/types/ts3.6/*"
-      ]
-    }
-  },
+  "types": "types/polyfill.d.ts",
   "scripts": {
     "test": "npm run test:types && npm run test:unit && npm run test:wpt",
     "test:wpt": "node --expose_gc ./test/run-web-platform-tests.js",
@@ -22,18 +15,19 @@
     "lint": "eslint \"src/**/*.ts\"",
     "build": "npm run build:bundle && npm run build:types",
     "build:bundle": "rollup -c",
-    "build:types": "tsc --project . --emitDeclarationOnly --declarationDir ./lib && api-extractor run && node ./build/downlevel-dts.js",
-    "accept:types": "tsc --project . --emitDeclarationOnly --declarationDir ./lib && api-extractor run --local && node ./build/downlevel-dts.js",
+    "build:types": "tsc --project . --emitDeclarationOnly --declarationDir ./lib && api-extractor run",
+    "accept:types": "tsc --project . --emitDeclarationOnly --declarationDir ./lib && api-extractor run --local",
     "prepare": "npm run build"
   },
   "files": [
     "dist",
     "es6",
     "es2018",
-    "ponyfill"
+    "ponyfill",
+    "types"
   ],
   "engines": {
-    "node": ">= 8"
+    "node": ">= 18"
   },
   "repository": {
     "type": "git",
@@ -54,23 +48,22 @@
   },
   "homepage": "https://github.com/MattiasBuelens/web-streams-polyfill#readme",
   "devDependencies": {
-    "@microsoft/api-extractor": "^7.13.4",
-    "@rollup/plugin-inject": "^4.0.2",
-    "@rollup/plugin-replace": "^2.4.2",
-    "@rollup/plugin-strip": "^2.0.0",
-    "@rollup/plugin-typescript": "^8.2.1",
-    "@types/node": "^14.14.37",
-    "@typescript-eslint/eslint-plugin": "^4.21.0",
-    "@typescript-eslint/parser": "^4.21.0",
+    "@microsoft/api-extractor": "^7.39.1",
+    "@rollup/plugin-inject": "^5.0.5",
+    "@rollup/plugin-replace": "^5.0.5",
+    "@rollup/plugin-strip": "^3.0.4",
+    "@rollup/plugin-typescript": "^11.1.5",
+    "@rollup/plugin-terser": "^0.4.4",
+    "@types/node": "^18.19.4",
+    "@typescript-eslint/eslint-plugin": "^6.17.0",
+    "@typescript-eslint/parser": "^6.17.0",
     "@ungap/promise-all-settled": "^1.1.2",
-    "eslint": "^7.23.0",
-    "jasmine": "^3.7.0",
-    "micromatch": "^4.0.2",
-    "rollup": "^2.44.0",
-    "rollup-plugin-terser": "^7.0.2",
-    "ts-morph": "^10.0.2",
-    "tslib": "^2.2.0",
-    "typescript": "^4.2.4",
-    "wpt-runner": "^3.2.1"
+    "eslint": "^8.56.0",
+    "jasmine": "^5.1.0",
+    "micromatch": "^4.0.5",
+    "rollup": "^4.9.2",
+    "tslib": "^2.6.2",
+    "typescript": "^5.3.3",
+    "wpt-runner": "^5.0.0"
   }
 }

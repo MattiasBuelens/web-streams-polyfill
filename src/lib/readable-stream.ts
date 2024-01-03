@@ -5,20 +5,20 @@ import {
   setPromiseIsHandledToTrue,
   transformPromiseWith
 } from './helpers/webidl';
-import { QueuingStrategy, QueuingStrategySizeCallback } from './queuing-strategy';
-import { AcquireReadableStreamAsyncIterator, ReadableStreamAsyncIterator } from './readable-stream/async-iterator';
+import type { QueuingStrategy, QueuingStrategySizeCallback } from './queuing-strategy';
+import { AcquireReadableStreamAsyncIterator, type ReadableStreamAsyncIterator } from './readable-stream/async-iterator';
 import { defaultReaderClosedPromiseReject, defaultReaderClosedPromiseResolve } from './readable-stream/generic-reader';
 import {
   AcquireReadableStreamDefaultReader,
   IsReadableStreamDefaultReader,
   ReadableStreamDefaultReader,
-  ReadableStreamDefaultReadResult
+  type ReadableStreamDefaultReadResult
 } from './readable-stream/default-reader';
 import {
   AcquireReadableStreamBYOBReader,
   IsReadableStreamBYOBReader,
   ReadableStreamBYOBReader,
-  ReadableStreamBYOBReadResult
+  type ReadableStreamBYOBReadResult
 } from './readable-stream/byob-reader';
 import { ReadableStreamPipeTo } from './readable-stream/pipe';
 import { ReadableStreamTee } from './readable-stream/tee';
@@ -35,7 +35,7 @@ import {
   SetUpReadableStreamDefaultController,
   SetUpReadableStreamDefaultControllerFromUnderlyingSource
 } from './readable-stream/default-controller';
-import {
+import type {
   UnderlyingByteSource,
   UnderlyingByteSourcePullCallback,
   UnderlyingByteSourceStartCallback,
@@ -45,7 +45,7 @@ import {
   UnderlyingSourceStartCallback
 } from './readable-stream/underlying-source';
 import { noop } from '../utils';
-import { typeIsObject } from './helpers/miscellaneous';
+import { setFunctionName, typeIsObject } from './helpers/miscellaneous';
 import { CreateArrayFromList } from './abstract-ops/ecmascript';
 import { CancelSteps } from './abstract-ops/internal-methods';
 import { IsNonNegativeNumber } from './abstract-ops/miscellaneous';
@@ -53,13 +53,13 @@ import { assertObject, assertRequiredArgument } from './validators/basic';
 import { convertQueuingStrategy } from './validators/queuing-strategy';
 import { ExtractHighWaterMark, ExtractSizeAlgorithm } from './abstract-ops/queuing-strategy';
 import { convertUnderlyingDefaultOrByteSource } from './validators/underlying-source';
-import { ReadableStreamGetReaderOptions } from './readable-stream/reader-options';
+import type { ReadableStreamGetReaderOptions } from './readable-stream/reader-options';
 import { convertReaderOptions } from './validators/reader-options';
-import { StreamPipeOptions, ValidatedStreamPipeOptions } from './readable-stream/pipe-options';
-import { ReadableStreamIteratorOptions } from './readable-stream/iterator-options';
+import type { StreamPipeOptions, ValidatedStreamPipeOptions } from './readable-stream/pipe-options';
+import type { ReadableStreamIteratorOptions } from './readable-stream/iterator-options';
 import { convertIteratorOptions } from './validators/iterator-options';
 import { convertPipeOptions } from './validators/pipe-options';
-import { ReadableWritablePair } from './readable-stream/readable-writable-pair';
+import type { ReadableWritablePair } from './readable-stream/readable-writable-pair';
 import { convertReadableWritablePair } from './validators/readable-writable-pair';
 
 export type ReadableByteStream = ReadableStream<Uint8Array> & {
@@ -317,7 +317,7 @@ export class ReadableStream<R = any> {
   /**
    * {@inheritDoc ReadableStream.values}
    */
-  [Symbol.asyncIterator]: (options?: ReadableStreamIteratorOptions) => ReadableStreamAsyncIterator<R>;
+  [Symbol.asyncIterator]!: (options?: ReadableStreamIteratorOptions) => ReadableStreamAsyncIterator<R>;
 }
 
 Object.defineProperties(ReadableStream.prototype, {
@@ -329,6 +329,12 @@ Object.defineProperties(ReadableStream.prototype, {
   values: { enumerable: true },
   locked: { enumerable: true }
 });
+setFunctionName(ReadableStream.prototype.cancel, 'cancel');
+setFunctionName(ReadableStream.prototype.getReader, 'getReader');
+setFunctionName(ReadableStream.prototype.pipeThrough, 'pipeThrough');
+setFunctionName(ReadableStream.prototype.pipeTo, 'pipeTo');
+setFunctionName(ReadableStream.prototype.tee, 'tee');
+setFunctionName(ReadableStream.prototype.values, 'values');
 if (typeof Symbol.toStringTag === 'symbol') {
   Object.defineProperty(ReadableStream.prototype, Symbol.toStringTag, {
     value: 'ReadableStream',
@@ -343,7 +349,7 @@ if (typeof Symbol.asyncIterator === 'symbol') {
   });
 }
 
-export {
+export type {
   ReadableStreamAsyncIterator,
   ReadableStreamDefaultReadResult,
   ReadableStreamBYOBReadResult,

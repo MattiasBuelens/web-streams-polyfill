@@ -51,7 +51,7 @@ import { ReadableStream } from "web-streams-polyfill/ponyfill";
 const readable = new ReadableStream();
 ```
 
-### Compatibility
+## Compatibility
 
 The `polyfill` and `ponyfill` variants work in any ES5-compatible environment that has a global `Promise`.
 If you need to support older browsers or Node versions that do not have a native `Promise` implementation
@@ -66,7 +66,7 @@ The `polyfill/es2018` and `ponyfill/es2018` variants work in any ES2018-compatib
 
 [`WritableStreamDefaultController.signal`][ws-controller-signal] is available in all variants, but requires a global `AbortController` constructor. If necessary, consider using a polyfill such as [abortcontroller-polyfill].
 
-### Compliance
+## Compliance
 
 The polyfill implements [version `4b6b93c` (25 Oct 2021)][spec-snapshot] of the streams specification.
 
@@ -88,7 +88,7 @@ The polyfill aims to pass all tests, although it allows some exceptions for prac
 
 The type definitions are compatible with the built-in stream types of TypeScript 3.3.
 
-### Contributors
+## Contributors
 
 Thanks to these people for their work on [the original polyfill][creatorrr-polyfill]:
 

@@ -1,5 +1,5 @@
-import { QueuingStrategy, QueuingStrategyInit } from './queuing-strategy';
-import { typeIsObject } from './helpers/miscellaneous';
+import type { QueuingStrategy, QueuingStrategyInit } from './queuing-strategy';
+import { setFunctionName, typeIsObject } from './helpers/miscellaneous';
 import { assertRequiredArgument } from './validators/basic';
 import { convertQueuingStrategyInit } from './validators/queuing-strategy-init';
 
@@ -7,15 +7,7 @@ import { convertQueuingStrategyInit } from './validators/queuing-strategy-init';
 const byteLengthSizeFunction = (chunk: ArrayBufferView): number => {
   return chunk.byteLength;
 };
-try {
-  Object.defineProperty(byteLengthSizeFunction, 'name', {
-    value: 'size',
-    configurable: true
-  });
-} catch {
-  // This property is non-configurable in older browsers, so ignore if this throws.
-  // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/name#browser_compatibility
-}
+setFunctionName(byteLengthSizeFunction, 'size');
 
 /**
  * A queuing strategy that counts the number of bytes in each chunk.

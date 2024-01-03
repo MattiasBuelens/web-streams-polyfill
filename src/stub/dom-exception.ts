@@ -1,15 +1,12 @@
 /// <reference types="node" />
 import { NativeDOMException } from './native';
 
-declare class DOMExceptionClass extends Error {
-  constructor(message?: string, name?: string);
-
+interface DOMException extends Error {
   name: string;
   message: string;
 }
 
-type DOMException = DOMExceptionClass;
-type DOMExceptionConstructor = typeof DOMExceptionClass;
+type DOMExceptionConstructor = new (message?: string, name?: string) => DOMException;
 
 function isDOMExceptionConstructor(ctor: unknown): ctor is DOMExceptionConstructor {
   if (!(typeof ctor === 'function' || typeof ctor === 'object')) {

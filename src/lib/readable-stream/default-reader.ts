@@ -7,7 +7,7 @@ import {
   readerLockException
 } from './generic-reader';
 import { IsReadableStreamLocked, ReadableStream } from '../readable-stream';
-import { typeIsObject } from '../helpers/miscellaneous';
+import { setFunctionName, typeIsObject } from '../helpers/miscellaneous';
 import { PullSteps } from '../abstract-ops/internal-methods';
 import { newPromise, promiseRejectedWith } from '../helpers/webidl';
 import { assertRequiredArgument } from '../validators/basic';
@@ -201,6 +201,9 @@ Object.defineProperties(ReadableStreamDefaultReader.prototype, {
   releaseLock: { enumerable: true },
   closed: { enumerable: true }
 });
+setFunctionName(ReadableStreamDefaultReader.prototype.cancel, 'cancel');
+setFunctionName(ReadableStreamDefaultReader.prototype.read, 'read');
+setFunctionName(ReadableStreamDefaultReader.prototype.releaseLock, 'releaseLock');
 if (typeof Symbol.toStringTag === 'symbol') {
   Object.defineProperty(ReadableStreamDefaultReader.prototype, Symbol.toStringTag, {
     value: 'ReadableStreamDefaultReader',

@@ -2,23 +2,23 @@ import {
   CreateReadableByteStream,
   CreateReadableStream,
   IsReadableStream,
-  ReadableByteStream,
+  type ReadableByteStream,
   ReadableStream,
   ReadableStreamCancel,
-  ReadableStreamReader
+  type ReadableStreamReader
 } from '../readable-stream';
 import { ReadableStreamReaderGenericRelease } from './generic-reader';
 import {
   AcquireReadableStreamDefaultReader,
   IsReadableStreamDefaultReader,
   ReadableStreamDefaultReaderRead,
-  ReadRequest
+  type ReadRequest
 } from './default-reader';
 import {
   AcquireReadableStreamBYOBReader,
   IsReadableStreamBYOBReader,
   ReadableStreamBYOBReaderRead,
-  ReadIntoRequest
+  type ReadIntoRequest
 } from './byob-reader';
 import assert from '../../stub/assert';
 import { newPromise, promiseResolvedWith, queueMicrotask, uponRejection } from '../helpers/webidl';

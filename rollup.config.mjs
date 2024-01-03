@@ -1,17 +1,24 @@
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
+import url from 'url';
+import typescript from '@rollup/plugin-typescript';
+import inject from '@rollup/plugin-inject';
+import strip from '@rollup/plugin-strip';
+import replace from '@rollup/plugin-replace';
+import terser from '@rollup/plugin-terser';
 
-const typescript = require('@rollup/plugin-typescript');
-const inject = require('@rollup/plugin-inject');
-const strip = require('@rollup/plugin-strip');
-const replace = require('@rollup/plugin-replace');
-const { terser } = require('rollup-plugin-terser');
+const dirname = url.fileURLToPath(new URL('.', import.meta.url));
+const pkg = JSON.parse(fs.readFileSync('./package.json', 'utf8'));
 
 const debug = false;
 
-const pkg = require('./package.json');
 const banner = `
 /**
+ * @license
  * ${pkg.name} v${pkg.version}
+ * Copyright 2024 Mattias Buelens, Diwank Singh Tomer and other contributors.
+ * This code is released under the MIT license.
+ * SPDX-License-Identifier: MIT
  */
 `.trim();
 
@@ -66,7 +73,7 @@ function bundle(entry, { esm = false, minify = false, target = 'es5' } = {}) {
         include: 'src/**/*.ts',
         exclude: 'src/stub/symbol.ts',
         modules: {
-          Symbol: path.resolve(__dirname, './src/stub/symbol.ts')
+          Symbol: path.resolve(dirname, './src/stub/symbol.ts')
         }
       }),
       replace({
@@ -92,7 +99,7 @@ function bundle(entry, { esm = false, minify = false, target = 'es5' } = {}) {
   };
 }
 
-module.exports = [
+export default [
   // polyfill
   bundle('polyfill', { esm: true }),
   bundle('polyfill', { minify: true }),

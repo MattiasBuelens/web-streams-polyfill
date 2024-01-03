@@ -10,17 +10,17 @@ import {
   DequeueValue,
   EnqueueValueWithSize,
   PeekQueueValue,
-  QueuePair,
+  type QueuePair,
   ResetQueue
 } from './abstract-ops/queue-with-sizes';
-import { QueuingStrategy, QueuingStrategySizeCallback } from './queuing-strategy';
+import type { QueuingStrategy, QueuingStrategySizeCallback } from './queuing-strategy';
 import { SimpleQueue } from './simple-queue';
-import { typeIsObject } from './helpers/miscellaneous';
+import { setFunctionName, typeIsObject } from './helpers/miscellaneous';
 import { AbortSteps, ErrorSteps } from './abstract-ops/internal-methods';
 import { IsNonNegativeNumber } from './abstract-ops/miscellaneous';
 import { ExtractHighWaterMark, ExtractSizeAlgorithm } from './abstract-ops/queuing-strategy';
 import { convertQueuingStrategy } from './validators/queuing-strategy';
-import {
+import type {
   UnderlyingSink,
   UnderlyingSinkAbortCallback,
   UnderlyingSinkCloseCallback,
@@ -31,7 +31,7 @@ import {
 import { assertObject, assertRequiredArgument } from './validators/basic';
 import { convertUnderlyingSink } from './validators/underlying-sink';
 import { assertWritableStream } from './validators/writable-stream';
-import { AbortController, AbortSignal, createAbortController } from './abort-signal';
+import { type AbortController, type AbortSignal, createAbortController } from './abort-signal';
 
 type WritableStreamState = 'writable' | 'closed' | 'erroring' | 'errored';
 
@@ -182,6 +182,9 @@ Object.defineProperties(WritableStream.prototype, {
   getWriter: { enumerable: true },
   locked: { enumerable: true }
 });
+setFunctionName(WritableStream.prototype.abort, 'abort');
+setFunctionName(WritableStream.prototype.close, 'close');
+setFunctionName(WritableStream.prototype.getWriter, 'getWriter');
 if (typeof Symbol.toStringTag === 'symbol') {
   Object.defineProperty(WritableStream.prototype, Symbol.toStringTag, {
     value: 'WritableStream',
@@ -200,7 +203,10 @@ export {
   WritableStreamDefaultWriterCloseWithErrorPropagation,
   WritableStreamDefaultWriterRelease,
   WritableStreamDefaultWriterWrite,
-  WritableStreamCloseQueuedOrInFlight,
+  WritableStreamCloseQueuedOrInFlight
+};
+
+export type {
   UnderlyingSink,
   UnderlyingSinkStartCallback,
   UnderlyingSinkWriteCallback,
@@ -779,6 +785,10 @@ Object.defineProperties(WritableStreamDefaultWriter.prototype, {
   desiredSize: { enumerable: true },
   ready: { enumerable: true }
 });
+setFunctionName(WritableStreamDefaultWriter.prototype.abort, 'abort');
+setFunctionName(WritableStreamDefaultWriter.prototype.close, 'close');
+setFunctionName(WritableStreamDefaultWriter.prototype.releaseLock, 'releaseLock');
+setFunctionName(WritableStreamDefaultWriter.prototype.write, 'write');
 if (typeof Symbol.toStringTag === 'symbol') {
   Object.defineProperty(WritableStreamDefaultWriter.prototype, Symbol.toStringTag, {
     value: 'WritableStreamDefaultWriter',

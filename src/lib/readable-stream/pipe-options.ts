@@ -1,4 +1,4 @@
-import { AbortSignal } from '../abort-signal';
+import type { AbortSignal } from '../abort-signal';
 
 /**
  * Options for {@link ReadableStream.pipeTo | piping} a stream.

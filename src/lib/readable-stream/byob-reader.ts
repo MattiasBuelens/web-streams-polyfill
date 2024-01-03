@@ -6,13 +6,13 @@ import {
   ReadableStreamReaderGenericRelease,
   readerLockException
 } from './generic-reader';
-import { IsReadableStreamLocked, ReadableByteStream, ReadableStream } from '../readable-stream';
+import { IsReadableStreamLocked, type ReadableByteStream, type ReadableStream } from '../readable-stream';
 import {
   IsReadableByteStreamController,
   ReadableByteStreamController,
   ReadableByteStreamControllerPullInto
 } from './byte-stream-controller';
-import { typeIsObject } from '../helpers/miscellaneous';
+import { setFunctionName, typeIsObject } from '../helpers/miscellaneous';
 import { newPromise, promiseRejectedWith } from '../helpers/webidl';
 import { assertRequiredArgument } from '../validators/basic';
 import { assertReadableStream } from '../validators/readable-stream';
@@ -107,7 +107,7 @@ export class ReadableStreamBYOBReader {
   /** @internal */
   _readIntoRequests: SimpleQueue<ReadIntoRequest<any>>;
 
-  constructor(stream: ReadableByteStream) {
+  constructor(stream: ReadableStream<Uint8Array>) {
     assertRequiredArgument(stream, 1, 'ReadableStreamBYOBReader');
     assertReadableStream(stream, 'First parameter');
 
@@ -226,6 +226,9 @@ Object.defineProperties(ReadableStreamBYOBReader.prototype, {
   releaseLock: { enumerable: true },
   closed: { enumerable: true }
 });
+setFunctionName(ReadableStreamBYOBReader.prototype.cancel, 'cancel');
+setFunctionName(ReadableStreamBYOBReader.prototype.read, 'read');
+setFunctionName(ReadableStreamBYOBReader.prototype.releaseLock, 'releaseLock');
 if (typeof Symbol.toStringTag === 'symbol') {
   Object.defineProperty(ReadableStreamBYOBReader.prototype, Symbol.toStringTag, {
     value: 'ReadableStreamBYOBReader',

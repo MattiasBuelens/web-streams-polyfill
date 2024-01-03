@@ -1,6 +1,6 @@
 import { assertDictionary, assertFunction } from './basic';
 import { promiseCall, reflectCall } from '../helpers/webidl';
-import {
+import type {
   Transformer,
   TransformerFlushCallback,
   TransformerStartCallback,
