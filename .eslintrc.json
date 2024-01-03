@@ -100,7 +100,7 @@
     "no-param-reassign": "off",
     "no-process-env": "error",
     "no-proto": "error",
-    "no-redeclare": "error",
+    "no-redeclare": "off",
     "no-return-assign": ["error", "except-parens"],
     "no-script-url": "off",
     "no-self-assign": "error",
@@ -269,6 +269,7 @@
     }],
     "@typescript-eslint/no-explicit-any": "off",
     "@typescript-eslint/no-non-null-assertion": "off",
+    "@typescript-eslint/no-redeclare": "error",
     "@typescript-eslint/no-use-before-define": "off",
     "@typescript-eslint/no-useless-constructor": "error"
   }

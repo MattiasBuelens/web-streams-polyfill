@@ -53,7 +53,7 @@ function createPolyfill(): DOMExceptionConstructor {
   return ctor;
 }
 
-// eslint-disable-next-line no-redeclare
+// eslint-disable-next-line @typescript-eslint/no-redeclare
 const DOMException: DOMExceptionConstructor = getFromGlobal() || createPolyfill();
 
 export { DOMException };
