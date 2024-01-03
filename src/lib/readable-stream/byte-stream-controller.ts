@@ -34,6 +34,11 @@ import {
 import { CancelSteps, PullSteps, ReleaseSteps } from '../abstract-ops/internal-methods';
 import { promiseResolvedWith, uponPromise } from '../helpers/webidl';
 import { assertRequiredArgument, convertUnsignedLongLongWithEnforceRange } from '../validators/basic';
+import {
+  type ArrayBufferViewConstructor,
+  arrayBufferViewElementSize,
+  type TypedArrayConstructor
+} from '../helpers/array-buffer-view';
 
 /**
  * A pull-into request in a {@link ReadableByteStreamController}.
@@ -134,13 +139,6 @@ if (typeof Symbol.toStringTag === 'symbol') {
   });
 }
 
-interface ArrayBufferViewConstructor<T extends ArrayBufferView = ArrayBufferView> {
-  new(buffer: ArrayBufferLike, byteOffset: number, length?: number): T;
-
-  readonly prototype: T;
-  readonly BYTES_PER_ELEMENT: number;
-}
-
 interface ByteQueueElement {
   buffer: ArrayBufferLike;
   byteOffset: number;
@@ -158,7 +156,7 @@ interface DefaultPullIntoDescriptor {
   byteLength: number;
   bytesFilled: number;
   elementSize: number;
-  viewConstructor: ArrayBufferViewConstructor<Uint8Array>;
+  viewConstructor: TypedArrayConstructor<Uint8Array>;
   readerType: 'default' | 'none';
 }
 
@@ -636,12 +634,8 @@ export function ReadableByteStreamControllerPullInto<T extends ArrayBufferView>(
 ): void {
   const stream = controller._controlledReadableByteStream;
 
-  let elementSize = 1;
-  if (view.constructor !== DataView) {
-    elementSize = (view.constructor as ArrayBufferViewConstructor<T>).BYTES_PER_ELEMENT;
-  }
-
   const ctor = view.constructor as ArrayBufferViewConstructor<T>;
+  const elementSize = arrayBufferViewElementSize(ctor);
 
   // try {
   const buffer = TransferArrayBuffer(view.buffer);
