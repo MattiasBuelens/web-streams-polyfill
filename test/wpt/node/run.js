@@ -22,6 +22,7 @@ const {
 
 const readFileAsync = promisify(fs.readFile);
 const queueMicrotask = global.queueMicrotask || (fn => Promise.resolve().then(fn));
+const structuredClone = global.structuredClone || (x => x);
 
 // wpt-runner does not yet support unhandled rejection tracking a la
 // https://github.com/w3c/testharness.js/commit/7716e2581a86dfd9405a9c00547a7504f0c7fe94
@@ -118,8 +119,9 @@ async function runTests(entryFile, { includedTests = ['**/*.html'], excludedTest
     rootURL: 'streams/',
     reporter,
     setup(window) {
-      window.queueMicrotask = queueMicrotask;
       window.Promise.allSettled = allSettled;
+      window.queueMicrotask = queueMicrotask;
+      window.structuredClone = structuredClone;
       window.fetch = async function (url) {
         const filePath = path.join(wptPath, url);
         if (!filePath.startsWith(wptPath)) {

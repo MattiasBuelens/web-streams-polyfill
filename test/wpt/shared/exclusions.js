@@ -10,7 +10,18 @@ const excludedTestsBase = [
   'transferable/**',
   // The crash tests require creating and terminating workers and iframes.
   'readable-streams/cross-realm-crash.window.html',
-  'readable-streams/crashtests/**'
+  'readable-streams/crashtests/**',
+  // This test is blocked on an unresolved spec issue: https://github.com/whatwg/streams/issues/1243
+  'piping/general-addition.any.html',
+  // We don't support ShadowRealms.
+  'idlharness-shadowrealm.window.html',
+  // We don't patch globals inside other <iframe>s.
+  'readable-streams/global.html',
+  'transform-streams/invalid-realm.tentative.window.html',
+  // We don't support MessagePort or VideoFrame.
+  'readable-streams/owning-type-message-port.any.html',
+  'readable-streams/owning-type-video-frame.any.html',
+  'readable-streams/owning-type.any.html' // FIXME: reenable this test once owning type PR lands.
 ];
 
 const excludedTestsNonES2018 = [
