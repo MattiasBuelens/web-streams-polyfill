@@ -6,7 +6,7 @@ import {
   ReadableStreamReaderGenericRelease,
   readerLockException
 } from './generic-reader';
-import { IsReadableStreamLocked, ReadableByteStream, ReadableStream } from '../readable-stream';
+import { IsReadableStreamLocked, ReadableByteStream } from '../readable-stream';
 import {
   IsReadableByteStreamController,
   ReadableByteStreamController,
