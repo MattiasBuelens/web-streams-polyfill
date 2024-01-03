@@ -8,11 +8,7 @@ import {
   type ReadableStreamDefaultReadResult,
   type ReadRequest
 } from './default-reader';
-import {
-  ReadableStreamReaderGenericCancel,
-  ReadableStreamReaderGenericRelease,
-  readerLockException
-} from './generic-reader';
+import { ReadableStreamReaderGenericCancel, ReadableStreamReaderGenericRelease } from './generic-reader';
 import assert from '../../stub/assert';
 import { AsyncIteratorPrototype } from '@@target/stub/async-iterator-prototype';
 import { typeIsObject } from '../helpers/miscellaneous';
@@ -67,9 +63,7 @@ export class ReadableStreamAsyncIteratorImpl<R> {
     }
 
     const reader = this._reader;
-    if (reader._ownerReadableStream === undefined) {
-      return promiseRejectedWith(readerLockException('iterate'));
-    }
+    assert(reader._ownerReadableStream !== undefined);
 
     let resolvePromise!: (result: ReadableStreamDefaultReadResult<R>) => void;
     let rejectPromise!: (reason: any) => void;
@@ -108,10 +102,7 @@ export class ReadableStreamAsyncIteratorImpl<R> {
     this._isFinished = true;
 
     const reader = this._reader;
-    if (reader._ownerReadableStream === undefined) {
-      return promiseRejectedWith(readerLockException('finish iterating'));
-    }
-
+    assert(reader._ownerReadableStream !== undefined);
     assert(reader._readRequests.length === 0);
 
     if (!this._preventCancel) {
