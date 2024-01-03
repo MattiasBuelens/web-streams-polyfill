@@ -34,6 +34,7 @@ import ByteLengthQueuingStrategy from './lib/byte-length-queuing-strategy';
 import CountQueuingStrategy from './lib/count-queuing-strategy';
 import {
   type Transformer,
+  type TransformerCancelCallback,
   type TransformerFlushCallback,
   type TransformerStartCallback,
   type TransformerTransformCallback,
@@ -80,6 +81,7 @@ export {
 
   TransformStream,
   type Transformer,
+  type TransformerCancelCallback,
   type TransformerStartCallback,
   type TransformerFlushCallback,
   type TransformerTransformCallback,

@@ -9,6 +9,9 @@ export type TransformerFlushCallback<O>
 /** @public */
 export type TransformerTransformCallback<I, O>
   = (chunk: I, controller: TransformStreamDefaultController<O>) => void | PromiseLike<void>;
+/** @public */
+export type TransformerCancelCallback
+  = (reason: any) => void | PromiseLike<void>;
 
 /**
  * A transformer for constructing a {@link TransformStream}.
@@ -29,6 +32,10 @@ export interface Transformer<I = any, O = any> {
    * through {@link Transformer.transform | transform()}, and the writable side is about to be closed.
    */
   flush?: TransformerFlushCallback<O>;
+  /**
+   * A function called when the readable side is cancelled, or when the writable side is aborted.
+   */
+  cancel?: TransformerCancelCallback;
   readableType?: undefined;
   writableType?: undefined;
 }
@@ -36,4 +43,5 @@ export interface Transformer<I = any, O = any> {
 export interface ValidatedTransformer<I = any, O = any> extends Transformer<I, O> {
   transform?: (chunk: I, controller: TransformStreamDefaultController<O>) => Promise<void>;
   flush?: (controller: TransformStreamDefaultController<O>) => Promise<void>;
+  cancel?: (reason: any) => Promise<void>;
 }

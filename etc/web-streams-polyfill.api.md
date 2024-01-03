@@ -158,6 +158,7 @@ export interface StreamPipeOptions {
 
 // @public
 export interface Transformer<I = any, O = any> {
+    cancel?: TransformerCancelCallback;
     flush?: TransformerFlushCallback<O>;
     // (undocumented)
     readableType?: undefined;
@@ -166,6 +167,9 @@ export interface Transformer<I = any, O = any> {
     // (undocumented)
     writableType?: undefined;
 }
+
+// @public (undocumented)
+export type TransformerCancelCallback = (reason: any) => void | PromiseLike<void>;
 
 // @public (undocumented)
 export type TransformerFlushCallback<O> = (controller: TransformStreamDefaultController<O>) => void | PromiseLike<void>;

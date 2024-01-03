@@ -9,6 +9,7 @@ const excludedTestsBase = [
   // We don't implement transferable streams yet
   'transferable/**',
   // The crash tests require creating and terminating workers and iframes.
+  'piping/crashtests/**',
   'readable-streams/cross-realm-crash.window.html',
   'readable-streams/crashtests/**',
   // This test is blocked on an unresolved spec issue: https://github.com/whatwg/streams/issues/1243
