@@ -172,6 +172,7 @@ export function ReadableStreamDefaultTee<R>(stream: ReadableStream<R>,
     if (!canceled1 || !canceled2) {
       resolveCancelPromise(undefined);
     }
+    return null;
   });
 
   return [branch1, branch2];
@@ -200,13 +201,14 @@ export function ReadableByteStreamTee(stream: ReadableByteStream): [ReadableByte
   function forwardReaderError(thisReader: ReadableStreamReader<Uint8Array>) {
     uponRejection(thisReader._closedPromise, r => {
       if (thisReader !== reader) {
-        return;
+        return null;
       }
       ReadableByteStreamControllerError(branch1._readableStreamController, r);
       ReadableByteStreamControllerError(branch2._readableStreamController, r);
       if (!canceled1 || !canceled2) {
         resolveCancelPromise(undefined);
       }
+      return null;
     });
   }
 
