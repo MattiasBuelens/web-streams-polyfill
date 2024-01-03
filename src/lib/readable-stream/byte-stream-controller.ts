@@ -155,6 +155,7 @@ interface DefaultPullIntoDescriptor {
   byteOffset: number;
   byteLength: number;
   bytesFilled: number;
+  minimumFill: number;
   elementSize: number;
   viewConstructor: TypedArrayConstructor<Uint8Array>;
   readerType: 'default' | 'none';
@@ -166,6 +167,7 @@ interface BYOBPullIntoDescriptor<T extends ArrayBufferView = ArrayBufferView> {
   byteOffset: number;
   byteLength: number;
   bytesFilled: number;
+  minimumFill: number;
   elementSize: number;
   viewConstructor: ArrayBufferViewConstructor<T>;
   readerType: 'byob' | 'none';
@@ -335,6 +337,7 @@ export class ReadableByteStreamController {
         byteOffset: 0,
         byteLength: autoAllocateChunkSize,
         bytesFilled: 0,
+        minimumFill: 1,
         elementSize: 1,
         viewConstructor: Uint8Array,
         readerType: 'default'
@@ -452,7 +455,7 @@ function ReadableByteStreamControllerCommitPullIntoDescriptor<T extends ArrayBuf
 
   let done = false;
   if (stream._state === 'closed') {
-    assert(pullIntoDescriptor.bytesFilled === 0);
+    assert(pullIntoDescriptor.bytesFilled % pullIntoDescriptor.elementSize === 0);
     done = true;
   }
 
@@ -516,18 +519,18 @@ function ReadableByteStreamControllerEnqueueDetachedPullIntoToQueue(controller: 
 
 function ReadableByteStreamControllerFillPullIntoDescriptorFromQueue(controller: ReadableByteStreamController,
                                                                      pullIntoDescriptor: PullIntoDescriptor) {
-  const elementSize = pullIntoDescriptor.elementSize;
-
-  const currentAlignedBytes = pullIntoDescriptor.bytesFilled - pullIntoDescriptor.bytesFilled % elementSize;
-
   const maxBytesToCopy = Math.min(controller._queueTotalSize,
                                   pullIntoDescriptor.byteLength - pullIntoDescriptor.bytesFilled);
   const maxBytesFilled = pullIntoDescriptor.bytesFilled + maxBytesToCopy;
-  const maxAlignedBytes = maxBytesFilled - maxBytesFilled % elementSize;
 
   let totalBytesToCopyRemaining = maxBytesToCopy;
   let ready = false;
-  if (maxAlignedBytes > currentAlignedBytes) {
+  assert(pullIntoDescriptor.bytesFilled < pullIntoDescriptor.minimumFill);
+  const remainderBytes = maxBytesFilled % pullIntoDescriptor.elementSize;
+  const maxAlignedBytes = maxBytesFilled - remainderBytes;
+  // A descriptor for a read() request that is not yet filled up to its minimum length will stay at the head
+  // of the queue, so the underlying source can keep filling it.
+  if (maxAlignedBytes >= pullIntoDescriptor.minimumFill) {
     totalBytesToCopyRemaining = maxAlignedBytes - pullIntoDescriptor.bytesFilled;
     ready = true;
   }
@@ -558,7 +561,7 @@ function ReadableByteStreamControllerFillPullIntoDescriptorFromQueue(controller:
   if (!ready) {
     assert(controller._queueTotalSize === 0);
     assert(pullIntoDescriptor.bytesFilled > 0);
-    assert(pullIntoDescriptor.bytesFilled < pullIntoDescriptor.elementSize);
+    assert(pullIntoDescriptor.bytesFilled < pullIntoDescriptor.minimumFill);
   }
 
   return ready;
@@ -630,12 +633,17 @@ function ReadableByteStreamControllerProcessReadRequestsUsingQueue(controller: R
 export function ReadableByteStreamControllerPullInto<T extends ArrayBufferView>(
   controller: ReadableByteStreamController,
   view: T,
+  min: number,
   readIntoRequest: ReadIntoRequest<T>
 ): void {
   const stream = controller._controlledReadableByteStream;
 
   const ctor = view.constructor as ArrayBufferViewConstructor<T>;
   const elementSize = arrayBufferViewElementSize(ctor);
+
+  const minimumFill = min * elementSize;
+  assert(minimumFill >= elementSize && minimumFill <= view.byteLength);
+  assert(minimumFill % elementSize === 0);
 
   // try {
   const buffer = TransferArrayBuffer(view.buffer);
@@ -650,6 +658,7 @@ export function ReadableByteStreamControllerPullInto<T extends ArrayBufferView>(
     byteOffset: view.byteOffset,
     byteLength: view.byteLength,
     bytesFilled: 0,
+    minimumFill,
     elementSize,
     viewConstructor: ctor,
     readerType: 'byob'
@@ -699,7 +708,7 @@ export function ReadableByteStreamControllerPullInto<T extends ArrayBufferView>(
 
 function ReadableByteStreamControllerRespondInClosedState(controller: ReadableByteStreamController,
                                                           firstDescriptor: PullIntoDescriptor) {
-  assert(firstDescriptor.bytesFilled === 0);
+  assert(firstDescriptor.bytesFilled % firstDescriptor.elementSize === 0);
 
   if (firstDescriptor.readerType === 'none') {
     ReadableByteStreamControllerShiftPendingPullInto(controller);
@@ -727,7 +736,9 @@ function ReadableByteStreamControllerRespondInReadableState(controller: Readable
     return;
   }
 
-  if (pullIntoDescriptor.bytesFilled < pullIntoDescriptor.elementSize) {
+  if (pullIntoDescriptor.bytesFilled < pullIntoDescriptor.minimumFill) {
+    // A descriptor for a read() request that is not yet filled up to its minimum length will stay at the head
+    // of the queue, so the underlying source can keep filling it.
     return;
   }
 
@@ -831,7 +842,7 @@ export function ReadableByteStreamControllerClose(controller: ReadableByteStream
 
   if (controller._pendingPullIntos.length > 0) {
     const firstPendingPullInto = controller._pendingPullIntos.peek();
-    if (firstPendingPullInto.bytesFilled > 0) {
+    if (firstPendingPullInto.bytesFilled % firstPendingPullInto.elementSize !== 0) {
       const e = new TypeError('Insufficient bytes to fill elements in the given buffer');
       ReadableByteStreamControllerError(controller, e);
 

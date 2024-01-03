@@ -56,7 +56,10 @@ import { assertObject, assertRequiredArgument } from './validators/basic';
 import { convertQueuingStrategy } from './validators/queuing-strategy';
 import { ExtractHighWaterMark, ExtractSizeAlgorithm } from './abstract-ops/queuing-strategy';
 import { convertUnderlyingDefaultOrByteSource } from './validators/underlying-source';
-import type { ReadableStreamGetReaderOptions } from './readable-stream/reader-options';
+import type {
+  ReadableStreamBYOBReaderReadOptions,
+  ReadableStreamGetReaderOptions
+} from './readable-stream/reader-options';
 import { convertReaderOptions } from './validators/reader-options';
 import type { StreamPipeOptions, ValidatedStreamPipeOptions } from './readable-stream/pipe-options';
 import type { ReadableStreamIteratorOptions } from './readable-stream/iterator-options';
@@ -371,6 +374,7 @@ export type {
   ReadableStreamAsyncIterator,
   ReadableStreamDefaultReadResult,
   ReadableStreamBYOBReadResult,
+  ReadableStreamBYOBReaderReadOptions,
   UnderlyingByteSource,
   UnderlyingSource,
   UnderlyingSourceStartCallback,

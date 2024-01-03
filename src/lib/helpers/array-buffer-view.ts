@@ -27,6 +27,10 @@ function isDataViewConstructor(ctor: Function): ctor is DataViewConstructor {
   return ctor === DataView;
 }
 
+export function isDataView(view: ArrayBufferView): view is DataView {
+  return isDataViewConstructor(view.constructor);
+}
+
 export function arrayBufferViewElementSize<T extends ArrayBufferView>(ctor: ArrayBufferViewConstructor<T>): number {
   if (isDataViewConstructor(ctor)) {
     return 1;

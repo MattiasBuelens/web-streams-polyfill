@@ -365,7 +365,7 @@ export function ReadableByteStreamTee(stream: ReadableByteStream): [ReadableByte
         reading = false;
       }
     };
-    ReadableStreamBYOBReaderRead(reader, view, readIntoRequest);
+    ReadableStreamBYOBReaderRead(reader, view, 1, readIntoRequest);
   }
 
   function pull1Algorithm(): Promise<void> {

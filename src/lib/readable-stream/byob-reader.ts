@@ -17,6 +17,12 @@ import { newPromise, promiseRejectedWith } from '../helpers/webidl';
 import { assertRequiredArgument } from '../validators/basic';
 import { assertReadableStream } from '../validators/readable-stream';
 import { IsDetachedBuffer } from '../abstract-ops/ecmascript';
+import type {
+  ReadableStreamBYOBReaderReadOptions,
+  ValidatedReadableStreamBYOBReaderReadOptions
+} from './reader-options';
+import { convertByobReadOptions } from '../validators/reader-options';
+import { isDataView, type TypedArray } from '../helpers/array-buffer-view';
 
 /**
  * A result returned by {@link ReadableStreamBYOBReader.read}.
@@ -157,7 +163,14 @@ export class ReadableStreamBYOBReader {
    *
    * If reading a chunk causes the queue to become empty, more data will be pulled from the underlying source.
    */
-  read<T extends ArrayBufferView>(view: T): Promise<ReadableStreamBYOBReadResult<T>> {
+  read<T extends ArrayBufferView>(
+    view: T,
+    options?: ReadableStreamBYOBReaderReadOptions
+  ): Promise<ReadableStreamBYOBReadResult<T>>;
+  read<T extends ArrayBufferView>(
+    view: T,
+    rawOptions: ReadableStreamBYOBReaderReadOptions | null | undefined = {}
+  ): Promise<ReadableStreamBYOBReadResult<T>> {
     if (!IsReadableStreamBYOBReader(this)) {
       return promiseRejectedWith(byobReaderBrandCheckException('read'));
     }
@@ -175,6 +188,24 @@ export class ReadableStreamBYOBReader {
       return promiseRejectedWith(new TypeError('view\'s buffer has been detached'));
     }
 
+    let options: ValidatedReadableStreamBYOBReaderReadOptions;
+    try {
+      options = convertByobReadOptions(rawOptions, 'options');
+    } catch (e) {
+      return promiseRejectedWith(e);
+    }
+    const min = options.min;
+    if (min === 0) {
+      return promiseRejectedWith(new TypeError('options.min must be greater than 0'));
+    }
+    if (!isDataView(view)) {
+      if (min > (view as unknown as TypedArray).length) {
+        return promiseRejectedWith(new RangeError('options.min must be less than or equal to view\'s length'));
+      }
+    } else if (min > view.byteLength) {
+      return promiseRejectedWith(new RangeError('options.min must be less than or equal to view\'s byteLength'));
+    }
+
     if (this._ownerReadableStream === undefined) {
       return promiseRejectedWith(readerLockException('read from'));
     }
@@ -190,7 +221,7 @@ export class ReadableStreamBYOBReader {
       _closeSteps: chunk => resolvePromise({ value: chunk, done: true }),
       _errorSteps: e => rejectPromise(e)
     };
-    ReadableStreamBYOBReaderRead(this, view, readIntoRequest);
+    ReadableStreamBYOBReaderRead(this, view, min, readIntoRequest);
     return promise;
   }
 
@@ -249,6 +280,7 @@ export function IsReadableStreamBYOBReader(x: any): x is ReadableStreamBYOBReade
 export function ReadableStreamBYOBReaderRead<T extends ArrayBufferView>(
   reader: ReadableStreamBYOBReader,
   view: T,
+  min: number,
   readIntoRequest: ReadIntoRequest<T>
 ): void {
   const stream = reader._ownerReadableStream;
@@ -263,6 +295,7 @@ export function ReadableStreamBYOBReaderRead<T extends ArrayBufferView>(
     ReadableByteStreamControllerPullInto(
       stream._readableStreamController as ReadableByteStreamController,
       view,
+      min,
       readIntoRequest
     );
   }

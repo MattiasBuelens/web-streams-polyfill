@@ -88,8 +88,14 @@ export class ReadableStreamBYOBReader {
     constructor(stream: ReadableStream<Uint8Array>);
     cancel(reason?: any): Promise<void>;
     get closed(): Promise<undefined>;
-    read<T extends ArrayBufferView>(view: T): Promise<ReadableStreamBYOBReadResult<T>>;
+    read<T extends ArrayBufferView>(view: T, options?: ReadableStreamBYOBReaderReadOptions): Promise<ReadableStreamBYOBReadResult<T>>;
     releaseLock(): void;
+}
+
+// @public
+export interface ReadableStreamBYOBReaderReadOptions {
+    // (undocumented)
+    min?: number;
 }
 
 // @public
