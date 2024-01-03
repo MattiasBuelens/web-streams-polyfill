@@ -10,6 +10,13 @@
 > - 🏠 Internal
 > - 💅 Polish
 
+## Unreleased
+
+* 🚀 Added global augmentations for `ReadableStream` to the polyfill's type definitions. ([#130](https://github.com/MattiasBuelens/web-streams-polyfill/pull/130))
+  * This allows TypeScript users to use new methods such as `ReadableStream.prototype[Symbol.asyncIterator]()`,
+    even when TypeScript doesn't yet have a built-in type definition for them.
+* 💥 The type definitions now require TypeScript 3.5 or higher. ([#130](https://github.com/MattiasBuelens/web-streams-polyfill/pull/130))
+
 ## v3.2.1 (2022-04-07)
 
 * 🐛 Fix an error in very old browsers where `Function.name` is non-configurable. ([#112](https://github.com/MattiasBuelens/web-streams-polyfill/pull/112))
