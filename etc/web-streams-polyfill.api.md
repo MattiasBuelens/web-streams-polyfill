@@ -60,6 +60,7 @@ export class ReadableStream<R = any> {
     });
     constructor(underlyingSource?: UnderlyingSource<R>, strategy?: QueuingStrategy<R>);
     cancel(reason?: any): Promise<void>;
+    static from<R>(asyncIterable: Iterable<R> | AsyncIterable<R>): ReadableStream<R>;
     getReader({ mode }: {
         mode: 'byob';
     }): ReadableStreamBYOBReader;

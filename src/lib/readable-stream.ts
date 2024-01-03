@@ -24,6 +24,7 @@ import {
 } from './readable-stream/byob-reader';
 import { ReadableStreamPipeTo } from './readable-stream/pipe';
 import { ReadableStreamTee } from './readable-stream/tee';
+import { ReadableStreamFromIterable } from './readable-stream/from';
 import { IsWritableStream, IsWritableStreamLocked, WritableStream } from './writable-stream';
 import { SimpleQueue } from './simple-queue';
 import {
@@ -320,8 +321,22 @@ export class ReadableStream<R = any> {
    * {@inheritDoc ReadableStream.values}
    */
   [Symbol.asyncIterator]!: (options?: ReadableStreamIteratorOptions) => ReadableStreamAsyncIterator<R>;
+
+  /**
+   * Creates a new ReadableStream wrapping the provided iterable or async iterable.
+   *
+   * This can be used to adapt various kinds of objects into a readable stream,
+   * such as an array, an async generator, or a Node.js readable stream.
+   */
+  // eslint-disable-next-line no-shadow
+  static from<R>(asyncIterable: Iterable<R> | AsyncIterable<R>): ReadableStream<R> {
+    return ReadableStreamFromIterable(asyncIterable);
+  }
 }
 
+Object.defineProperties(ReadableStream, {
+  from: { enumerable: true }
+});
 Object.defineProperties(ReadableStream.prototype, {
   cancel: { enumerable: true },
   getReader: { enumerable: true },
@@ -331,6 +346,7 @@ Object.defineProperties(ReadableStream.prototype, {
   values: { enumerable: true },
   locked: { enumerable: true }
 });
+setFunctionName(ReadableStream.from, 'from');
 setFunctionName(ReadableStream.prototype.cancel, 'cancel');
 setFunctionName(ReadableStream.prototype.getReader, 'getReader');
 setFunctionName(ReadableStream.prototype.pipeThrough, 'pipeThrough');
