@@ -1,11 +1,10 @@
 import { noop } from '../utils';
 
-export const AssertionError = /* @__PURE__*/ class AssertionError extends Error {
-  constructor(message: string) {
-    super(message);
-    Object.setPrototypeOf(this, new.target.prototype);
-  }
-};
+export const AssertionError = /* @__PURE__ */ (() => {
+  // eslint-disable-next-line no-shadow
+  return class AssertionError extends Error {
+  };
+})();
 
 const assert: (test: boolean, message?: string) => void =
   DEBUG ? (test, message) => {
