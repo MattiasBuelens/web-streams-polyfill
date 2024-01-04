@@ -137,6 +137,6 @@ typings/
 
 ### Project
 /dist/
-!/dist/types/ts3.6/polyfill.d.ts
+!/dist/types/polyfill.d.ts
 /lib/
 /temp/

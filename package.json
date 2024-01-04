@@ -5,13 +5,6 @@
   "main": "dist/ponyfill.js",
   "module": "dist/ponyfill.mjs",
   "types": "dist/types/ponyfill.d.ts",
-  "typesVersions": {
-    ">=3.6": {
-      "dist/types/*": [
-        "dist/types/ts3.6/*"
-      ]
-    }
-  },
   "exports": {
     ".": {
       "types": "./dist/types/ponyfill.d.ts",
@@ -51,7 +44,6 @@
     "build:bundle": "rollup -c",
     "build:types": "tsc --project . --emitDeclarationOnly --declarationDir ./lib && api-extractor run",
     "accept:types": "npm run build:types -- --local",
-    "postbuild:types": "downlevel-dts ./dist/types/ts3.6/ ./dist/types/ --to=3.5 && node ./build/downlevel-dts.js",
     "prepare": "npm run build"
   },
   "files": [
@@ -89,7 +81,6 @@
     "@typescript-eslint/eslint-plugin": "^6.17.0",
     "@typescript-eslint/parser": "^6.17.0",
     "@ungap/promise-all-settled": "^1.1.2",
-    "downlevel-dts": "^0.11.0",
     "eslint": "^8.56.0",
     "jasmine": "^5.1.0",
     "micromatch": "^4.0.5",
@@ -97,7 +88,6 @@
     "playwright": "^1.14.1",
     "recursive-readdir": "^2.2.2",
     "rollup": "^4.9.2",
-    "ts-morph": "^10.0.2",
     "tslib": "^2.6.2",
     "typescript": "^5.3.3",
     "wpt-runner": "^5.0.0"

@@ -1,7 +1,7 @@
 /*
  * This test verifies that the polyfill's type definitions correctly augment TypeScript's built-in DOM types.
  */
-import '../../dist/types/ts3.6/polyfill';
+import '../../dist/types/polyfill';
 
 const readable = new ReadableStream<Uint8Array>({
   // TODO Figure out a way to augment the type of "declare var ReadableStream"?
