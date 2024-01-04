@@ -104,11 +104,11 @@ Thanks to these people for their work on [the original polyfill][creatorrr-polyf
 [ws-controller-signal]: https://streams.spec.whatwg.org/#ws-default-controller-signal
 [abortcontroller-polyfill]: https://www.npmjs.com/package/abortcontroller-polyfill
 [spec-snapshot]: https://streams.spec.whatwg.org/commit-snapshots/4dc123a6e7f7ba89a8c6a7975b021156f39cab52/
-[wpt]: https://github.com/web-platform-tests/wpt/tree/7eaf605c38d80377c717828376deabad86b702b2/streams
-[wpt-bad-buffers]: https://github.com/web-platform-tests/wpt/blob/7eaf605c38d80377c717828376deabad86b702b2/streams/readable-byte-streams/bad-buffers-and-views.any.js
+[wpt]: https://github.com/web-platform-tests/wpt/tree/2a298b616b7c865917d7198a287310881cbfdd8d/streams
+[wpt-bad-buffers]: https://github.com/web-platform-tests/wpt/blob/2a298b616b7c865917d7198a287310881cbfdd8d/streams/readable-byte-streams/bad-buffers-and-views.any.js
 [proposal-arraybuffer-transfer]: https://github.com/domenic/proposal-arraybuffer-transfer
 [ref-impl-transferarraybuffer]: https://github.com/whatwg/streams/blob/4dc123a6e7f7ba89a8c6a7975b021156f39cab52/reference-implementation/lib/abstract-ops/ecmascript.js#L18
 [issue-3]: https://github.com/MattiasBuelens/web-streams-polyfill/issues/3
-[wpt-async-iterator-prototype]: https://github.com/web-platform-tests/wpt/blob/7eaf605c38d80377c717828376deabad86b702b2/streams/readable-streams/async-iterator.any.js#L24
+[wpt-async-iterator-prototype]: https://github.com/web-platform-tests/wpt/blob/2a298b616b7c865917d7198a287310881cbfdd8d/streams/readable-streams/async-iterator.any.js#L24
 [stub-async-iterator-prototype]: https://github.com/MattiasBuelens/web-streams-polyfill/blob/v2.0.0/src/target/es5/stub/async-iterator-prototype.ts
 [creatorrr-polyfill]: https://github.com/creatorrr/web-streams-polyfill
