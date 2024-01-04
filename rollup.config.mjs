@@ -82,38 +82,38 @@ function umd({ target = 'es5' } = {}) {
 }
 
 function plugins({ target, minify }) {
-    return [
-      typescript({
-        tsconfig: `tsconfig${target === 'es5' ? '' : `-${target}`}.json`,
-        declaration: false,
-        declarationMap: false
-      }),
-      target === 'es5' ? inject({
-        include: 'src/**/*.ts',
-        exclude: 'src/stub/symbol.ts',
-        modules: {
-          Symbol: path.resolve(dirname, './src/stub/symbol.ts')
-        }
-      }) : undefined,
-      replace({
-        include: 'src/**/*.ts',
-        preventAssignment: true,
-        values: {
-          DEBUG: debug
-        }
-      }),
-      !debug ? strip({
-        include: 'src/**/*.ts',
-        functions: ['assert']
-      }) : undefined,
-      minify ? terser({
-        keep_classnames: keepRegex, // needed for WPT
-        keep_fnames: keepRegex,
-        mangle: {
-          toplevel: true
-        }
-      }) : undefined
-    ].filter(Boolean);
+  return [
+    typescript({
+      tsconfig: `tsconfig${target === 'es5' ? '' : `-${target}`}.json`,
+      declaration: false,
+      declarationMap: false
+    }),
+    target === 'es5' ? inject({
+      include: 'src/**/*.ts',
+      exclude: 'src/stub/symbol.ts',
+      modules: {
+        Symbol: path.resolve(dirname, './src/stub/symbol.ts')
+      }
+    }) : undefined,
+    replace({
+      include: 'src/**/*.ts',
+      preventAssignment: true,
+      values: {
+        DEBUG: debug
+      }
+    }),
+    !debug ? strip({
+      include: 'src/**/*.ts',
+      functions: ['assert']
+    }) : undefined,
+    minify ? terser({
+      keep_classnames: keepRegex, // needed for WPT
+      keep_fnames: keepRegex,
+      mangle: {
+        toplevel: true
+      }
+    }) : undefined
+  ].filter(Boolean);
 }
 
 export default [
