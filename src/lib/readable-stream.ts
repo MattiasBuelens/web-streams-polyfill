@@ -335,7 +335,6 @@ export class ReadableStream<R = any> {
    * This can be used to adapt various kinds of objects into a readable stream,
    * such as an array, an async generator, or a Node.js readable stream.
    */
-  // eslint-disable-next-line no-shadow
   static from<R>(asyncIterable: Iterable<R> | AsyncIterable<R> | ReadableStream<R>): ReadableStream<R> {
     return ReadableStreamFrom(asyncIterable);
   }
