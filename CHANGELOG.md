@@ -10,6 +10,10 @@
 > - 🏠 Internal
 > - 💅 Polish
 
+## 3.3.2 (2024-01-04)
+
+* 🐛 Fix bad publish to npm.
+
 ## 3.3.1 (2024-01-04)
 
 * 🐛 Revert `engines` bump in `package.json`. ([#137](https://github.com/MattiasBuelens/web-streams-polyfill/issues/137), [#138](https://github.com/MattiasBuelens/web-streams-polyfill/pull/138))
