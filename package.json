@@ -6,6 +6,13 @@
   "browser": "dist/polyfill.min.js",
   "module": "dist/polyfill.mjs",
   "types": "types/polyfill.d.ts",
+  "typesVersions": {
+    ">=3.6": {
+      "dist/types/*": [
+        "dist/types/ts3.6/*"
+      ]
+    }
+  },
   "scripts": {
     "test": "npm run test:types && npm run test:unit && npm run test:wpt",
     "test:wpt": "npm run test:wpt:node && npm run test:wpt:chromium && npm run test:wpt:firefox",
@@ -17,8 +24,8 @@
     "lint": "eslint \"src/**/*.ts\"",
     "build": "npm run build:bundle && npm run build:types",
     "build:bundle": "rollup -c",
-    "build:types": "tsc --project . --emitDeclarationOnly --declarationDir ./lib && api-extractor run",
-    "accept:types": "tsc --project . --emitDeclarationOnly --declarationDir ./lib && api-extractor run --local",
+    "build:types": "tsc --project . --emitDeclarationOnly --declarationDir ./lib && api-extractor run && node ./build/downlevel-dts.js",
+    "accept:types": "tsc --project . --emitDeclarationOnly --declarationDir ./lib && api-extractor run --local && node ./build/downlevel-dts.js",
     "prepare": "npm run build"
   },
   "files": [
@@ -67,6 +74,7 @@
     "playwright": "^1.14.1",
     "recursive-readdir": "^2.2.2",
     "rollup": "^4.9.2",
+    "ts-morph": "^10.0.2",
     "tslib": "^2.6.2",
     "typescript": "^5.3.3",
     "wpt-runner": "^5.0.0"
