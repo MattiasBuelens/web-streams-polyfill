@@ -29,7 +29,7 @@
     "types"
   ],
   "engines": {
-    "node": ">= 18"
+    "node": ">= 8"
   },
   "repository": {
     "type": "git",
