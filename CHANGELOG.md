@@ -10,10 +10,10 @@
 > - 🏠 Internal
 > - 💅 Polish
 
-## Unreleased
+## 3.3.1 (2024-01-04)
 
 * 🐛 Revert `engines` bump in `package.json`. ([#137](https://github.com/MattiasBuelens/web-streams-polyfill/issues/137), [#138](https://github.com/MattiasBuelens/web-streams-polyfill/pull/138))
-* 🐛 Re-introduce support for TypeScript 3.6 and below. ([#137](https://github.com/MattiasBuelens/web-streams-polyfill/issues/137), [#138](https://github.com/MattiasBuelens/web-streams-polyfill/pull/138))
+* 🐛 Re-introduce support for TypeScript 3.5 and below. ([#137](https://github.com/MattiasBuelens/web-streams-polyfill/issues/137), [#138](https://github.com/MattiasBuelens/web-streams-polyfill/pull/138))
 
 ## 3.3.0 (2024-01-04)
 
