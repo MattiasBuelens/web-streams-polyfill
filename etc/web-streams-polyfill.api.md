@@ -10,6 +10,7 @@
 export interface AbortSignal {
     readonly aborted: boolean;
     addEventListener(type: 'abort', listener: () => void): void;
+    readonly reason?: any;
     removeEventListener(type: 'abort', listener: () => void): void;
 }
 
@@ -59,6 +60,7 @@ export class ReadableStream<R = any> {
     });
     constructor(underlyingSource?: UnderlyingSource<R>, strategy?: QueuingStrategy<R>);
     cancel(reason?: any): Promise<void>;
+    static from<R>(asyncIterable: Iterable<R> | AsyncIterable<R>): ReadableStream<R>;
     getReader({ mode }: {
         mode: 'byob';
     }): ReadableStreamBYOBReader;
@@ -86,8 +88,14 @@ export class ReadableStreamBYOBReader {
     constructor(stream: ReadableStream<Uint8Array>);
     cancel(reason?: any): Promise<void>;
     get closed(): Promise<undefined>;
-    read<T extends ArrayBufferView>(view: T): Promise<ReadableStreamBYOBReadResult<T>>;
+    read<T extends ArrayBufferView>(view: T, options?: ReadableStreamBYOBReaderReadOptions): Promise<ReadableStreamBYOBReadResult<T>>;
     releaseLock(): void;
+}
+
+// @public
+export interface ReadableStreamBYOBReaderReadOptions {
+    // (undocumented)
+    min?: number;
 }
 
 // @public
@@ -156,6 +164,7 @@ export interface StreamPipeOptions {
 
 // @public
 export interface Transformer<I = any, O = any> {
+    cancel?: TransformerCancelCallback;
     flush?: TransformerFlushCallback<O>;
     // (undocumented)
     readableType?: undefined;
@@ -164,6 +173,9 @@ export interface Transformer<I = any, O = any> {
     // (undocumented)
     writableType?: undefined;
 }
+
+// @public (undocumented)
+export type TransformerCancelCallback = (reason: any) => void | PromiseLike<void>;
 
 // @public (undocumented)
 export type TransformerFlushCallback<O> = (controller: TransformStreamDefaultController<O>) => void | PromiseLike<void>;

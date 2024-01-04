@@ -16,6 +16,11 @@
   * This allows TypeScript users to use new methods such as `ReadableStream.prototype[Symbol.asyncIterator]()`,
     even when TypeScript doesn't yet have a built-in type definition for them.
 * 💥 The type definitions now require TypeScript 3.5 or higher. ([#130](https://github.com/MattiasBuelens/web-streams-polyfill/pull/130))
+* 👓 Align with [spec version `4dc123a`](https://github.com/whatwg/streams/tree/4dc123a6e7f7ba89a8c6a7975b021156f39cab52/) ([#115](https://github.com/MattiasBuelens/web-streams-polyfill/issues/115), [#134](https://github.com/MattiasBuelens/web-streams-polyfill/pull/134))
+  * Added `ReadableStream.from(asyncIterable)`, which creates a `ReadableStream` wrapping the given iterable or async iterable.
+  * Added `Transformer.cancel` method, which is called when the readable side of a `TransformStream` is cancelled or when its writable side is aborted.
+  * Added `min` option to `ReadableStreamBYOBReader.read(view, options)`.
+  * Added support for `AbortSignal.reason` when aborting a pipe.
 * 🐛 Prevent [warnings from Bluebird](http://bluebirdjs.com/docs/warning-explanations.html#warning-a-promise-was-created-in-a-handler-but-was-not-returned-from-it) about a promise being created within a handler but not being returned from a handler. ([#131](https://github.com/MattiasBuelens/web-streams-polyfill/pull/131))
 * 🏠 Improve internal `DOMException` polyfill. ([#133](https://github.com/MattiasBuelens/web-streams-polyfill/pull/133))
 

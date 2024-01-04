@@ -2,6 +2,7 @@ import { assertDictionary, assertFunction } from './basic';
 import { promiseCall, reflectCall } from '../helpers/webidl';
 import type {
   Transformer,
+  TransformerCancelCallback,
   TransformerFlushCallback,
   TransformerStartCallback,
   TransformerTransformCallback,
@@ -12,12 +13,16 @@ import { TransformStreamDefaultController } from '../transform-stream';
 export function convertTransformer<I, O>(original: Transformer<I, O> | null,
                                          context: string): ValidatedTransformer<I, O> {
   assertDictionary(original, context);
+  const cancel = original?.cancel;
   const flush = original?.flush;
   const readableType = original?.readableType;
   const start = original?.start;
   const transform = original?.transform;
   const writableType = original?.writableType;
   return {
+    cancel: cancel === undefined ?
+      undefined :
+      convertTransformerCancelCallback(cancel, original!, `${context} has member 'cancel' that`),
     flush: flush === undefined ?
       undefined :
       convertTransformerFlushCallback(flush, original!, `${context} has member 'flush' that`),
@@ -57,4 +62,13 @@ function convertTransformerTransformCallback<I, O>(
 ): (chunk: I, controller: TransformStreamDefaultController<O>) => Promise<void> {
   assertFunction(fn, context);
   return (chunk: I, controller: TransformStreamDefaultController<O>) => promiseCall(fn, original, [chunk, controller]);
+}
+
+function convertTransformerCancelCallback<I, O>(
+  fn: TransformerCancelCallback,
+  original: Transformer<I, O>,
+  context: string
+): (reason: any) => Promise<void> {
+  assertFunction(fn, context);
+  return (reason: any) => promiseCall(fn, original, [reason]);
 }

@@ -7,7 +7,22 @@ const excludedTestsBase = [
   // Disable tests for different size functions per realm, since they need a working <iframe>
   'queuing-strategies-size-function-per-global.window.html',
   // We don't implement transferable streams yet
-  'transferable/**'
+  'transferable/**',
+  // The crash tests require creating and terminating workers and iframes.
+  'piping/crashtests/**',
+  'readable-streams/cross-realm-crash.window.html',
+  'readable-streams/crashtests/**',
+  // This test is blocked on an unresolved spec issue: https://github.com/whatwg/streams/issues/1243
+  'piping/general-addition.any.html',
+  // We don't support ShadowRealms.
+  'idlharness-shadowrealm.window.html',
+  // We don't patch globals inside other <iframe>s.
+  'readable-streams/global.html',
+  'transform-streams/invalid-realm.tentative.window.html',
+  // We don't support MessagePort or VideoFrame.
+  'readable-streams/owning-type-message-port.any.html',
+  'readable-streams/owning-type-video-frame.any.html',
+  'readable-streams/owning-type.any.html' // FIXME: reenable this test once owning type PR lands.
 ];
 
 const excludedTestsNonES2018 = [
@@ -32,7 +47,7 @@ const ignoredFailuresMinified = {
   'idlharness.any.html': [
     // Terser turns `(a = undefined) => {}` into `(a) => {}`, changing the function's length property
     // Therefore we cannot correctly implement methods with optional arguments
-    /interface: operation (abort|cancel|enqueue|error|getReader|write)/,
+    /interface: operation (abort|cancel|enqueue|error|getReader|read|write)/,
     // Same thing for ReadableStream.values(), which is tested as part of the async iterable declaration
     'ReadableStream interface: async iterable<any>'
   ]

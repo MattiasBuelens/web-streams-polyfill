@@ -3,6 +3,7 @@ import {
   ReadableStream,
   type ReadableStreamAsyncIterator,
   ReadableStreamBYOBReader,
+  type ReadableStreamBYOBReaderReadOptions,
   type ReadableStreamBYOBReadResult,
   ReadableStreamBYOBRequest,
   ReadableStreamDefaultController,
@@ -34,6 +35,7 @@ import ByteLengthQueuingStrategy from './lib/byte-length-queuing-strategy';
 import CountQueuingStrategy from './lib/count-queuing-strategy';
 import {
   type Transformer,
+  type TransformerCancelCallback,
   type TransformerFlushCallback,
   type TransformerStartCallback,
   type TransformerTransformCallback,
@@ -55,6 +57,7 @@ export {
   type StreamPipeOptions,
   type ReadableStreamDefaultReadResult,
   type ReadableStreamBYOBReadResult,
+  type ReadableStreamBYOBReaderReadOptions,
   ReadableStreamDefaultController,
   ReadableByteStreamController,
   ReadableStreamBYOBRequest,
@@ -80,6 +83,7 @@ export {
 
   TransformStream,
   type Transformer,
+  type TransformerCancelCallback,
   type TransformerStartCallback,
   type TransformerFlushCallback,
   type TransformerTransformCallback,

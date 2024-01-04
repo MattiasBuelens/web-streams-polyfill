@@ -12,16 +12,19 @@ import {
   AcquireReadableStreamDefaultReader,
   IsReadableStreamDefaultReader,
   ReadableStreamDefaultReader,
+  ReadableStreamDefaultReaderErrorReadRequests,
   type ReadableStreamDefaultReadResult
 } from './readable-stream/default-reader';
 import {
   AcquireReadableStreamBYOBReader,
   IsReadableStreamBYOBReader,
   ReadableStreamBYOBReader,
+  ReadableStreamBYOBReaderErrorReadIntoRequests,
   type ReadableStreamBYOBReadResult
 } from './readable-stream/byob-reader';
 import { ReadableStreamPipeTo } from './readable-stream/pipe';
 import { ReadableStreamTee } from './readable-stream/tee';
+import { ReadableStreamFromIterable } from './readable-stream/from';
 import { IsWritableStream, IsWritableStreamLocked, WritableStream } from './writable-stream';
 import { SimpleQueue } from './simple-queue';
 import {
@@ -53,7 +56,10 @@ import { assertObject, assertRequiredArgument } from './validators/basic';
 import { convertQueuingStrategy } from './validators/queuing-strategy';
 import { ExtractHighWaterMark, ExtractSizeAlgorithm } from './abstract-ops/queuing-strategy';
 import { convertUnderlyingDefaultOrByteSource } from './validators/underlying-source';
-import type { ReadableStreamGetReaderOptions } from './readable-stream/reader-options';
+import type {
+  ReadableStreamBYOBReaderReadOptions,
+  ReadableStreamGetReaderOptions
+} from './readable-stream/reader-options';
 import { convertReaderOptions } from './validators/reader-options';
 import type { StreamPipeOptions, ValidatedStreamPipeOptions } from './readable-stream/pipe-options';
 import type { ReadableStreamIteratorOptions } from './readable-stream/iterator-options';
@@ -318,8 +324,22 @@ export class ReadableStream<R = any> {
    * {@inheritDoc ReadableStream.values}
    */
   [Symbol.asyncIterator]!: (options?: ReadableStreamIteratorOptions) => ReadableStreamAsyncIterator<R>;
+
+  /**
+   * Creates a new ReadableStream wrapping the provided iterable or async iterable.
+   *
+   * This can be used to adapt various kinds of objects into a readable stream,
+   * such as an array, an async generator, or a Node.js readable stream.
+   */
+  // eslint-disable-next-line no-shadow
+  static from<R>(asyncIterable: Iterable<R> | AsyncIterable<R>): ReadableStream<R> {
+    return ReadableStreamFromIterable(asyncIterable);
+  }
 }
 
+Object.defineProperties(ReadableStream, {
+  from: { enumerable: true }
+});
 Object.defineProperties(ReadableStream.prototype, {
   cancel: { enumerable: true },
   getReader: { enumerable: true },
@@ -329,6 +349,7 @@ Object.defineProperties(ReadableStream.prototype, {
   values: { enumerable: true },
   locked: { enumerable: true }
 });
+setFunctionName(ReadableStream.from, 'from');
 setFunctionName(ReadableStream.prototype.cancel, 'cancel');
 setFunctionName(ReadableStream.prototype.getReader, 'getReader');
 setFunctionName(ReadableStream.prototype.pipeThrough, 'pipeThrough');
@@ -353,6 +374,7 @@ export type {
   ReadableStreamAsyncIterator,
   ReadableStreamDefaultReadResult,
   ReadableStreamBYOBReadResult,
+  ReadableStreamBYOBReaderReadOptions,
   UnderlyingByteSource,
   UnderlyingSource,
   UnderlyingSourceStartCallback,
@@ -452,10 +474,11 @@ export function ReadableStreamCancel<R>(stream: ReadableStream<R>, reason: any):
 
   const reader = stream._reader;
   if (reader !== undefined && IsReadableStreamBYOBReader(reader)) {
-    reader._readIntoRequests.forEach(readIntoRequest => {
+    const readIntoRequests = reader._readIntoRequests;
+    reader._readIntoRequests = new SimpleQueue();
+    readIntoRequests.forEach(readIntoRequest => {
       readIntoRequest._closeSteps(undefined);
     });
-    reader._readIntoRequests = new SimpleQueue();
   }
 
   const sourceCancelPromise = stream._readableStreamController[CancelSteps](reason);
@@ -476,10 +499,11 @@ export function ReadableStreamClose<R>(stream: ReadableStream<R>): void {
   defaultReaderClosedPromiseResolve(reader);
 
   if (IsReadableStreamDefaultReader<R>(reader)) {
-    reader._readRequests.forEach(readRequest => {
+    const readRequests = reader._readRequests;
+    reader._readRequests = new SimpleQueue();
+    readRequests.forEach(readRequest => {
       readRequest._closeSteps();
     });
-    reader._readRequests = new SimpleQueue();
   }
 }
 
@@ -499,19 +523,10 @@ export function ReadableStreamError<R>(stream: ReadableStream<R>, e: any): void 
   defaultReaderClosedPromiseReject(reader, e);
 
   if (IsReadableStreamDefaultReader<R>(reader)) {
-    reader._readRequests.forEach(readRequest => {
-      readRequest._errorSteps(e);
-    });
-
-    reader._readRequests = new SimpleQueue();
+    ReadableStreamDefaultReaderErrorReadRequests(reader, e);
   } else {
     assert(IsReadableStreamBYOBReader(reader));
-
-    reader._readIntoRequests.forEach(readIntoRequest => {
-      readIntoRequest._errorSteps(e);
-    });
-
-    reader._readIntoRequests = new SimpleQueue();
+    ReadableStreamBYOBReaderErrorReadIntoRequests(reader, e);
   }
 }
 

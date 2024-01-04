@@ -3,9 +3,9 @@ import assert from '../../stub/assert';
 
 const originalPromise = Promise;
 const originalPromiseThen = Promise.prototype.then;
-const originalPromiseResolve = Promise.resolve.bind(originalPromise);
 const originalPromiseReject = Promise.reject.bind(originalPromise);
 
+// https://webidl.spec.whatwg.org/#a-new-promise
 export function newPromise<T>(executor: (
   resolve: (value: T | PromiseLike<T>) => void,
   reject: (reason?: any) => void
@@ -13,10 +13,12 @@ export function newPromise<T>(executor: (
   return new originalPromise(executor);
 }
 
+// https://webidl.spec.whatwg.org/#a-promise-resolved-with
 export function promiseResolvedWith<T>(value: T | PromiseLike<T>): Promise<T> {
-  return originalPromiseResolve(value);
+  return newPromise(resolve => resolve(value));
 }
 
+// https://webidl.spec.whatwg.org/#a-promise-rejected-with
 export function promiseRejectedWith<T = never>(reason: any): Promise<T> {
   return originalPromiseReject(reason);
 }

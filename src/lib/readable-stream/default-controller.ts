@@ -11,7 +11,7 @@ import { SimpleQueue } from '../simple-queue';
 import { IsReadableStreamLocked, ReadableStream, ReadableStreamClose, ReadableStreamError } from '../readable-stream';
 import type { ValidatedUnderlyingSource } from './underlying-source';
 import { setFunctionName, typeIsObject } from '../helpers/miscellaneous';
-import { CancelSteps, PullSteps } from '../abstract-ops/internal-methods';
+import { CancelSteps, PullSteps, ReleaseSteps } from '../abstract-ops/internal-methods';
 import { promiseResolvedWith, uponPromise } from '../helpers/webidl';
 
 /**
@@ -129,6 +129,11 @@ export class ReadableStreamDefaultController<R> {
       ReadableStreamAddReadRequest(stream, readRequest);
       ReadableStreamDefaultControllerCallPullIfNeeded(this);
     }
+  }
+
+  /** @internal */
+  [ReleaseSteps](): void {
+    // Do nothing.
   }
 }
 

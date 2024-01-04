@@ -55,7 +55,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
     let abortAlgorithm: () => void;
     if (signal !== undefined) {
       abortAlgorithm = () => {
-        const error = new DOMException('Aborted', 'AbortError');
+        const error = signal.reason !== undefined ? signal.reason : new DOMException('Aborted', 'AbortError');
         const actions: Array<() => Promise<void>> = [];
         if (!preventAbort) {
           actions.push(() => {

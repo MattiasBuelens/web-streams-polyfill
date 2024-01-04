@@ -1,5 +1,9 @@
-import { assertDictionary } from './basic';
-import type { ReadableStreamGetReaderOptions } from '../readable-stream/reader-options';
+import { assertDictionary, convertUnsignedLongLongWithEnforceRange } from './basic';
+import type {
+  ReadableStreamBYOBReaderReadOptions,
+  ReadableStreamGetReaderOptions,
+  ValidatedReadableStreamBYOBReaderReadOptions
+} from '../readable-stream/reader-options';
 
 export function convertReaderOptions(options: ReadableStreamGetReaderOptions | null | undefined,
                                      context: string): ReadableStreamGetReaderOptions {
@@ -16,4 +20,18 @@ function convertReadableStreamReaderMode(mode: string, context: string): 'byob' 
     throw new TypeError(`${context} '${mode}' is not a valid enumeration value for ReadableStreamReaderMode`);
   }
   return mode;
+}
+
+export function convertByobReadOptions(
+  options: ReadableStreamBYOBReaderReadOptions | null | undefined,
+  context: string
+): ValidatedReadableStreamBYOBReaderReadOptions {
+  assertDictionary(options, context);
+  const min = options?.min ?? 1;
+  return {
+    min: convertUnsignedLongLongWithEnforceRange(
+      min,
+      `${context} has member 'min' that`
+    )
+  };
 }
