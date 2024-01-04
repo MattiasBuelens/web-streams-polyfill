@@ -68,12 +68,13 @@ import { convertPipeOptions } from './validators/pipe-options';
 import type { ReadableWritablePair } from './readable-stream/readable-writable-pair';
 import { convertReadableWritablePair } from './validators/readable-writable-pair';
 import type { ReadableStreamDefaultReaderLike, ReadableStreamLike } from './readable-stream/readable-stream-like';
+import type { NonShared } from './helpers/array-buffer-view';
 
 export type DefaultReadableStream<R = any> = ReadableStream<R> & {
   _readableStreamController: ReadableStreamDefaultController<R>
 };
 
-export type ReadableByteStream = ReadableStream<Uint8Array> & {
+export type ReadableByteStream = ReadableStream<NonShared<Uint8Array>> & {
   _readableStreamController: ReadableByteStreamController
 };
 

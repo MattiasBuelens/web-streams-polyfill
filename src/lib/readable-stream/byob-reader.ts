@@ -22,7 +22,7 @@ import type {
   ValidatedReadableStreamBYOBReaderReadOptions
 } from './reader-options';
 import { convertByobReadOptions } from '../validators/reader-options';
-import { isDataView, type TypedArray } from '../helpers/array-buffer-view';
+import { isDataView, type NonShared, type TypedArray } from '../helpers/array-buffer-view';
 
 /**
  * A result returned by {@link ReadableStreamBYOBReader.read}.
@@ -40,13 +40,15 @@ export type ReadableStreamBYOBReadResult<T extends ArrayBufferView> = {
 // Abstract operations for the ReadableStream.
 
 export function AcquireReadableStreamBYOBReader(stream: ReadableByteStream): ReadableStreamBYOBReader {
-  return new ReadableStreamBYOBReader(stream);
+  return new ReadableStreamBYOBReader(stream as ReadableStream<Uint8Array>);
 }
 
 // ReadableStream API exposed for controllers.
 
-export function ReadableStreamAddReadIntoRequest<T extends ArrayBufferView>(stream: ReadableByteStream,
-                                                                            readIntoRequest: ReadIntoRequest<T>): void {
+export function ReadableStreamAddReadIntoRequest<T extends NonShared<ArrayBufferView>>(
+  stream: ReadableByteStream,
+  readIntoRequest: ReadIntoRequest<T>
+): void {
   assert(IsReadableStreamBYOBReader(stream._reader));
   assert(stream._state === 'readable' || stream._state === 'closed');
 
@@ -88,7 +90,7 @@ export function ReadableStreamHasBYOBReader(stream: ReadableByteStream): boolean
 
 // Readers
 
-export interface ReadIntoRequest<T extends ArrayBufferView> {
+export interface ReadIntoRequest<T extends NonShared<ArrayBufferView>> {
   _chunkSteps(chunk: T): void;
 
   _closeSteps(chunk: T | undefined): void;
@@ -167,7 +169,7 @@ export class ReadableStreamBYOBReader {
     view: T,
     options?: ReadableStreamBYOBReaderReadOptions
   ): Promise<ReadableStreamBYOBReadResult<T>>;
-  read<T extends ArrayBufferView>(
+  read<T extends NonShared<ArrayBufferView>>(
     view: T,
     rawOptions: ReadableStreamBYOBReaderReadOptions | null | undefined = {}
   ): Promise<ReadableStreamBYOBReadResult<T>> {
@@ -277,7 +279,7 @@ export function IsReadableStreamBYOBReader(x: any): x is ReadableStreamBYOBReade
   return x instanceof ReadableStreamBYOBReader;
 }
 
-export function ReadableStreamBYOBReaderRead<T extends ArrayBufferView>(
+export function ReadableStreamBYOBReaderRead<T extends NonShared<ArrayBufferView>>(
   reader: ReadableStreamBYOBReader,
   view: T,
   min: number,

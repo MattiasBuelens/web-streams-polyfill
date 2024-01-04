@@ -20,7 +20,7 @@ export function CopyDataBlockBytes(dest: ArrayBuffer,
   new Uint8Array(dest).set(new Uint8Array(src, srcOffset, n), destOffset);
 }
 
-export let TransferArrayBuffer = <T extends ArrayBufferLike>(O: T): T => {
+export let TransferArrayBuffer = (O: ArrayBuffer): ArrayBuffer => {
   if (typeof structuredClone === 'function') {
     TransferArrayBuffer = buffer => structuredClone(buffer, { transfer: [buffer] });
   } else {
@@ -32,17 +32,17 @@ export let TransferArrayBuffer = <T extends ArrayBufferLike>(O: T): T => {
 
 // Not implemented correctly
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function CanTransferArrayBuffer(O: ArrayBufferLike): boolean {
+export function CanTransferArrayBuffer(O: ArrayBuffer): boolean {
   return !IsDetachedBuffer(O);
 }
 
 // Not implemented correctly
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function IsDetachedBuffer(O: ArrayBufferLike): boolean {
+export function IsDetachedBuffer(O: ArrayBuffer): boolean {
   return O.byteLength === 0;
 }
 
-export function ArrayBufferSlice(buffer: ArrayBufferLike, begin: number, end: number): ArrayBufferLike {
+export function ArrayBufferSlice(buffer: ArrayBuffer, begin: number, end: number): ArrayBuffer {
   // ArrayBuffer.prototype.slice is not available on IE10
   // https://www.caniuse.com/mdn-javascript_builtins_arraybuffer_slice
   if (buffer.slice) {
