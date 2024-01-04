@@ -10,12 +10,17 @@
 > - 🏠 Internal
 > - 💅 Polish
 
+## Unreleased
+
+* 🐛 Revert `engines` bump in `package.json`. ([#137](https://github.com/MattiasBuelens/web-streams-polyfill/issues/137), [#138](https://github.com/MattiasBuelens/web-streams-polyfill/pull/138))
+* 🐛 Re-introduce support for TypeScript 3.6 and below. ([#137](https://github.com/MattiasBuelens/web-streams-polyfill/issues/137), [#138](https://github.com/MattiasBuelens/web-streams-polyfill/pull/138))
+
 ## 3.3.0 (2024-01-04)
 
 * 🚀 Added global augmentations for `ReadableStream` to the polyfill's type definitions. ([#130](https://github.com/MattiasBuelens/web-streams-polyfill/pull/130))
   * This allows TypeScript users to use new methods such as `ReadableStream.prototype[Symbol.asyncIterator]()`,
     even when TypeScript doesn't yet have a built-in type definition for them.
-* 💥 The type definitions now require TypeScript 3.5 or higher. ([#130](https://github.com/MattiasBuelens/web-streams-polyfill/pull/130))
+* ~~💥 The type definitions now require TypeScript 3.6 or higher. ([#130](https://github.com/MattiasBuelens/web-streams-polyfill/pull/130))~~ (Reverted in version 3.3.1)
 * 👓 Align with [spec version `4dc123a`](https://github.com/whatwg/streams/tree/4dc123a6e7f7ba89a8c6a7975b021156f39cab52/) ([#115](https://github.com/MattiasBuelens/web-streams-polyfill/issues/115), [#134](https://github.com/MattiasBuelens/web-streams-polyfill/pull/134))
   * Added `ReadableStream.from(asyncIterable)`, which creates a `ReadableStream` wrapping the given iterable or async iterable.
     This can also be used to wrap a native `ReadableStream` (e.g. a `Response.body` from `fetch()`),
