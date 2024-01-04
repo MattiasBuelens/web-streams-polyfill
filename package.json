@@ -14,15 +14,23 @@
   },
   "exports": {
     ".": {
+      "types": "./dist/types/ponyfill.d.ts",
       "import": "./dist/ponyfill.mjs",
       "require": "./dist/ponyfill.js"
     },
     "./es5": {
+      "types": "./dist/types/ponyfill.d.ts",
       "import": "./dist/ponyfill.es5.mjs",
       "require": "./dist/ponyfill.es5.js"
     },
-    "./polyfill": "./dist/polyfill.js",
-    "./polyfill/es5": "./dist/polyfill.es5.js",
+    "./polyfill": {
+      "types": "./dist/types/polyfill.d.ts",
+      "default": "./dist/polyfill.js"
+    },
+    "./polyfill/es5": {
+      "types": "./dist/types/polyfill.d.ts",
+      "default": "./dist/polyfill.es5.js"
+    },
     "./dist/*": "./dist/*",
     "./package": "./package.json",
     "./package.json": "./package.json"
