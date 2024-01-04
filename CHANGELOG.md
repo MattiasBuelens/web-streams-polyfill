@@ -10,7 +10,7 @@
 > - 🏠 Internal
 > - 💅 Polish
 
-## Unreleased
+## 3.3.0 (2024-01-04)
 
 * 🚀 Added global augmentations for `ReadableStream` to the polyfill's type definitions. ([#130](https://github.com/MattiasBuelens/web-streams-polyfill/pull/130))
   * This allows TypeScript users to use new methods such as `ReadableStream.prototype[Symbol.asyncIterator]()`,
