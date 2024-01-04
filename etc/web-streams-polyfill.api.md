@@ -60,7 +60,7 @@ export class ReadableStream<R = any> {
     });
     constructor(underlyingSource?: UnderlyingSource<R>, strategy?: QueuingStrategy<R>);
     cancel(reason?: any): Promise<void>;
-    static from<R>(asyncIterable: Iterable<R> | AsyncIterable<R> | ReadableStream<R>): ReadableStream<R>;
+    static from<R>(asyncIterable: Iterable<R> | AsyncIterable<R> | ReadableStreamLike<R>): ReadableStream<R>;
     getReader({ mode }: {
         mode: 'byob';
     }): ReadableStreamBYOBReader;
@@ -132,6 +132,18 @@ export class ReadableStreamDefaultReader<R = any> {
 }
 
 // @public
+export interface ReadableStreamDefaultReaderLike<R = any> {
+    // (undocumented)
+    cancel(reason?: any): Promise<void>;
+    // (undocumented)
+    readonly closed: Promise<undefined>;
+    // (undocumented)
+    read(): Promise<ReadableStreamDefaultReadResult<R>>;
+    // (undocumented)
+    releaseLock(): void;
+}
+
+// @public
 export type ReadableStreamDefaultReadResult<T> = {
     done: false;
     value: T;
@@ -144,6 +156,14 @@ export type ReadableStreamDefaultReadResult<T> = {
 export interface ReadableStreamIteratorOptions {
     // (undocumented)
     preventCancel?: boolean;
+}
+
+// @public
+export interface ReadableStreamLike<R = any> {
+    // (undocumented)
+    getReader(): ReadableStreamDefaultReaderLike<R>;
+    // (undocumented)
+    readonly locked: boolean;
 }
 
 // @public

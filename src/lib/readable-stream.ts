@@ -67,6 +67,7 @@ import { convertIteratorOptions } from './validators/iterator-options';
 import { convertPipeOptions } from './validators/pipe-options';
 import type { ReadableWritablePair } from './readable-stream/readable-writable-pair';
 import { convertReadableWritablePair } from './validators/readable-writable-pair';
+import type { ReadableStreamDefaultReaderLike, ReadableStreamLike } from './readable-stream/readable-stream-like';
 
 export type DefaultReadableStream<R = any> = ReadableStream<R> & {
   _readableStreamController: ReadableStreamDefaultController<R>
@@ -335,7 +336,7 @@ export class ReadableStream<R = any> {
    * This can be used to adapt various kinds of objects into a readable stream,
    * such as an array, an async generator, or a Node.js readable stream.
    */
-  static from<R>(asyncIterable: Iterable<R> | AsyncIterable<R> | ReadableStream<R>): ReadableStream<R> {
+  static from<R>(asyncIterable: Iterable<R> | AsyncIterable<R> | ReadableStreamLike<R>): ReadableStream<R> {
     return ReadableStreamFrom(asyncIterable);
   }
 }
@@ -387,7 +388,9 @@ export type {
   UnderlyingByteSourcePullCallback,
   StreamPipeOptions,
   ReadableWritablePair,
-  ReadableStreamIteratorOptions
+  ReadableStreamIteratorOptions,
+  ReadableStreamLike,
+  ReadableStreamDefaultReaderLike
 };
 
 // Abstract operations for the ReadableStream.

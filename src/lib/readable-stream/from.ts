@@ -1,9 +1,9 @@
+import { CreateReadableStream, type DefaultReadableStream } from '../readable-stream';
 import {
-  CreateReadableStream,
-  type DefaultReadableStream,
-  type ReadableStream,
-  type ReadableStreamDefaultReader
-} from '../readable-stream';
+  isReadableStreamLike,
+  type ReadableStreamDefaultReaderLike,
+  type ReadableStreamLike
+} from './readable-stream-like';
 import { ReadableStreamDefaultControllerClose, ReadableStreamDefaultControllerEnqueue } from './default-controller';
 import { GetIterator, GetMethod, IteratorComplete, IteratorNext, IteratorValue } from '../abstract-ops/ecmascript';
 import { promiseRejectedWith, promiseResolvedWith, reflectCall, transformPromiseWith } from '../helpers/webidl';
@@ -11,10 +11,10 @@ import { typeIsObject } from '../helpers/miscellaneous';
 import { noop } from '../../utils';
 
 export function ReadableStreamFrom<R>(
-  source: Iterable<R> | AsyncIterable<R> | ReadableStream<R>
+  source: Iterable<R> | AsyncIterable<R> | ReadableStreamLike<R>
 ): DefaultReadableStream<R> {
-  if (typeof (source as ReadableStream<R>).getReader !== 'undefined') {
-    return ReadableStreamFromDefaultReader((source as ReadableStream<R>).getReader());
+  if (isReadableStreamLike(source)) {
+    return ReadableStreamFromDefaultReader(source.getReader());
   }
   return ReadableStreamFromIterable(source);
 }
@@ -77,7 +77,9 @@ export function ReadableStreamFromIterable<R>(asyncIterable: Iterable<R> | Async
   return stream;
 }
 
-export function ReadableStreamFromDefaultReader<R>(reader: ReadableStreamDefaultReader<R>): DefaultReadableStream<R> {
+export function ReadableStreamFromDefaultReader<R>(
+  reader: ReadableStreamDefaultReaderLike<R>
+): DefaultReadableStream<R> {
   let stream: DefaultReadableStream<R>;
 
   const startAlgorithm = noop;
