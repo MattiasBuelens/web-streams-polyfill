@@ -1,8 +1,5 @@
 const excludedTestsBase = [
-  // We cannot polyfill TransferArrayBuffer yet, so disable tests for detached array buffers
-  // See https://github.com/MattiasBuelens/web-streams-polyfill/issues/3
-  'readable-byte-streams/bad-buffers-and-views.any.html',
-  'readable-byte-streams/enqueue-with-detached-buffer.window.html',
+  // We cannot detect non-transferability, and Node's WebAssembly.Memory is also not marked as such.
   'readable-byte-streams/non-transferable-buffers.any.html',
   // Disable tests for different size functions per realm, since they need a working <iframe>
   'queuing-strategies-size-function-per-global.window.html',
@@ -32,14 +29,11 @@ const excludedTestsNonES2018 = [
 ];
 
 const ignoredFailuresBase = {
-  // We cannot transfer byobRequest.view.buffer after respond() or enqueue()
-  'readable-byte-streams/general.any.html': [
-    'ReadableStream with byte source: read(view) with Uint32Array, then fill it by multiple respond() calls',
-    'ReadableStream with byte source: read(view) with Uint32Array, then fill it by multiple enqueue() calls'
-  ],
-  // Same thing: the enqueued chunk will have the same buffer as branch1's chunk
-  'readable-byte-streams/tee.any.html': [
-    'ReadableStream teeing with byte source: chunks should be cloned for each branch'
+  // We cannot distinguish between a zero-length ArrayBuffer and a detached ArrayBuffer,
+  // so we incorrectly throw a TypeError instead of a RangeError
+  'readable-byte-streams/bad-buffers-and-views.any.html': [
+    'ReadableStream with byte source: respondWithNewView() throws if the supplied view\'s buffer is zero-length ' +
+    '(in the closed state)'
   ]
 };
 

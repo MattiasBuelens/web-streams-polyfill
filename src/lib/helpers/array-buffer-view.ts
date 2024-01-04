@@ -7,12 +7,14 @@ export type TypedArray =
   | Int32Array
   | Uint32Array
   | Float32Array
-  | Float64Array
-  | BigInt64Array
-  | BigUint64Array;
+  | Float64Array;
+
+export type NonShared<T extends ArrayBufferView> = T & {
+  buffer: ArrayBuffer;
+}
 
 export interface ArrayBufferViewConstructor<T extends ArrayBufferView = ArrayBufferView> {
-  new(buffer: ArrayBufferLike, byteOffset: number, length?: number): T;
+  new(buffer: ArrayBuffer, byteOffset: number, length?: number): T;
 
   readonly prototype: T;
 }
