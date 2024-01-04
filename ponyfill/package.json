@@ -2,5 +2,5 @@
   "name": "web-streams-ponyfill",
   "main": "../dist/ponyfill",
   "module": "../dist/ponyfill.mjs",
-  "types": "../types/ponyfill.d.ts"
+  "types": "../dist/types/ponyfill.d.ts"
 }

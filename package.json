@@ -5,7 +5,7 @@
   "main": "dist/polyfill",
   "browser": "dist/polyfill.min.js",
   "module": "dist/polyfill.mjs",
-  "types": "types/polyfill.d.ts",
+  "types": "dist/types/polyfill.d.ts",
   "typesVersions": {
     ">=3.6": {
       "dist/types/*": [

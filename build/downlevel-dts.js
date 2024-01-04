@@ -5,20 +5,22 @@ const { Project, ts } = require('ts-morph');
 const path = require('path');
 
 const project = new Project();
-const inputDir = project.addDirectoryAtPath(path.join(__dirname, '../dist/types/'));
+const inputDir = project.addDirectoryAtPath(path.join(__dirname, '../types/'));
+const outputDir = project.createDirectory(path.join(__dirname, '../dist/types/'));
 
 // Create output directory
-const ts36Dir = inputDir.createDirectory('ts3.6');
+const ts36Dir = outputDir.createDirectory('ts3.6');
 project.saveSync();
 
 // Down-level all *.d.ts files in input directory
 const files = inputDir.addSourceFilesAtPaths('*.d.ts');
-for (const f of files) {
-  // Create copy for TypeScript 3.6+
-  f.copyToDirectory(ts36Dir, { overwrite: true });
-  downlevelTS36(f);
-  downlevelTS34(f);
-  // Original file will be overwritten by down-leveled file when saved
+for (const originalFile of files) {
+  // Create copy for TypeScript 3.6 and higher
+  originalFile.copyToDirectory(ts36Dir, { overwrite: true });
+  // Downlevel and create copy for TypeScript 3.6 and lower
+  const downlevelFile = originalFile.copyToDirectory(outputDir, { overwrite: true });
+  downlevelTS36(downlevelFile);
+  downlevelTS34(downlevelFile);
 }
 project.saveSync();
 
