@@ -1,7 +1,7 @@
 import { noop } from '../utils';
 
 export const AssertionError = /* @__PURE__ */ (() => {
-  // eslint-disable-next-line no-shadow
+  // eslint-disable-next-line @typescript-eslint/no-shadow
   return class AssertionError extends Error {
   };
 })();

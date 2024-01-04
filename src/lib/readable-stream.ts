@@ -24,7 +24,7 @@ import {
 } from './readable-stream/byob-reader';
 import { ReadableStreamPipeTo } from './readable-stream/pipe';
 import { ReadableStreamTee } from './readable-stream/tee';
-import { ReadableStreamFromIterable } from './readable-stream/from';
+import { ReadableStreamFrom } from './readable-stream/from';
 import { IsWritableStream, IsWritableStreamLocked, WritableStream } from './writable-stream';
 import { SimpleQueue } from './simple-queue';
 import {
@@ -67,6 +67,11 @@ import { convertIteratorOptions } from './validators/iterator-options';
 import { convertPipeOptions } from './validators/pipe-options';
 import type { ReadableWritablePair } from './readable-stream/readable-writable-pair';
 import { convertReadableWritablePair } from './validators/readable-writable-pair';
+import type { ReadableStreamDefaultReaderLike, ReadableStreamLike } from './readable-stream/readable-stream-like';
+
+export type DefaultReadableStream<R = any> = ReadableStream<R> & {
+  _readableStreamController: ReadableStreamDefaultController<R>
+};
 
 export type ReadableByteStream = ReadableStream<Uint8Array> & {
   _readableStreamController: ReadableByteStreamController
@@ -331,9 +336,8 @@ export class ReadableStream<R = any> {
    * This can be used to adapt various kinds of objects into a readable stream,
    * such as an array, an async generator, or a Node.js readable stream.
    */
-  // eslint-disable-next-line no-shadow
-  static from<R>(asyncIterable: Iterable<R> | AsyncIterable<R>): ReadableStream<R> {
-    return ReadableStreamFromIterable(asyncIterable);
+  static from<R>(asyncIterable: Iterable<R> | AsyncIterable<R> | ReadableStreamLike<R>): ReadableStream<R> {
+    return ReadableStreamFrom(asyncIterable);
   }
 }
 
@@ -384,20 +388,24 @@ export type {
   UnderlyingByteSourcePullCallback,
   StreamPipeOptions,
   ReadableWritablePair,
-  ReadableStreamIteratorOptions
+  ReadableStreamIteratorOptions,
+  ReadableStreamLike,
+  ReadableStreamDefaultReaderLike
 };
 
 // Abstract operations for the ReadableStream.
 
 // Throws if and only if startAlgorithm throws.
-export function CreateReadableStream<R>(startAlgorithm: () => void | PromiseLike<void>,
-                                        pullAlgorithm: () => Promise<void>,
-                                        cancelAlgorithm: (reason: any) => Promise<void>,
-                                        highWaterMark = 1,
-                                        sizeAlgorithm: QueuingStrategySizeCallback<R> = () => 1): ReadableStream<R> {
+export function CreateReadableStream<R>(
+  startAlgorithm: () => void | PromiseLike<void>,
+  pullAlgorithm: () => Promise<void>,
+  cancelAlgorithm: (reason: any) => Promise<void>,
+  highWaterMark = 1,
+  sizeAlgorithm: QueuingStrategySizeCallback<R> = () => 1
+): DefaultReadableStream<R> {
   assert(IsNonNegativeNumber(highWaterMark));
 
-  const stream: ReadableStream<R> = Object.create(ReadableStream.prototype);
+  const stream: DefaultReadableStream<R> = Object.create(ReadableStream.prototype);
   InitializeReadableStream(stream);
 
   const controller: ReadableStreamDefaultController<R> = Object.create(ReadableStreamDefaultController.prototype);

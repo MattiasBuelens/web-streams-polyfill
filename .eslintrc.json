@@ -130,7 +130,7 @@
     "no-delete-var": "error",
     "no-label-var": "error",
     "no-restricted-globals": "off",
-    "no-shadow": "error",
+    "no-shadow": "off",
     "no-shadow-restricted-names": "error",
     "no-undef": "error",
     "no-undef-init": "error",
@@ -270,6 +270,7 @@
     "@typescript-eslint/no-explicit-any": "off",
     "@typescript-eslint/no-non-null-assertion": "off",
     "@typescript-eslint/no-redeclare": "error",
+    "@typescript-eslint/no-shadow": "error",
     "@typescript-eslint/no-use-before-define": "off",
     "@typescript-eslint/no-useless-constructor": "error"
   }

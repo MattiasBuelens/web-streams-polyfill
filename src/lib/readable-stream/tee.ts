@@ -1,6 +1,7 @@
 import {
   CreateReadableByteStream,
   CreateReadableStream,
+  type DefaultReadableStream,
   IsReadableStream,
   type ReadableByteStream,
   ReadableStream,
@@ -23,7 +24,6 @@ import {
 import assert from '../../stub/assert';
 import { newPromise, promiseResolvedWith, queueMicrotask, uponRejection } from '../helpers/webidl';
 import {
-  ReadableStreamDefaultController,
   ReadableStreamDefaultControllerClose,
   ReadableStreamDefaultControllerEnqueue,
   ReadableStreamDefaultControllerError
@@ -51,8 +51,10 @@ export function ReadableStreamTee<R>(stream: ReadableStream<R>,
   return ReadableStreamDefaultTee(stream, cloneForBranch2);
 }
 
-export function ReadableStreamDefaultTee<R>(stream: ReadableStream<R>,
-                                            cloneForBranch2: boolean): [ReadableStream<R>, ReadableStream<R>] {
+export function ReadableStreamDefaultTee<R>(
+  stream: ReadableStream<R>,
+  cloneForBranch2: boolean
+): [DefaultReadableStream<R>, DefaultReadableStream<R>] {
   assert(IsReadableStream(stream));
   assert(typeof cloneForBranch2 === 'boolean');
 
@@ -64,8 +66,8 @@ export function ReadableStreamDefaultTee<R>(stream: ReadableStream<R>,
   let canceled2 = false;
   let reason1: any;
   let reason2: any;
-  let branch1: ReadableStream<R>;
-  let branch2: ReadableStream<R>;
+  let branch1: DefaultReadableStream<R>;
+  let branch2: DefaultReadableStream<R>;
 
   let resolveCancelPromise: (value: undefined | Promise<undefined>) => void;
   const cancelPromise = newPromise<undefined>(resolve => {
@@ -97,16 +99,10 @@ export function ReadableStreamDefaultTee<R>(stream: ReadableStream<R>,
           // }
 
           if (!canceled1) {
-            ReadableStreamDefaultControllerEnqueue(
-              branch1._readableStreamController as ReadableStreamDefaultController<R>,
-              chunk1
-            );
+            ReadableStreamDefaultControllerEnqueue(branch1._readableStreamController, chunk1);
           }
           if (!canceled2) {
-            ReadableStreamDefaultControllerEnqueue(
-              branch2._readableStreamController as ReadableStreamDefaultController<R>,
-              chunk2
-            );
+            ReadableStreamDefaultControllerEnqueue(branch2._readableStreamController, chunk2);
           }
 
           reading = false;
@@ -118,10 +114,10 @@ export function ReadableStreamDefaultTee<R>(stream: ReadableStream<R>,
       _closeSteps: () => {
         reading = false;
         if (!canceled1) {
-          ReadableStreamDefaultControllerClose(branch1._readableStreamController as ReadableStreamDefaultController<R>);
+          ReadableStreamDefaultControllerClose(branch1._readableStreamController);
         }
         if (!canceled2) {
-          ReadableStreamDefaultControllerClose(branch2._readableStreamController as ReadableStreamDefaultController<R>);
+          ReadableStreamDefaultControllerClose(branch2._readableStreamController);
         }
 
         if (!canceled1 || !canceled2) {
@@ -167,8 +163,8 @@ export function ReadableStreamDefaultTee<R>(stream: ReadableStream<R>,
   branch2 = CreateReadableStream(startAlgorithm, pullAlgorithm, cancel2Algorithm);
 
   uponRejection(reader._closedPromise, (r: any) => {
-    ReadableStreamDefaultControllerError(branch1._readableStreamController as ReadableStreamDefaultController<R>, r);
-    ReadableStreamDefaultControllerError(branch2._readableStreamController as ReadableStreamDefaultController<R>, r);
+    ReadableStreamDefaultControllerError(branch1._readableStreamController, r);
+    ReadableStreamDefaultControllerError(branch2._readableStreamController, r);
     if (!canceled1 || !canceled2) {
       resolveCancelPromise(undefined);
     }

@@ -39,7 +39,7 @@ function getFromGlobal(): DOMExceptionConstructor | undefined {
  * - All platforms
  */
 function createPolyfill(): DOMExceptionConstructor {
-  // eslint-disable-next-line no-shadow
+  // eslint-disable-next-line @typescript-eslint/no-shadow
   const ctor = function DOMException(this: DOMException, message?: string, name?: string) {
     this.message = message || '';
     this.name = name || 'Error';

@@ -18,6 +18,8 @@
 * 💥 The type definitions now require TypeScript 3.5 or higher. ([#130](https://github.com/MattiasBuelens/web-streams-polyfill/pull/130))
 * 👓 Align with [spec version `4dc123a`](https://github.com/whatwg/streams/tree/4dc123a6e7f7ba89a8c6a7975b021156f39cab52/) ([#115](https://github.com/MattiasBuelens/web-streams-polyfill/issues/115), [#134](https://github.com/MattiasBuelens/web-streams-polyfill/pull/134))
   * Added `ReadableStream.from(asyncIterable)`, which creates a `ReadableStream` wrapping the given iterable or async iterable.
+    This can also be used to wrap a native `ReadableStream` (e.g. a `Response.body` from `fetch()`),
+    even if the native `ReadableStream` doesn't yet support async iteration. ([#135](https://github.com/MattiasBuelens/web-streams-polyfill/pull/135))
   * Added `Transformer.cancel` method, which is called when the readable side of a `TransformStream` is cancelled or when its writable side is aborted.
   * Added `min` option to `ReadableStreamBYOBReader.read(view, options)`.
   * Added support for `AbortSignal.reason` when aborting a pipe.
