@@ -643,22 +643,25 @@ export function ReadableByteStreamControllerPullInto<T extends NonShared<ArrayBu
   const ctor = view.constructor as ArrayBufferViewConstructor<T>;
   const elementSize = arrayBufferViewElementSize(ctor);
 
+  const { byteOffset, byteLength } = view;
+
   const minimumFill = min * elementSize;
-  assert(minimumFill >= elementSize && minimumFill <= view.byteLength);
+  assert(minimumFill >= elementSize && minimumFill <= byteLength);
   assert(minimumFill % elementSize === 0);
 
-  // try {
-  const buffer = TransferArrayBuffer(view.buffer);
-  // } catch (e) {
-  //   readIntoRequest._errorSteps(e);
-  //   return;
-  // }
+  let buffer: ArrayBuffer;
+  try {
+    buffer = TransferArrayBuffer(view.buffer);
+  } catch (e) {
+    readIntoRequest._errorSteps(e);
+    return;
+  }
 
   const pullIntoDescriptor: BYOBPullIntoDescriptor<T> = {
     buffer,
     bufferByteLength: buffer.byteLength,
-    byteOffset: view.byteOffset,
-    byteLength: view.byteLength,
+    byteOffset,
+    byteLength,
     bytesFilled: 0,
     minimumFill,
     elementSize,
@@ -866,9 +869,7 @@ export function ReadableByteStreamControllerEnqueue(
     return;
   }
 
-  const buffer = chunk.buffer;
-  const byteOffset = chunk.byteOffset;
-  const byteLength = chunk.byteLength;
+  const { buffer, byteOffset, byteLength } = chunk;
   if (IsDetachedBuffer(buffer)) {
     throw new TypeError('chunk\'s buffer is detached and so cannot be enqueued');
   }
