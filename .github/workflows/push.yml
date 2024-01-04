@@ -26,6 +26,7 @@ jobs:
       - run: npm run test:types
       - run: npm run test:unit
       - run: npm run test:wpt:node
+      - run: npm run test:bundlers
 
   test-browser:
     name: ${{ matrix.browser }}
