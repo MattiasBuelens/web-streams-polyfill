@@ -1,4 +1,4 @@
-import {
+export {
   ReadableByteStreamController,
   ReadableStream,
   type ReadableStreamAsyncIterator,
@@ -22,7 +22,7 @@ import {
   type UnderlyingSourcePullCallback,
   type UnderlyingSourceStartCallback
 } from './lib/readable-stream';
-import {
+export {
   type UnderlyingSink,
   type UnderlyingSinkAbortCallback,
   type UnderlyingSinkCloseCallback,
@@ -32,10 +32,10 @@ import {
   WritableStreamDefaultController,
   WritableStreamDefaultWriter
 } from './lib/writable-stream';
-import type { QueuingStrategy, QueuingStrategyInit, QueuingStrategySizeCallback } from './lib/queuing-strategy';
-import ByteLengthQueuingStrategy from './lib/byte-length-queuing-strategy';
-import CountQueuingStrategy from './lib/count-queuing-strategy';
-import {
+export type { QueuingStrategy, QueuingStrategyInit, QueuingStrategySizeCallback } from './lib/queuing-strategy';
+export { default as ByteLengthQueuingStrategy } from './lib/byte-length-queuing-strategy';
+export { default as CountQueuingStrategy } from './lib/count-queuing-strategy';
+export {
   type Transformer,
   type TransformerCancelCallback,
   type TransformerFlushCallback,
@@ -44,54 +44,4 @@ import {
   TransformStream,
   TransformStreamDefaultController
 } from './lib/transform-stream';
-import type { AbortSignal } from './lib/abort-signal';
-
-export {
-  ReadableStream,
-  type UnderlyingSource,
-  type UnderlyingByteSource,
-  type UnderlyingSourceStartCallback,
-  type UnderlyingSourcePullCallback,
-  type UnderlyingSourceCancelCallback,
-  type UnderlyingByteSourceStartCallback,
-  type UnderlyingByteSourcePullCallback,
-  type ReadableWritablePair,
-  type StreamPipeOptions,
-  type ReadableStreamDefaultReadResult,
-  type ReadableStreamBYOBReadResult,
-  type ReadableStreamBYOBReaderReadOptions,
-  ReadableStreamDefaultController,
-  ReadableByteStreamController,
-  ReadableStreamBYOBRequest,
-  ReadableStreamDefaultReader,
-  ReadableStreamBYOBReader,
-  type ReadableStreamAsyncIterator,
-  type ReadableStreamIteratorOptions,
-  type ReadableStreamLike,
-  type ReadableStreamDefaultReaderLike,
-
-  WritableStream,
-  type UnderlyingSink,
-  type UnderlyingSinkStartCallback,
-  type UnderlyingSinkWriteCallback,
-  type UnderlyingSinkCloseCallback,
-  type UnderlyingSinkAbortCallback,
-  WritableStreamDefaultController,
-  WritableStreamDefaultWriter,
-
-  type QueuingStrategy,
-  type QueuingStrategyInit,
-  type QueuingStrategySizeCallback,
-  ByteLengthQueuingStrategy,
-  CountQueuingStrategy,
-
-  TransformStream,
-  type Transformer,
-  type TransformerCancelCallback,
-  type TransformerStartCallback,
-  type TransformerFlushCallback,
-  type TransformerTransformCallback,
-  TransformStreamDefaultController,
-
-  type AbortSignal
-};
+export type { AbortSignal } from './lib/abort-signal';
