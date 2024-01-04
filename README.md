@@ -66,15 +66,15 @@ The `polyfill/es2018` and `ponyfill/es2018` variants work in any ES2018-compatib
 
 [`WritableStreamDefaultController.signal`][ws-controller-signal] is available in all variants, but requires a global `AbortController` constructor. If necessary, consider using a polyfill such as [abortcontroller-polyfill].
 
+[Reading with a BYOB reader][mdn-byob-read] is available in all variants, but requires `ArrayBuffer.prototype.transfer()` or `structuredClone()` to exist in order to correctly transfer the given view's buffer. If not available, then the buffer won't be transferred during the read.
+
 ## Compliance
 
 The polyfill implements [version `4dc123a` (13 Nov 2023)][spec-snapshot] of the streams specification.
 
 The polyfill is tested against the same [web platform tests][wpt] that are used by browsers to test their native implementations.
 The polyfill aims to pass all tests, although it allows some exceptions for practical reasons:
-* The `es2018` variant passes all of the tests, except for the ["bad buffers and views" tests for readable byte streams][wpt-bad-buffers].
-  These tests require the implementation to synchronously transfer the contents of an `ArrayBuffer`, which is not yet possible from JavaScript (although there is a [proposal][proposal-arraybuffer-transfer] to make it possible).
-  The reference implementation "cheats" on these tests [by making a copy instead][ref-impl-transferarraybuffer], but that is unacceptable for the polyfill's performance ([#3][issue-3]).
+* The `es2018` variant passes all of the tests.
 * The `es6` variant passes the same tests as the `es2018` variant, except for the [test for the prototype of `ReadableStream`'s async iterator][wpt-async-iterator-prototype].
   Retrieving the correct `%AsyncIteratorPrototype%` requires using an async generator (`async function* () {}`), which is invalid syntax before ES2018.
   Instead, the polyfill [creates its own version][stub-async-iterator-prototype] which is functionally equivalent to the real prototype.
@@ -103,12 +103,9 @@ Thanks to these people for their work on [the original polyfill][creatorrr-polyf
 [rs-asynciterator]: https://streams.spec.whatwg.org/#rs-asynciterator
 [ws-controller-signal]: https://streams.spec.whatwg.org/#ws-default-controller-signal
 [abortcontroller-polyfill]: https://www.npmjs.com/package/abortcontroller-polyfill
+[mdn-byob-read]: https://developer.mozilla.org/en-US/docs/Web/API/ReadableStreamBYOBReader/read
 [spec-snapshot]: https://streams.spec.whatwg.org/commit-snapshots/4dc123a6e7f7ba89a8c6a7975b021156f39cab52/
 [wpt]: https://github.com/web-platform-tests/wpt/tree/2a298b616b7c865917d7198a287310881cbfdd8d/streams
-[wpt-bad-buffers]: https://github.com/web-platform-tests/wpt/blob/2a298b616b7c865917d7198a287310881cbfdd8d/streams/readable-byte-streams/bad-buffers-and-views.any.js
-[proposal-arraybuffer-transfer]: https://github.com/domenic/proposal-arraybuffer-transfer
-[ref-impl-transferarraybuffer]: https://github.com/whatwg/streams/blob/4dc123a6e7f7ba89a8c6a7975b021156f39cab52/reference-implementation/lib/abstract-ops/ecmascript.js#L18
-[issue-3]: https://github.com/MattiasBuelens/web-streams-polyfill/issues/3
 [wpt-async-iterator-prototype]: https://github.com/web-platform-tests/wpt/blob/2a298b616b7c865917d7198a287310881cbfdd8d/streams/readable-streams/async-iterator.any.js#L24
 [stub-async-iterator-prototype]: https://github.com/MattiasBuelens/web-streams-polyfill/blob/v2.0.0/src/target/es5/stub/async-iterator-prototype.ts
 [creatorrr-polyfill]: https://github.com/creatorrr/web-streams-polyfill
