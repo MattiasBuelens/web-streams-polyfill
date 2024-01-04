@@ -3,6 +3,12 @@ import { typeIsObject } from '../helpers/miscellaneous';
 import assert from '../../stub/assert';
 
 declare global {
+  interface ArrayBuffer {
+    readonly detached: boolean;
+
+    transfer(): ArrayBuffer;
+  }
+
   function structuredClone<T>(value: T, options: { transfer: ArrayBuffer[] }): T;
 }
 
@@ -21,7 +27,9 @@ export function CopyDataBlockBytes(dest: ArrayBuffer,
 }
 
 export let TransferArrayBuffer = (O: ArrayBuffer): ArrayBuffer => {
-  if (typeof structuredClone === 'function') {
+  if (typeof O.transfer === 'function') {
+    TransferArrayBuffer = buffer => buffer.transfer();
+  } else if (typeof structuredClone === 'function') {
     TransferArrayBuffer = buffer => structuredClone(buffer, { transfer: [buffer] });
   } else {
     // Not implemented correctly
@@ -30,17 +38,19 @@ export let TransferArrayBuffer = (O: ArrayBuffer): ArrayBuffer => {
   return TransferArrayBuffer(O);
 };
 
-// Not implemented correctly
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function CanTransferArrayBuffer(O: ArrayBuffer): boolean {
   return !IsDetachedBuffer(O);
 }
 
-// Not implemented correctly
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function IsDetachedBuffer(O: ArrayBuffer): boolean {
-  return O.byteLength === 0;
-}
+export let IsDetachedBuffer = (O: ArrayBuffer): boolean => {
+  if (typeof O.detached === 'boolean') {
+    IsDetachedBuffer = buffer => buffer.detached;
+  } else {
+    // Not implemented correctly
+    IsDetachedBuffer = buffer => buffer.byteLength === 0;
+  }
+  return IsDetachedBuffer(O);
+};
 
 export function ArrayBufferSlice(buffer: ArrayBuffer, begin: number, end: number): ArrayBuffer {
   // ArrayBuffer.prototype.slice is not available on IE10
