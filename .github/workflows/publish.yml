@@ -21,14 +21,23 @@ jobs:
         with:
           ref: ${{ github.event.release.target_commitish }}
       - name: Validate and extract release information
+        id: release
         uses: manovotny/github-releases-for-automated-package-publishing-action@v2.0.1
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
           registry-url: 'https://registry.npmjs.org'
+          always-auth: true
           cache: 'npm'
       - run: npm ci
-      - run: npm publish --provenance
+      - name: Publish latest version
+        if: steps.release.outputs.tag == ''
+        run: npm publish --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Publish next version
+        if: steps.release.outputs.tag != ''
+        run: npm publish --provenance --tag next
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
