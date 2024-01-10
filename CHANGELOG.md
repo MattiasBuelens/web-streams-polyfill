@@ -33,7 +33,7 @@
   * Added `min` option to `ReadableStreamBYOBReader.read(view, options)`.
   * Added support for `AbortSignal.reason` when aborting a pipe.
 * 🚀 Buffers passed to `ReadableStreamBYOBReader.read(view)` will now be correctly [transferred](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer#transferring_arraybuffers)
-  if either `ArrayBuffer.prototype.transfer()` or `structuredClone()` is available. ([#136](https://github.com/MattiasBuelens/web-streams-polyfill/pull/135))
+  if either `ArrayBuffer.prototype.transfer()` or `structuredClone()` is available. ([#136](https://github.com/MattiasBuelens/web-streams-polyfill/pull/136))
 * 🐛 Prevent [warnings from Bluebird](http://bluebirdjs.com/docs/warning-explanations.html#warning-a-promise-was-created-in-a-handler-but-was-not-returned-from-it) about a promise being created within a handler but not being returned from a handler. ([#131](https://github.com/MattiasBuelens/web-streams-polyfill/pull/131))
 * 🏠 Improve internal `DOMException` polyfill. ([#133](https://github.com/MattiasBuelens/web-streams-polyfill/pull/133))
 
