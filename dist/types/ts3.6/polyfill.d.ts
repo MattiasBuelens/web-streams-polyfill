@@ -23,7 +23,6 @@ declare global {
     /**
      * {@inheritDoc ReadableStream.values}
      */
-    [Symbol.asyncIterator]: (options?: ReadableStreamIteratorOptions) => ReadableStreamAsyncIterator<R>;
+    [Symbol.asyncIterator](options?: ReadableStreamIteratorOptions): ReadableStreamAsyncIterator<R>;
   }
 }
-
