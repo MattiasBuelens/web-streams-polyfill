@@ -76,7 +76,7 @@ export class ReadableStream<R = any> implements AsyncIterable<R> {
 }
 
 // @public
-export interface ReadableStreamAsyncIterator<R> extends AsyncIterator<R> {
+export interface ReadableStreamAsyncIterator<R> extends AsyncIterableIterator<R> {
     // (undocumented)
     next(): Promise<IteratorResult<R, undefined>>;
     // (undocumented)

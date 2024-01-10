@@ -25,7 +25,7 @@ import {
  *
  * @public
  */
-export interface ReadableStreamAsyncIterator<R> extends AsyncIterator<R> {
+export interface ReadableStreamAsyncIterator<R> extends AsyncIterableIterator<R> {
   next(): Promise<IteratorResult<R, undefined>>;
 
   return(value?: any): Promise<IteratorResult<any>>;
