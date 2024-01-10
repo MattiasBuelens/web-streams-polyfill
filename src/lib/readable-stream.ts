@@ -80,12 +80,18 @@ export type ReadableByteStream = ReadableStream<NonShared<Uint8Array>> & {
 
 type ReadableStreamState = 'readable' | 'closed' | 'errored';
 
+// Aligns with core-js/modules/es.symbol.async-iterator.js
+const SymbolAsyncIterator: (typeof Symbol)['asyncIterator'] =
+  Symbol.asyncIterator ??
+  Symbol.for?.('Symbol.asyncIterator') ??
+  '@@asyncIterator';
+
 /**
  * A readable stream represents a source of data, from which you can read.
  *
  * @public
  */
-export class ReadableStream<R = any> {
+export class ReadableStream<R = any> implements AsyncIterable<R> {
   /** @internal */
   _state!: ReadableStreamState;
   /** @internal */
@@ -329,7 +335,12 @@ export class ReadableStream<R = any> {
   /**
    * {@inheritDoc ReadableStream.values}
    */
-  [Symbol.asyncIterator]!: (options?: ReadableStreamIteratorOptions) => ReadableStreamAsyncIterator<R>;
+  [Symbol.asyncIterator](options?: ReadableStreamIteratorOptions): ReadableStreamAsyncIterator<R>;
+
+  [SymbolAsyncIterator](options?: ReadableStreamIteratorOptions): ReadableStreamAsyncIterator<R> {
+    // Stub implementation, overridden below
+    return this.values(options);
+  }
 
   /**
    * Creates a new ReadableStream wrapping the provided iterable or async iterable.
@@ -367,13 +378,11 @@ if (typeof Symbol.toStringTag === 'symbol') {
     configurable: true
   });
 }
-if (typeof Symbol.asyncIterator === 'symbol') {
-  Object.defineProperty(ReadableStream.prototype, Symbol.asyncIterator, {
-    value: ReadableStream.prototype.values,
-    writable: true,
-    configurable: true
-  });
-}
+Object.defineProperty(ReadableStream.prototype, SymbolAsyncIterator, {
+  value: ReadableStream.prototype.values,
+  writable: true,
+  configurable: true
+});
 
 export type {
   ReadableStreamAsyncIterator,
