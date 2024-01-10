@@ -49,7 +49,7 @@ import type {
 } from './readable-stream/underlying-source';
 import { noop } from '../utils';
 import { setFunctionName, typeIsObject } from './helpers/miscellaneous';
-import { CreateArrayFromList } from './abstract-ops/ecmascript';
+import { CreateArrayFromList, SymbolAsyncIterator } from './abstract-ops/ecmascript';
 import { CancelSteps } from './abstract-ops/internal-methods';
 import { IsNonNegativeNumber } from './abstract-ops/miscellaneous';
 import { assertObject, assertRequiredArgument } from './validators/basic';
@@ -79,12 +79,6 @@ export type ReadableByteStream = ReadableStream<NonShared<Uint8Array>> & {
 };
 
 type ReadableStreamState = 'readable' | 'closed' | 'errored';
-
-// Aligns with core-js/modules/es.symbol.async-iterator.js
-const SymbolAsyncIterator: (typeof Symbol)['asyncIterator'] =
-  Symbol.asyncIterator ??
-  Symbol.for?.('Symbol.asyncIterator') ??
-  '@@asyncIterator';
 
 /**
  * A readable stream represents a source of data, from which you can read.

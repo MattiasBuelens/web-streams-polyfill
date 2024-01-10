@@ -110,6 +110,12 @@ export function CreateAsyncFromSyncIterator<T>(syncIteratorRecord: SyncIteratorR
   return { iterator: asyncIterator, nextMethod, done: false };
 }
 
+// Aligns with core-js/modules/es.symbol.async-iterator.js
+export const SymbolAsyncIterator: (typeof Symbol)['asyncIterator'] =
+  Symbol.asyncIterator ??
+  Symbol.for?.('Symbol.asyncIterator') ??
+  '@@asyncIterator';
+
 export type SyncOrAsyncIterable<T> = Iterable<T> | AsyncIterable<T>;
 export type SyncOrAsyncIteratorMethod<T> = () => (Iterator<T> | AsyncIterator<T>);
 
@@ -131,7 +137,7 @@ function GetIterator<T>(
   assert(hint === 'sync' || hint === 'async');
   if (method === undefined) {
     if (hint === 'async') {
-      method = GetMethod(obj as AsyncIterable<T>, Symbol.asyncIterator);
+      method = GetMethod(obj as AsyncIterable<T>, SymbolAsyncIterator);
       if (method === undefined) {
         const syncMethod = GetMethod(obj as Iterable<T>, Symbol.iterator);
         const syncIteratorRecord = GetIterator(obj as Iterable<T>, 'sync', syncMethod);

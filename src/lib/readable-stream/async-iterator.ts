@@ -140,9 +140,7 @@ const ReadableStreamAsyncIteratorPrototype: ReadableStreamAsyncIteratorInstance<
     return this._asyncIteratorImpl.return(value);
   }
 } as any;
-if (AsyncIteratorPrototype !== undefined) {
-  Object.setPrototypeOf(ReadableStreamAsyncIteratorPrototype, AsyncIteratorPrototype);
-}
+Object.setPrototypeOf(ReadableStreamAsyncIteratorPrototype, AsyncIteratorPrototype);
 
 // Abstract operations for the ReadableStream.
 
