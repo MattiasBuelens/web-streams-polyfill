@@ -69,13 +69,13 @@ function bundle(entry, { esm = false, minify = false, target = 'es5' } = {}) {
         declaration: false,
         declarationMap: false
       }),
-      inject({
+      target === 'es5' ? inject({
         include: 'src/**/*.ts',
         exclude: 'src/stub/symbol.ts',
         modules: {
           Symbol: path.resolve(dirname, './src/stub/symbol.ts')
         }
-      }),
+      }) : undefined,
       replace({
         include: 'src/**/*.ts',
         preventAssignment: true,
