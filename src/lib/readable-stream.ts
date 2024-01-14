@@ -49,7 +49,7 @@ import type {
 } from './readable-stream/underlying-source';
 import { noop } from '../utils';
 import { setFunctionName, typeIsObject } from './helpers/miscellaneous';
-import { CreateArrayFromList } from './abstract-ops/ecmascript';
+import { CreateArrayFromList, SymbolAsyncIterator } from './abstract-ops/ecmascript';
 import { CancelSteps } from './abstract-ops/internal-methods';
 import { IsNonNegativeNumber } from './abstract-ops/miscellaneous';
 import { assertObject, assertRequiredArgument } from './validators/basic';
@@ -85,7 +85,7 @@ type ReadableStreamState = 'readable' | 'closed' | 'errored';
  *
  * @public
  */
-export class ReadableStream<R = any> {
+export class ReadableStream<R = any> implements AsyncIterable<R> {
   /** @internal */
   _state!: ReadableStreamState;
   /** @internal */
@@ -329,7 +329,12 @@ export class ReadableStream<R = any> {
   /**
    * {@inheritDoc ReadableStream.values}
    */
-  [Symbol.asyncIterator]!: (options?: ReadableStreamIteratorOptions) => ReadableStreamAsyncIterator<R>;
+  [Symbol.asyncIterator](options?: ReadableStreamIteratorOptions): ReadableStreamAsyncIterator<R>;
+
+  [SymbolAsyncIterator](options?: ReadableStreamIteratorOptions): ReadableStreamAsyncIterator<R> {
+    // Stub implementation, overridden below
+    return this.values(options);
+  }
 
   /**
    * Creates a new ReadableStream wrapping the provided iterable or async iterable.
@@ -367,13 +372,11 @@ if (typeof Symbol.toStringTag === 'symbol') {
     configurable: true
   });
 }
-if (typeof Symbol.asyncIterator === 'symbol') {
-  Object.defineProperty(ReadableStream.prototype, Symbol.asyncIterator, {
-    value: ReadableStream.prototype.values,
-    writable: true,
-    configurable: true
-  });
-}
+Object.defineProperty(ReadableStream.prototype, SymbolAsyncIterator, {
+  value: ReadableStream.prototype.values,
+  writable: true,
+  configurable: true
+});
 
 export type {
   ReadableStreamAsyncIterator,

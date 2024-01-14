@@ -25,7 +25,7 @@ import {
  *
  * @public
  */
-export interface ReadableStreamAsyncIterator<R> extends AsyncIterator<R> {
+export interface ReadableStreamAsyncIterator<R> extends AsyncIterableIterator<R> {
   next(): Promise<IteratorResult<R, undefined>>;
 
   return(value?: any): Promise<IteratorResult<any>>;
@@ -140,9 +140,7 @@ const ReadableStreamAsyncIteratorPrototype: ReadableStreamAsyncIteratorInstance<
     return this._asyncIteratorImpl.return(value);
   }
 } as any;
-if (AsyncIteratorPrototype !== undefined) {
-  Object.setPrototypeOf(ReadableStreamAsyncIteratorPrototype, AsyncIteratorPrototype);
-}
+Object.setPrototypeOf(ReadableStreamAsyncIteratorPrototype, AsyncIteratorPrototype);
 
 // Abstract operations for the ReadableStream.
 

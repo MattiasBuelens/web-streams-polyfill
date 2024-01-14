@@ -52,8 +52,8 @@ export class ReadableByteStreamController {
 }
 
 // @public
-export class ReadableStream<R = any> {
-    [Symbol.asyncIterator]: (options?: ReadableStreamIteratorOptions) => ReadableStreamAsyncIterator<R>;
+export class ReadableStream<R = any> implements AsyncIterable<R> {
+    [Symbol.asyncIterator](options?: ReadableStreamIteratorOptions): ReadableStreamAsyncIterator<R>;
     constructor(underlyingSource: UnderlyingByteSource, strategy?: {
         highWaterMark?: number;
         size?: undefined;
@@ -76,7 +76,7 @@ export class ReadableStream<R = any> {
 }
 
 // @public
-export interface ReadableStreamAsyncIterator<R> extends AsyncIterator<R> {
+export interface ReadableStreamAsyncIterator<R> extends AsyncIterableIterator<R> {
     // (undocumented)
     next(): Promise<IteratorResult<R, undefined>>;
     // (undocumented)

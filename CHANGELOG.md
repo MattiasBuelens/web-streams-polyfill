@@ -10,6 +10,10 @@
 > - 🏠 Internal
 > - 💅 Polish
 
+## Unreleased
+
+* 🐛 Fix `ReadableStream` to match TypeScript's `AsyncIterable<R>` type. ([#141](https://github.com/MattiasBuelens/web-streams-polyfill/issues/141), [#142](https://github.com/MattiasBuelens/web-streams-polyfill/pull/142))
+
 ## 3.3.2 (2024-01-04)
 
 * 🐛 Fix bad publish to npm.
