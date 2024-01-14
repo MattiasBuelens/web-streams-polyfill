@@ -168,14 +168,3 @@ export function IteratorNext<T>(iteratorRecord: AsyncIteratorRecord<T>): Promise
   return result;
 }
 
-export function IteratorComplete<TReturn>(
-  iterResult: IteratorResult<unknown, TReturn>
-): iterResult is IteratorReturnResult<TReturn> {
-  assert(typeIsObject(iterResult));
-  return Boolean(iterResult.done);
-}
-
-export function IteratorValue<T>(iterResult: IteratorYieldResult<T>): T {
-  assert(typeIsObject(iterResult));
-  return iterResult.value;
-}

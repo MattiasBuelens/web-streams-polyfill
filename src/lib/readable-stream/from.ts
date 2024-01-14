@@ -5,7 +5,7 @@ import {
   type ReadableStreamLike
 } from './readable-stream-like';
 import { ReadableStreamDefaultControllerClose, ReadableStreamDefaultControllerEnqueue } from './default-controller';
-import { GetIterator, GetMethod, IteratorComplete, IteratorNext, IteratorValue } from '../abstract-ops/ecmascript';
+import { GetIterator, GetMethod, IteratorNext } from '../abstract-ops/ecmascript';
 import { promiseCall, promiseRejectedWith, promiseResolvedWith, transformPromiseWith } from '../helpers/webidl';
 import { typeIsObject } from '../helpers/miscellaneous';
 import { noop } from '../../utils';
@@ -37,11 +37,11 @@ export function ReadableStreamFromIterable<R>(asyncIterable: Iterable<R> | Async
       if (!typeIsObject(iterResult)) {
         throw new TypeError('The promise returned by the iterator.next() method must fulfill with an object');
       }
-      const done = IteratorComplete(iterResult);
+      const done = iterResult.done;
       if (done) {
         ReadableStreamDefaultControllerClose(stream._readableStreamController);
       } else {
-        const value = IteratorValue(iterResult);
+        const value = iterResult.value;
         ReadableStreamDefaultControllerEnqueue(stream._readableStreamController, value);
       }
     });
