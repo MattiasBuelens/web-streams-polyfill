@@ -95,8 +95,6 @@ The polyfill aims to pass all tests, although it allows some exceptions for prac
   * Not all properties and methods are correctly marked as non-enumerable.
   * Down-leveled class methods are not correctly marked as non-constructable.
 
-The type definitions are compatible with the built-in stream types of TypeScript 3.3.
-
 ## Contributors
 
 Thanks to these people for their work on [the original polyfill][creatorrr-polyfill]:
