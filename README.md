@@ -26,6 +26,7 @@ This library comes in multiple variants:
   Recommended for use in web apps supporting older browsers through a `<script>` tag.
 
 Each variant also includes TypeScript type definitions, compatible with the DOM type definitions for streams included in TypeScript.
+These type definitions require TypeScript version 4.7 or higher.
 
 Usage as a polyfill:
 ```html
@@ -67,6 +68,12 @@ If you need to support older browsers or Node versions that do not have a native
 [`WritableStreamDefaultController.signal`][ws-controller-signal] is available in all variants, but requires a global `AbortController` constructor. If necessary, consider using a polyfill such as [abortcontroller-polyfill].
 
 [Reading with a BYOB reader][mdn-byob-read] is available in all variants, but requires `ArrayBuffer.prototype.transfer()` or `structuredClone()` to exist in order to correctly transfer the given view's buffer. If not available, then the buffer won't be transferred during the read.
+
+### Tooling compatibility
+
+This package uses [subpath exports](https://nodejs.org/api/packages.html#subpath-exports) for its variants. As such, you need Node 12 or higher in order to `import` or `require()` such a variant.
+
+When using TypeScript, make sure your [`moduleResolution`](https://www.typescriptlang.org/tsconfig#moduleResolution) is set to `"node16"`, `"nodenext"` or `"bundler"`.
 
 ## Compliance
 
