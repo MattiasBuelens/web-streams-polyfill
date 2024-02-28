@@ -1,4 +1,4 @@
-import * as polyfill from '../../';
+import * as polyfill from 'web-streams-polyfill';
 
 let defaultController!: polyfill.ReadableStreamDefaultController<string>;
 const underlyingSource: polyfill.UnderlyingSource<string> = {

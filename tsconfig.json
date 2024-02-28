@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "es5",
+    "target": "es2015",
     "module": "es2015",
     "moduleResolution": "node",
     "lib": [
@@ -16,12 +16,7 @@
     "declarationMap": true,
     "isolatedModules": true,
     "verbatimModuleSyntax": true,
-    "baseUrl": "./src",
-    "paths": {
-      "@@target/*": [
-        "./target/es5/*"
-      ]
-    }
+    "baseUrl": "./src"
   },
   "include": [
     "src/"

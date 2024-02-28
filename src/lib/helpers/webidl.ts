@@ -2,8 +2,11 @@ import { rethrowAssertionErrorRejection } from './miscellaneous';
 import assert from '../../stub/assert';
 
 const originalPromise = Promise;
+const originalPromiseResolve = Promise.resolve.bind(originalPromise);
 const originalPromiseThen = Promise.prototype.then;
 const originalPromiseReject = Promise.reject.bind(originalPromise);
+
+export const promiseResolve = originalPromiseResolve;
 
 // https://webidl.spec.whatwg.org/#a-new-promise
 export function newPromise<T>(executor: (

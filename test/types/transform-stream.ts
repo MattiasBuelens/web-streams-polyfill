@@ -1,4 +1,4 @@
-import * as polyfill from '../../';
+import * as polyfill from 'web-streams-polyfill';
 
 let controller!: polyfill.TransformStreamDefaultController<number>;
 const transformer: polyfill.Transformer<string, number> = {

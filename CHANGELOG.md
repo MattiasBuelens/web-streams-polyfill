@@ -10,6 +10,29 @@
 > - 🏠 Internal
 > - 💅 Polish
 
+## Unreleased
+
+* 💥 Rework the list of variants to have more modern defaults.
+  The table below shows how to upgrade your v3 import to their equivalent v4 import.
+  See the [migration guide](https://github.com/MattiasBuelens/web-streams-polyfill/blob/v4/MIGRATING.md) for more information.
+  ([#82](https://github.com/MattiasBuelens/web-streams-polyfill/issues/82), [#139](https://github.com/MattiasBuelens/web-streams-polyfill/pull/139))
+* 💥 Remove the ES2018 variant, in favor of the ES2015 variant.
+* 💥 Switch to [subpath exports](https://nodejs.org/api/packages.html#subpath-exports) for variants.
+  * Node 12 or higher is required to `import` or `require()` a variant.
+  * When using TypeScript, version 4.7 or higher is now required. Additionally, [`moduleResolution`](https://www.typescriptlang.org/tsconfig#moduleResolution) must be set to `"node16"`, `"nodenext"` or `"bundler"`.
+* 🚀 Support [importing as ESM in Node](https://nodejs.org/api/esm.html).
+* 💅 Minify all code in the published package, to reduce the download size.
+* 💅 Rework `ReadableStream.from()` implementation to avoid depending on `async function*` down-leveling for ES5. ([#144](https://github.com/MattiasBuelens/web-streams-polyfill/pull/144))
+
+| v3 import | v4 import | description |
+| --- | --- | --- |
+| `web-streams-polyfill` | `web-streams-polyfill/polyfill/es5` | ES5+ polyfill |
+| `web-streams-polyfill/es6` | `web-streams-polyfill/polyfill` | ES2015+ polyfill |
+| `web-streams-polyfill/es2018` | `web-streams-polyfill/polyfill` | ES2015+ polyfill |
+| `web-streams-polyfill/ponyfill` | `web-streams-polyfill/es5` | ES5+ ponyfill |
+| `web-streams-polyfill/ponyfill/es6` | `web-streams-polyfill` | ES2015+ ponyfill |
+| `web-streams-polyfill/ponyfill/es2018` | `web-streams-polyfill` | ES2015+ ponyfill |
+
 ## 3.3.3 (2024-02-16)
 
 * 🐛 Fix `ReadableStream` to match TypeScript's `AsyncIterable<R>` type. ([#141](https://github.com/MattiasBuelens/web-streams-polyfill/issues/141), [#142](https://github.com/MattiasBuelens/web-streams-polyfill/pull/142))

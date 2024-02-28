@@ -1,4 +1,10 @@
-import { reflectCall } from 'lib/helpers/webidl';
+import {
+  PerformPromiseThen,
+  promiseRejectedWith,
+  promiseResolve,
+  promiseResolvedWith,
+  reflectCall
+} from 'lib/helpers/webidl';
 import { typeIsObject } from '../helpers/miscellaneous';
 import assert from '../../stub/assert';
 
@@ -79,9 +85,11 @@ export function GetMethod<T, K extends MethodName<T>>(receiver: T, prop: K): T[K
   return func;
 }
 
+export type SyncOrAsync<T> = T | Promise<T>;
+
 export interface SyncIteratorRecord<T> {
   iterator: Iterator<T>,
-  nextMethod: Iterator<T>['next'],
+  nextMethod: () => SyncOrAsync<IteratorResult<SyncOrAsync<T>>>,
   done: boolean;
 }
 
@@ -93,21 +101,55 @@ export interface AsyncIteratorRecord<T> {
 
 export type SyncOrAsyncIteratorRecord<T> = SyncIteratorRecord<T> | AsyncIteratorRecord<T>;
 
-export function CreateAsyncFromSyncIterator<T>(syncIteratorRecord: SyncIteratorRecord<T>): AsyncIteratorRecord<T> {
-  // Instead of re-implementing CreateAsyncFromSyncIterator and %AsyncFromSyncIteratorPrototype%,
-  // we use yield* inside an async generator function to achieve the same result.
-
-  // Wrap the sync iterator inside a sync iterable, so we can use it with yield*.
-  const syncIterable = {
-    [Symbol.iterator]: () => syncIteratorRecord.iterator
+export function CreateAsyncFromSyncIterator<T>(
+  syncIteratorRecord: SyncIteratorRecord<SyncOrAsync<T>>
+): AsyncIteratorRecord<T> {
+  const asyncIterator: AsyncIterator<T> = {
+    // https://tc39.es/ecma262/#sec-%asyncfromsynciteratorprototype%.next
+    next() {
+      let result;
+      try {
+        result = IteratorNext(syncIteratorRecord);
+      } catch (e) {
+        return promiseRejectedWith(e);
+      }
+      return AsyncFromSyncIteratorContinuation(result);
+    },
+    // https://tc39.es/ecma262/#sec-%asyncfromsynciteratorprototype%.return
+    return(value: any) {
+      let result;
+      try {
+        const returnMethod = GetMethod(syncIteratorRecord.iterator, 'return');
+        if (returnMethod === undefined) {
+          return promiseResolvedWith({ done: true, value });
+        }
+        // Note: ReadableStream.from() always calls return() with a value.
+        result = reflectCall(returnMethod, syncIteratorRecord.iterator, [value]);
+      } catch (e) {
+        return promiseRejectedWith(e);
+      }
+      if (!typeIsObject(result)) {
+        return promiseRejectedWith(new TypeError('The iterator.return() method must return an object'));
+      }
+      return AsyncFromSyncIteratorContinuation(result);
+    }
+    // Note: throw() is never used by the Streams spec.
   };
-  // Create an async generator function and immediately invoke it.
-  const asyncIterator = (async function* () {
-    return yield* syncIterable;
-  }());
   // Return as an async iterator record.
   const nextMethod = asyncIterator.next;
   return { iterator: asyncIterator, nextMethod, done: false };
+}
+
+// https://tc39.es/ecma262/#sec-asyncfromsynciteratorcontinuation
+function AsyncFromSyncIteratorContinuation<T>(result: IteratorResult<SyncOrAsync<T>>): Promise<IteratorResult<T>> {
+  try {
+    const done = result.done;
+    const value = result.value;
+    const valueWrapper = promiseResolve(value);
+    return PerformPromiseThen(valueWrapper, v => ({ done, value: v }));
+  } catch (e) {
+    return promiseRejectedWith(e);
+  }
 }
 
 // Aligns with core-js/modules/es.symbol.async-iterator.js
@@ -160,7 +202,11 @@ function GetIterator<T>(
 
 export { GetIterator };
 
-export function IteratorNext<T>(iteratorRecord: AsyncIteratorRecord<T>): Promise<IteratorResult<T>> {
+export function IteratorNext<T>(iteratorRecord: SyncIteratorRecord<T>): IteratorResult<T>;
+export function IteratorNext<T>(iteratorRecord: AsyncIteratorRecord<T>): Promise<IteratorResult<T>>;
+export function IteratorNext<T>(
+  iteratorRecord: SyncOrAsyncIteratorRecord<T>
+): SyncOrAsync<IteratorResult<SyncOrAsync<T>>> {
   const result = reflectCall(iteratorRecord.nextMethod, iteratorRecord.iterator, []);
   if (!typeIsObject(result)) {
     throw new TypeError('The iterator.next() method must return an object');
@@ -168,14 +214,3 @@ export function IteratorNext<T>(iteratorRecord: AsyncIteratorRecord<T>): Promise
   return result;
 }
 
-export function IteratorComplete<TReturn>(
-  iterResult: IteratorResult<unknown, TReturn>
-): iterResult is IteratorReturnResult<TReturn> {
-  assert(typeIsObject(iterResult));
-  return Boolean(iterResult.done);
-}
-
-export function IteratorValue<T>(iterResult: IteratorYieldResult<T>): T {
-  assert(typeIsObject(iterResult));
-  return iterResult.value;
-}

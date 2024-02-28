@@ -34,6 +34,10 @@ const ignoredFailuresBase = {
   'readable-byte-streams/bad-buffers-and-views.any.html': [
     'ReadableStream with byte source: respondWithNewView() throws if the supplied view\'s buffer is zero-length ' +
     '(in the closed state)'
+  ],
+  // Our async iterator won't extend from the built-in %AsyncIteratorPrototype%
+  'readable-streams/async-iterator.any.html': [
+    'Async iterator instances should have the correct list of properties'
   ]
 };
 
@@ -47,14 +51,7 @@ const ignoredFailuresMinified = {
   ]
 };
 
-const ignoredFailuresES6 = mergeIgnoredFailures(ignoredFailuresBase, {
-  'readable-streams/async-iterator.any.html': [
-    // ES6 build will not use correct %AsyncIteratorPrototype%
-    'Async iterator instances should have the correct list of properties'
-  ]
-});
-
-const ignoredFailuresES5 = mergeIgnoredFailures(ignoredFailuresES6, {
+const ignoredFailuresES5 = mergeIgnoredFailures(ignoredFailuresBase, {
   'idlharness.any.html': [
     // ES5 build does not set correct length on constructors with optional arguments
     'ReadableStream interface object length',
@@ -91,6 +88,5 @@ module.exports = {
   ignoredFailuresBase,
   ignoredFailuresMinified,
   ignoredFailuresES5,
-  ignoredFailuresES6,
   mergeIgnoredFailures
 };

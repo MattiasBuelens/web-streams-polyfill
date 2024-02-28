@@ -16,8 +16,7 @@ const {
   mergeIgnoredFailures,
   ignoredFailuresBase,
   ignoredFailuresMinified,
-  ignoredFailuresES5,
-  ignoredFailuresES6
+  ignoredFailuresES5
 } = require('../shared/exclusions');
 
 const serverCloseAsync = promisify(http.Server.prototype.close);
@@ -50,17 +49,12 @@ async function main() {
     const testOptions = { includedTests, excludedTests, browser, wptPath, urlPrefix };
     results.push(await runTests({
       ...testOptions,
-      entryFile: 'polyfill.es2018.min.js',
+      entryFile: 'polyfill.js',
       ignoredFailures: mergeIgnoredFailures(ignoredFailuresBase, ignoredFailuresMinified)
     }));
     results.push(await runTests({
       ...testOptions,
-      entryFile: 'polyfill.es6.min.js',
-      ignoredFailures: mergeIgnoredFailures(ignoredFailuresES6, ignoredFailuresMinified)
-    }));
-    results.push(await runTests({
-      ...testOptions,
-      entryFile: 'polyfill.min.js',
+      entryFile: 'polyfill.es5.js',
       ignoredFailures: mergeIgnoredFailures(ignoredFailuresES5, ignoredFailuresMinified)
     }));
   } finally {

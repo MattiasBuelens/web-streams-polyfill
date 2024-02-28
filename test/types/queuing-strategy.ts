@@ -1,4 +1,4 @@
-import * as polyfill from '../../';
+import * as polyfill from 'web-streams-polyfill';
 
 const countingStrategy: polyfill.CountQueuingStrategy = new polyfill.CountQueuingStrategy({ highWaterMark: 5 });
 const byteLengthStrategy: polyfill.ByteLengthQueuingStrategy = new polyfill.ByteLengthQueuingStrategy({ highWaterMark: 1024 });
