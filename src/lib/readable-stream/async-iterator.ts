@@ -10,7 +10,7 @@ import {
 } from './default-reader';
 import { ReadableStreamReaderGenericCancel, ReadableStreamReaderGenericRelease } from './generic-reader';
 import assert from '../../stub/assert';
-import { AsyncIteratorPrototype } from '@@target/stub/async-iterator-prototype';
+import { SymbolAsyncIterator } from '../abstract-ops/ecmascript';
 import { typeIsObject } from '../helpers/miscellaneous';
 import {
   newPromise,
@@ -138,9 +138,18 @@ const ReadableStreamAsyncIteratorPrototype: ReadableStreamAsyncIteratorInstance<
       return promiseRejectedWith(streamAsyncIteratorBrandCheckException('return'));
     }
     return this._asyncIteratorImpl.return(value);
+  },
+
+  // 25.1.3.1 %AsyncIteratorPrototype% [ @@asyncIterator ] ( )
+  // https://tc39.github.io/ecma262/#sec-asynciteratorprototype-asynciterator
+  [SymbolAsyncIterator]() {
+    return this;
   }
 } as any;
-Object.setPrototypeOf(ReadableStreamAsyncIteratorPrototype, AsyncIteratorPrototype);
+
+Object.defineProperty(ReadableStreamAsyncIteratorPrototype, SymbolAsyncIterator, {
+  enumerable: false
+});
 
 // Abstract operations for the ReadableStream.
 

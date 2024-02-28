@@ -1,0 +1,17 @@
+{
+  "name": "rollup-test",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "build": "rollup -c",
+    "test": "node dist/app.js",
+    "prepare": "npm run build"
+  },
+  "dependencies": {
+    "web-streams-polyfill": "file:../.."
+  },
+  "devDependencies": {
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "rollup": "^4.12.0"
+  }
+}
