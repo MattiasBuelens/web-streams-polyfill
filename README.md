@@ -107,7 +107,7 @@ Thanks to these people for their work on [the original polyfill][creatorrr-polyf
 [spec]: https://streams.spec.whatwg.org
 [ref-impl]: https://github.com/whatwg/streams
 [ponyfill]: https://github.com/sindresorhus/ponyfill
-[migrating]: https://github.com/MattiasBuelens/web-streams-polyfill/blob/v4/MIGRATING.md
+[migrating]: https://github.com/MattiasBuelens/web-streams-polyfill/blob/master/MIGRATING.md
 [promise-support]: https://kangax.github.io/compat-table/es6/#test-Promise
 [promise-polyfill]: https://www.npmjs.com/package/promise-polyfill
 [rs-asynciterator]: https://streams.spec.whatwg.org/#rs-asynciterator
@@ -117,5 +117,5 @@ Thanks to these people for their work on [the original polyfill][creatorrr-polyf
 [spec-snapshot]: https://streams.spec.whatwg.org/commit-snapshots/4dc123a6e7f7ba89a8c6a7975b021156f39cab52/
 [wpt]: https://github.com/web-platform-tests/wpt/tree/2a298b616b7c865917d7198a287310881cbfdd8d/streams
 [wpt-async-iterator-prototype]: https://github.com/web-platform-tests/wpt/blob/2a298b616b7c865917d7198a287310881cbfdd8d/streams/readable-streams/async-iterator.any.js#L24
-[stub-async-iterator-prototype]: https://github.com/MattiasBuelens/web-streams-polyfill/blob/v2.0.0/src/target/es5/stub/async-iterator-prototype.ts
+[stub-async-iterator-prototype]: https://github.com/MattiasBuelens/web-streams-polyfill/blob/v4.0.0/src/lib/readable-stream/async-iterator.ts#L143-L147
 [creatorrr-polyfill]: https://github.com/creatorrr/web-streams-polyfill
