@@ -10,7 +10,7 @@
 > - 🏠 Internal
 > - 💅 Polish
 
-## Unreleased
+## 4.0.0 (2024-02-28)
 
 * 💥 Rework the list of variants to have more modern defaults.
   The table below shows how to upgrade your v3 import to their equivalent v4 import.
