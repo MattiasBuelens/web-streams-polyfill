@@ -22,6 +22,7 @@
   * When using TypeScript, version 4.7 or higher is now required. Additionally, [`moduleResolution`](https://www.typescriptlang.org/tsconfig#moduleResolution) must be set to `"node16"`, `"nodenext"` or `"bundler"`.
 * 🚀 Support [importing as ESM in Node](https://nodejs.org/api/esm.html).
 * 💅 Minify all code in the published package, to reduce the download size.
+* 💅 Rework `ReadableStream.from()` implementation to avoid depending on `async function*` down-leveling for ES5. ([#144](https://github.com/MattiasBuelens/web-streams-polyfill/pull/144))
 
 | v3 import | v4 import | description |
 | --- | --- | --- |
