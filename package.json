@@ -40,7 +40,7 @@
     "test:bundler:webpack": "cd test/webpack && npm install && npm test",
     "test:types": "tsc -p ./test/types/tsconfig.json",
     "test:unit": "node --experimental-import-meta-resolve node_modules/jasmine/bin/jasmine.js --config=test/unit/jasmine.json",
-    "lint": "eslint eslint.config.mjs \"src/**/*.ts\"",
+    "lint": "eslint \"*.mjs\" \"src/**/*.ts\"",
     "build": "npm run build:bundle && npm run build:types",
     "build:bundle": "rollup -c",
     "build:types": "tsc --project . --emitDeclarationOnly --declarationDir ./lib && api-extractor run",
