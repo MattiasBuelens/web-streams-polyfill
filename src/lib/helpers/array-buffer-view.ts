@@ -25,7 +25,7 @@ export interface TypedArrayConstructor<T extends TypedArray = TypedArray> extend
 
 export type DataViewConstructor = ArrayBufferViewConstructor<DataView>;
 
-function isDataViewConstructor(ctor: Function): ctor is DataViewConstructor {
+function isDataViewConstructor(ctor: ArrayBufferView['constructor']): ctor is DataViewConstructor {
   return ctor === DataView;
 }
 

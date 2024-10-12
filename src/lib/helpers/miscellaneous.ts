@@ -19,7 +19,7 @@ export const rethrowAssertionErrorRejection: (e: any) => void =
     } :
     noop;
 
-export function setFunctionName(fn: Function, name: string): void {
+export function setFunctionName(fn: (...args: any[]) => any, name: string): void {
   try {
     Object.defineProperty(fn, 'name', {
       value: name,

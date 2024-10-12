@@ -71,6 +71,7 @@ export function ArrayBufferSlice(buffer: ArrayBuffer, begin: number, end: number
 }
 
 export type MethodName<T> = {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
   [P in keyof T]: T[P] extends Function | undefined ? P : never;
 }[keyof T];
 
