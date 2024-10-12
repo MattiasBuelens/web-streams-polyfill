@@ -24,7 +24,7 @@ export type ReadableStreamDefaultReadResult<T> = {
 } | {
   done: true;
   value?: undefined;
-}
+};
 
 // Abstract operations for the ReadableStream.
 
@@ -248,7 +248,7 @@ export function ReadableStreamDefaultReaderRelease(reader: ReadableStreamDefault
 export function ReadableStreamDefaultReaderErrorReadRequests(reader: ReadableStreamDefaultReader, e: any) {
   const readRequests = reader._readRequests;
   reader._readRequests = new SimpleQueue();
-  readRequests.forEach(readRequest => {
+  readRequests.forEach((readRequest) => {
     readRequest._errorSteps(e);
   });
 }

@@ -428,7 +428,7 @@ function WritableStreamFinishErroring(stream: WritableStream) {
   stream._writableStreamController[ErrorSteps]();
 
   const storedError = stream._storedError;
-  stream._writeRequests.forEach(writeRequest => {
+  stream._writeRequests.forEach((writeRequest) => {
     writeRequest._reject(storedError);
   });
   stream._writeRequests = new SimpleQueue();
@@ -1101,7 +1101,7 @@ function SetUpWritableStreamDefaultController<W>(stream: WritableStream<W>,
       WritableStreamDefaultControllerAdvanceQueueIfNeeded(controller);
       return null;
     },
-    r => {
+    (r) => {
       assert(stream._state === 'writable' || stream._state === 'erroring');
       controller._started = true;
       WritableStreamDealWithRejection(stream, r);
@@ -1247,7 +1247,7 @@ function WritableStreamDefaultControllerProcessClose(controller: WritableStreamD
       WritableStreamFinishInFlightClose(stream);
       return null;
     },
-    reason => {
+    (reason) => {
       WritableStreamFinishInFlightCloseWithError(stream, reason);
       return null;
     }
@@ -1278,7 +1278,7 @@ function WritableStreamDefaultControllerProcessWrite<W>(controller: WritableStre
       WritableStreamDefaultControllerAdvanceQueueIfNeeded(controller);
       return null;
     },
-    reason => {
+    (reason) => {
       if (stream._state === 'writable') {
         WritableStreamDefaultControllerClearAlgorithms(controller);
       }
@@ -1316,7 +1316,6 @@ function defaultControllerBrandCheckException(name: string): TypeError {
   return new TypeError(
     `WritableStreamDefaultController.prototype.${name} can only be used on a WritableStreamDefaultController`);
 }
-
 
 // Helper functions for the WritableStreamDefaultWriter.
 

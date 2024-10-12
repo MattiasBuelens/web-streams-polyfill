@@ -68,7 +68,7 @@ export function setPromiseIsHandledToTrue(promise: Promise<unknown>): void {
   PerformPromiseThen(promise, undefined, rethrowAssertionErrorRejection);
 }
 
-let _queueMicrotask: (callback: () => void) => void = callback => {
+let _queueMicrotask: (callback: () => void) => void = (callback) => {
   if (typeof queueMicrotask === 'function') {
     _queueMicrotask = queueMicrotask;
   } else {

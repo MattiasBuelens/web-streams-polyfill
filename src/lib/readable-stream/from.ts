@@ -33,7 +33,7 @@ export function ReadableStreamFromIterable<R>(asyncIterable: Iterable<R> | Async
       return promiseRejectedWith(e);
     }
     const nextPromise = promiseResolvedWith(nextResult);
-    return transformPromiseWith(nextPromise, iterResult => {
+    return transformPromiseWith(nextPromise, (iterResult) => {
       if (!typeIsObject(iterResult)) {
         throw new TypeError('The promise returned by the iterator.next() method must fulfill with an object');
       }
@@ -59,7 +59,7 @@ export function ReadableStreamFromIterable<R>(asyncIterable: Iterable<R> | Async
       return promiseResolvedWith(undefined);
     }
     const returnPromise = promiseCall(returnMethod, iterator, [reason]);
-    return transformPromiseWith(returnPromise, iterResult => {
+    return transformPromiseWith(returnPromise, (iterResult) => {
       if (!typeIsObject(iterResult)) {
         throw new TypeError('The promise returned by the iterator.return() method must fulfill with an object');
       }
@@ -85,7 +85,7 @@ export function ReadableStreamFromDefaultReader<R>(
     } catch (e) {
       return promiseRejectedWith(e);
     }
-    return transformPromiseWith(readPromise, readResult => {
+    return transformPromiseWith(readPromise, (readResult) => {
       if (!typeIsObject(readResult)) {
         throw new TypeError('The promise returned by the reader.read() method must fulfill with an object');
       }

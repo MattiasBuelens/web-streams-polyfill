@@ -312,7 +312,7 @@ export function ReadableStreamBYOBReaderRelease(reader: ReadableStreamBYOBReader
 export function ReadableStreamBYOBReaderErrorReadIntoRequests(reader: ReadableStreamBYOBReader, e: any) {
   const readIntoRequests = reader._readIntoRequests;
   reader._readIntoRequests = new SimpleQueue();
-  readIntoRequests.forEach(readIntoRequest => {
+  readIntoRequests.forEach((readIntoRequest) => {
     readIntoRequest._errorSteps(e);
   });
 }

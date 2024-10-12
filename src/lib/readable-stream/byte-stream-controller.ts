@@ -436,7 +436,7 @@ function ReadableByteStreamControllerCallPullIfNeeded(controller: ReadableByteSt
 
       return null;
     },
-    e => {
+    (e) => {
       ReadableByteStreamControllerError(controller, e);
       return null;
     }
@@ -1084,7 +1084,7 @@ export function SetUpReadableByteStreamController(stream: ReadableByteStream,
       ReadableByteStreamControllerCallPullIfNeeded(controller);
       return null;
     },
-    r => {
+    (r) => {
       ReadableByteStreamControllerError(controller, r);
       return null;
     }

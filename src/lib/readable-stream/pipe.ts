@@ -113,7 +113,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
           ReadableStreamDefaultReaderRead(
             reader,
             {
-              _chunkSteps: chunk => {
+              _chunkSteps: (chunk) => {
                 currentWrite = PerformPromiseThen(WritableStreamDefaultWriterWrite(writer, chunk), undefined, noop);
                 resolveRead(false);
               },
@@ -126,7 +126,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
     }
 
     // Errors must be propagated forward
-    isOrBecomesErrored(source, reader._closedPromise, storedError => {
+    isOrBecomesErrored(source, reader._closedPromise, (storedError) => {
       if (!preventAbort) {
         shutdownWithAction(() => WritableStreamAbort(dest, storedError), true, storedError);
       } else {
@@ -136,7 +136,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
     });
 
     // Errors must be propagated backward
-    isOrBecomesErrored(dest, writer._closedPromise, storedError => {
+    isOrBecomesErrored(dest, writer._closedPromise, (storedError) => {
       if (!preventCancel) {
         shutdownWithAction(() => ReadableStreamCancel(source, storedError), true, storedError);
       } else {

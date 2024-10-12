@@ -71,11 +71,11 @@ import type { ReadableStreamDefaultReaderLike, ReadableStreamLike } from './read
 import type { NonShared } from './helpers/array-buffer-view';
 
 export type DefaultReadableStream<R = any> = ReadableStream<R> & {
-  _readableStreamController: ReadableStreamDefaultController<R>
+  _readableStreamController: ReadableStreamDefaultController<R>;
 };
 
 export type ReadableByteStream = ReadableStream<NonShared<Uint8Array>> & {
-  _readableStreamController: ReadableByteStreamController
+  _readableStreamController: ReadableByteStreamController;
 };
 
 type ReadableStreamState = 'readable' | 'closed' | 'errored';
@@ -488,7 +488,7 @@ export function ReadableStreamCancel<R>(stream: ReadableStream<R>, reason: any):
   if (reader !== undefined && IsReadableStreamBYOBReader(reader)) {
     const readIntoRequests = reader._readIntoRequests;
     reader._readIntoRequests = new SimpleQueue();
-    readIntoRequests.forEach(readIntoRequest => {
+    readIntoRequests.forEach((readIntoRequest) => {
       readIntoRequest._closeSteps(undefined);
     });
   }
@@ -513,7 +513,7 @@ export function ReadableStreamClose<R>(stream: ReadableStream<R>): void {
   if (IsReadableStreamDefaultReader<R>(reader)) {
     const readRequests = reader._readRequests;
     reader._readRequests = new SimpleQueue();
-    readRequests.forEach(readRequest => {
+    readRequests.forEach((readRequest) => {
       readRequest._closeSteps();
     });
   }

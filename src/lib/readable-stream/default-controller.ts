@@ -195,7 +195,7 @@ function ReadableStreamDefaultControllerCallPullIfNeeded(controller: ReadableStr
 
       return null;
     },
-    e => {
+    (e) => {
       ReadableStreamDefaultControllerError(controller, e);
       return null;
     }
@@ -372,7 +372,7 @@ export function SetUpReadableStreamDefaultController<R>(stream: ReadableStream<R
       ReadableStreamDefaultControllerCallPullIfNeeded(controller);
       return null;
     },
-    r => {
+    (r) => {
       ReadableStreamDefaultControllerError(controller, r);
       return null;
     }

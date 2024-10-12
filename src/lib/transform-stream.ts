@@ -85,7 +85,7 @@ export class TransformStream<I = any, O = any> {
     const writableSizeAlgorithm = ExtractSizeAlgorithm(writableStrategy);
 
     let startPromise_resolve!: (value: void | PromiseLike<void>) => void;
-    const startPromise = newPromise<void>(resolve => {
+    const startPromise = newPromise<void>((resolve) => {
       startPromise_resolve = resolve;
     });
 
@@ -159,7 +159,7 @@ export function CreateTransformStream<I, O>(startAlgorithm: () => void | Promise
   const stream: TransformStream<I, O> = Object.create(TransformStream.prototype);
 
   let startPromise_resolve!: (value: void | PromiseLike<void>) => void;
-  const startPromise = newPromise<void>(resolve => {
+  const startPromise = newPromise<void>((resolve) => {
     startPromise_resolve = resolve;
   });
 
@@ -261,7 +261,7 @@ function TransformStreamSetBackpressure(stream: TransformStream, backpressure: b
     stream._backpressureChangePromise_resolve();
   }
 
-  stream._backpressureChangePromise = newPromise(resolve => {
+  stream._backpressureChangePromise = newPromise((resolve) => {
     stream._backpressureChangePromise_resolve = resolve;
   });
 
@@ -405,7 +405,7 @@ function SetUpTransformStreamDefaultControllerFromTransformer<I, O>(stream: Tran
   if (transformer.transform !== undefined) {
     transformAlgorithm = chunk => transformer.transform!(chunk, controller);
   } else {
-    transformAlgorithm = chunk => {
+    transformAlgorithm = (chunk) => {
       try {
         TransformStreamDefaultControllerEnqueue(controller, chunk as unknown as O);
         return promiseResolvedWith(undefined);
@@ -469,7 +469,7 @@ function TransformStreamDefaultControllerError(controller: TransformStreamDefaul
 function TransformStreamDefaultControllerPerformTransform<I, O>(controller: TransformStreamDefaultController<O>,
                                                                 chunk: I) {
   const transformPromise = controller._transformAlgorithm(chunk);
-  return transformPromiseWith(transformPromise, undefined, r => {
+  return transformPromiseWith(transformPromise, undefined, (r) => {
     TransformStreamError(controller._controlledTransformStream, r);
     throw r;
   });
@@ -536,7 +536,7 @@ function TransformStreamDefaultSinkAbortAlgorithm<I, O>(stream: TransformStream<
       defaultControllerFinishPromiseResolve(controller);
     }
     return null;
-  }, r => {
+  }, (r) => {
     ReadableStreamDefaultControllerError(readable._readableStreamController, r);
     defaultControllerFinishPromiseReject(controller, r);
     return null;
@@ -572,7 +572,7 @@ function TransformStreamDefaultSinkCloseAlgorithm<I, O>(stream: TransformStream<
       defaultControllerFinishPromiseResolve(controller);
     }
     return null;
-  }, r => {
+  }, (r) => {
     ReadableStreamDefaultControllerError(readable._readableStreamController, r);
     defaultControllerFinishPromiseReject(controller, r);
     return null;
@@ -624,7 +624,7 @@ function TransformStreamDefaultSourceCancelAlgorithm<I, O>(stream: TransformStre
       defaultControllerFinishPromiseResolve(controller);
     }
     return null;
-  }, r => {
+  }, (r) => {
     WritableStreamDefaultControllerErrorIfNeeded(writable._writableStreamController, r);
     TransformStreamUnblockWrite(stream);
     defaultControllerFinishPromiseReject(controller, r);

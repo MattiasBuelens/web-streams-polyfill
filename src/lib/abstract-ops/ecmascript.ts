@@ -88,14 +88,14 @@ export function GetMethod<T, K extends MethodName<T>>(receiver: T, prop: K): T[K
 export type SyncOrAsync<T> = T | Promise<T>;
 
 export interface SyncIteratorRecord<T> {
-  iterator: Iterator<T>,
-  nextMethod: () => SyncOrAsync<IteratorResult<SyncOrAsync<T>>>,
+  iterator: Iterator<T>;
+  nextMethod: () => SyncOrAsync<IteratorResult<SyncOrAsync<T>>>;
   done: boolean;
 }
 
 export interface AsyncIteratorRecord<T> {
-  iterator: AsyncIterator<T>,
-  nextMethod: AsyncIterator<T>['next'],
+  iterator: AsyncIterator<T>;
+  nextMethod: AsyncIterator<T>['next'];
   done: boolean;
 }
 
@@ -213,4 +213,3 @@ export function IteratorNext<T>(
   }
   return result;
 }
-
