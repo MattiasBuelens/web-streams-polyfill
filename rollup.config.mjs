@@ -83,13 +83,15 @@ function plugins({ target }) {
       declaration: false,
       declarationMap: false
     }),
-    target === 'es5' ? inject({
-      include: 'src/**/*.ts',
-      exclude: 'src/stub/symbol.ts',
-      modules: {
-        Symbol: path.resolve(dirname, './src/stub/symbol.ts')
-      }
-    }) : undefined,
+    target === 'es5'
+      ? inject({
+        include: 'src/**/*.ts',
+        exclude: 'src/stub/symbol.ts',
+        modules: {
+          Symbol: path.resolve(dirname, './src/stub/symbol.ts')
+        }
+      })
+      : undefined,
     replace({
       include: 'src/**/*.ts',
       preventAssignment: true,
@@ -97,17 +99,21 @@ function plugins({ target }) {
         DEBUG: debug
       }
     }),
-    !debug ? strip({
-      include: 'src/**/*.ts',
-      functions: ['assert']
-    }) : undefined,
-    !debug ? terser({
-      keep_classnames: keepRegex, // needed for WPT
-      keep_fnames: keepRegex,
-      mangle: {
-        toplevel: true
-      }
-    }) : undefined
+    !debug
+      ? strip({
+        include: 'src/**/*.ts',
+        functions: ['assert']
+      })
+      : undefined,
+    !debug
+      ? terser({
+        keep_classnames: keepRegex, // needed for WPT
+        keep_fnames: keepRegex,
+        mangle: {
+          toplevel: true
+        }
+      })
+      : undefined
   ].filter(Boolean);
 }
 

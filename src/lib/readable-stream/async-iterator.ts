@@ -44,17 +44,17 @@ export class ReadableStreamAsyncIteratorImpl<R> {
 
   next(): Promise<ReadableStreamDefaultReadResult<R>> {
     const nextSteps = () => this._nextSteps();
-    this._ongoingPromise = this._ongoingPromise ?
-      transformPromiseWith(this._ongoingPromise, nextSteps, nextSteps) :
-      nextSteps();
+    this._ongoingPromise = this._ongoingPromise
+      ? transformPromiseWith(this._ongoingPromise, nextSteps, nextSteps)
+      : nextSteps();
     return this._ongoingPromise;
   }
 
   return(value: any): Promise<ReadableStreamDefaultReadResult<any>> {
     const returnSteps = () => this._returnSteps(value);
-    return this._ongoingPromise ?
-      transformPromiseWith(this._ongoingPromise, returnSteps, returnSteps) :
-      returnSteps();
+    return this._ongoingPromise
+      ? transformPromiseWith(this._ongoingPromise, returnSteps, returnSteps)
+      : returnSteps();
   }
 
   private _nextSteps(): Promise<ReadableStreamDefaultReadResult<R>> {
@@ -72,7 +72,7 @@ export class ReadableStreamAsyncIteratorImpl<R> {
       rejectPromise = reject;
     });
     const readRequest: ReadRequest<R> = {
-      _chunkSteps: chunk => {
+      _chunkSteps: (chunk) => {
         this._ongoingPromise = undefined;
         // This needs to be delayed by one microtask, otherwise we stop pulling too early which breaks a test.
         // FIXME Is this a bug in the specification, or in the test?
@@ -84,7 +84,7 @@ export class ReadableStreamAsyncIteratorImpl<R> {
         ReadableStreamReaderGenericRelease(reader);
         resolvePromise({ value: undefined, done: true });
       },
-      _errorSteps: reason => {
+      _errorSteps: (reason) => {
         this._ongoingPromise = undefined;
         this._isFinished = true;
         ReadableStreamReaderGenericRelease(reader);
@@ -153,8 +153,10 @@ Object.defineProperty(ReadableStreamAsyncIteratorPrototype, SymbolAsyncIterator,
 
 // Abstract operations for the ReadableStream.
 
-export function AcquireReadableStreamAsyncIterator<R>(stream: ReadableStream<R>,
-                                                      preventCancel: boolean): ReadableStreamAsyncIterator<R> {
+export function AcquireReadableStreamAsyncIterator<R>(
+  stream: ReadableStream<R>,
+  preventCancel: boolean
+): ReadableStreamAsyncIterator<R> {
   const reader = AcquireReadableStreamDefaultReader<R>(stream);
   const impl = new ReadableStreamAsyncIteratorImpl(reader, preventCancel);
   const iterator: ReadableStreamAsyncIteratorInstance<R> = Object.create(ReadableStreamAsyncIteratorPrototype);
@@ -173,8 +175,8 @@ function IsReadableStreamAsyncIterator<R = any>(x: any): x is ReadableStreamAsyn
 
   try {
     // noinspection SuspiciousTypeOfGuard
-    return (x as ReadableStreamAsyncIteratorInstance<any>)._asyncIteratorImpl instanceof
-      ReadableStreamAsyncIteratorImpl;
+    return (x as ReadableStreamAsyncIteratorInstance<any>)._asyncIteratorImpl
+      instanceof ReadableStreamAsyncIteratorImpl;
   } catch {
     return false;
   }

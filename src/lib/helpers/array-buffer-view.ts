@@ -11,7 +11,7 @@ export type TypedArray =
 
 export type NonShared<T extends ArrayBufferView> = T & {
   buffer: ArrayBuffer;
-}
+};
 
 export interface ArrayBufferViewConstructor<T extends ArrayBufferView = ArrayBufferView> {
   new(buffer: ArrayBuffer, byteOffset: number, length?: number): T;
@@ -25,7 +25,7 @@ export interface TypedArrayConstructor<T extends TypedArray = TypedArray> extend
 
 export type DataViewConstructor = ArrayBufferViewConstructor<DataView>;
 
-function isDataViewConstructor(ctor: Function): ctor is DataViewConstructor {
+function isDataViewConstructor(ctor: ArrayBufferView['constructor']): ctor is DataViewConstructor {
   return ctor === DataView;
 }
 

@@ -24,11 +24,13 @@ export function CreateArrayFromList<T extends any[]>(elements: T): T {
   return elements.slice() as T;
 }
 
-export function CopyDataBlockBytes(dest: ArrayBuffer,
-                                   destOffset: number,
-                                   src: ArrayBuffer,
-                                   srcOffset: number,
-                                   n: number) {
+export function CopyDataBlockBytes(
+  dest: ArrayBuffer,
+  destOffset: number,
+  src: ArrayBuffer,
+  srcOffset: number,
+  n: number
+) {
   new Uint8Array(dest).set(new Uint8Array(src, srcOffset, n), destOffset);
 }
 
@@ -71,6 +73,7 @@ export function ArrayBufferSlice(buffer: ArrayBuffer, begin: number, end: number
 }
 
 export type MethodName<T> = {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
   [P in keyof T]: T[P] extends Function | undefined ? P : never;
 }[keyof T];
 
@@ -88,22 +91,20 @@ export function GetMethod<T, K extends MethodName<T>>(receiver: T, prop: K): T[K
 export type SyncOrAsync<T> = T | Promise<T>;
 
 export interface SyncIteratorRecord<T> {
-  iterator: Iterator<T>,
-  nextMethod: () => SyncOrAsync<IteratorResult<SyncOrAsync<T>>>,
+  iterator: Iterator<T>;
+  nextMethod: () => SyncOrAsync<IteratorResult<SyncOrAsync<T>>>;
   done: boolean;
 }
 
 export interface AsyncIteratorRecord<T> {
-  iterator: AsyncIterator<T>,
-  nextMethod: AsyncIterator<T>['next'],
+  iterator: AsyncIterator<T>;
+  nextMethod: AsyncIterator<T>['next'];
   done: boolean;
 }
 
 export type SyncOrAsyncIteratorRecord<T> = SyncIteratorRecord<T> | AsyncIteratorRecord<T>;
 
-export function CreateAsyncFromSyncIterator<T>(
-  syncIteratorRecord: SyncIteratorRecord<SyncOrAsync<T>>
-): AsyncIteratorRecord<T> {
+export function CreateAsyncFromSyncIterator<T>(syncIteratorRecord: SyncIteratorRecord<SyncOrAsync<T>>): AsyncIteratorRecord<T> {
   const asyncIterator: AsyncIterator<T> = {
     // https://tc39.es/ecma262/#sec-%asyncfromsynciteratorprototype%.next
     next() {
@@ -153,10 +154,10 @@ function AsyncFromSyncIteratorContinuation<T>(result: IteratorResult<SyncOrAsync
 }
 
 // Aligns with core-js/modules/es.symbol.async-iterator.js
-export const SymbolAsyncIterator: (typeof Symbol)['asyncIterator'] =
-  Symbol.asyncIterator ??
-  Symbol.for?.('Symbol.asyncIterator') ??
-  '@@asyncIterator';
+export const SymbolAsyncIterator: (typeof Symbol)['asyncIterator']
+  = Symbol.asyncIterator
+  ?? Symbol.for?.('Symbol.asyncIterator')
+  ?? '@@asyncIterator';
 
 export type SyncOrAsyncIterable<T> = Iterable<T> | AsyncIterable<T>;
 export type SyncOrAsyncIteratorMethod<T> = () => (Iterator<T> | AsyncIterator<T>);
@@ -204,13 +205,10 @@ export { GetIterator };
 
 export function IteratorNext<T>(iteratorRecord: SyncIteratorRecord<T>): IteratorResult<T>;
 export function IteratorNext<T>(iteratorRecord: AsyncIteratorRecord<T>): Promise<IteratorResult<T>>;
-export function IteratorNext<T>(
-  iteratorRecord: SyncOrAsyncIteratorRecord<T>
-): SyncOrAsync<IteratorResult<SyncOrAsync<T>>> {
+export function IteratorNext<T>(iteratorRecord: SyncOrAsyncIteratorRecord<T>): SyncOrAsync<IteratorResult<SyncOrAsync<T>>> {
   const result = reflectCall(iteratorRecord.nextMethod, iteratorRecord.iterator, []);
   if (!typeIsObject(result)) {
     throw new TypeError('The iterator.next() method must return an object');
   }
   return result;
 }
-

@@ -6,8 +6,10 @@ export function isDictionary(x: any): x is object | null {
   return typeof x === 'object' || typeof x === 'function';
 }
 
-export function assertDictionary(obj: unknown,
-                                 context: string): asserts obj is object | null | undefined {
+export function assertDictionary(
+  obj: unknown,
+  context: string
+): asserts obj is object | null | undefined {
   if (obj !== undefined && !isDictionary(obj)) {
     throw new TypeError(`${context} is not an object.`);
   }
@@ -27,24 +29,30 @@ export function isObject(x: any): x is object {
   return (typeof x === 'object' && x !== null) || typeof x === 'function';
 }
 
-export function assertObject(x: unknown,
-                             context: string): asserts x is object {
+export function assertObject(
+  x: unknown,
+  context: string
+): asserts x is object {
   if (!isObject(x)) {
     throw new TypeError(`${context} is not an object.`);
   }
 }
 
-export function assertRequiredArgument<T>(x: T | undefined,
-                                          position: number,
-                                          context: string): asserts x is T {
+export function assertRequiredArgument<T>(
+  x: T | undefined,
+  position: number,
+  context: string
+): asserts x is T {
   if (x === undefined) {
     throw new TypeError(`Parameter ${position} is required in '${context}'.`);
   }
 }
 
-export function assertRequiredField<T>(x: T | undefined,
-                                       field: string,
-                                       context: string): asserts x is T {
+export function assertRequiredField<T>(
+  x: T | undefined,
+  field: string,
+  context: string
+): asserts x is T {
   if (x === undefined) {
     throw new TypeError(`${field} is required in '${context}'.`);
   }

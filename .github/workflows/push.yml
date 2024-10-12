@@ -32,7 +32,7 @@ jobs:
     name: ${{ matrix.browser }}
     runs-on: ubuntu-latest
     container:
-      image: mcr.microsoft.com/playwright:v1.42.0-jammy
+      image: mcr.microsoft.com/playwright:v1.48.0-noble
     strategy:
       fail-fast: false
       matrix:

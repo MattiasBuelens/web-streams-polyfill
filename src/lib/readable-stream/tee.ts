@@ -41,8 +41,10 @@ import { CreateArrayFromList } from '../abstract-ops/ecmascript';
 import { CloneAsUint8Array } from '../abstract-ops/miscellaneous';
 import type { NonShared } from '../helpers/array-buffer-view';
 
-export function ReadableStreamTee<R>(stream: ReadableStream<R>,
-                                     cloneForBranch2: boolean): [ReadableStream<R>, ReadableStream<R>] {
+export function ReadableStreamTee<R>(
+  stream: ReadableStream<R>,
+  cloneForBranch2: boolean
+): [ReadableStream<R>, ReadableStream<R>] {
   assert(IsReadableStream(stream));
   assert(typeof cloneForBranch2 === 'boolean');
   if (IsReadableByteStreamController(stream._readableStreamController)) {
@@ -71,7 +73,7 @@ export function ReadableStreamDefaultTee<R>(
   let branch2: DefaultReadableStream<R>;
 
   let resolveCancelPromise: (value: undefined | Promise<undefined>) => void;
-  const cancelPromise = newPromise<undefined>(resolve => {
+  const cancelPromise = newPromise<undefined>((resolve) => {
     resolveCancelPromise = resolve;
   });
 
@@ -84,7 +86,7 @@ export function ReadableStreamDefaultTee<R>(
     reading = true;
 
     const readRequest: ReadRequest<R> = {
-      _chunkSteps: chunk => {
+      _chunkSteps: (chunk) => {
         // This needs to be delayed a microtask because it takes at least a microtask to detect errors (using
         // reader._closedPromise below), and we want errors in stream to error both branches immediately. We cannot let
         // successful synchronously-available reads get ahead of asynchronously-available errors.
@@ -191,12 +193,12 @@ export function ReadableByteStreamTee(stream: ReadableByteStream): [ReadableByte
   let branch2: ReadableByteStream;
 
   let resolveCancelPromise: (value: undefined | Promise<undefined>) => void;
-  const cancelPromise = newPromise<void>(resolve => {
+  const cancelPromise = newPromise<void>((resolve) => {
     resolveCancelPromise = resolve;
   });
 
   function forwardReaderError(thisReader: ReadableStreamReader<NonShared<Uint8Array>>) {
-    uponRejection(thisReader._closedPromise, r => {
+    uponRejection(thisReader._closedPromise, (r) => {
       if (thisReader !== reader) {
         return null;
       }
@@ -219,7 +221,7 @@ export function ReadableByteStreamTee(stream: ReadableByteStream): [ReadableByte
     }
 
     const readRequest: ReadRequest<NonShared<Uint8Array>> = {
-      _chunkSteps: chunk => {
+      _chunkSteps: (chunk) => {
         // This needs to be delayed a microtask because it takes at least a microtask to detect errors (using
         // reader._closedPromise below), and we want errors in stream to error both branches immediately. We cannot let
         // successful synchronously-available reads get ahead of asynchronously-available errors.
@@ -293,7 +295,7 @@ export function ReadableByteStreamTee(stream: ReadableByteStream): [ReadableByte
     const otherBranch = forBranch2 ? branch1 : branch2;
 
     const readIntoRequest: ReadIntoRequest<NonShared<ArrayBufferView>> = {
-      _chunkSteps: chunk => {
+      _chunkSteps: (chunk) => {
         // This needs to be delayed a microtask because it takes at least a microtask to detect errors (using
         // reader._closedPromise below), and we want errors in stream to error both branches immediately. We cannot let
         // successful synchronously-available reads get ahead of asynchronously-available errors.
@@ -330,7 +332,7 @@ export function ReadableByteStreamTee(stream: ReadableByteStream): [ReadableByte
           }
         });
       },
-      _closeSteps: chunk => {
+      _closeSteps: (chunk) => {
         reading = false;
 
         const byobCanceled = forBranch2 ? canceled2 : canceled1;

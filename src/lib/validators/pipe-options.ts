@@ -2,8 +2,10 @@ import { assertDictionary } from './basic';
 import type { StreamPipeOptions, ValidatedStreamPipeOptions } from '../readable-stream/pipe-options';
 import { type AbortSignal, isAbortSignal } from '../abort-signal';
 
-export function convertPipeOptions(options: StreamPipeOptions | null | undefined,
-                                   context: string): ValidatedStreamPipeOptions {
+export function convertPipeOptions(
+  options: StreamPipeOptions | null | undefined,
+  context: string
+): ValidatedStreamPipeOptions {
   assertDictionary(options, context);
   const preventAbort = options?.preventAbort;
   const preventCancel = options?.preventCancel;

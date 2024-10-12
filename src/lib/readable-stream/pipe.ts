@@ -26,12 +26,14 @@ import { noop } from '../../utils';
 import { type AbortSignal, isAbortSignal } from '../abort-signal';
 import { DOMException } from '../../stub/dom-exception';
 
-export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
-                                        dest: WritableStream<T>,
-                                        preventClose: boolean,
-                                        preventAbort: boolean,
-                                        preventCancel: boolean,
-                                        signal: AbortSignal | undefined): Promise<undefined> {
+export function ReadableStreamPipeTo<T>(
+  source: ReadableStream<T>,
+  dest: WritableStream<T>,
+  preventClose: boolean,
+  preventAbort: boolean,
+  preventCancel: boolean,
+  signal: AbortSignal | undefined
+): Promise<undefined> {
   assert(IsReadableStream(source));
   assert(IsWritableStream(dest));
   assert(typeof preventClose === 'boolean');
@@ -113,7 +115,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
           ReadableStreamDefaultReaderRead(
             reader,
             {
-              _chunkSteps: chunk => {
+              _chunkSteps: (chunk) => {
                 currentWrite = PerformPromiseThen(WritableStreamDefaultWriterWrite(writer, chunk), undefined, noop);
                 resolveRead(false);
               },
@@ -126,7 +128,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
     }
 
     // Errors must be propagated forward
-    isOrBecomesErrored(source, reader._closedPromise, storedError => {
+    isOrBecomesErrored(source, reader._closedPromise, (storedError) => {
       if (!preventAbort) {
         shutdownWithAction(() => WritableStreamAbort(dest, storedError), true, storedError);
       } else {
@@ -136,7 +138,7 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
     });
 
     // Errors must be propagated backward
-    isOrBecomesErrored(dest, writer._closedPromise, storedError => {
+    isOrBecomesErrored(dest, writer._closedPromise, (storedError) => {
       if (!preventCancel) {
         shutdownWithAction(() => ReadableStreamCancel(source, storedError), true, storedError);
       } else {
@@ -178,9 +180,11 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
       );
     }
 
-    function isOrBecomesErrored(stream: ReadableStream | WritableStream,
-                                promise: Promise<void>,
-                                action: (reason: any) => null) {
+    function isOrBecomesErrored(
+      stream: ReadableStream | WritableStream,
+      promise: Promise<void>,
+      action: (reason: any) => null
+    ) {
       if (stream._state === 'errored') {
         action(stream._storedError);
       } else {

@@ -7,7 +7,7 @@
     "benchmark": "node --prof index.js"
   },
   "devDependencies": {
-    "@stardazed/streams": "^3.0.0",
+    "@stardazed/streams": "^3.1.0",
     "benchmark": "^2.1.4"
   }
 }
