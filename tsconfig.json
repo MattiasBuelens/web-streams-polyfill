@@ -4,7 +4,10 @@
     "module": "es2015",
     "moduleResolution": "node",
     "lib": [
-      "es2018"
+      "es5",
+      "es2015.promise",
+      "es2015.symbol",
+      "es2018.asynciterable"
     ],
     "newLine": "lf",
     "types": [],

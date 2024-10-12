@@ -4,8 +4,6 @@
 
 ```ts
 
-/// <reference lib="es2018.asynciterable" />
-
 // @public
 export interface AbortSignal {
     readonly aborted: boolean;
