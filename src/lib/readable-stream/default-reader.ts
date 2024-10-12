@@ -34,8 +34,10 @@ export function AcquireReadableStreamDefaultReader<R>(stream: ReadableStream): R
 
 // ReadableStream API exposed for controllers.
 
-export function ReadableStreamAddReadRequest<R>(stream: ReadableStream<R>,
-                                                readRequest: ReadRequest<R>): void {
+export function ReadableStreamAddReadRequest<R>(
+  stream: ReadableStream<R>,
+  readRequest: ReadRequest<R>
+): void {
   assert(IsReadableStreamDefaultReader(stream._reader));
   assert(stream._state === 'readable');
 
@@ -221,8 +223,10 @@ export function IsReadableStreamDefaultReader<R = any>(x: any): x is ReadableStr
   return x instanceof ReadableStreamDefaultReader;
 }
 
-export function ReadableStreamDefaultReaderRead<R>(reader: ReadableStreamDefaultReader<R>,
-                                                   readRequest: ReadRequest<R>): void {
+export function ReadableStreamDefaultReaderRead<R>(
+  reader: ReadableStreamDefaultReader<R>,
+  readRequest: ReadRequest<R>
+): void {
   const stream = reader._ownerReadableStream;
 
   assert(stream !== undefined);
@@ -256,6 +260,5 @@ export function ReadableStreamDefaultReaderErrorReadRequests(reader: ReadableStr
 // Helper functions for the ReadableStreamDefaultReader.
 
 function defaultReaderBrandCheckException(name: string): TypeError {
-  return new TypeError(
-    `ReadableStreamDefaultReader.prototype.${name} can only be used on a ReadableStreamDefaultReader`);
+  return new TypeError(`ReadableStreamDefaultReader.prototype.${name} can only be used on a ReadableStreamDefaultReader`);
 }

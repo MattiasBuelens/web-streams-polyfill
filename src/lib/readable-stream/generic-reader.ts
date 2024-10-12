@@ -35,11 +35,13 @@ export function ReadableStreamReaderGenericRelease(reader: ReadableStreamReader<
   if (stream._state === 'readable') {
     defaultReaderClosedPromiseReject(
       reader,
-      new TypeError(`Reader was released and can no longer be used to monitor the stream's closedness`));
+      new TypeError(`Reader was released and can no longer be used to monitor the stream's closedness`)
+    );
   } else {
     defaultReaderClosedPromiseResetToRejected(
       reader,
-      new TypeError(`Reader was released and can no longer be used to monitor the stream's closedness`));
+      new TypeError(`Reader was released and can no longer be used to monitor the stream's closedness`)
+    );
   }
 
   stream._readableStreamController[ReleaseSteps]();

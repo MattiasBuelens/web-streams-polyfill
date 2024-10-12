@@ -55,9 +55,11 @@ export function ReadableStreamAddReadIntoRequest<T extends NonShared<ArrayBuffer
   (stream._reader! as ReadableStreamBYOBReader)._readIntoRequests.push(readIntoRequest);
 }
 
-export function ReadableStreamFulfillReadIntoRequest(stream: ReadableByteStream,
-                                                     chunk: ArrayBufferView,
-                                                     done: boolean) {
+export function ReadableStreamFulfillReadIntoRequest(
+  stream: ReadableByteStream,
+  chunk: ArrayBufferView,
+  done: boolean
+) {
   const reader = stream._reader as ReadableStreamBYOBReader;
 
   assert(reader._readIntoRequests.length > 0);
@@ -124,8 +126,8 @@ export class ReadableStreamBYOBReader {
     }
 
     if (!IsReadableByteStreamController(stream._readableStreamController)) {
-      throw new TypeError('Cannot construct a ReadableStreamBYOBReader for a stream not constructed with a byte ' +
-        'source');
+      throw new TypeError('Cannot construct a ReadableStreamBYOBReader for a stream not constructed with a byte '
+        + 'source');
     }
 
     ReadableStreamReaderGenericInitialize(this, stream);
@@ -320,6 +322,5 @@ export function ReadableStreamBYOBReaderErrorReadIntoRequests(reader: ReadableSt
 // Helper functions for the ReadableStreamBYOBReader.
 
 function byobReaderBrandCheckException(name: string): TypeError {
-  return new TypeError(
-    `ReadableStreamBYOBReader.prototype.${name} can only be used on a ReadableStreamBYOBReader`);
+  return new TypeError(`ReadableStreamBYOBReader.prototype.${name} can only be used on a ReadableStreamBYOBReader`);
 }

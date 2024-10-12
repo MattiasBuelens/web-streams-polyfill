@@ -10,9 +10,7 @@ import { promiseCall, promiseRejectedWith, promiseResolvedWith, transformPromise
 import { typeIsObject } from '../helpers/miscellaneous';
 import { noop } from '../../utils';
 
-export function ReadableStreamFrom<R>(
-  source: Iterable<R> | AsyncIterable<R> | ReadableStreamLike<R>
-): DefaultReadableStream<R> {
+export function ReadableStreamFrom<R>(source: Iterable<R> | AsyncIterable<R> | ReadableStreamLike<R>): DefaultReadableStream<R> {
   if (isReadableStreamLike(source)) {
     return ReadableStreamFromDefaultReader(source.getReader());
   }
@@ -71,9 +69,7 @@ export function ReadableStreamFromIterable<R>(asyncIterable: Iterable<R> | Async
   return stream;
 }
 
-export function ReadableStreamFromDefaultReader<R>(
-  reader: ReadableStreamDefaultReaderLike<R>
-): DefaultReadableStream<R> {
+export function ReadableStreamFromDefaultReader<R>(reader: ReadableStreamDefaultReaderLike<R>): DefaultReadableStream<R> {
   let stream: DefaultReadableStream<R>;
 
   const startAlgorithm = noop;

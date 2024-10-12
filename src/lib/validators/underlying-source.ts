@@ -23,21 +23,21 @@ export function convertUnderlyingDefaultOrByteSource<R>(
   const start = original?.start;
   const type = original?.type;
   return {
-    autoAllocateChunkSize: autoAllocateChunkSize === undefined ?
-      undefined :
-      convertUnsignedLongLongWithEnforceRange(
+    autoAllocateChunkSize: autoAllocateChunkSize === undefined
+      ? undefined
+      : convertUnsignedLongLongWithEnforceRange(
         autoAllocateChunkSize,
         `${context} has member 'autoAllocateChunkSize' that`
       ),
-    cancel: cancel === undefined ?
-      undefined :
-      convertUnderlyingSourceCancelCallback(cancel, original!, `${context} has member 'cancel' that`),
-    pull: pull === undefined ?
-      undefined :
-      convertUnderlyingSourcePullCallback(pull, original!, `${context} has member 'pull' that`),
-    start: start === undefined ?
-      undefined :
-      convertUnderlyingSourceStartCallback(start, original!, `${context} has member 'start' that`),
+    cancel: cancel === undefined
+      ? undefined
+      : convertUnderlyingSourceCancelCallback(cancel, original!, `${context} has member 'cancel' that`),
+    pull: pull === undefined
+      ? undefined
+      : convertUnderlyingSourcePullCallback(pull, original!, `${context} has member 'pull' that`),
+    start: start === undefined
+      ? undefined
+      : convertUnderlyingSourceStartCallback(start, original!, `${context} has member 'start' that`),
     type: type === undefined ? undefined : convertReadableStreamType(type, `${context} has member 'type' that`)
   };
 }

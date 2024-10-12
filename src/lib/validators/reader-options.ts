@@ -5,8 +5,10 @@ import type {
   ValidatedReadableStreamBYOBReaderReadOptions
 } from '../readable-stream/reader-options';
 
-export function convertReaderOptions(options: ReadableStreamGetReaderOptions | null | undefined,
-                                     context: string): ReadableStreamGetReaderOptions {
+export function convertReaderOptions(
+  options: ReadableStreamGetReaderOptions | null | undefined,
+  context: string
+): ReadableStreamGetReaderOptions {
   assertDictionary(options, context);
   const mode = options?.mode;
   return {

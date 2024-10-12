@@ -29,7 +29,8 @@ export function promiseRejectedWith<T = never>(reason: any): Promise<T> {
 export function PerformPromiseThen<T, TResult1 = T, TResult2 = never>(
   promise: Promise<T>,
   onFulfilled?: (value: T) => TResult1 | PromiseLike<TResult1>,
-  onRejected?: (reason: any) => TResult2 | PromiseLike<TResult2>): Promise<TResult1 | TResult2> {
+  onRejected?: (reason: any) => TResult2 | PromiseLike<TResult2>
+): Promise<TResult1 | TResult2> {
   // There doesn't appear to be any way to correctly emulate the behaviour from JavaScript, so this is just an
   // approximation.
   return originalPromiseThen.call(promise, onFulfilled, onRejected) as Promise<TResult1 | TResult2>;
@@ -41,7 +42,8 @@ export function PerformPromiseThen<T, TResult1 = T, TResult2 = never>(
 export function uponPromise<T>(
   promise: Promise<T>,
   onFulfilled?: (value: T) => null | PromiseLike<null>,
-  onRejected?: (reason: any) => null | PromiseLike<null>): void {
+  onRejected?: (reason: any) => null | PromiseLike<null>
+): void {
   PerformPromiseThen(
     PerformPromiseThen(promise, onFulfilled, onRejected),
     undefined,
@@ -60,7 +62,8 @@ export function uponRejection(promise: Promise<unknown>, onRejected: (reason: an
 export function transformPromiseWith<T, TResult1 = T, TResult2 = never>(
   promise: Promise<T>,
   fulfillmentHandler?: (value: T) => TResult1 | PromiseLike<TResult1>,
-  rejectionHandler?: (reason: any) => TResult2 | PromiseLike<TResult2>): Promise<TResult1 | TResult2> {
+  rejectionHandler?: (reason: any) => TResult2 | PromiseLike<TResult2>
+): Promise<TResult1 | TResult2> {
   return PerformPromiseThen(promise, fulfillmentHandler, rejectionHandler);
 }
 
@@ -87,9 +90,11 @@ export function reflectCall<T, A extends any[], R>(F: (this: T, ...fnArgs: A) =>
   return Function.prototype.apply.call(F, V, args);
 }
 
-export function promiseCall<T, A extends any[], R>(F: (this: T, ...fnArgs: A) => R | PromiseLike<R>,
-                                                   V: T,
-                                                   args: A): Promise<R> {
+export function promiseCall<T, A extends any[], R>(
+  F: (this: T, ...fnArgs: A) => R | PromiseLike<R>,
+  V: T,
+  args: A
+): Promise<R> {
   assert(typeof F === 'function');
   assert(V !== undefined);
   assert(Array.isArray(args));

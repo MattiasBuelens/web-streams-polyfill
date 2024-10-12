@@ -10,8 +10,10 @@ import type {
 } from '../writable-stream/underlying-sink';
 import { WritableStreamDefaultController } from '../writable-stream';
 
-export function convertUnderlyingSink<W>(original: UnderlyingSink<W> | null,
-                                         context: string): ValidatedUnderlyingSink<W> {
+export function convertUnderlyingSink<W>(
+  original: UnderlyingSink<W> | null,
+  context: string
+): ValidatedUnderlyingSink<W> {
   assertDictionary(original, context);
   const abort = original?.abort;
   const close = original?.close;
@@ -19,18 +21,18 @@ export function convertUnderlyingSink<W>(original: UnderlyingSink<W> | null,
   const type = original?.type;
   const write = original?.write;
   return {
-    abort: abort === undefined ?
-      undefined :
-      convertUnderlyingSinkAbortCallback(abort, original!, `${context} has member 'abort' that`),
-    close: close === undefined ?
-      undefined :
-      convertUnderlyingSinkCloseCallback(close, original!, `${context} has member 'close' that`),
-    start: start === undefined ?
-      undefined :
-      convertUnderlyingSinkStartCallback(start, original!, `${context} has member 'start' that`),
-    write: write === undefined ?
-      undefined :
-      convertUnderlyingSinkWriteCallback(write, original!, `${context} has member 'write' that`),
+    abort: abort === undefined
+      ? undefined
+      : convertUnderlyingSinkAbortCallback(abort, original!, `${context} has member 'abort' that`),
+    close: close === undefined
+      ? undefined
+      : convertUnderlyingSinkCloseCallback(close, original!, `${context} has member 'close' that`),
+    start: start === undefined
+      ? undefined
+      : convertUnderlyingSinkStartCallback(start, original!, `${context} has member 'start' that`),
+    write: write === undefined
+      ? undefined
+      : convertUnderlyingSinkWriteCallback(write, original!, `${context} has member 'write' that`),
     type
   };
 }

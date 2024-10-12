@@ -10,8 +10,10 @@ import type {
 } from '../transform-stream/transformer';
 import { TransformStreamDefaultController } from '../transform-stream';
 
-export function convertTransformer<I, O>(original: Transformer<I, O> | null,
-                                         context: string): ValidatedTransformer<I, O> {
+export function convertTransformer<I, O>(
+  original: Transformer<I, O> | null,
+  context: string
+): ValidatedTransformer<I, O> {
   assertDictionary(original, context);
   const cancel = original?.cancel;
   const flush = original?.flush;
@@ -20,19 +22,19 @@ export function convertTransformer<I, O>(original: Transformer<I, O> | null,
   const transform = original?.transform;
   const writableType = original?.writableType;
   return {
-    cancel: cancel === undefined ?
-      undefined :
-      convertTransformerCancelCallback(cancel, original!, `${context} has member 'cancel' that`),
-    flush: flush === undefined ?
-      undefined :
-      convertTransformerFlushCallback(flush, original!, `${context} has member 'flush' that`),
+    cancel: cancel === undefined
+      ? undefined
+      : convertTransformerCancelCallback(cancel, original!, `${context} has member 'cancel' that`),
+    flush: flush === undefined
+      ? undefined
+      : convertTransformerFlushCallback(flush, original!, `${context} has member 'flush' that`),
     readableType,
-    start: start === undefined ?
-      undefined :
-      convertTransformerStartCallback(start, original!, `${context} has member 'start' that`),
-    transform: transform === undefined ?
-      undefined :
-      convertTransformerTransformCallback(transform, original!, `${context} has member 'transform' that`),
+    start: start === undefined
+      ? undefined
+      : convertTransformerStartCallback(start, original!, `${context} has member 'start' that`),
+    transform: transform === undefined
+      ? undefined
+      : convertTransformerTransformCallback(transform, original!, `${context} has member 'transform' that`),
     writableType
   };
 }

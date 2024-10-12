@@ -61,9 +61,11 @@ export class TransformStream<I = any, O = any> {
     writableStrategy?: QueuingStrategy<I>,
     readableStrategy?: QueuingStrategy<O>
   );
-  constructor(rawTransformer: Transformer<I, O> | null | undefined = {},
+  constructor(
+rawTransformer: Transformer<I, O> | null | undefined = {},
               rawWritableStrategy: QueuingStrategy<I> | null | undefined = {},
-              rawReadableStrategy: QueuingStrategy<O> | null | undefined = {}) {
+              rawReadableStrategy: QueuingStrategy<O> | null | undefined = {}
+  ) {
     if (rawTransformer === undefined) {
       rawTransformer = null;
     }
@@ -89,9 +91,7 @@ export class TransformStream<I = any, O = any> {
       startPromise_resolve = resolve;
     });
 
-    InitializeTransformStream(
-      this, startPromise, writableHighWaterMark, writableSizeAlgorithm, readableHighWaterMark, readableSizeAlgorithm
-    );
+    InitializeTransformStream(this, startPromise, writableHighWaterMark, writableSizeAlgorithm, readableHighWaterMark, readableSizeAlgorithm);
     SetUpTransformStreamDefaultControllerFromTransformer(this, transformer);
 
     if (transformer.start !== undefined) {
@@ -145,14 +145,16 @@ export type {
 
 // Transform Stream Abstract Operations
 
-export function CreateTransformStream<I, O>(startAlgorithm: () => void | PromiseLike<void>,
-                                            transformAlgorithm: (chunk: I) => Promise<void>,
-                                            flushAlgorithm: () => Promise<void>,
-                                            cancelAlgorithm: (reason: any) => Promise<void>,
-                                            writableHighWaterMark = 1,
-                                            writableSizeAlgorithm: QueuingStrategySizeCallback<I> = () => 1,
-                                            readableHighWaterMark = 0,
-                                            readableSizeAlgorithm: QueuingStrategySizeCallback<O> = () => 1) {
+export function CreateTransformStream<I, O>(
+  startAlgorithm: () => void | PromiseLike<void>,
+  transformAlgorithm: (chunk: I) => Promise<void>,
+  flushAlgorithm: () => Promise<void>,
+  cancelAlgorithm: (reason: any) => Promise<void>,
+  writableHighWaterMark = 1,
+  writableSizeAlgorithm: QueuingStrategySizeCallback<I> = () => 1,
+  readableHighWaterMark = 0,
+  readableSizeAlgorithm: QueuingStrategySizeCallback<O> = () => 1
+) {
   assert(IsNonNegativeNumber(writableHighWaterMark));
   assert(IsNonNegativeNumber(readableHighWaterMark));
 
@@ -163,8 +165,10 @@ export function CreateTransformStream<I, O>(startAlgorithm: () => void | Promise
     startPromise_resolve = resolve;
   });
 
-  InitializeTransformStream(stream, startPromise, writableHighWaterMark, writableSizeAlgorithm, readableHighWaterMark,
-                            readableSizeAlgorithm);
+  InitializeTransformStream(
+    stream, startPromise, writableHighWaterMark, writableSizeAlgorithm, readableHighWaterMark,
+    readableSizeAlgorithm
+  );
 
   const controller: TransformStreamDefaultController<O> = Object.create(TransformStreamDefaultController.prototype);
 
@@ -175,12 +179,14 @@ export function CreateTransformStream<I, O>(startAlgorithm: () => void | Promise
   return stream;
 }
 
-function InitializeTransformStream<I, O>(stream: TransformStream<I, O>,
-                                         startPromise: Promise<void>,
-                                         writableHighWaterMark: number,
-                                         writableSizeAlgorithm: QueuingStrategySizeCallback<I>,
-                                         readableHighWaterMark: number,
-                                         readableSizeAlgorithm: QueuingStrategySizeCallback<O>) {
+function InitializeTransformStream<I, O>(
+  stream: TransformStream<I, O>,
+  startPromise: Promise<void>,
+  writableHighWaterMark: number,
+  writableSizeAlgorithm: QueuingStrategySizeCallback<I>,
+  readableHighWaterMark: number,
+  readableSizeAlgorithm: QueuingStrategySizeCallback<O>
+) {
   function startAlgorithm(): Promise<void> {
     return startPromise;
   }
@@ -197,8 +203,10 @@ function InitializeTransformStream<I, O>(stream: TransformStream<I, O>,
     return TransformStreamDefaultSinkCloseAlgorithm(stream);
   }
 
-  stream._writable = CreateWritableStream(startAlgorithm, writeAlgorithm, closeAlgorithm, abortAlgorithm,
-                                          writableHighWaterMark, writableSizeAlgorithm);
+  stream._writable = CreateWritableStream(
+    startAlgorithm, writeAlgorithm, closeAlgorithm, abortAlgorithm,
+    writableHighWaterMark, writableSizeAlgorithm
+  );
 
   function pullAlgorithm(): Promise<void> {
     return TransformStreamDefaultSourcePullAlgorithm(stream);
@@ -208,8 +216,10 @@ function InitializeTransformStream<I, O>(stream: TransformStream<I, O>,
     return TransformStreamDefaultSourceCancelAlgorithm(stream, reason);
   }
 
-  stream._readable = CreateReadableStream(startAlgorithm, pullAlgorithm, cancelAlgorithm, readableHighWaterMark,
-                                          readableSizeAlgorithm);
+  stream._readable = CreateReadableStream(
+    startAlgorithm, pullAlgorithm, cancelAlgorithm, readableHighWaterMark,
+    readableSizeAlgorithm
+  );
 
   // The [[backpressure]] slot is set to undefined so that it can be initialised by TransformStreamSetBackpressure.
   stream._backpressure = undefined!;
@@ -374,11 +384,13 @@ function IsTransformStreamDefaultController<O = any>(x: any): x is TransformStre
   return x instanceof TransformStreamDefaultController;
 }
 
-function SetUpTransformStreamDefaultController<I, O>(stream: TransformStream<I, O>,
-                                                     controller: TransformStreamDefaultController<O>,
-                                                     transformAlgorithm: (chunk: I) => Promise<void>,
-                                                     flushAlgorithm: () => Promise<void>,
-                                                     cancelAlgorithm: (reason: any) => Promise<void>) {
+function SetUpTransformStreamDefaultController<I, O>(
+  stream: TransformStream<I, O>,
+  controller: TransformStreamDefaultController<O>,
+  transformAlgorithm: (chunk: I) => Promise<void>,
+  flushAlgorithm: () => Promise<void>,
+  cancelAlgorithm: (reason: any) => Promise<void>
+) {
   assert(IsTransformStream(stream));
   assert(stream._transformStreamController === undefined);
 
@@ -394,8 +406,10 @@ function SetUpTransformStreamDefaultController<I, O>(stream: TransformStream<I, 
   controller._finishPromise_reject = undefined;
 }
 
-function SetUpTransformStreamDefaultControllerFromTransformer<I, O>(stream: TransformStream<I, O>,
-                                                                    transformer: ValidatedTransformer<I, O>) {
+function SetUpTransformStreamDefaultControllerFromTransformer<I, O>(
+  stream: TransformStream<I, O>,
+  transformer: ValidatedTransformer<I, O>
+) {
   const controller: TransformStreamDefaultController<O> = Object.create(TransformStreamDefaultController.prototype);
 
   let transformAlgorithm: (chunk: I) => Promise<void>;
@@ -466,8 +480,10 @@ function TransformStreamDefaultControllerError(controller: TransformStreamDefaul
   TransformStreamError(controller._controlledTransformStream, e);
 }
 
-function TransformStreamDefaultControllerPerformTransform<I, O>(controller: TransformStreamDefaultController<O>,
-                                                                chunk: I) {
+function TransformStreamDefaultControllerPerformTransform<I, O>(
+  controller: TransformStreamDefaultController<O>,
+  chunk: I
+) {
   const transformPromise = controller._transformAlgorithm(chunk);
   return transformPromiseWith(transformPromise, undefined, (r) => {
     TransformStreamError(controller._controlledTransformStream, r);
@@ -637,8 +653,7 @@ function TransformStreamDefaultSourceCancelAlgorithm<I, O>(stream: TransformStre
 // Helper functions for the TransformStreamDefaultController.
 
 function defaultControllerBrandCheckException(name: string): TypeError {
-  return new TypeError(
-    `TransformStreamDefaultController.prototype.${name} can only be used on a TransformStreamDefaultController`);
+  return new TypeError(`TransformStreamDefaultController.prototype.${name} can only be used on a TransformStreamDefaultController`);
 }
 
 export function defaultControllerFinishPromiseResolve(controller: TransformStreamDefaultController<any>) {
@@ -665,6 +680,5 @@ export function defaultControllerFinishPromiseReject(controller: TransformStream
 // Helper functions for the TransformStream.
 
 function streamBrandCheckException(name: string): TypeError {
-  return new TypeError(
-    `TransformStream.prototype.${name} can only be used on a TransformStream`);
+  return new TypeError(`TransformStream.prototype.${name} can only be used on a TransformStream`);
 }

@@ -41,8 +41,10 @@ import { CreateArrayFromList } from '../abstract-ops/ecmascript';
 import { CloneAsUint8Array } from '../abstract-ops/miscellaneous';
 import type { NonShared } from '../helpers/array-buffer-view';
 
-export function ReadableStreamTee<R>(stream: ReadableStream<R>,
-                                     cloneForBranch2: boolean): [ReadableStream<R>, ReadableStream<R>] {
+export function ReadableStreamTee<R>(
+  stream: ReadableStream<R>,
+  cloneForBranch2: boolean
+): [ReadableStream<R>, ReadableStream<R>] {
   assert(IsReadableStream(stream));
   assert(typeof cloneForBranch2 === 'boolean');
   if (IsReadableByteStreamController(stream._readableStreamController)) {

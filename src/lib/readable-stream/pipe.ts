@@ -26,12 +26,14 @@ import { noop } from '../../utils';
 import { type AbortSignal, isAbortSignal } from '../abort-signal';
 import { DOMException } from '../../stub/dom-exception';
 
-export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
-                                        dest: WritableStream<T>,
-                                        preventClose: boolean,
-                                        preventAbort: boolean,
-                                        preventCancel: boolean,
-                                        signal: AbortSignal | undefined): Promise<undefined> {
+export function ReadableStreamPipeTo<T>(
+  source: ReadableStream<T>,
+  dest: WritableStream<T>,
+  preventClose: boolean,
+  preventAbort: boolean,
+  preventCancel: boolean,
+  signal: AbortSignal | undefined
+): Promise<undefined> {
   assert(IsReadableStream(source));
   assert(IsWritableStream(dest));
   assert(typeof preventClose === 'boolean');
@@ -178,9 +180,11 @@ export function ReadableStreamPipeTo<T>(source: ReadableStream<T>,
       );
     }
 
-    function isOrBecomesErrored(stream: ReadableStream | WritableStream,
-                                promise: Promise<void>,
-                                action: (reason: any) => null) {
+    function isOrBecomesErrored(
+      stream: ReadableStream | WritableStream,
+      promise: Promise<void>,
+      action: (reason: any) => null
+    ) {
       if (stream._state === 'errored') {
         action(stream._storedError);
       } else {

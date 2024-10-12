@@ -294,9 +294,7 @@ export function ReadableStreamDefaultControllerError(controller: ReadableStreamD
   ReadableStreamError(stream, e);
 }
 
-export function ReadableStreamDefaultControllerGetDesiredSize(
-  controller: ReadableStreamDefaultController<any>
-): number | null {
+export function ReadableStreamDefaultControllerGetDesiredSize(controller: ReadableStreamDefaultController<any>): number | null {
   const state = controller._controlledReadableStream._state;
 
   if (state === 'errored') {
@@ -310,9 +308,7 @@ export function ReadableStreamDefaultControllerGetDesiredSize(
 }
 
 // This is used in the implementation of TransformStream.
-export function ReadableStreamDefaultControllerHasBackpressure(
-  controller: ReadableStreamDefaultController<any>
-): boolean {
+export function ReadableStreamDefaultControllerHasBackpressure(controller: ReadableStreamDefaultController<any>): boolean {
   if (ReadableStreamDefaultControllerShouldCallPull(controller)) {
     return false;
   }
@@ -320,9 +316,7 @@ export function ReadableStreamDefaultControllerHasBackpressure(
   return true;
 }
 
-export function ReadableStreamDefaultControllerCanCloseOrEnqueue(
-  controller: ReadableStreamDefaultController<any>
-): boolean {
+export function ReadableStreamDefaultControllerCanCloseOrEnqueue(controller: ReadableStreamDefaultController<any>): boolean {
   const state = controller._controlledReadableStream._state;
 
   if (!controller._closeRequested && state === 'readable') {
@@ -332,13 +326,15 @@ export function ReadableStreamDefaultControllerCanCloseOrEnqueue(
   return false;
 }
 
-export function SetUpReadableStreamDefaultController<R>(stream: ReadableStream<R>,
-                                                        controller: ReadableStreamDefaultController<R>,
-                                                        startAlgorithm: () => void | PromiseLike<void>,
-                                                        pullAlgorithm: () => Promise<void>,
-                                                        cancelAlgorithm: (reason: any) => Promise<void>,
-                                                        highWaterMark: number,
-                                                        sizeAlgorithm: QueuingStrategySizeCallback<R>) {
+export function SetUpReadableStreamDefaultController<R>(
+  stream: ReadableStream<R>,
+  controller: ReadableStreamDefaultController<R>,
+  startAlgorithm: () => void | PromiseLike<void>,
+  pullAlgorithm: () => Promise<void>,
+  cancelAlgorithm: (reason: any) => Promise<void>,
+  highWaterMark: number,
+  sizeAlgorithm: QueuingStrategySizeCallback<R>
+) {
   assert(stream._readableStreamController === undefined);
 
   controller._controlledReadableStream = stream;
@@ -407,14 +403,11 @@ export function SetUpReadableStreamDefaultControllerFromUnderlyingSource<R>(
     cancelAlgorithm = () => promiseResolvedWith(undefined);
   }
 
-  SetUpReadableStreamDefaultController(
-    stream, controller, startAlgorithm, pullAlgorithm, cancelAlgorithm, highWaterMark, sizeAlgorithm
-  );
+  SetUpReadableStreamDefaultController(stream, controller, startAlgorithm, pullAlgorithm, cancelAlgorithm, highWaterMark, sizeAlgorithm);
 }
 
 // Helper functions for the ReadableStreamDefaultController.
 
 function defaultControllerBrandCheckException(name: string): TypeError {
-  return new TypeError(
-    `ReadableStreamDefaultController.prototype.${name} can only be used on a ReadableStreamDefaultController`);
+  return new TypeError(`ReadableStreamDefaultController.prototype.${name} can only be used on a ReadableStreamDefaultController`);
 }

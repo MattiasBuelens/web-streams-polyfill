@@ -99,8 +99,10 @@ export class ReadableStream<R = any> implements AsyncIterable<R> {
 
   constructor(underlyingSource: UnderlyingByteSource, strategy?: { highWaterMark?: number; size?: undefined });
   constructor(underlyingSource?: UnderlyingSource<R>, strategy?: QueuingStrategy<R>);
-  constructor(rawUnderlyingSource: UnderlyingSource<R> | UnderlyingByteSource | null | undefined = {},
-              rawStrategy: QueuingStrategy<R> | null | undefined = {}) {
+  constructor(
+rawUnderlyingSource: UnderlyingSource<R> | UnderlyingByteSource | null | undefined = {},
+              rawStrategy: QueuingStrategy<R> | null | undefined = {}
+  ) {
     if (rawUnderlyingSource === undefined) {
       rawUnderlyingSource = null;
     } else {
@@ -183,9 +185,7 @@ export class ReadableStream<R = any> implements AsyncIterable<R> {
    * or cancel the stream, which would interfere with your abstraction.
    */
   getReader(): ReadableStreamDefaultReader<R>;
-  getReader(
-    rawOptions: ReadableStreamGetReaderOptions | null | undefined = undefined
-  ): ReadableStreamDefaultReader<R> | ReadableStreamBYOBReader {
+  getReader(rawOptions: ReadableStreamGetReaderOptions | null | undefined = undefined): ReadableStreamDefaultReader<R> | ReadableStreamBYOBReader {
     if (!IsReadableStream(this)) {
       throw streamBrandCheckException('getReader');
     }
@@ -230,9 +230,7 @@ export class ReadableStream<R = any> implements AsyncIterable<R> {
       throw new TypeError('ReadableStream.prototype.pipeThrough cannot be used on a locked WritableStream');
     }
 
-    const promise = ReadableStreamPipeTo(
-      this, transform.writable, options.preventClose, options.preventAbort, options.preventCancel, options.signal
-    );
+    const promise = ReadableStreamPipeTo(this, transform.writable, options.preventClose, options.preventAbort, options.preventCancel, options.signal);
 
     setPromiseIsHandledToTrue(promise);
 
@@ -247,8 +245,10 @@ export class ReadableStream<R = any> implements AsyncIterable<R> {
    * Piping a stream will lock it for the duration of the pipe, preventing any other consumer from acquiring a reader.
    */
   pipeTo(destination: WritableStream<R>, options?: StreamPipeOptions): Promise<void>;
-  pipeTo(destination: WritableStream<R> | null | undefined,
-         rawOptions: StreamPipeOptions | null | undefined = {}): Promise<void> {
+  pipeTo(
+    destination: WritableStream<R> | null | undefined,
+         rawOptions: StreamPipeOptions | null | undefined = {}
+  ): Promise<void> {
     if (!IsReadableStream(this)) {
       return promiseRejectedWith(streamBrandCheckException('pipeTo'));
     }
@@ -257,9 +257,7 @@ export class ReadableStream<R = any> implements AsyncIterable<R> {
       return promiseRejectedWith(`Parameter 1 is required in 'pipeTo'.`);
     }
     if (!IsWritableStream(destination)) {
-      return promiseRejectedWith(
-        new TypeError(`ReadableStream.prototype.pipeTo's first argument must be a WritableStream`)
-      );
+      return promiseRejectedWith(new TypeError(`ReadableStream.prototype.pipeTo's first argument must be a WritableStream`));
     }
 
     let options: ValidatedStreamPipeOptions;
@@ -270,19 +268,13 @@ export class ReadableStream<R = any> implements AsyncIterable<R> {
     }
 
     if (IsReadableStreamLocked(this)) {
-      return promiseRejectedWith(
-        new TypeError('ReadableStream.prototype.pipeTo cannot be used on a locked ReadableStream')
-      );
+      return promiseRejectedWith(new TypeError('ReadableStream.prototype.pipeTo cannot be used on a locked ReadableStream'));
     }
     if (IsWritableStreamLocked(destination)) {
-      return promiseRejectedWith(
-        new TypeError('ReadableStream.prototype.pipeTo cannot be used on a locked WritableStream')
-      );
+      return promiseRejectedWith(new TypeError('ReadableStream.prototype.pipeTo cannot be used on a locked WritableStream'));
     }
 
-    return ReadableStreamPipeTo<R>(
-      this, destination, options.preventClose, options.preventAbort, options.preventCancel, options.signal
-    );
+    return ReadableStreamPipeTo<R>(this, destination, options.preventClose, options.preventAbort, options.preventCancel, options.signal);
   }
 
   /**
@@ -413,9 +405,7 @@ export function CreateReadableStream<R>(
   InitializeReadableStream(stream);
 
   const controller: ReadableStreamDefaultController<R> = Object.create(ReadableStreamDefaultController.prototype);
-  SetUpReadableStreamDefaultController(
-    stream, controller, startAlgorithm, pullAlgorithm, cancelAlgorithm, highWaterMark, sizeAlgorithm
-  );
+  SetUpReadableStreamDefaultController(stream, controller, startAlgorithm, pullAlgorithm, cancelAlgorithm, highWaterMark, sizeAlgorithm);
 
   return stream;
 }
