@@ -15,6 +15,7 @@ const excludedTestsBase = [
   'idlharness-shadowrealm.window.html',
   // We don't patch globals inside other <iframe>s.
   'readable-streams/global.html',
+  'readable-streams/tee-detached-context-crash.html',
   'transform-streams/invalid-realm.tentative.window.html',
   // We don't support MessagePort or VideoFrame.
   'readable-streams/owning-type-message-port.any.html',
