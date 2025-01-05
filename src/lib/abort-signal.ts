@@ -7,7 +7,12 @@
  *
  * @public
  */
-export type AbortSignal = typeof globalThis extends { AbortSignal: { prototype: infer T } } ? T : never;
+export type AbortSignal = typeof globalThis extends { AbortSignal: { prototype: infer T } } ? T : {
+  aborted: boolean;
+  readonly reason?: any;
+  addEventListener(type: 'abort', listener: () => void): void;
+  removeEventListener(type: 'abort', listener: () => void): void;
+};
 
 export function isAbortSignal(value: unknown): value is AbortSignal {
   if (typeof value !== 'object' || value === null) {
@@ -31,7 +36,10 @@ export function isAbortSignal(value: unknown): value is AbortSignal {
  */
 // Trick with globalThis inspired by @types/node
 // https://github.com/DefinitelyTyped/DefinitelyTyped/blob/0c370ead967cb97b1758d8fa15d09011fb3f58ea/types/node/globals.d.ts#L226
-export type AbortController = typeof globalThis extends { AbortController: { prototype: infer T } } ? T : never;
+export type AbortController = typeof globalThis extends { AbortController: { prototype: infer T } } ? T : {
+  readonly signal: AbortSignal;
+  abort(reason?: any): void;
+};
 
 /**
  * Construct a new AbortController, if supported by the platform.
