@@ -5,8 +5,10 @@
     "moduleResolution": "node",
     "lib": [
       "es5",
+      "es2015.core",
       "es2015.promise",
       "es2015.symbol",
+      "es2015.symbol.wellknown",
       "es2018.asynciterable"
     ],
     "newLine": "lf",
