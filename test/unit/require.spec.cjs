@@ -53,6 +53,6 @@ function testPolyfill(id, expectedId) {
 
 function requireUncached(module) {
   delete require.cache[require.resolve(module)];
-  // eslint-disable-next-line global-require
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   return require(module);
 }

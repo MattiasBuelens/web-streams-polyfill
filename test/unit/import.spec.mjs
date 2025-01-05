@@ -39,8 +39,8 @@ function testPolyfill(id, expectedId) {
   afterEach(() => {
     global.ReadableStream = oldGlobalReadableStream;
   });
-  it(`resolves to ${expectedId}`, async () => {
-    await testResolve(id, expectedId);
+  it(`resolves to ${expectedId}`, () => {
+    testResolve(id, expectedId);
   });
   // FIXME Remove from import() cache first somehow?
   // it('loads correctly', async () => {
@@ -50,7 +50,7 @@ function testPolyfill(id, expectedId) {
   // });
 }
 
-async function testResolve(id, expectedId) {
-  const resolved = (await import.meta.resolve(id)).toString();
+function testResolve(id, expectedId) {
+  const resolved = import.meta.resolve(id);
   expect(resolved.endsWith(expectedId)).toBeTrue();
 }
