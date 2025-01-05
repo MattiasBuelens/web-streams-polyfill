@@ -2,13 +2,11 @@
 // development of the reference implementation and the web platform tests.
 
 import path from 'node:path';
-import fs from 'node:fs';
-import { promisify } from 'node:util';
+import fs from 'node:fs/promises';
 import micromatch from 'micromatch';
 import wptRunner from 'wpt-runner';
 import consoleReporter from 'wpt-runner/lib/console-reporter.js';
 import { FilteringReporter } from '../shared/filtering-reporter.mjs';
-import allSettled from '@ungap/promise-all-settled';
 import {
   excludedTestsNonES2018,
   excludedTestsBase,
@@ -17,10 +15,6 @@ import {
   ignoredFailuresES5,
   mergeIgnoredFailures
 } from '../shared/exclusions.mjs';
-
-const readFileAsync = promisify(fs.readFile);
-const queueMicrotask = global.queueMicrotask || (fn => Promise.resolve().then(fn));
-const structuredClone = global.structuredClone || (x => x);
 
 // wpt-runner does not yet support unhandled rejection tracking a la
 // https://github.com/w3c/testharness.js/commit/7716e2581a86dfd9405a9c00547a7504f0c7fe94
@@ -83,7 +77,7 @@ async function runTests(entryFile, { includedTests = ['**/*.html'], excludedTest
 
   const reporter = new FilteringReporter(consoleReporter, ignoredFailures);
 
-  const bundledJS = await readFileAsync(entryPath, { encoding: 'utf8' });
+  const bundledJS = await fs.readFile(entryPath, { encoding: 'utf8' });
 
   console.log(`>>> ${entryFile}`);
 
@@ -91,9 +85,9 @@ async function runTests(entryFile, { includedTests = ['**/*.html'], excludedTest
     rootURL: 'streams/',
     reporter,
     setup(window) {
-      window.Promise.allSettled = allSettled;
-      window.queueMicrotask = queueMicrotask;
-      window.structuredClone = structuredClone;
+      window.Promise.allSettled = Promise.allSettled;
+      window.queueMicrotask = global.queueMicrotask;
+      window.structuredClone = global.structuredClone;
       window.fetch = async function (url) {
         const filePath = path.join(wptPath, url);
         if (!filePath.startsWith(wptPath)) {
@@ -102,7 +96,7 @@ async function runTests(entryFile, { includedTests = ['**/*.html'], excludedTest
         return {
           ok: true,
           async text() {
-            return await readFileAsync(filePath, { encoding: 'utf8' });
+            return await fs.readFile(filePath, { encoding: 'utf8' });
           }
         };
       };

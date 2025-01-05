@@ -82,7 +82,6 @@
     "@rollup/plugin-typescript": "^12.1.2",
     "@stylistic/eslint-plugin": "^2.12.1",
     "@types/node": "^20.17.11",
-    "@ungap/promise-all-settled": "^1.1.2",
     "eslint": "^9.17.0",
     "globals": "^15.14.0",
     "jasmine": "^5.5.0",
