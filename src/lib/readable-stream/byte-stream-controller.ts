@@ -27,6 +27,7 @@ import type { ValidatedUnderlyingByteSource } from './underlying-source';
 import { setFunctionName, typeIsObject } from '../helpers/miscellaneous';
 import {
   ArrayBufferSlice,
+  CanCopyDataBlockBytes,
   CanTransferArrayBuffer,
   CopyDataBlockBytes,
   IsDetachedBuffer,
@@ -470,6 +471,15 @@ function ReadableByteStreamControllerCommitPullIntoDescriptor<T extends NonShare
   }
 }
 
+function ReadableByteStreamControllerCommitPullIntoDescriptors<T extends NonShared<ArrayBufferView>>(
+  stream: ReadableByteStream,
+  pullIntoDescriptors: ReadonlyArray<PullIntoDescriptor<T>>
+) {
+  for (let i = 0; i < pullIntoDescriptors.length; ++i) {
+    ReadableByteStreamControllerCommitPullIntoDescriptor(stream, pullIntoDescriptors[i]);
+  }
+}
+
 function ReadableByteStreamControllerConvertPullIntoDescriptor<T extends NonShared<ArrayBufferView>>(pullIntoDescriptor: PullIntoDescriptor<T>): T {
   const bytesFilled = pullIntoDescriptor.bytesFilled;
   const elementSize = pullIntoDescriptor.elementSize;
@@ -534,6 +544,7 @@ function ReadableByteStreamControllerFillPullIntoDescriptorFromQueue(
 
   let totalBytesToCopyRemaining = maxBytesToCopy;
   let ready = false;
+  assert(!IsDetachedBuffer(pullIntoDescriptor.buffer));
   assert(pullIntoDescriptor.bytesFilled < pullIntoDescriptor.minimumFill);
   const remainderBytes = maxBytesFilled % pullIntoDescriptor.elementSize;
   const maxAlignedBytes = maxBytesFilled - remainderBytes;
@@ -552,6 +563,7 @@ function ReadableByteStreamControllerFillPullIntoDescriptorFromQueue(
     const bytesToCopy = Math.min(totalBytesToCopyRemaining, headOfQueue.byteLength);
 
     const destStart = pullIntoDescriptor.byteOffset + pullIntoDescriptor.bytesFilled;
+    assert(CanCopyDataBlockBytes(pullIntoDescriptor.buffer, destStart, headOfQueue.buffer, headOfQueue.byteOffset, bytesToCopy));
     CopyDataBlockBytes(pullIntoDescriptor.buffer, destStart, headOfQueue.buffer, headOfQueue.byteOffset, bytesToCopy);
 
     if (headOfQueue.byteLength === bytesToCopy) {
@@ -607,12 +619,13 @@ function ReadableByteStreamControllerInvalidateBYOBRequest(controller: ReadableB
   controller._byobRequest = null;
 }
 
-function ReadableByteStreamControllerProcessPullIntoDescriptorsUsingQueue(controller: ReadableByteStreamController) {
+function ReadableByteStreamControllerProcessPullIntoDescriptorsUsingQueue(controller: ReadableByteStreamController): PullIntoDescriptor[] {
   assert(!controller._closeRequested);
 
+  const filledPullIntos: PullIntoDescriptor[] = [];
   while (controller._pendingPullIntos.length > 0) {
     if (controller._queueTotalSize === 0) {
-      return;
+      break;
     }
 
     const pullIntoDescriptor = controller._pendingPullIntos.peek();
@@ -620,13 +633,11 @@ function ReadableByteStreamControllerProcessPullIntoDescriptorsUsingQueue(contro
 
     if (ReadableByteStreamControllerFillPullIntoDescriptorFromQueue(controller, pullIntoDescriptor)) {
       ReadableByteStreamControllerShiftPendingPullInto(controller);
-
-      ReadableByteStreamControllerCommitPullIntoDescriptor(
-        controller._controlledReadableByteStream,
-        pullIntoDescriptor
-      );
+      filledPullIntos.push(pullIntoDescriptor);
     }
   }
+
+  return filledPullIntos;
 }
 
 function ReadableByteStreamControllerProcessReadRequestsUsingQueue(controller: ReadableByteStreamController) {
@@ -732,10 +743,11 @@ function ReadableByteStreamControllerRespondInClosedState(
 
   const stream = controller._controlledReadableByteStream;
   if (ReadableStreamHasBYOBReader(stream)) {
-    while (ReadableStreamGetNumReadIntoRequests(stream) > 0) {
-      const pullIntoDescriptor = ReadableByteStreamControllerShiftPendingPullInto(controller);
-      ReadableByteStreamControllerCommitPullIntoDescriptor(stream, pullIntoDescriptor);
+    const filledPullIntos: PullIntoDescriptor[] = [];
+    for (let i = 0; i < ReadableStreamGetNumReadIntoRequests(stream); ++i) {
+      filledPullIntos.push(ReadableByteStreamControllerShiftPendingPullInto(controller));
     }
+    ReadableByteStreamControllerCommitPullIntoDescriptors(stream, filledPullIntos);
   }
 }
 
@@ -750,7 +762,8 @@ function ReadableByteStreamControllerRespondInReadableState(
 
   if (pullIntoDescriptor.readerType === 'none') {
     ReadableByteStreamControllerEnqueueDetachedPullIntoToQueue(controller, pullIntoDescriptor);
-    ReadableByteStreamControllerProcessPullIntoDescriptorsUsingQueue(controller);
+    const filledPullIntos = ReadableByteStreamControllerProcessPullIntoDescriptorsUsingQueue(controller);
+    ReadableByteStreamControllerCommitPullIntoDescriptors(controller._controlledReadableByteStream, filledPullIntos);
     return;
   }
 
@@ -774,9 +787,10 @@ function ReadableByteStreamControllerRespondInReadableState(
   }
 
   pullIntoDescriptor.bytesFilled -= remainderSize;
-  ReadableByteStreamControllerCommitPullIntoDescriptor(controller._controlledReadableByteStream, pullIntoDescriptor);
+  const filledPullIntos = ReadableByteStreamControllerProcessPullIntoDescriptorsUsingQueue(controller);
 
-  ReadableByteStreamControllerProcessPullIntoDescriptorsUsingQueue(controller);
+  ReadableByteStreamControllerCommitPullIntoDescriptor(controller._controlledReadableByteStream, pullIntoDescriptor);
+  ReadableByteStreamControllerCommitPullIntoDescriptors(controller._controlledReadableByteStream, filledPullIntos);
 }
 
 function ReadableByteStreamControllerRespondInternal(controller: ReadableByteStreamController, bytesWritten: number) {
@@ -915,7 +929,8 @@ export function ReadableByteStreamControllerEnqueue(
   } else if (ReadableStreamHasBYOBReader(stream)) {
     // TODO: Ideally in this branch detaching should happen only if the buffer is not consumed fully.
     ReadableByteStreamControllerEnqueueChunkToQueue(controller, transferredBuffer, byteOffset, byteLength);
-    ReadableByteStreamControllerProcessPullIntoDescriptorsUsingQueue(controller);
+    const filledPullIntos = ReadableByteStreamControllerProcessPullIntoDescriptorsUsingQueue(controller);
+    ReadableByteStreamControllerCommitPullIntoDescriptors(controller._controlledReadableByteStream, filledPullIntos);
   } else {
     assert(!IsReadableStreamLocked(stream));
     ReadableByteStreamControllerEnqueueChunkToQueue(controller, transferredBuffer, byteOffset, byteLength);

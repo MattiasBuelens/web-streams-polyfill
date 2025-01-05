@@ -24,6 +24,20 @@ export function CreateArrayFromList<T extends any[]>(elements: T): T {
   return elements.slice() as T;
 }
 
+export function CanCopyDataBlockBytes(
+  toBuffer: ArrayBuffer,
+  toIndex: number,
+  fromBuffer: ArrayBuffer,
+  fromIndex: number,
+  count: number
+): boolean {
+  return toBuffer !== fromBuffer
+    && !IsDetachedBuffer(toBuffer)
+    && !IsDetachedBuffer(fromBuffer)
+    && toIndex + count <= toBuffer.byteLength
+    && fromIndex + count <= fromBuffer.byteLength;
+}
+
 export function CopyDataBlockBytes(
   dest: ArrayBuffer,
   destOffset: number,
