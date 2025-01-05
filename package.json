@@ -32,9 +32,9 @@
   "scripts": {
     "test": "npm run test:types && npm run test:unit && npm run test:wpt && npm run test:bundlers",
     "test:wpt": "npm run test:wpt:node && npm run test:wpt:chromium && npm run test:wpt:firefox",
-    "test:wpt:node": "node --expose_gc ./test/wpt/node/run.js",
-    "test:wpt:chromium": "node ./test/wpt/browser/run.js --browser chromium",
-    "test:wpt:firefox": "node ./test/wpt/browser/run.js --browser firefox",
+    "test:wpt:node": "node --expose_gc ./test/wpt/node/run.mjs",
+    "test:wpt:chromium": "node ./test/wpt/browser/run.mjs --browser chromium",
+    "test:wpt:firefox": "node ./test/wpt/browser/run.mjs --browser firefox",
     "test:bundlers": "npm run test:bundler:rollup && npm run test:bundler:webpack",
     "test:bundler:rollup": "cd test/rollup && npm install && npm test",
     "test:bundler:webpack": "cd test/webpack && npm install && npm test",

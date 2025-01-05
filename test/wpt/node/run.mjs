@@ -8,7 +8,7 @@ const { promisify } = require('util');
 const micromatch = require('micromatch');
 const wptRunner = require('wpt-runner');
 const consoleReporter = require('wpt-runner/lib/console-reporter.js');
-const { FilteringReporter } = require('../shared/filtering-reporter.js');
+const { FilteringReporter } = require('../shared/filtering-reporter.mjs');
 const allSettled = require('@ungap/promise-all-settled');
 const {
   excludedTestsNonES2018,
@@ -17,7 +17,7 @@ const {
   ignoredFailuresMinified,
   ignoredFailuresES5,
   mergeIgnoredFailures
-} = require('../shared/exclusions');
+} = require('../shared/exclusions.mjs');
 
 const readFileAsync = promisify(fs.readFile);
 const queueMicrotask = global.queueMicrotask || (fn => Promise.resolve().then(fn));

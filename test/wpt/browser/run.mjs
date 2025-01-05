@@ -7,17 +7,17 @@ const micromatch = require('micromatch');
 const { chromium, firefox } = require('playwright');
 const minimist = require('minimist');
 const recursiveReadDir = require('recursive-readdir');
-const { setupServer } = require('./server.js');
+const { setupServer } = require('./server.mjs');
 const consoleReporter = require('wpt-runner/lib/console-reporter.js');
 const { SourceFile } = require('wpt-runner/lib/internal/sourcefile.js');
-const { FilteringReporter } = require('../shared/filtering-reporter.js');
+const { FilteringReporter } = require('../shared/filtering-reporter.mjs');
 const {
   excludedTestsBase,
   mergeIgnoredFailures,
   ignoredFailuresBase,
   ignoredFailuresMinified,
   ignoredFailuresES5
-} = require('../shared/exclusions');
+} = require('../shared/exclusions.mjs');
 
 const serverCloseAsync = promisify(http.Server.prototype.close);
 const recursiveReadDirAsync = promisify(recursiveReadDir);
