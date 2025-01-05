@@ -1,12 +1,14 @@
 import Benchmark from 'benchmark';
 import * as polyfill from 'web-streams-polyfill';
 import * as stardazed from '@stardazed/streams';
+import * as node from 'node:stream/web';
 
 const suite = new Benchmark.Suite();
 
 const implementations = [
   ['web-streams-polyfill', polyfill],
-  ['@stardazed/streams', stardazed]
+  ['@stardazed/streams', stardazed],
+  ['node:stream/web', node]
 ];
 
 // https://github.com/MattiasBuelens/web-streams-polyfill/issues/15
