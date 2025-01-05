@@ -1,6 +1,13 @@
-/// <reference types="node" />
 import { globals } from '../globals';
 import { setFunctionName } from '../lib/helpers/miscellaneous';
+
+declare global {
+  interface ErrorConstructor {
+    // From @types/node
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+    captureStackTrace(targetObject: object, constructorOpt?: Function): void;
+  }
+}
 
 interface DOMException extends Error {
   name: string;
