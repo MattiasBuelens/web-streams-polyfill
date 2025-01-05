@@ -47,7 +47,7 @@ declare global {
   }
 }
 
-// const domUnderlyingSink: UnderlyingSink<string> = underlyingSink;
+const domUnderlyingSink: UnderlyingSink<string> = underlyingSink;
 const domWritableStream: WritableStream<string> = writableStream;
-// const domController: WritableStreamDefaultController = controller;
+const domController: WritableStreamDefaultController = controller;
 const domWriter: WritableStreamDefaultWriter<string> = writer;
