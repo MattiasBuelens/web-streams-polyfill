@@ -10,7 +10,7 @@
 > - 🏠 Internal
 > - 💅 Polish
 
-## Unreleased
+## 4.1.0 (2025-01-05)
 
 * 👓 Align with [spec version `fa4891a`](https://github.com/whatwg/streams/tree/fa4891a35ff05281ff8ed66f8ad447644ea7cec3/) ([#156](https://github.com/MattiasBuelens/web-streams-polyfill/pull/156))
   * Commit pull-into descriptors *after* filling them from the internal queue.
