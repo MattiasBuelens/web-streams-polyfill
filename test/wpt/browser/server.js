@@ -7,7 +7,7 @@ const { AnyHtmlHandler, WindowHandler } = require('wpt-runner/lib/internal/serve
 
 const testharnessPath = require.resolve('wpt-runner/testharness/testharness.js');
 const idlharnessPath = require.resolve('wpt-runner/testharness/idlharness.js');
-const webidl2jsPath = require.resolve('wpt-runner/testharness/webidl2/lib/webidl2.js');
+const webidl2jsPath = require.resolve('wpt-runner/testharness/webidl2.js');
 const testdriverDummyPath = require.resolve('wpt-runner/lib/testdriver-dummy.js');
 
 function setupServer(testsPath, {
@@ -54,6 +54,16 @@ function setupServer(testsPath, {
       }
 
       case '/resources/testharnessreport.js': {
+        res.end('');
+        break;
+      }
+
+      case '/streams/resources/test-initializer.js': {
+        res.end('window.worker_test = () => {};');
+        break;
+      }
+
+      case '/resources/testharness.css': {
         res.end('');
         break;
       }
