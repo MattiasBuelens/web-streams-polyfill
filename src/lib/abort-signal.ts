@@ -3,33 +3,16 @@
  * via its associated `AbortController` object.
  *
  * @remarks
- *   This interface is compatible with the `AbortSignal` interface defined in TypeScript's DOM types.
- *   It is redefined here, so it can be polyfilled without a DOM, for example with
- *   {@link https://www.npmjs.com/package/abortcontroller-polyfill | abortcontroller-polyfill} in a Node environment.
+ *   This is equivalent to the `AbortSignal` interface defined in TypeScript's DOM types or `@types/node`.
  *
  * @public
  */
-export interface AbortSignal {
-  /**
-   * Whether the request is aborted.
-   */
-  readonly aborted: boolean;
-
-  /**
-   * If aborted, returns the reason for aborting.
-   */
+export type AbortSignal = typeof globalThis extends { AbortSignal: { prototype: infer T } } ? T : {
+  aborted: boolean;
   readonly reason?: any;
-
-  /**
-   * Add an event listener to be triggered when this signal becomes aborted.
-   */
   addEventListener(type: 'abort', listener: () => void): void;
-
-  /**
-   * Remove an event listener that was previously added with {@link AbortSignal.addEventListener}.
-   */
   removeEventListener(type: 'abort', listener: () => void): void;
-}
+};
 
 export function isAbortSignal(value: unknown): value is AbortSignal {
   if (typeof value !== 'object' || value === null) {
@@ -47,23 +30,16 @@ export function isAbortSignal(value: unknown): value is AbortSignal {
  * A controller object that allows you to abort an `AbortSignal` when desired.
  *
  * @remarks
- *   This interface is compatible with the `AbortController` interface defined in TypeScript's DOM types.
- *   It is redefined here, so it can be polyfilled without a DOM, for example with
- *   {@link https://www.npmjs.com/package/abortcontroller-polyfill | abortcontroller-polyfill} in a Node environment.
+ *   This is equivalent to the `AbortController` interface defined in TypeScript's DOM types or `@types/node`.
  *
  * @internal
  */
-export interface AbortController {
+// Trick with globalThis inspired by @types/node
+// https://github.com/DefinitelyTyped/DefinitelyTyped/blob/0c370ead967cb97b1758d8fa15d09011fb3f58ea/types/node/globals.d.ts#L226
+export type AbortController = typeof globalThis extends { AbortController: { prototype: infer T } } ? T : {
   readonly signal: AbortSignal;
-
   abort(reason?: any): void;
-}
-
-interface AbortControllerConstructor {
-  new(): AbortController;
-}
-
-const supportsAbortController = typeof (AbortController as any) === 'function';
+};
 
 /**
  * Construct a new AbortController, if supported by the platform.
@@ -71,8 +47,8 @@ const supportsAbortController = typeof (AbortController as any) === 'function';
  * @internal
  */
 export function createAbortController(): AbortController | undefined {
-  if (supportsAbortController) {
-    return new (AbortController as AbortControllerConstructor)();
+  if (typeof AbortController === 'function') {
+    return new AbortController();
   }
   return undefined;
 }
