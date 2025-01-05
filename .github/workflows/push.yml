@@ -6,7 +6,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [18, 20, 22]
+        node-version: [20, 22]
     # Skip job if commit message contains "[skip ci]"
     if: |
       !contains(github.event.head_commit.message, '[skip ci]')
