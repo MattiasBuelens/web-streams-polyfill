@@ -1,16 +1,15 @@
-const http = require('http');
-const path = require('path');
-const fs = require('fs');
-const { URL } = require('url');
-const st = require('st');
-const { AnyHtmlHandler, WindowHandler } = require('wpt-runner/lib/internal/serve.js');
+import http from 'node:http';
+import { AnyHtmlHandler, WindowHandler } from 'wpt-runner/lib/internal/serve.js';
+import st from 'st';
+import { URL, fileURLToPath } from 'url';
+import fs from 'fs';
 
-const testharnessPath = require.resolve('wpt-runner/testharness/testharness.js');
-const idlharnessPath = require.resolve('wpt-runner/testharness/idlharness.js');
-const webidl2jsPath = require.resolve('wpt-runner/testharness/webidl2.js');
-const testdriverDummyPath = require.resolve('wpt-runner/lib/testdriver-dummy.js');
+const testharnessPath = fileURLToPath(import.meta.resolve('wpt-runner/testharness/testharness.js'));
+const idlharnessPath = fileURLToPath(import.meta.resolve('wpt-runner/testharness/idlharness.js'));
+const webidl2jsPath = fileURLToPath(import.meta.resolve('wpt-runner/testharness/webidl2.js'));
+const testdriverDummyPath = fileURLToPath(import.meta.resolve('wpt-runner/lib/testdriver-dummy.js'));
 
-function setupServer(testsPath, {
+export function setupServer(testsPath, {
   rootURL = '/'
 }) {
   if (!rootURL.startsWith('/')) {
@@ -91,5 +90,3 @@ function setupServer(testsPath, {
     }
   }).listen();
 }
-
-exports.setupServer = setupServer;

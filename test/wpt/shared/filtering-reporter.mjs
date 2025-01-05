@@ -1,4 +1,4 @@
-class FilteringReporter {
+export class FilteringReporter {
   constructor(reporter, ignoredFailures = {}) {
     this._reporter = reporter;
     this._ignoredFailures = ignoredFailures;
@@ -57,7 +57,3 @@ function matches(test, input) {
   }
   return false;
 }
-
-module.exports = {
-  FilteringReporter
-};

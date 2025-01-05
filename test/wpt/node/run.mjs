@@ -1,23 +1,22 @@
 // This runs the web platform tests against the reference implementation, in Node.js using jsdom, for easier rapid
 // development of the reference implementation and the web platform tests.
-/* eslint-disable no-console */
 
-const path = require('path');
-const fs = require('fs');
-const { promisify } = require('util');
-const micromatch = require('micromatch');
-const wptRunner = require('wpt-runner');
-const consoleReporter = require('wpt-runner/lib/console-reporter.js');
-const { FilteringReporter } = require('../shared/filtering-reporter.mjs');
-const allSettled = require('@ungap/promise-all-settled');
-const {
+import path from 'node:path';
+import fs from 'node:fs';
+import { promisify } from 'node:util';
+import micromatch from 'micromatch';
+import wptRunner from 'wpt-runner';
+import consoleReporter from 'wpt-runner/lib/console-reporter.js';
+import { FilteringReporter } from '../shared/filtering-reporter.mjs';
+import allSettled from '@ungap/promise-all-settled';
+import {
   excludedTestsNonES2018,
   excludedTestsBase,
   ignoredFailuresBase,
   ignoredFailuresMinified,
   ignoredFailuresES5,
   mergeIgnoredFailures
-} = require('../shared/exclusions.mjs');
+} from '../shared/exclusions.mjs';
 
 const readFileAsync = promisify(fs.readFile);
 const queueMicrotask = global.queueMicrotask || (fn => Promise.resolve().then(fn));
@@ -31,11 +30,11 @@ process.on('unhandledRejection', (reason, promise) => {
   rejections.set(promise, reason);
 });
 
-process.on('rejectionHandled', promise => {
+process.on('rejectionHandled', (promise) => {
   rejections.delete(promise);
 });
 
-main().catch(e => {
+main().catch((e) => {
   console.error(e.stack);
   process.exitCode = 1;
 });
@@ -74,8 +73,8 @@ async function main() {
 }
 
 async function runTests(entryFile, { includedTests = ['**/*.html'], excludedTests = [], ignoredFailures = {} } = {}) {
-  const entryPath = path.resolve(__dirname, `../../../dist/${entryFile}`);
-  const wptPath = path.resolve(__dirname, '../../web-platform-tests');
+  const entryPath = path.resolve(import.meta.dirname, `../../../dist/${entryFile}`);
+  const wptPath = path.resolve(import.meta.dirname, '../../web-platform-tests');
   const testsPath = path.resolve(wptPath, 'streams');
 
   const includeMatcher = micromatch.matcher(includedTests);
@@ -115,8 +114,8 @@ async function runTests(entryFile, { includedTests = ['**/*.html'], excludedTest
         return false;
       }
 
-      return includeMatcher(testPath) &&
-          !excludeMatcher(testPath);
+      return includeMatcher(testPath)
+        && !excludeMatcher(testPath);
     }
   });
 
@@ -142,10 +141,9 @@ async function runTests(entryFile, { includedTests = ['**/*.html'], excludedTest
 
 function runtimeSupportsAsyncGenerators() {
   try {
-    // eslint-disable-next-line no-new-func
     Function('(async function* f() {})')();
     return true;
-  } catch (e) {
+  } catch {
     return false;
   }
 }

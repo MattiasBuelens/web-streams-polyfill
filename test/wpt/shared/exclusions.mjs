@@ -1,4 +1,4 @@
-const excludedTestsBase = [
+export const excludedTestsBase = [
   // We cannot detect non-transferability, and Node's WebAssembly.Memory is also not marked as such.
   'readable-byte-streams/non-transferable-buffers.any.html',
   // Disable tests for different size functions per realm, since they need a working <iframe>
@@ -23,13 +23,13 @@ const excludedTestsBase = [
   'readable-streams/owning-type.any.html' // FIXME: reenable this test once owning type PR lands.
 ];
 
-const excludedTestsNonES2018 = [
+export const excludedTestsNonES2018 = [
   // Skip tests that use async generators or for-await-of
   'readable-streams/async-iterator.any.html',
   'readable-streams/patched-global.any.html'
 ];
 
-const ignoredFailuresBase = {
+export const ignoredFailuresBase = {
   // We cannot distinguish between a zero-length ArrayBuffer and a detached ArrayBuffer,
   // so we incorrectly throw a TypeError instead of a RangeError
   'readable-byte-streams/bad-buffers-and-views.any.html': [
@@ -42,7 +42,7 @@ const ignoredFailuresBase = {
   ]
 };
 
-const ignoredFailuresMinified = {
+export const ignoredFailuresMinified = {
   'idlharness.any.html': [
     // Terser turns `(a = undefined) => {}` into `(a) => {}`, changing the function's length property
     // Therefore we cannot correctly implement methods with optional arguments
@@ -52,7 +52,7 @@ const ignoredFailuresMinified = {
   ]
 };
 
-const ignoredFailuresES5 = mergeIgnoredFailures(ignoredFailuresBase, {
+export const ignoredFailuresES5 = mergeIgnoredFailures(ignoredFailuresBase, {
   'idlharness.any.html': [
     // ES5 build does not set correct length on constructors with optional arguments
     'ReadableStream interface object length',
@@ -75,19 +75,10 @@ const ignoredFailuresES5 = mergeIgnoredFailures(ignoredFailuresBase, {
   ]
 });
 
-function mergeIgnoredFailures(left, right) {
+export function mergeIgnoredFailures(left, right) {
   const result = { ...left };
   for (const key of Object.keys(right)) {
     result[key] = [...(result[key] || []), ...right[key]];
   }
   return result;
 }
-
-module.exports = {
-  excludedTestsBase,
-  excludedTestsNonES2018,
-  ignoredFailuresBase,
-  ignoredFailuresMinified,
-  ignoredFailuresES5,
-  mergeIgnoredFailures
-};
