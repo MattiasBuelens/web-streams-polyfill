@@ -40,7 +40,13 @@ const closePromise: Promise<void> = writableStream.close();
 const abortPromise: Promise<void> = writableStream.abort('aborted');
 
 // Compatibility with stream types from DOM
-// FIXME Remove deprecated WritableStreamDefaultController.abortReason
+declare global {
+  interface WritableStreamDefaultController {
+    // FIXME Remove deprecated WritableStreamDefaultController.abortReason
+    abortReason: any;
+  }
+}
+
 // const domUnderlyingSink: UnderlyingSink<string> = underlyingSink;
 const domWritableStream: WritableStream<string> = writableStream;
 // const domController: WritableStreamDefaultController = controller;
