@@ -19,6 +19,7 @@
   * The `next()` and `return()` methods of `ReadableStream`'s async iterator are now correctly "chained",
     such that the promises returned by *either* of these methods are always resolved in the same order 
     as those methods were called.
+* 💅 Improve type of `WritableStreamDefaultController.signal`. ([#157](https://github.com/MattiasBuelens/web-streams-polyfill/pull/157))
 
 ## 4.0.0 (2024-02-28)
 
