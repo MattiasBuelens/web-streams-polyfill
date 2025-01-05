@@ -5,12 +5,11 @@
 ```ts
 
 // @public
-export interface AbortSignal {
-    readonly aborted: boolean;
-    addEventListener(type: 'abort', listener: () => void): void;
-    readonly reason?: any;
-    removeEventListener(type: 'abort', listener: () => void): void;
-}
+export type AbortSignal = typeof globalThis extends {
+    AbortSignal: {
+        prototype: infer T;
+    };
+} ? T : never;
 
 // @public
 export class ByteLengthQueuingStrategy implements QueuingStrategy<ArrayBufferView> {
