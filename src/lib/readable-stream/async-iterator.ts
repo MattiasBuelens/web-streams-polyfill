@@ -52,9 +52,10 @@ export class ReadableStreamAsyncIteratorImpl<R> {
 
   return(value: any): Promise<ReadableStreamDefaultReadResult<any>> {
     const returnSteps = () => this._returnSteps(value);
-    return this._ongoingPromise
+    this._ongoingPromise = this._ongoingPromise
       ? transformPromiseWith(this._ongoingPromise, returnSteps, returnSteps)
       : returnSteps();
+    return this._ongoingPromise;
   }
 
   private _nextSteps(): Promise<ReadableStreamDefaultReadResult<R>> {
