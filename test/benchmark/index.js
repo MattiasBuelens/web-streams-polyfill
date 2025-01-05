@@ -1,11 +1,14 @@
-const Benchmark = require('benchmark');
-const polyfill = require('../../dist/ponyfill.js');
-const stardazed = require('@stardazed/streams');
+import Benchmark from 'benchmark';
+import * as polyfill from 'web-streams-polyfill';
+import * as stardazed from '@stardazed/streams';
+import * as node from 'node:stream/web';
+
 const suite = new Benchmark.Suite();
 
 const implementations = [
   ['web-streams-polyfill', polyfill],
-  ['@stardazed/streams', stardazed]
+  ['@stardazed/streams', stardazed],
+  ['node:stream/web', node]
 ];
 
 // https://github.com/MattiasBuelens/web-streams-polyfill/issues/15
@@ -24,7 +27,7 @@ function testCount(impl, count, deferred) {
 }
 
 function readLoop(count, reader) {
-  return reader.read().then(result => {
+  return reader.read().then((result) => {
     if (result.done) {
       return undefined;
     }
@@ -43,13 +46,11 @@ for (const [name, impl] of implementations) {
 }
 
 suite
-  .on('cycle', event => {
-    // eslint-disable-next-line no-console
+  .on('cycle', (event) => {
     const bench = event.target;
     console.log(`${String(bench)} (period: ${(bench.times.period * 1000).toFixed(2)}ms)`);
   })
   .on('complete', () => {
-    // eslint-disable-next-line no-console
     console.log('Done');
   })
   .run({ async: true });

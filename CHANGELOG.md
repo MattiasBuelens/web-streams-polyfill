@@ -10,6 +10,16 @@
 > - 🏠 Internal
 > - 💅 Polish
 
+## Unreleased
+
+* 👓 Align with [spec version `fa4891a`](https://github.com/whatwg/streams/tree/fa4891a35ff05281ff8ed66f8ad447644ea7cec3/) ([#156](https://github.com/MattiasBuelens/web-streams-polyfill/pull/156))
+  * Commit pull-into descriptors *after* filling them from the internal queue.
+    This prevents an issue where an incorrect BYOB request would temporarily be visible through a patched `Object.prototype.then`,
+    which broke some internal invariants.
+  * The `next()` and `return()` methods of `ReadableStream`'s async iterator are now correctly "chained",
+    such that the promises returned by *either* of these methods are always resolved in the same order 
+    as those methods were called.
+
 ## 4.0.0 (2024-02-28)
 
 * 💥 Rework the list of variants to have more modern defaults.

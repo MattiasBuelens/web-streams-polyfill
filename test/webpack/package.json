@@ -11,7 +11,7 @@
     "web-streams-polyfill": "file:../.."
   },
   "devDependencies": {
-    "webpack": "^5.95.0",
-    "webpack-cli": "^5.1.4"
+    "webpack": "^5.97.1",
+    "webpack-cli": "^6.0.1"
   }
 }

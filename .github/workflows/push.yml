@@ -6,7 +6,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [18, 20]
+        node-version: [20, 22]
     # Skip job if commit message contains "[skip ci]"
     if: |
       !contains(github.event.head_commit.message, '[skip ci]')
@@ -32,11 +32,12 @@ jobs:
     name: ${{ matrix.browser }}
     runs-on: ubuntu-latest
     container:
-      image: mcr.microsoft.com/playwright:v1.48.0-noble
+      image: mcr.microsoft.com/playwright:v1.49.1-noble
     strategy:
       fail-fast: false
       matrix:
         browser: [chromium, firefox]
+        node-version: [ 22 ]
     if: |
       !contains(github.event.head_commit.message, '[skip ci]')
     steps:
@@ -44,10 +45,10 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: true
-      - name: Use Node.js 20
+      - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: ${{ matrix.node-version }}
           cache: npm
       - run: npm ci
       - run: npm run test:wpt:${{ matrix.browser }}

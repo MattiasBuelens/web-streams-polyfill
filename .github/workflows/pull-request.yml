@@ -6,6 +6,9 @@ jobs:
   test-node:
     name: Node
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [ 22 ]
     # Run only on non-merged non-draft mergeable pull requests
     if: |
       (
@@ -19,10 +22,10 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.merge_commit_sha }}
           submodules: true
-      - name: Use Node.js 20
+      - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: ${{ matrix.node-version }}
           cache: npm
       - run: npm ci
         env:

@@ -1,32 +1,29 @@
-/* eslint-disable no-console */
-
-const path = require('path');
-const http = require('http');
-const { promisify } = require('util');
-const micromatch = require('micromatch');
-const { chromium, firefox } = require('playwright');
-const minimist = require('minimist');
-const recursiveReadDir = require('recursive-readdir');
-const { setupServer } = require('./server.js');
-const consoleReporter = require('wpt-runner/lib/console-reporter.js');
-const { SourceFile } = require('wpt-runner/lib/internal/sourcefile.js');
-const { FilteringReporter } = require('../shared/filtering-reporter.js');
-const {
+import path from 'node:path';
+import http from 'node:http';
+import fs from 'node:fs/promises';
+import { promisify } from 'node:util';
+import micromatch from 'micromatch';
+import { chromium, firefox } from 'playwright';
+import minimist from 'minimist';
+import { setupServer } from './server.mjs';
+import consoleReporter from 'wpt-runner/lib/console-reporter.js';
+import { SourceFile } from 'wpt-runner/lib/internal/sourcefile.js';
+import { FilteringReporter } from '../shared/filtering-reporter.mjs';
+import {
   excludedTestsBase,
   mergeIgnoredFailures,
   ignoredFailuresBase,
   ignoredFailuresMinified,
   ignoredFailuresES5
-} = require('../shared/exclusions');
+} from '../shared/exclusions.mjs';
 
 const serverCloseAsync = promisify(http.Server.prototype.close);
-const recursiveReadDirAsync = promisify(recursiveReadDir);
 
 const argv = minimist(process.argv.slice(2), {
   string: ['browser']
 });
 
-main().catch(e => {
+main().catch((e) => {
   console.error(e.stack);
   process.exitCode = 1;
 });
@@ -36,7 +33,7 @@ async function main() {
   const includedTests = argv._.length > 0 ? argv._ : ['**/*.html'];
   const excludedTests = [...excludedTestsBase];
 
-  const wptPath = path.resolve(__dirname, '../../web-platform-tests');
+  const wptPath = path.resolve(import.meta.dirname, '../../web-platform-tests');
   const results = [];
   let server;
   let browser;
@@ -78,14 +75,14 @@ async function main() {
 }
 
 async function runTests({ entryFile, includedTests, excludedTests, ignoredFailures, browser, wptPath, urlPrefix }) {
-  const entryPath = path.resolve(__dirname, `../../../dist/${entryFile}`);
+  const entryPath = path.resolve(import.meta.dirname, `../../../dist/${entryFile}`);
   const testsBase = '/streams/';
   const testsPath = path.resolve(wptPath, 'streams');
 
   const includeMatcher = micromatch.matcher(includedTests);
   const excludeMatcher = micromatch.matcher(excludedTests);
   const workerTestPattern = /\.(?:dedicated|shared|service)worker(?:\.https)?\.html$/;
-  const testPaths = (await readTestPaths(testsPath)).filter(testPath => {
+  const testPaths = (await readTestPaths(testsPath)).filter((testPath) => {
     // Ignore the worker versions
     if (workerTestPattern.test(testPath)) {
       return false;
@@ -101,7 +98,7 @@ async function runTests({ entryFile, includedTests, excludedTests, ignoredFailur
   try {
     context = await browser.newContext();
     await context.addInitScript({ path: entryPath });
-    await context.route(`${urlPrefix}/resources/testharnessreport.js`, route => {
+    await context.route(`${urlPrefix}/resources/testharnessreport.js`, (route) => {
       route.fulfill({
         body: `
             window.fetch_tests_from_worker = () => undefined;
@@ -139,11 +136,11 @@ async function runTests({ entryFile, includedTests, excludedTests, ignoredFailur
 async function runTest(page, testUrl, reporter) {
   let hasFailed = false;
   let resolveDone;
-  const donePromise = new Promise(resolve => {
+  const donePromise = new Promise((resolve) => {
     resolveDone = resolve;
   });
 
-  await page.exposeFunction('__wptResultCallback', test => {
+  await page.exposeFunction('__wptResultCallback', (test) => {
     if (test.status === 0) {
       reporter.pass(test.name);
     } else if (test.status === 1) {
@@ -168,7 +165,7 @@ async function runTest(page, testUrl, reporter) {
     }
   });
 
-  await page.exposeFunction('__wptCompletionCallback', harnessStatus => {
+  await page.exposeFunction('__wptCompletionCallback', (harnessStatus) => {
     if (harnessStatus.status === 0) {
       resolveDone(!hasFailed);
     } else if (harnessStatus.status === 1) {
@@ -203,11 +200,13 @@ function browserTypeByName(name) {
 }
 
 async function readTestPaths(testsPath) {
-  const fileNames = await recursiveReadDirAsync(testsPath);
+  const fileNames = await fs.readdir(testsPath, { recursive: true });
+
   const testFilePaths = [];
   for (const fileName of fileNames) {
-    const sourceFile = new SourceFile(testsPath, path.relative(testsPath, fileName));
+    const sourceFile = new SourceFile(testsPath, fileName);
     testFilePaths.push(...sourceFile.testPaths());
   }
+
   return testFilePaths.sort();
 }

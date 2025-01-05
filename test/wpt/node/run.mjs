@@ -1,27 +1,20 @@
 // This runs the web platform tests against the reference implementation, in Node.js using jsdom, for easier rapid
 // development of the reference implementation and the web platform tests.
-/* eslint-disable no-console */
 
-const path = require('path');
-const fs = require('fs');
-const { promisify } = require('util');
-const micromatch = require('micromatch');
-const wptRunner = require('wpt-runner');
-const consoleReporter = require('wpt-runner/lib/console-reporter.js');
-const { FilteringReporter } = require('../shared/filtering-reporter.js');
-const allSettled = require('@ungap/promise-all-settled');
-const {
+import path from 'node:path';
+import fs from 'node:fs/promises';
+import micromatch from 'micromatch';
+import wptRunner from 'wpt-runner';
+import consoleReporter from 'wpt-runner/lib/console-reporter.js';
+import { FilteringReporter } from '../shared/filtering-reporter.mjs';
+import {
   excludedTestsNonES2018,
   excludedTestsBase,
   ignoredFailuresBase,
   ignoredFailuresMinified,
   ignoredFailuresES5,
   mergeIgnoredFailures
-} = require('../shared/exclusions');
-
-const readFileAsync = promisify(fs.readFile);
-const queueMicrotask = global.queueMicrotask || (fn => Promise.resolve().then(fn));
-const structuredClone = global.structuredClone || (x => x);
+} from '../shared/exclusions.mjs';
 
 // wpt-runner does not yet support unhandled rejection tracking a la
 // https://github.com/w3c/testharness.js/commit/7716e2581a86dfd9405a9c00547a7504f0c7fe94
@@ -31,11 +24,11 @@ process.on('unhandledRejection', (reason, promise) => {
   rejections.set(promise, reason);
 });
 
-process.on('rejectionHandled', promise => {
+process.on('rejectionHandled', (promise) => {
   rejections.delete(promise);
 });
 
-main().catch(e => {
+main().catch((e) => {
   console.error(e.stack);
   process.exitCode = 1;
 });
@@ -74,8 +67,8 @@ async function main() {
 }
 
 async function runTests(entryFile, { includedTests = ['**/*.html'], excludedTests = [], ignoredFailures = {} } = {}) {
-  const entryPath = path.resolve(__dirname, `../../../dist/${entryFile}`);
-  const wptPath = path.resolve(__dirname, '../../web-platform-tests');
+  const entryPath = path.resolve(import.meta.dirname, `../../../dist/${entryFile}`);
+  const wptPath = path.resolve(import.meta.dirname, '../../web-platform-tests');
   const testsPath = path.resolve(wptPath, 'streams');
 
   const includeMatcher = micromatch.matcher(includedTests);
@@ -84,7 +77,7 @@ async function runTests(entryFile, { includedTests = ['**/*.html'], excludedTest
 
   const reporter = new FilteringReporter(consoleReporter, ignoredFailures);
 
-  const bundledJS = await readFileAsync(entryPath, { encoding: 'utf8' });
+  const bundledJS = await fs.readFile(entryPath, { encoding: 'utf8' });
 
   console.log(`>>> ${entryFile}`);
 
@@ -92,9 +85,9 @@ async function runTests(entryFile, { includedTests = ['**/*.html'], excludedTest
     rootURL: 'streams/',
     reporter,
     setup(window) {
-      window.Promise.allSettled = allSettled;
-      window.queueMicrotask = queueMicrotask;
-      window.structuredClone = structuredClone;
+      window.Promise.allSettled = Promise.allSettled;
+      window.queueMicrotask = global.queueMicrotask;
+      window.structuredClone = global.structuredClone;
       window.fetch = async function (url) {
         const filePath = path.join(wptPath, url);
         if (!filePath.startsWith(wptPath)) {
@@ -103,7 +96,7 @@ async function runTests(entryFile, { includedTests = ['**/*.html'], excludedTest
         return {
           ok: true,
           async text() {
-            return await readFileAsync(filePath, { encoding: 'utf8' });
+            return await fs.readFile(filePath, { encoding: 'utf8' });
           }
         };
       };
@@ -115,8 +108,8 @@ async function runTests(entryFile, { includedTests = ['**/*.html'], excludedTest
         return false;
       }
 
-      return includeMatcher(testPath) &&
-          !excludeMatcher(testPath);
+      return includeMatcher(testPath)
+        && !excludeMatcher(testPath);
     }
   });
 
@@ -142,10 +135,9 @@ async function runTests(entryFile, { includedTests = ['**/*.html'], excludedTest
 
 function runtimeSupportsAsyncGenerators() {
   try {
-    // eslint-disable-next-line no-new-func
     Function('(async function* f() {})')();
     return true;
-  } catch (e) {
+  } catch {
     return false;
   }
 }

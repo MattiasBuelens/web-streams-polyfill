@@ -11,7 +11,7 @@
     "web-streams-polyfill": "file:../.."
   },
   "devDependencies": {
-    "@rollup/plugin-node-resolve": "^15.3.0",
-    "rollup": "^4.24.0"
+    "@rollup/plugin-node-resolve": "^16.0.0",
+    "rollup": "^4.29.2"
   }
 }
