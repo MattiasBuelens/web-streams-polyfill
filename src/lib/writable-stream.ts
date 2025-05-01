@@ -1172,7 +1172,7 @@ function WritableStreamDefaultControllerGetChunkSize<W>(
   chunk: W
 ): number {
   if (controller._strategySizeAlgorithm === undefined) {
-    assert(controller._controlledWritableStream._state === 'erroring' || controller._controlledWritableStream._state === 'errored');
+    assert(controller._controlledWritableStream._state !== 'writable');
     return 1;
   }
 
