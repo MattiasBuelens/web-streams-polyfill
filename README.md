@@ -57,6 +57,31 @@ import "web-streams-polyfill/polyfill";
 const readable = new ReadableStream();
 ```
 
+## Conditional loading
+
+Web Streams are [widely supported][mdn-browser-compatibility] across all modern browsers 
+(including Chrome, Firefox and Safari) and server runtimes (including Node.js, Deno and Bun).
+Consider using feature detection to check if your platform's built-in streams implementation can fulfill your app's needs,
+and load the polyfill only when needed.
+
+Here are a couple of examples to load the polyfill conditionally:
+```js
+// Check for basic ReadableStream support
+if (!globalThis.ReadableStream) {
+  await import("web-streams-polyfill/polyfill");
+}
+
+// Check for basic TransformStream support
+if (!globalThis.TransformStream) {
+  await import("web-streams-polyfill/polyfill");
+}
+
+// Check for async iteration support
+if (typeof globalThis.ReadableStream?.prototype[Symbol.asyncIterator] !== 'function') {
+  await import("web-streams-polyfill/polyfill");
+}
+```
+
 ## Compatibility
 
 The `polyfill` and `ponyfill` variants work in any ES2015-compatible environment.
@@ -104,6 +129,7 @@ Thanks to these people for their work on [the original polyfill][creatorrr-polyf
 
 [spec]: https://streams.spec.whatwg.org
 [ref-impl]: https://github.com/whatwg/streams
+[mdn-browser-compatibility]: https://developer.mozilla.org/en-US/docs/Web/API/Streams_API#browser_compatibility
 [ponyfill]: https://github.com/sindresorhus/ponyfill
 [migrating]: https://github.com/MattiasBuelens/web-streams-polyfill/blob/master/MIGRATING.md
 [promise-support]: https://kangax.github.io/compat-table/es6/#test-Promise
