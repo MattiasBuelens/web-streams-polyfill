@@ -80,7 +80,7 @@ When using TypeScript, make sure your [`moduleResolution`](https://www.typescrip
 
 ## Compliance
 
-The polyfill implements [version `fa4891a` (3 Dec 2024)][spec-snapshot] of the streams specification.
+The polyfill implements [version `080852c` (3 Apr 2025)][spec-snapshot] of the streams specification.
 
 The polyfill is tested against the same [web platform tests][wpt] that are used by browsers to test their native implementations.
 The polyfill aims to pass all tests, although it allows some exceptions for practical reasons:
@@ -112,8 +112,8 @@ Thanks to these people for their work on [the original polyfill][creatorrr-polyf
 [ws-controller-signal]: https://streams.spec.whatwg.org/#ws-default-controller-signal
 [abortcontroller-polyfill]: https://www.npmjs.com/package/abortcontroller-polyfill
 [mdn-byob-read]: https://developer.mozilla.org/en-US/docs/Web/API/ReadableStreamBYOBReader/read
-[spec-snapshot]: https://streams.spec.whatwg.org/commit-snapshots/fa4891a35ff05281ff8ed66f8ad447644ea7cec3/
-[wpt]: https://github.com/web-platform-tests/wpt/tree/7ef95a1c3f1c178e455b21569eddb31af7c3691f/streams
-[wpt-async-iterator-prototype]: https://github.com/web-platform-tests/wpt/blob/7ef95a1c3f1c178e455b21569eddb31af7c3691f/streams/readable-streams/async-iterator.any.js#L24
+[spec-snapshot]: https://streams.spec.whatwg.org/commit-snapshots/080852ccd709e063cc6af239ae07fc040e365179/
+[wpt]: https://github.com/web-platform-tests/wpt/tree/186a9fd7abc3d9c31e2b37680be757e992af9e3a/streams
+[wpt-async-iterator-prototype]: https://github.com/web-platform-tests/wpt/blob/186a9fd7abc3d9c31e2b37680be757e992af9e3a/streams/readable-streams/async-iterator.any.js#L24
 [stub-async-iterator-prototype]: https://github.com/MattiasBuelens/web-streams-polyfill/blob/v4.0.0/src/lib/readable-stream/async-iterator.ts#L143-L147
 [creatorrr-polyfill]: https://github.com/creatorrr/web-streams-polyfill
