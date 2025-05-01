@@ -57,6 +57,20 @@ import "web-streams-polyfill/polyfill";
 const readable = new ReadableStream();
 ```
 
+> [!WARNING]
+> **Compatibility with built-in streams**
+> 
+> If your browser or runtime already supports Web Streams, loading the polyfill will *unconditionally* replace 
+> the global `ReadableStream`, `WritableStream` and `TransformStream` classes with the polyfill's versions.
+> However, browser APIs like `fetch()` will still return stream objects using the *built-in* stream classes.
+> This can lead to surprising results, for example `Response.body` will not be `instanceof ReadableStream` 
+> after the polyfill replaces the global `ReadableStream` class.
+> 
+> Consider using `ReadableStream.from()` to convert a built-in stream (e.g. from `fetch()`) to a polyfilled stream,
+> or try [loading the polyfill conditionally](#conditional-loading) if you don't always need the polyfill.
+> 
+> See [issue #20](https://github.com/MattiasBuelens/web-streams-polyfill/issues/20) for more details.
+
 ## Conditional loading
 
 Web Streams are [widely supported][mdn-browser-compatibility] across all modern browsers 
