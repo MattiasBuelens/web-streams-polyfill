@@ -12,7 +12,7 @@
 
 ## Unreleased
 
-* 👓 Align with [spec version `080852c`](https://github.com/whatwg/streams/tree/080852ccd709e063cc6af239ae07fc040e365179/)
+* 👓 Align with [spec version `080852c`](https://github.com/whatwg/streams/tree/080852ccd709e063cc6af239ae07fc040e365179/) ([#161](https://github.com/MattiasBuelens/web-streams-polyfill/pull/161))
 
 ## 4.1.0 (2025-01-05)
 
