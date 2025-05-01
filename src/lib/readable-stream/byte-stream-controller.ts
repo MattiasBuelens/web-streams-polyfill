@@ -563,8 +563,11 @@ function ReadableByteStreamControllerFillPullIntoDescriptorFromQueue(
     const bytesToCopy = Math.min(totalBytesToCopyRemaining, headOfQueue.byteLength);
 
     const destStart = pullIntoDescriptor.byteOffset + pullIntoDescriptor.bytesFilled;
-    assert(CanCopyDataBlockBytes(pullIntoDescriptor.buffer, destStart, headOfQueue.buffer, headOfQueue.byteOffset, bytesToCopy));
-    CopyDataBlockBytes(pullIntoDescriptor.buffer, destStart, headOfQueue.buffer, headOfQueue.byteOffset, bytesToCopy);
+    const descriptorBuffer = pullIntoDescriptor.buffer;
+    const queueBuffer = headOfQueue.buffer;
+    const queueByteOffset = headOfQueue.byteOffset;
+    assert(CanCopyDataBlockBytes(descriptorBuffer, destStart, queueBuffer, queueByteOffset, bytesToCopy));
+    CopyDataBlockBytes(descriptorBuffer, destStart, queueBuffer, queueByteOffset, bytesToCopy);
 
     if (headOfQueue.byteLength === bytesToCopy) {
       queue.shift();
@@ -744,7 +747,7 @@ function ReadableByteStreamControllerRespondInClosedState(
   const stream = controller._controlledReadableByteStream;
   if (ReadableStreamHasBYOBReader(stream)) {
     const filledPullIntos: PullIntoDescriptor[] = [];
-    for (let i = 0; i < ReadableStreamGetNumReadIntoRequests(stream); ++i) {
+    while (filledPullIntos.length < ReadableStreamGetNumReadIntoRequests(stream)) {
       filledPullIntos.push(ReadableByteStreamControllerShiftPendingPullInto(controller));
     }
     ReadableByteStreamControllerCommitPullIntoDescriptors(stream, filledPullIntos);
@@ -930,7 +933,7 @@ export function ReadableByteStreamControllerEnqueue(
     // TODO: Ideally in this branch detaching should happen only if the buffer is not consumed fully.
     ReadableByteStreamControllerEnqueueChunkToQueue(controller, transferredBuffer, byteOffset, byteLength);
     const filledPullIntos = ReadableByteStreamControllerProcessPullIntoDescriptorsUsingQueue(controller);
-    ReadableByteStreamControllerCommitPullIntoDescriptors(controller._controlledReadableByteStream, filledPullIntos);
+    ReadableByteStreamControllerCommitPullIntoDescriptors(stream, filledPullIntos);
   } else {
     assert(!IsReadableStreamLocked(stream));
     ReadableByteStreamControllerEnqueueChunkToQueue(controller, transferredBuffer, byteOffset, byteLength);
