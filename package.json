@@ -1,6 +1,6 @@
 {
   "name": "web-streams-polyfill",
-  "version": "4.1.0",
+  "version": "4.2.0",
   "description": "Web Streams, based on the WHATWG spec reference implementation",
   "main": "dist/ponyfill.js",
   "module": "dist/ponyfill.mjs",
