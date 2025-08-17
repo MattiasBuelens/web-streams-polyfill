@@ -26,7 +26,7 @@ This library comes in multiple variants:
   Recommended for use in web apps supporting older browsers through a `<script>` tag.
 
 Each variant also includes TypeScript type definitions, compatible with the DOM type definitions for streams included in TypeScript.
-These type definitions require TypeScript version 4.7 or higher.
+These type definitions require TypeScript version 5.7 or higher.
 
 In version 4, the list of variants was reworked to have more modern defaults and to reduce the download size of the package.
 See the [migration guide][migrating] for more information.
