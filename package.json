@@ -36,8 +36,8 @@
     "test:wpt:chromium": "node ./test/wpt/browser/run.mjs --browser chromium",
     "test:wpt:firefox": "node ./test/wpt/browser/run.mjs --browser firefox",
     "test:bundlers": "npm run test:bundler:rollup && npm run test:bundler:webpack",
-    "test:bundler:rollup": "cd test/rollup && npm install && npm test",
-    "test:bundler:webpack": "cd test/webpack && npm install && npm test",
+    "test:bundler:rollup": "cd test/rollup-test && npm test",
+    "test:bundler:webpack": "cd test/webpack-test && npm test",
     "test:types": "tsc -p ./test/types/tsconfig.json",
     "test:unit": "jasmine --config=test/unit/jasmine.json",
     "lint": "eslint \"*.mjs\" \"src/**/*.ts\"",
@@ -96,8 +96,8 @@
     "wpt-runner": "^6.0.0"
   },
   "workspaces": [
-    "test/benchmark",
-    "test/rollup",
-    "test/webpack"
+    "test/benchmark-test",
+    "test/rollup-test",
+    "test/webpack-test"
   ]
 }

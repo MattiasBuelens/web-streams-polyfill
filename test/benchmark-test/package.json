@@ -1,5 +1,5 @@
 {
-  "name": "web-streams-polyfill-benchmark",
+  "name": "benchmark-test",
   "version": "0.0.0",
   "private": true,
   "type": "module",
