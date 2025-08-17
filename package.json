@@ -94,5 +94,10 @@
     "typescript": "^5.9.2",
     "typescript-eslint": "^8.39.1",
     "wpt-runner": "^6.0.0"
-  }
+  },
+  "workspaces": [
+    "test/benchmark",
+    "test/rollup",
+    "test/webpack"
+  ]
 }
