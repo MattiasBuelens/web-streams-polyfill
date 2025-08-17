@@ -9,6 +9,6 @@
   "devDependencies": {
     "@stardazed/streams": "^3.1.0",
     "benchmark": "^2.1.4",
-    "web-streams-polyfill": "file:../.."
+    "web-streams-polyfill": "*"
   }
 }

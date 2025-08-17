@@ -8,7 +8,7 @@
     "prepare": "npm run build"
   },
   "dependencies": {
-    "web-streams-polyfill": "file:../.."
+    "web-streams-polyfill": "*"
   },
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^16.0.0",
