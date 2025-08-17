@@ -63,10 +63,11 @@ export class ReadableStream<R = any> implements AsyncIterable<R> {
     constructor(underlyingSource?: UnderlyingSource<R>, strategy?: QueuingStrategy<R>);
     cancel(reason?: any): Promise<void>;
     static from<R>(asyncIterable: Iterable<R> | AsyncIterable<R> | ReadableStreamLike<R>): ReadableStream<R>;
-    getReader({ mode }: {
+    getReader(options: {
         mode: 'byob';
     }): ReadableStreamBYOBReader;
     getReader(): ReadableStreamDefaultReader<R>;
+    getReader(options?: ReadableStreamGetReaderOptions | undefined): ReadableStreamReader<R>;
     get locked(): boolean;
     pipeThrough<RS extends ReadableStream>(transform: {
         readable: RS;
@@ -113,7 +114,7 @@ export type ReadableStreamBYOBReadResult<T extends ArrayBufferView> = {
 export class ReadableStreamBYOBRequest {
     respond(bytesWritten: number): void;
     respondWithNewView(view: ArrayBufferView): void;
-    get view(): ArrayBufferView | null;
+    get view(): ArrayBufferView<ArrayBuffer> | null;
 }
 
 // @public
@@ -151,8 +152,14 @@ export type ReadableStreamDefaultReadResult<T> = {
     value: T;
 } | {
     done: true;
-    value?: undefined;
+    value: undefined;
 };
+
+// @public
+export interface ReadableStreamGetReaderOptions {
+    // (undocumented)
+    mode?: 'byob';
+}
 
 // @public
 export interface ReadableStreamIteratorOptions {
@@ -167,6 +174,9 @@ export interface ReadableStreamLike<R = any> {
     // (undocumented)
     readonly locked: boolean;
 }
+
+// @public
+export type ReadableStreamReader<R> = ReadableStreamDefaultReader<R> | ReadableStreamBYOBReader;
 
 // @public
 export interface ReadableWritablePair<R, W> {

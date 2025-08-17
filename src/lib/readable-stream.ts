@@ -174,7 +174,7 @@ rawUnderlyingSource: UnderlyingSource<R> | UnderlyingByteSource | null | undefin
    * {@link ReadableStreamBYOBReader.read | read()} method, into developer-supplied buffers, allowing more precise
    * control over allocation.
    */
-  getReader({ mode }: { mode: 'byob' }): ReadableStreamBYOBReader;
+  getReader(options: { mode: 'byob' }): ReadableStreamBYOBReader;
   /**
    * Creates a {@link ReadableStreamDefaultReader} and locks the stream to the new reader.
    * While the stream is locked, no other reader can be acquired until this one is released.
@@ -184,6 +184,10 @@ rawUnderlyingSource: UnderlyingSource<R> | UnderlyingByteSource | null | undefin
    * or cancel the stream, which would interfere with your abstraction.
    */
   getReader(): ReadableStreamDefaultReader<R>;
+  /**
+   * Creates a {@link ReadableStreamReader} and locks the stream to the new reader.
+   */
+  getReader(options?: ReadableStreamGetReaderOptions | undefined): ReadableStreamReader<R>;
   getReader(rawOptions: ReadableStreamGetReaderOptions | null | undefined = undefined): ReadableStreamDefaultReader<R> | ReadableStreamBYOBReader {
     if (!IsReadableStream(this)) {
       throw streamBrandCheckException('getReader');
@@ -533,9 +537,15 @@ export function ReadableStreamError<R>(stream: ReadableStream<R>, e: any): void 
 
 // Readers
 
+/**
+ * A reader vended by a {@link ReadableStream}.
+ *
+ * @public
+ */
 export type ReadableStreamReader<R> = ReadableStreamDefaultReader<R> | ReadableStreamBYOBReader;
 
 export {
+  type ReadableStreamGetReaderOptions,
   ReadableStreamDefaultReader,
   ReadableStreamBYOBReader
 };
