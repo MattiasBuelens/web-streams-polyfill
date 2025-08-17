@@ -3,12 +3,11 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "build": "webpack",
     "test": "node dist/app.js",
-    "prepare": "npm run build"
+    "pretest": "webpack"
   },
   "dependencies": {
-    "web-streams-polyfill": "file:../.."
+    "web-streams-polyfill": "*"
   },
   "devDependencies": {
     "webpack": "^5.97.1",

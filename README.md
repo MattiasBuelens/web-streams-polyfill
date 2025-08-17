@@ -26,7 +26,7 @@ This library comes in multiple variants:
   Recommended for use in web apps supporting older browsers through a `<script>` tag.
 
 Each variant also includes TypeScript type definitions, compatible with the DOM type definitions for streams included in TypeScript.
-These type definitions require TypeScript version 4.7 or higher.
+These type definitions require TypeScript version 5.7 or higher.
 
 In version 4, the list of variants was reworked to have more modern defaults and to reduce the download size of the package.
 See the [migration guide][migrating] for more information.
@@ -57,6 +57,45 @@ import "web-streams-polyfill/polyfill";
 const readable = new ReadableStream();
 ```
 
+> [!WARNING]
+> **Compatibility with built-in streams**
+> 
+> If your browser or runtime already supports Web Streams, loading the polyfill will *unconditionally* replace 
+> the global `ReadableStream`, `WritableStream` and `TransformStream` classes with the polyfill's versions.
+> However, browser APIs like `fetch()` will still return stream objects using the *built-in* stream classes.
+> This can lead to surprising results, for example `Response.body` will not be `instanceof ReadableStream` 
+> after the polyfill replaces the global `ReadableStream` class.
+> 
+> Consider using `ReadableStream.from()` to convert a built-in stream (e.g. from `fetch()`) to a polyfilled stream,
+> or try [loading the polyfill conditionally](#conditional-loading) if you don't always need the polyfill.
+> 
+> See [issue #20](https://github.com/MattiasBuelens/web-streams-polyfill/issues/20) for more details.
+
+## Conditional loading
+
+Web Streams are [widely supported][mdn-browser-compatibility] across all modern browsers 
+(including Chrome, Firefox and Safari) and server runtimes (including Node.js, Deno and Bun).
+Consider using feature detection to check if your platform's built-in streams implementation can fulfill your app's needs,
+and load the polyfill only when needed.
+
+Here are a couple of examples to load the polyfill conditionally:
+```js
+// Check for basic ReadableStream support
+if (!globalThis.ReadableStream) {
+  await import("web-streams-polyfill/polyfill");
+}
+
+// Check for basic TransformStream support
+if (!globalThis.TransformStream) {
+  await import("web-streams-polyfill/polyfill");
+}
+
+// Check for async iteration support
+if (typeof globalThis.ReadableStream?.prototype[Symbol.asyncIterator] !== 'function') {
+  await import("web-streams-polyfill/polyfill");
+}
+```
+
 ## Compatibility
 
 The `polyfill` and `ponyfill` variants work in any ES2015-compatible environment.
@@ -80,7 +119,7 @@ When using TypeScript, make sure your [`moduleResolution`](https://www.typescrip
 
 ## Compliance
 
-The polyfill implements [version `fa4891a` (3 Dec 2024)][spec-snapshot] of the streams specification.
+The polyfill implements [version `080852c` (3 Apr 2025)][spec-snapshot] of the streams specification.
 
 The polyfill is tested against the same [web platform tests][wpt] that are used by browsers to test their native implementations.
 The polyfill aims to pass all tests, although it allows some exceptions for practical reasons:
@@ -104,6 +143,7 @@ Thanks to these people for their work on [the original polyfill][creatorrr-polyf
 
 [spec]: https://streams.spec.whatwg.org
 [ref-impl]: https://github.com/whatwg/streams
+[mdn-browser-compatibility]: https://developer.mozilla.org/en-US/docs/Web/API/Streams_API#browser_compatibility
 [ponyfill]: https://github.com/sindresorhus/ponyfill
 [migrating]: https://github.com/MattiasBuelens/web-streams-polyfill/blob/master/MIGRATING.md
 [promise-support]: https://kangax.github.io/compat-table/es6/#test-Promise
@@ -112,8 +152,8 @@ Thanks to these people for their work on [the original polyfill][creatorrr-polyf
 [ws-controller-signal]: https://streams.spec.whatwg.org/#ws-default-controller-signal
 [abortcontroller-polyfill]: https://www.npmjs.com/package/abortcontroller-polyfill
 [mdn-byob-read]: https://developer.mozilla.org/en-US/docs/Web/API/ReadableStreamBYOBReader/read
-[spec-snapshot]: https://streams.spec.whatwg.org/commit-snapshots/fa4891a35ff05281ff8ed66f8ad447644ea7cec3/
-[wpt]: https://github.com/web-platform-tests/wpt/tree/7ef95a1c3f1c178e455b21569eddb31af7c3691f/streams
-[wpt-async-iterator-prototype]: https://github.com/web-platform-tests/wpt/blob/7ef95a1c3f1c178e455b21569eddb31af7c3691f/streams/readable-streams/async-iterator.any.js#L24
+[spec-snapshot]: https://streams.spec.whatwg.org/commit-snapshots/080852ccd709e063cc6af239ae07fc040e365179/
+[wpt]: https://github.com/web-platform-tests/wpt/tree/186a9fd7abc3d9c31e2b37680be757e992af9e3a/streams
+[wpt-async-iterator-prototype]: https://github.com/web-platform-tests/wpt/blob/186a9fd7abc3d9c31e2b37680be757e992af9e3a/streams/readable-streams/async-iterator.any.js#L24
 [stub-async-iterator-prototype]: https://github.com/MattiasBuelens/web-streams-polyfill/blob/v4.0.0/src/lib/readable-stream/async-iterator.ts#L143-L147
 [creatorrr-polyfill]: https://github.com/creatorrr/web-streams-polyfill

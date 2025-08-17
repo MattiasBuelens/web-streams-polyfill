@@ -9,10 +9,6 @@ export type TypedArray =
   | Float32Array
   | Float64Array;
 
-export type NonShared<T extends ArrayBufferView> = T & {
-  buffer: ArrayBuffer;
-};
-
 export interface ArrayBufferViewConstructor<T extends ArrayBufferView = ArrayBufferView> {
   new(buffer: ArrayBuffer, byteOffset: number, length?: number): T;
 

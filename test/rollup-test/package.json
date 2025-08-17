@@ -3,12 +3,11 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "build": "rollup -c",
     "test": "node dist/app.js",
-    "prepare": "npm run build"
+    "pretest": "rollup -c"
   },
   "dependencies": {
-    "web-streams-polyfill": "file:../.."
+    "web-streams-polyfill": "*"
   },
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^16.0.0",

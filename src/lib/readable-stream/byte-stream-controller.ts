@@ -39,7 +39,6 @@ import { assertRequiredArgument, convertUnsignedLongLongWithEnforceRange } from 
 import {
   type ArrayBufferViewConstructor,
   arrayBufferViewElementSize,
-  type NonShared,
   type TypedArrayConstructor
 } from '../helpers/array-buffer-view';
 
@@ -52,7 +51,7 @@ export class ReadableStreamBYOBRequest {
   /** @internal */
   _associatedReadableByteStreamController!: ReadableByteStreamController;
   /** @internal */
-  _view!: NonShared<ArrayBufferView> | null;
+  _view!: ArrayBufferView<ArrayBuffer> | null;
 
   private constructor() {
     throw new TypeError('Illegal constructor');
@@ -61,7 +60,7 @@ export class ReadableStreamBYOBRequest {
   /**
    * Returns the view for writing in to, or `null` if the BYOB request has already been responded to.
    */
-  get view(): ArrayBufferView | null {
+  get view(): ArrayBufferView<ArrayBuffer> | null {
     if (!IsReadableStreamBYOBRequest(this)) {
       throw byobRequestBrandCheckException('view');
     }
@@ -106,7 +105,7 @@ export class ReadableStreamBYOBRequest {
    * After this method is called, `view` will be transferred and no longer modifiable.
    */
   respondWithNewView(view: ArrayBufferView): void;
-  respondWithNewView(view: NonShared<ArrayBufferView>): void {
+  respondWithNewView(view: ArrayBufferView<ArrayBuffer>): void {
     if (!IsReadableStreamBYOBRequest(this)) {
       throw byobRequestBrandCheckException('respondWithNewView');
     }
@@ -148,7 +147,7 @@ interface ByteQueueElement {
   byteLength: number;
 }
 
-type PullIntoDescriptor<T extends NonShared<ArrayBufferView> = NonShared<ArrayBufferView>> =
+type PullIntoDescriptor<T extends ArrayBufferView<ArrayBuffer> = ArrayBufferView<ArrayBuffer>> =
   DefaultPullIntoDescriptor
   | BYOBPullIntoDescriptor<T>;
 
@@ -164,7 +163,7 @@ interface DefaultPullIntoDescriptor {
   readerType: 'default' | 'none';
 }
 
-interface BYOBPullIntoDescriptor<T extends NonShared<ArrayBufferView> = NonShared<ArrayBufferView>> {
+interface BYOBPullIntoDescriptor<T extends ArrayBufferView<ArrayBuffer> = ArrayBufferView<ArrayBuffer>> {
   buffer: ArrayBuffer;
   bufferByteLength: number;
   byteOffset: number;
@@ -262,7 +261,7 @@ export class ReadableByteStreamController {
    * The chunk has to be an `ArrayBufferView` instance, or else a `TypeError` will be thrown.
    */
   enqueue(chunk: ArrayBufferView): void;
-  enqueue(chunk: NonShared<ArrayBufferView>): void {
+  enqueue(chunk: ArrayBufferView<ArrayBuffer>): void {
     if (!IsReadableByteStreamController(this)) {
       throw byteStreamControllerBrandCheckException('enqueue');
     }
@@ -313,7 +312,7 @@ export class ReadableByteStreamController {
   }
 
   /** @internal */
-  [PullSteps](readRequest: ReadRequest<NonShared<Uint8Array>>): void {
+  [PullSteps](readRequest: ReadRequest<Uint8Array<ArrayBuffer>>): void {
     const stream = this._controlledReadableByteStream;
     assert(ReadableStreamHasDefaultReader(stream));
 
@@ -449,7 +448,7 @@ function ReadableByteStreamControllerClearPendingPullIntos(controller: ReadableB
   controller._pendingPullIntos = new SimpleQueue();
 }
 
-function ReadableByteStreamControllerCommitPullIntoDescriptor<T extends NonShared<ArrayBufferView>>(
+function ReadableByteStreamControllerCommitPullIntoDescriptor<T extends ArrayBufferView<ArrayBuffer>>(
   stream: ReadableByteStream,
   pullIntoDescriptor: PullIntoDescriptor<T>
 ) {
@@ -464,14 +463,14 @@ function ReadableByteStreamControllerCommitPullIntoDescriptor<T extends NonShare
 
   const filledView = ReadableByteStreamControllerConvertPullIntoDescriptor<T>(pullIntoDescriptor);
   if (pullIntoDescriptor.readerType === 'default') {
-    ReadableStreamFulfillReadRequest(stream, filledView as unknown as NonShared<Uint8Array>, done);
+    ReadableStreamFulfillReadRequest(stream, filledView as unknown as Uint8Array<ArrayBuffer>, done);
   } else {
     assert(pullIntoDescriptor.readerType === 'byob');
     ReadableStreamFulfillReadIntoRequest(stream, filledView, done);
   }
 }
 
-function ReadableByteStreamControllerCommitPullIntoDescriptors<T extends NonShared<ArrayBufferView>>(
+function ReadableByteStreamControllerCommitPullIntoDescriptors<T extends ArrayBufferView<ArrayBuffer>>(
   stream: ReadableByteStream,
   pullIntoDescriptors: ReadonlyArray<PullIntoDescriptor<T>>
 ) {
@@ -480,7 +479,7 @@ function ReadableByteStreamControllerCommitPullIntoDescriptors<T extends NonShar
   }
 }
 
-function ReadableByteStreamControllerConvertPullIntoDescriptor<T extends NonShared<ArrayBufferView>>(pullIntoDescriptor: PullIntoDescriptor<T>): T {
+function ReadableByteStreamControllerConvertPullIntoDescriptor<T extends ArrayBufferView<ArrayBuffer>>(pullIntoDescriptor: PullIntoDescriptor<T>): T {
   const bytesFilled = pullIntoDescriptor.bytesFilled;
   const elementSize = pullIntoDescriptor.elementSize;
 
@@ -563,8 +562,11 @@ function ReadableByteStreamControllerFillPullIntoDescriptorFromQueue(
     const bytesToCopy = Math.min(totalBytesToCopyRemaining, headOfQueue.byteLength);
 
     const destStart = pullIntoDescriptor.byteOffset + pullIntoDescriptor.bytesFilled;
-    assert(CanCopyDataBlockBytes(pullIntoDescriptor.buffer, destStart, headOfQueue.buffer, headOfQueue.byteOffset, bytesToCopy));
-    CopyDataBlockBytes(pullIntoDescriptor.buffer, destStart, headOfQueue.buffer, headOfQueue.byteOffset, bytesToCopy);
+    const descriptorBuffer = pullIntoDescriptor.buffer;
+    const queueBuffer = headOfQueue.buffer;
+    const queueByteOffset = headOfQueue.byteOffset;
+    assert(CanCopyDataBlockBytes(descriptorBuffer, destStart, queueBuffer, queueByteOffset, bytesToCopy));
+    CopyDataBlockBytes(descriptorBuffer, destStart, queueBuffer, queueByteOffset, bytesToCopy);
 
     if (headOfQueue.byteLength === bytesToCopy) {
       queue.shift();
@@ -652,7 +654,7 @@ function ReadableByteStreamControllerProcessReadRequestsUsingQueue(controller: R
   }
 }
 
-export function ReadableByteStreamControllerPullInto<T extends NonShared<ArrayBufferView>>(
+export function ReadableByteStreamControllerPullInto<T extends ArrayBufferView<ArrayBuffer>>(
   controller: ReadableByteStreamController,
   view: T,
   min: number,
@@ -744,7 +746,7 @@ function ReadableByteStreamControllerRespondInClosedState(
   const stream = controller._controlledReadableByteStream;
   if (ReadableStreamHasBYOBReader(stream)) {
     const filledPullIntos: PullIntoDescriptor[] = [];
-    for (let i = 0; i < ReadableStreamGetNumReadIntoRequests(stream); ++i) {
+    while (filledPullIntos.length < ReadableStreamGetNumReadIntoRequests(stream)) {
       filledPullIntos.push(ReadableByteStreamControllerShiftPendingPullInto(controller));
     }
     ReadableByteStreamControllerCommitPullIntoDescriptors(stream, filledPullIntos);
@@ -886,7 +888,7 @@ export function ReadableByteStreamControllerClose(controller: ReadableByteStream
 
 export function ReadableByteStreamControllerEnqueue(
   controller: ReadableByteStreamController,
-  chunk: NonShared<ArrayBufferView>
+  chunk: ArrayBufferView<ArrayBuffer>
 ) {
   const stream = controller._controlledReadableByteStream;
 
@@ -924,13 +926,13 @@ export function ReadableByteStreamControllerEnqueue(
         ReadableByteStreamControllerShiftPendingPullInto(controller);
       }
       const transferredView = new Uint8Array(transferredBuffer, byteOffset, byteLength);
-      ReadableStreamFulfillReadRequest(stream, transferredView as NonShared<Uint8Array>, false);
+      ReadableStreamFulfillReadRequest(stream, transferredView as Uint8Array<ArrayBuffer>, false);
     }
   } else if (ReadableStreamHasBYOBReader(stream)) {
     // TODO: Ideally in this branch detaching should happen only if the buffer is not consumed fully.
     ReadableByteStreamControllerEnqueueChunkToQueue(controller, transferredBuffer, byteOffset, byteLength);
     const filledPullIntos = ReadableByteStreamControllerProcessPullIntoDescriptorsUsingQueue(controller);
-    ReadableByteStreamControllerCommitPullIntoDescriptors(controller._controlledReadableByteStream, filledPullIntos);
+    ReadableByteStreamControllerCommitPullIntoDescriptors(stream, filledPullIntos);
   } else {
     assert(!IsReadableStreamLocked(stream));
     ReadableByteStreamControllerEnqueueChunkToQueue(controller, transferredBuffer, byteOffset, byteLength);
@@ -955,7 +957,7 @@ export function ReadableByteStreamControllerError(controller: ReadableByteStream
 
 export function ReadableByteStreamControllerFillReadRequestFromQueue(
   controller: ReadableByteStreamController,
-  readRequest: ReadRequest<NonShared<Uint8Array>>
+  readRequest: ReadRequest<Uint8Array<ArrayBuffer>>
 ) {
   assert(controller._queueTotalSize > 0);
 
@@ -965,7 +967,7 @@ export function ReadableByteStreamControllerFillReadRequestFromQueue(
   ReadableByteStreamControllerHandleQueueDrain(controller);
 
   const view = new Uint8Array(entry.buffer, entry.byteOffset, entry.byteLength);
-  readRequest._chunkSteps(view as NonShared<Uint8Array>);
+  readRequest._chunkSteps(view as Uint8Array<ArrayBuffer>);
 }
 
 export function ReadableByteStreamControllerGetBYOBRequest(controller: ReadableByteStreamController): ReadableStreamBYOBRequest | null {
@@ -978,7 +980,7 @@ export function ReadableByteStreamControllerGetBYOBRequest(controller: ReadableB
     );
 
     const byobRequest: ReadableStreamBYOBRequest = Object.create(ReadableStreamBYOBRequest.prototype);
-    SetUpReadableStreamBYOBRequest(byobRequest, controller, view as NonShared<Uint8Array>);
+    SetUpReadableStreamBYOBRequest(byobRequest, controller, view as Uint8Array<ArrayBuffer>);
     controller._byobRequest = byobRequest;
   }
   return controller._byobRequest;
@@ -1024,7 +1026,7 @@ export function ReadableByteStreamControllerRespond(controller: ReadableByteStre
 
 export function ReadableByteStreamControllerRespondWithNewView(
   controller: ReadableByteStreamController,
-  view: NonShared<ArrayBufferView>
+  view: ArrayBufferView<ArrayBuffer>
 ) {
   assert(controller._pendingPullIntos.length > 0);
   assert(!IsDetachedBuffer(view.buffer));
@@ -1155,7 +1157,7 @@ export function SetUpReadableByteStreamControllerFromUnderlyingSource(
 function SetUpReadableStreamBYOBRequest(
   request: ReadableStreamBYOBRequest,
   controller: ReadableByteStreamController,
-  view: NonShared<ArrayBufferView>
+  view: ArrayBufferView<ArrayBuffer>
 ) {
   assert(IsReadableByteStreamController(controller));
   assert(typeof view === 'object');

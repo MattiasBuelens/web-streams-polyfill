@@ -10,6 +10,10 @@
 > - 🏠 Internal
 > - 💅 Polish
 
+## Unreleased
+
+* 👓 Align with [spec version `080852c`](https://github.com/whatwg/streams/tree/080852ccd709e063cc6af239ae07fc040e365179/) ([#161](https://github.com/MattiasBuelens/web-streams-polyfill/pull/161))
+
 ## 4.1.0 (2025-01-05)
 
 * 👓 Align with [spec version `fa4891a`](https://github.com/whatwg/streams/tree/fa4891a35ff05281ff8ed66f8ad447644ea7cec3/) ([#156](https://github.com/MattiasBuelens/web-streams-polyfill/pull/156))
