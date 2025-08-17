@@ -26,9 +26,9 @@ export function convertUnderlyingDefaultOrByteSource<R>(
     autoAllocateChunkSize: autoAllocateChunkSize === undefined
       ? undefined
       : convertUnsignedLongLongWithEnforceRange(
-        autoAllocateChunkSize,
-        `${context} has member 'autoAllocateChunkSize' that`
-      ),
+          autoAllocateChunkSize,
+          `${context} has member 'autoAllocateChunkSize' that`
+        ),
     cancel: cancel === undefined
       ? undefined
       : convertUnderlyingSourceCancelCallback(cancel, original!, `${context} has member 'cancel' that`),

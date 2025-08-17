@@ -170,8 +170,8 @@ function AsyncFromSyncIteratorContinuation<T>(result: IteratorResult<SyncOrAsync
 // Aligns with core-js/modules/es.symbol.async-iterator.js
 export const SymbolAsyncIterator: (typeof Symbol)['asyncIterator']
   = Symbol.asyncIterator
-  ?? Symbol.for?.('Symbol.asyncIterator')
-  ?? '@@asyncIterator';
+    ?? Symbol.for?.('Symbol.asyncIterator')
+    ?? '@@asyncIterator';
 
 export type SyncOrAsyncIterable<T> = Iterable<T> | AsyncIterable<T>;
 export type SyncOrAsyncIteratorMethod<T> = () => (Iterator<T> | AsyncIterator<T>);

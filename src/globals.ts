@@ -2,7 +2,7 @@
 
 declare global {
   // From @types/node
-  // eslint-disable-next-line no-var
+
   var global: typeof globalThis;
 }
 
