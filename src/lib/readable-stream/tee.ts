@@ -39,7 +39,6 @@ import {
 } from './byte-stream-controller';
 import { CreateArrayFromList } from '../abstract-ops/ecmascript';
 import { CloneAsUint8Array } from '../abstract-ops/miscellaneous';
-import type { NonShared } from '../helpers/array-buffer-view';
 
 export function ReadableStreamTee<R>(
   stream: ReadableStream<R>,
@@ -181,7 +180,7 @@ export function ReadableByteStreamTee(stream: ReadableByteStream): [ReadableByte
   assert(IsReadableStream(stream));
   assert(IsReadableByteStreamController(stream._readableStreamController));
 
-  let reader: ReadableStreamReader<NonShared<Uint8Array>> = AcquireReadableStreamDefaultReader(stream);
+  let reader: ReadableStreamReader<Uint8Array<ArrayBuffer>> = AcquireReadableStreamDefaultReader(stream);
   let reading = false;
   let readAgainForBranch1 = false;
   let readAgainForBranch2 = false;
@@ -197,7 +196,7 @@ export function ReadableByteStreamTee(stream: ReadableByteStream): [ReadableByte
     resolveCancelPromise = resolve;
   });
 
-  function forwardReaderError(thisReader: ReadableStreamReader<NonShared<Uint8Array>>) {
+  function forwardReaderError(thisReader: ReadableStreamReader<Uint8Array<ArrayBuffer>>) {
     uponRejection(thisReader._closedPromise, (r) => {
       if (thisReader !== reader) {
         return null;
@@ -220,7 +219,7 @@ export function ReadableByteStreamTee(stream: ReadableByteStream): [ReadableByte
       forwardReaderError(reader);
     }
 
-    const readRequest: ReadRequest<NonShared<Uint8Array>> = {
+    const readRequest: ReadRequest<Uint8Array<ArrayBuffer>> = {
       _chunkSteps: (chunk) => {
         // This needs to be delayed a microtask because it takes at least a microtask to detect errors (using
         // reader._closedPromise below), and we want errors in stream to error both branches immediately. We cannot let
@@ -282,8 +281,8 @@ export function ReadableByteStreamTee(stream: ReadableByteStream): [ReadableByte
     ReadableStreamDefaultReaderRead(reader, readRequest);
   }
 
-  function pullWithBYOBReader(view: NonShared<ArrayBufferView>, forBranch2: boolean) {
-    if (IsReadableStreamDefaultReader<NonShared<Uint8Array>>(reader)) {
+  function pullWithBYOBReader(view: ArrayBufferView<ArrayBuffer>, forBranch2: boolean) {
+    if (IsReadableStreamDefaultReader<Uint8Array<ArrayBuffer>>(reader)) {
       assert(reader._readRequests.length === 0);
       ReadableStreamReaderGenericRelease(reader);
 
@@ -294,7 +293,7 @@ export function ReadableByteStreamTee(stream: ReadableByteStream): [ReadableByte
     const byobBranch = forBranch2 ? branch2 : branch1;
     const otherBranch = forBranch2 ? branch1 : branch2;
 
-    const readIntoRequest: ReadIntoRequest<NonShared<ArrayBufferView>> = {
+    const readIntoRequest: ReadIntoRequest<ArrayBufferView<ArrayBuffer>> = {
       _chunkSteps: (chunk) => {
         // This needs to be delayed a microtask because it takes at least a microtask to detect errors (using
         // reader._closedPromise below), and we want errors in stream to error both branches immediately. We cannot let

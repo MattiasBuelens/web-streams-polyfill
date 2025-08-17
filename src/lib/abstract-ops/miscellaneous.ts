@@ -1,6 +1,5 @@
 import NumberIsNaN from '../../stub/number-isnan';
 import { ArrayBufferSlice } from './ecmascript';
-import type { NonShared } from '../helpers/array-buffer-view';
 
 export function IsNonNegativeNumber(v: number): boolean {
   if (typeof v !== 'number') {
@@ -18,7 +17,7 @@ export function IsNonNegativeNumber(v: number): boolean {
   return true;
 }
 
-export function CloneAsUint8Array(O: NonShared<ArrayBufferView>): NonShared<Uint8Array> {
+export function CloneAsUint8Array(O: ArrayBufferView<ArrayBuffer>): Uint8Array<ArrayBuffer> {
   const buffer = ArrayBufferSlice(O.buffer, O.byteOffset, O.byteOffset + O.byteLength);
-  return new Uint8Array(buffer) as NonShared<Uint8Array>;
+  return new Uint8Array(buffer);
 }
