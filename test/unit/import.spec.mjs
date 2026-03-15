@@ -1,3 +1,6 @@
+import { describe, beforeEach, afterEach, it } from 'node:test';
+import assert from 'node:assert/strict';
+
 describe('import() package exports', () => {
   describe('main export', () => {
     testPonyfill('web-streams-polyfill', 'ponyfill.mjs');
@@ -26,8 +29,8 @@ function testPonyfill(id, expectedId) {
   });
   it('loads correctly', async () => {
     const polyfill = await import(id);
-    expect(polyfill.ReadableStream).toBeDefined();
-    expect(global.ReadableStream).toBe(oldGlobalReadableStream);
+    assert.ok(polyfill.ReadableStream != null);
+    assert.equal(global.ReadableStream, oldGlobalReadableStream);
   });
 }
 
@@ -52,5 +55,5 @@ function testPolyfill(id, expectedId) {
 
 function testResolve(id, expectedId) {
   const resolved = import.meta.resolve(id);
-  expect(resolved.endsWith(expectedId)).toBeTrue();
+  assert.equal(resolved.endsWith(expectedId), true);
 }

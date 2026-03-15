@@ -1,3 +1,5 @@
+const { describe, it } = require('node:test');
+const assert = require('node:assert/strict');
 const { ReadableStream } = require('web-streams-polyfill');
 const { ReadableStream: NodeReadableStream } = require('node:stream/web');
 
@@ -11,11 +13,11 @@ describe('ReadableStream.from()', () => {
       }
     });
     const wrapped = ReadableStream.from(native);
-    expect(wrapped instanceof ReadableStream).toBe(true);
+    assert.ok(wrapped instanceof ReadableStream);
     const reader = wrapped.getReader();
-    await expectAsync(reader.read()).toBeResolvedTo({ done: false, value: 'a' });
-    await expectAsync(reader.read()).toBeResolvedTo({ done: false, value: 'b' });
-    await expectAsync(reader.read()).toBeResolvedTo({ done: true, value: undefined });
+    assert.deepEqual(await reader.read(), { done: false, value: 'a' });
+    assert.deepEqual(await reader.read(), { done: false, value: 'b' });
+    assert.deepEqual(await reader.read(), { done: true, value: undefined });
   });
 
   it('supports a ReadableStream-like object', async () => {
@@ -31,9 +33,9 @@ describe('ReadableStream.from()', () => {
       getReader() { return readerLike; }
     };
     const wrapped = ReadableStream.from(streamLike);
-    expect(wrapped instanceof ReadableStream).toBe(true);
+    assert.ok(wrapped instanceof ReadableStream);
     const reader = wrapped.getReader();
-    await expectAsync(reader.read()).toBeResolvedTo({ done: false, value: 1 });
-    await expectAsync(reader.read()).toBeResolvedTo({ done: false, value: 2 });
+    assert.deepEqual(await reader.read(), { done: false, value: 1 });
+    assert.deepEqual(await reader.read(), { done: false, value: 2 });
   });
 });
