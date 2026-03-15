@@ -14,3 +14,5 @@ function assertImpl(test: boolean, message?: string): asserts test {
 
 const assert: typeof assertImpl = DEBUG ? assertImpl : noop;
 export default assert;
+
+export const unexpected = DEBUG ? () => assertImpl(false, 'cannot happen') : noop;
