@@ -109,21 +109,21 @@ export function ReadableStreamPipeTo<T>(
       if (shuttingDown) {
         return promiseResolvedWith(true);
       }
-
-      return PerformPromiseThen(writer._readyPromise, () => {
-        return newPromise<boolean>((resolveRead, rejectRead) => {
-          ReadableStreamDefaultReaderRead(
-            reader,
-            {
-              _chunkSteps: (chunk) => {
-                currentWrite = PerformPromiseThen(WritableStreamDefaultWriterWrite(writer, chunk), undefined, noop);
-                resolveRead(false);
-              },
-              _closeSteps: () => resolveRead(true),
-              _errorSteps: rejectRead
-            }
-          );
-        });
+      if (dest._backpressure) {
+        return PerformPromiseThen(writer._readyPromise, pipeStep);
+      }
+      return newPromise<boolean>((resolveRead, rejectRead) => {
+        ReadableStreamDefaultReaderRead(
+          reader,
+          {
+            _chunkSteps: (chunk) => {
+              currentWrite = PerformPromiseThen(WritableStreamDefaultWriterWrite(writer, chunk), undefined, noop);
+              resolveRead(false);
+            },
+            _closeSteps: () => resolveRead(true),
+            _errorSteps: rejectRead
+          }
+        );
       });
     }
 
