@@ -8,8 +8,8 @@ import {
 } from './generic-reader';
 import { IsReadableStreamLocked, ReadableStream } from '../readable-stream';
 import { setFunctionName, typeIsObject } from '../helpers/miscellaneous';
-import { PullSteps } from '../abstract-ops/internal-methods';
-import { newPromise, promiseRejectedWith } from '../helpers/webidl';
+import { CanPullSyncSteps, PullSteps } from '../abstract-ops/internal-methods';
+import { newPromise, promiseRejectedWith, promiseResolvedWith } from '../helpers/webidl';
 import { assertRequiredArgument } from '../validators/basic';
 import { assertReadableStream } from '../validators/readable-stream';
 
@@ -156,6 +156,20 @@ export class ReadableStreamDefaultReader<R = any> {
       return promiseRejectedWith(readerLockException('read from'));
     }
 
+    // Fast path: if the read can be resolved synchronously,
+    // create a fulfilled/rejected promise directly.
+    if (ReadableStreamDefaultReaderCanReadSync(this)) {
+      let promise: Promise<ReadableStreamDefaultReadResult<R>> | undefined;
+      const readRequest: ReadRequest<R> = {
+        _chunkSteps: chunk => promise = promiseResolvedWith({ value: chunk, done: false }),
+        _closeSteps: () => promise = promiseResolvedWith({ value: undefined, done: true }),
+        _errorSteps: e => promise = promiseRejectedWith(e)
+      };
+      ReadableStreamDefaultReaderRead(this, readRequest);
+      assert(promise !== undefined);
+      return promise;
+    }
+
     let resolvePromise!: (result: ReadableStreamDefaultReadResult<R>) => void;
     let rejectPromise!: (reason: any) => void;
     const promise = newPromise<ReadableStreamDefaultReadResult<R>>((resolve, reject) => {
@@ -240,6 +254,25 @@ export function ReadableStreamDefaultReaderRead<R>(
   } else {
     assert(stream._state === 'readable');
     stream._readableStreamController[PullSteps](readRequest as ReadRequest<any>);
+  }
+}
+
+/**
+ * Returns whether {@link ReadableStreamDefaultReaderRead}
+ * can synchronously read a chunk from the queue.
+ */
+export function ReadableStreamDefaultReaderCanReadSync<R>(reader: ReadableStreamDefaultReader<R>): boolean {
+  const stream = reader._ownerReadableStream;
+
+  assert(stream !== undefined);
+
+  if (stream._state === 'closed') {
+    return true;
+  } else if (stream._state === 'errored') {
+    return true;
+  } else {
+    assert(stream._state === 'readable');
+    return stream._readableStreamController[CanPullSyncSteps]();
   }
 }
 

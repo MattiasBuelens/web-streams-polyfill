@@ -33,7 +33,7 @@ import {
   IsDetachedBuffer,
   TransferArrayBuffer
 } from '../abstract-ops/ecmascript';
-import { CancelSteps, PullSteps, ReleaseSteps } from '../abstract-ops/internal-methods';
+import { CancelSteps, CanPullSyncSteps, PullSteps, ReleaseSteps } from '../abstract-ops/internal-methods';
 import { promiseResolvedWith, uponPromise } from '../helpers/webidl';
 import { assertRequiredArgument, convertUnsignedLongLongWithEnforceRange } from '../validators/basic';
 import {
@@ -350,6 +350,11 @@ export class ReadableByteStreamController {
 
     ReadableStreamAddReadRequest(stream, readRequest);
     ReadableByteStreamControllerCallPullIfNeeded(this);
+  }
+
+  /** @internal */
+  [CanPullSyncSteps](): boolean {
+    return this._queueTotalSize > 0;
   }
 
   /** @internal */
