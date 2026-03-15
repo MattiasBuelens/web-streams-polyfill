@@ -2,7 +2,7 @@ import { IsReadableStream, IsReadableStreamLocked, ReadableStream, ReadableStrea
 import {
   AcquireReadableStreamDefaultReader,
   ReadableStreamDefaultReaderCanReadSync,
-  ReadableStreamDefaultReaderRead
+  ReadableStreamDefaultReaderRead, type ReadRequest
 } from './default-reader';
 import { ReadableStreamReaderGenericRelease } from './generic-reader';
 import {
@@ -109,6 +109,14 @@ export function ReadableStreamPipeTo<T>(
       });
     }
 
+    const syncPipeToReadRequest: ReadRequest<T> = {
+      _chunkSteps: (chunk) => {
+        currentWrite = PerformPromiseThen(WritableStreamDefaultWriterWrite(writer, chunk), undefined, noop);
+      },
+      _closeSteps: unexpected,
+      _errorSteps: unexpected
+    };
+
     function pipeStep(): Promise<boolean> {
       // Fast path: read available chunks synchronously in a single batch
       while (
@@ -119,16 +127,7 @@ export function ReadableStreamPipeTo<T>(
         && source._state === 'readable'
         && ReadableStreamDefaultReaderCanReadSync(reader)
       ) {
-        ReadableStreamDefaultReaderRead(
-          reader,
-          {
-            _chunkSteps: (chunk) => {
-              currentWrite = PerformPromiseThen(WritableStreamDefaultWriterWrite(writer, chunk), undefined, noop);
-            },
-            _closeSteps: unexpected,
-            _errorSteps: unexpected
-          }
-        );
+        ReadableStreamDefaultReaderRead(reader, syncPipeToReadRequest);
       }
 
       // Slow path: wait for chunk to become available
