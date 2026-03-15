@@ -9,7 +9,7 @@ import {
 import { IsReadableStreamLocked, ReadableStream } from '../readable-stream';
 import { setFunctionName, typeIsObject } from '../helpers/miscellaneous';
 import { CanPullSyncSteps, PullSteps } from '../abstract-ops/internal-methods';
-import { newPromise, promiseRejectedWith, promiseResolvedWith } from '../helpers/webidl';
+import { newPromise, promiseRejectedWith, promiseResolve } from '../helpers/webidl';
 import { assertRequiredArgument } from '../validators/basic';
 import { assertReadableStream } from '../validators/readable-stream';
 
@@ -161,8 +161,8 @@ export class ReadableStreamDefaultReader<R = any> {
     if (ReadableStreamDefaultReaderCanReadSync(this)) {
       let promise: Promise<ReadableStreamDefaultReadResult<R>> | undefined;
       const readRequest: ReadRequest<R> = {
-        _chunkSteps: chunk => promise = promiseResolvedWith({ value: chunk, done: false }),
-        _closeSteps: () => promise = promiseResolvedWith({ value: undefined, done: true }),
+        _chunkSteps: chunk => promise = promiseResolve({ value: chunk, done: false }),
+        _closeSteps: () => promise = promiseResolve({ value: undefined, done: true }),
         _errorSteps: e => promise = promiseRejectedWith(e)
       };
       ReadableStreamDefaultReaderRead(this, readRequest);
