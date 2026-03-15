@@ -1,5 +1,9 @@
 import { IsReadableStream, IsReadableStreamLocked, ReadableStream, ReadableStreamCancel } from '../readable-stream';
-import { AcquireReadableStreamDefaultReader, ReadableStreamDefaultReaderRead } from './default-reader';
+import {
+  AcquireReadableStreamDefaultReader,
+  ReadableStreamDefaultReaderCanReadSync,
+  ReadableStreamDefaultReaderRead
+} from './default-reader';
 import { ReadableStreamReaderGenericRelease } from './generic-reader';
 import {
   AcquireWritableStreamDefaultWriter,
@@ -12,7 +16,7 @@ import {
   WritableStreamDefaultWriterRelease,
   WritableStreamDefaultWriterWrite
 } from '../writable-stream';
-import assert from '../../stub/assert';
+import assert, { unexpected } from '../../stub/assert';
 import {
   newPromise,
   PerformPromiseThen,
@@ -106,6 +110,28 @@ export function ReadableStreamPipeTo<T>(
     }
 
     function pipeStep(): Promise<boolean> {
+      // Fast path: read available chunks synchronously in a single batch
+      while (
+        !shuttingDown
+        && !dest._backpressure
+        && dest._state === 'writable'
+        && !WritableStreamCloseQueuedOrInFlight(dest)
+        && source._state === 'readable'
+        && ReadableStreamDefaultReaderCanReadSync(reader)
+      ) {
+        ReadableStreamDefaultReaderRead(
+          reader,
+          {
+            _chunkSteps: (chunk) => {
+              currentWrite = PerformPromiseThen(WritableStreamDefaultWriterWrite(writer, chunk), undefined, noop);
+            },
+            _closeSteps: unexpected,
+            _errorSteps: unexpected
+          }
+        );
+      }
+
+      // Slow path: wait for chunk to become available
       if (shuttingDown) {
         return promiseResolvedWith(true);
       }
