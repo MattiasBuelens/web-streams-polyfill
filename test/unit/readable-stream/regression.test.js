@@ -1,3 +1,5 @@
+const { describe, it } = require('node:test');
+const assert = require('node:assert/strict');
 const { ReadableStream, WritableStream, TransformStream } = require('web-streams-polyfill');
 
 describe('ReadableStream regressions', () => {
@@ -19,7 +21,7 @@ describe('ReadableStream regressions', () => {
       for await (const chunk of readable) {
         results.push(chunk);
       }
-      expect(results).toEqual(['hello']);
+      assert.deepEqual(results, ['hello']);
     })();
 
     await Promise.all([producer, consumer]);
@@ -36,21 +38,21 @@ describe('ReadableStream regressions', () => {
         _readableStreamController: {}
       };
       const getReader = ReadableStream.prototype.getReader;
-      expect(() => getReader.call(fakeReadable)).toThrow(jasmine.any(TypeError));
+      assert.throws(() => getReader.call(fakeReadable), TypeError);
     });
     it('WritableStream', () => {
       const fakeWritable = {
         _writableStreamController: {}
       };
       const getWriter = WritableStream.prototype.getWriter;
-      expect(() => getWriter.call(fakeWritable)).toThrow(jasmine.any(TypeError));
+      assert.throws(() => getWriter.call(fakeWritable), TypeError);
     });
     it('TransformStream', () => {
       const fakeTransformStream = {
         _transformStreamController: {}
       };
       const readableGetter = Object.getOwnPropertyDescriptor(TransformStream.prototype, 'readable');
-      expect(() => readableGetter.call(fakeTransformStream)).toThrow(jasmine.any(TypeError));
+      assert.throws(() => readableGetter.call(fakeTransformStream), TypeError);
     });
   });
 });

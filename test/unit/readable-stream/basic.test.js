@@ -1,11 +1,12 @@
+const { describe, it } = require('node:test');
+const assert = require('node:assert/strict');
 const { ReadableStream, WritableStream } = require('web-streams-polyfill');
-const { FakeAbortSignal } = require('../util/fake-abort-signal');
 
 describe('ReadableStream', () => {
   describe('constructor', () => {
     it('constructs with no arguments', () => {
       const rs = new ReadableStream();
-      expect(rs instanceof ReadableStream).toBe(true);
+      assert.ok(rs instanceof ReadableStream);
     });
   });
 
@@ -19,9 +20,9 @@ describe('ReadableStream', () => {
         }
       });
       const reader = rs.getReader();
-      expect(await reader.read()).toEqual({ done: false, value: 'a' });
-      expect(await reader.read()).toEqual({ done: false, value: 'b' });
-      expect(await reader.read()).toEqual({ done: true, value: undefined });
+      assert.deepEqual(await reader.read(), { done: false, value: 'a' });
+      assert.deepEqual(await reader.read(), { done: false, value: 'b' });
+      assert.deepEqual(await reader.read(), { done: true, value: undefined });
     });
   });
 
@@ -34,7 +35,7 @@ describe('ReadableStream', () => {
         }
       });
       const ws = new WritableStream();
-      const signal = new FakeAbortSignal(false);
+      const signal = new AbortController().signal;
       await rs.pipeTo(ws, { signal });
     });
     it('rejects with an AbortError when aborted', async () => {
@@ -45,13 +46,8 @@ describe('ReadableStream', () => {
         }
       });
       const ws = new WritableStream();
-      const signal = new FakeAbortSignal(true);
-      try {
-        await rs.pipeTo(ws, { signal });
-        fail('should have rejected');
-      } catch (e) {
-        expect(e.name).toBe('AbortError');
-      }
+      const signal = AbortSignal.abort();
+      await assert.rejects(rs.pipeTo(ws, { signal }), { name: 'AbortError' });
     });
   });
 });

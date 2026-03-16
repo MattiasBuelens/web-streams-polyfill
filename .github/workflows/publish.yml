@@ -13,18 +13,18 @@ jobs:
       id-token: write
     strategy:
       matrix:
-        node-version: [ 22 ]
+        node-version: [ 24 ]
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: ${{ github.event.release.target_commitish }}
       - name: Validate and extract release information
         id: release
         uses: manovotny/github-releases-for-automated-package-publishing-action@v2.0.1
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node-version }}
           registry-url: 'https://registry.npmjs.org'

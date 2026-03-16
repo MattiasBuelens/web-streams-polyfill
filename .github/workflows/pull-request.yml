@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [ 22 ]
+        node-version: [ 24 ]
     # Run only on non-merged non-draft mergeable pull requests
     if: |
       (
@@ -18,12 +18,12 @@ jobs:
       )
     steps:
       - name: Check out merge commit of pull request
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: ${{ github.event.pull_request.merge_commit_sha }}
           submodules: true
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node-version }}
           cache: npm

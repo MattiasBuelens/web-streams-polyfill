@@ -1,3 +1,6 @@
+const { afterEach, beforeEach, describe, it } = require('node:test');
+const assert = require('node:assert/strict');
+
 describe('require() package exports', () => {
   describe('main export', () => {
     testPonyfill('web-streams-polyfill', 'ponyfill.js');
@@ -23,12 +26,12 @@ function testPonyfill(id, expectedId) {
   });
   it(`resolves to ${expectedId}`, () => {
     const resolved = require.resolve(id);
-    expect(resolved.endsWith(expectedId)).toBeTrue();
+    assert.ok(resolved.endsWith(expectedId));
   });
   it('loads correctly', () => {
     const polyfill = requireUncached(id);
-    expect(polyfill.ReadableStream).toBeDefined();
-    expect(global.ReadableStream).toBe(oldGlobalReadableStream);
+    assert.ok(polyfill.ReadableStream != null);
+    assert.equal(global.ReadableStream, oldGlobalReadableStream);
   });
 }
 
@@ -42,12 +45,12 @@ function testPolyfill(id, expectedId) {
   });
   it(`resolves to ${expectedId}`, () => {
     const resolved = require.resolve(id);
-    expect(resolved.endsWith(expectedId)).toBeTrue();
+    assert.ok(resolved.endsWith(expectedId));
   });
   it('loads correctly', () => {
     global.ReadableStream = undefined;
     requireUncached(id);
-    expect(global.ReadableStream).toBeDefined();
+    assert.ok(global.ReadableStream != null);
   });
 }
 
