@@ -1,7 +1,6 @@
 const { describe, it } = require('node:test');
 const assert = require('node:assert/strict');
 const { ReadableStream, WritableStream } = require('web-streams-polyfill');
-const { FakeAbortSignal } = require('../util/fake-abort-signal');
 
 describe('ReadableStream', () => {
   describe('constructor', () => {
@@ -36,7 +35,7 @@ describe('ReadableStream', () => {
         }
       });
       const ws = new WritableStream();
-      const signal = new FakeAbortSignal(false);
+      const signal = new AbortController().signal;
       await rs.pipeTo(ws, { signal });
     });
     it('rejects with an AbortError when aborted', async () => {
@@ -47,7 +46,7 @@ describe('ReadableStream', () => {
         }
       });
       const ws = new WritableStream();
-      const signal = new FakeAbortSignal(true);
+      const signal = AbortSignal.abort();
       await assert.rejects(rs.pipeTo(ws, { signal }), { name: 'AbortError' });
     });
   });
