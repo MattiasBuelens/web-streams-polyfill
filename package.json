@@ -40,7 +40,7 @@
     "test:bundler:webpack": "npm test --workspace=test/webpack-test",
     "test:types": "tsc -p ./test/types/tsconfig.json",
     "test:benchmark": "npm run benchmark --workspace=test/benchmark-test",
-    "test:unit": "node --test \"test/unit/**/*.test.{js,mjs,cjs}\"",
+    "test:unit": "cd test/unit && node --test",
     "lint": "eslint \"*.mjs\" \"src/**/*.ts\"",
     "build": "npm run build:bundle && npm run build:types",
     "build:bundle": "rollup -c",
