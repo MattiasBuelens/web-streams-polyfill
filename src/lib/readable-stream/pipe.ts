@@ -2,7 +2,8 @@ import { IsReadableStream, IsReadableStreamLocked, ReadableStream, ReadableStrea
 import {
   AcquireReadableStreamDefaultReader,
   ReadableStreamDefaultReaderCanReadSync,
-  ReadableStreamDefaultReaderRead, type ReadRequest
+  ReadableStreamDefaultReaderRead,
+  type ReadRequest
 } from './default-reader';
 import { ReadableStreamReaderGenericRelease } from './generic-reader';
 import {
