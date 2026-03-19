@@ -42,6 +42,9 @@ const keepNames = [
 ];
 const keepRegex = new RegExp(`^(${keepNames.join('|')})$`);
 
+/**
+ * @returns {import('rollup').RollupOptions[]}
+ */
 function build({ target } = {}) {
   return [{
     input: `src/polyfill.ts`,
@@ -76,6 +79,9 @@ function build({ target } = {}) {
   }];
 }
 
+/**
+ * @returns {import('rollup').Plugin[]}
+ */
 function plugins({ target }) {
   return [
     typescript({
