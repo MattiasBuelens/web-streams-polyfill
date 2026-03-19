@@ -10,10 +10,11 @@ import { IsReadableStreamLocked, type ReadableByteStream, type ReadableStream } 
 import {
   IsReadableByteStreamController,
   ReadableByteStreamController,
+  ReadableByteStreamControllerCanPullIntoSync,
   ReadableByteStreamControllerPullInto
 } from './byte-stream-controller';
 import { setFunctionName, typeIsObject } from '../helpers/miscellaneous';
-import { newPromise, promiseRejectedWith } from '../helpers/webidl';
+import { newPromise, promiseRejectedWith, promiseResolve } from '../helpers/webidl';
 import { assertRequiredArgument } from '../validators/basic';
 import { assertReadableStream } from '../validators/readable-stream';
 import { IsDetachedBuffer } from '../abstract-ops/ecmascript';
@@ -214,6 +215,20 @@ export class ReadableStreamBYOBReader {
       return promiseRejectedWith(readerLockException('read from'));
     }
 
+    // Fast path: if the read can be resolved synchronously,
+    // create a fulfilled/rejected promise directly.
+    if (ReadableStreamBYOBReaderCanReadSync(this, view, min)) {
+      let promise: Promise<ReadableStreamBYOBReadResult<T>> | undefined;
+      const readIntoRequest: ReadIntoRequest<T> = {
+        _chunkSteps: chunk => promise = promiseResolve({ value: chunk, done: false }),
+        _closeSteps: chunk => promise = promiseResolve({ value: chunk, done: true }),
+        _errorSteps: e => promise = promiseRejectedWith(e)
+      };
+      ReadableStreamBYOBReaderRead(this, view, min, readIntoRequest);
+      assert(promise !== undefined);
+      return promise;
+    }
+
     let resolvePromise!: (result: ReadableStreamBYOBReadResult<T>) => void;
     let rejectPromise!: (reason: any) => void;
     const promise = newPromise<ReadableStreamBYOBReadResult<T>>((resolve, reject) => {
@@ -301,6 +316,30 @@ export function ReadableStreamBYOBReaderRead<T extends ArrayBufferView<ArrayBuff
       view,
       min,
       readIntoRequest
+    );
+  }
+}
+
+/**
+ * Returns whether {@link ReadableStreamBYOBReaderRead}
+ * can synchronously read a chunk from the queue.
+ */
+export function ReadableStreamBYOBReaderCanReadSync<T extends ArrayBufferView<ArrayBuffer>>(
+  reader: ReadableStreamBYOBReader,
+  view: T,
+  min: number
+): boolean {
+  const stream = reader._ownerReadableStream;
+
+  assert(stream !== undefined);
+
+  if (stream._state === 'errored') {
+    return true;
+  } else {
+    return ReadableByteStreamControllerCanPullIntoSync(
+      stream._readableStreamController as ReadableByteStreamController,
+      view,
+      min
     );
   }
 }
