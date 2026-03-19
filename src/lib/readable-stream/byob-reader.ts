@@ -218,30 +218,15 @@ export class ReadableStreamBYOBReader {
     // Fast path: if the read can be resolved synchronously,
     // create a fulfilled/rejected promise directly.
     if (ReadableStreamBYOBReaderCanReadSync(this, view, min)) {
-      let promise: Promise<ReadableStreamBYOBReadResult<T>> | undefined;
-      const readIntoRequest: ReadIntoRequest<T> = {
-        _chunkSteps: chunk => promise = promiseResolve({ value: chunk, done: false }),
-        _closeSteps: chunk => promise = promiseResolve({ value: chunk, done: true }),
-        _errorSteps: e => promise = promiseRejectedWith(e)
-      };
+      const readIntoRequest = new SyncByobReadIntoRequest<T>();
       ReadableStreamBYOBReaderRead(this, view, min, readIntoRequest);
-      assert(promise !== undefined);
-      return promise;
+      assert(readIntoRequest._promise !== undefined);
+      return readIntoRequest._promise;
     }
 
-    let resolvePromise!: (result: ReadableStreamBYOBReadResult<T>) => void;
-    let rejectPromise!: (reason: any) => void;
-    const promise = newPromise<ReadableStreamBYOBReadResult<T>>((resolve, reject) => {
-      resolvePromise = resolve;
-      rejectPromise = reject;
-    });
-    const readIntoRequest: ReadIntoRequest<T> = {
-      _chunkSteps: chunk => resolvePromise({ value: chunk, done: false }),
-      _closeSteps: chunk => resolvePromise({ value: chunk, done: true }),
-      _errorSteps: e => rejectPromise(e)
-    };
+    const readIntoRequest = new ByobReadIntoRequest<T>();
     ReadableStreamBYOBReaderRead(this, view, min, readIntoRequest);
-    return promise;
+    return readIntoRequest._promise;
   }
 
   /**
@@ -283,6 +268,50 @@ if (typeof Symbol.toStringTag === 'symbol') {
 }
 
 // Abstract operations for the readers.
+
+class ByobReadIntoRequest<T extends ArrayBufferView> implements ReadIntoRequest<T> {
+  readonly _promise: Promise<ReadableStreamBYOBReadResult<T>>;
+  private _resolvePromise!: (result: ReadableStreamBYOBReadResult<T>) => void;
+  private _rejectPromise!: (reason: any) => void;
+
+  constructor() {
+    this._promise = newPromise((resolve, reject) => {
+      this._resolvePromise = resolve;
+      this._rejectPromise = reject;
+    });
+  }
+
+  _chunkSteps(chunk: T) {
+    this._resolvePromise({ value: chunk, done: false });
+  }
+
+  _closeSteps(chunk: T | undefined) {
+    this._resolvePromise({ value: chunk, done: true });
+  }
+
+  _errorSteps(e: any) {
+    this._rejectPromise(e);
+  }
+}
+
+class SyncByobReadIntoRequest<T extends ArrayBufferView> implements ReadIntoRequest<T> {
+  _promise: Promise<ReadableStreamBYOBReadResult<T>> | undefined = undefined;
+
+  _chunkSteps(chunk: T) {
+    assert(this._promise === undefined);
+    this._promise = promiseResolve({ value: chunk, done: false });
+  }
+
+  _closeSteps(chunk: T | undefined) {
+    assert(this._promise === undefined);
+    this._promise = promiseResolve({ value: chunk, done: true });
+  }
+
+  _errorSteps(e: any) {
+    assert(this._promise === undefined);
+    this._promise = promiseRejectedWith(e);
+  }
+}
 
 export function IsReadableStreamBYOBReader(x: any): x is ReadableStreamBYOBReader {
   if (!typeIsObject(x)) {

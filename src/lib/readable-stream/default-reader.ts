@@ -159,30 +159,15 @@ export class ReadableStreamDefaultReader<R = any> {
     // Fast path: if the read can be resolved synchronously,
     // create a fulfilled/rejected promise directly.
     if (ReadableStreamDefaultReaderCanReadSync(this)) {
-      let promise: Promise<ReadableStreamDefaultReadResult<R>> | undefined;
-      const readRequest: ReadRequest<R> = {
-        _chunkSteps: chunk => promise = promiseResolve({ value: chunk, done: false }),
-        _closeSteps: () => promise = promiseResolve({ value: undefined, done: true }),
-        _errorSteps: e => promise = promiseRejectedWith(e)
-      };
+      const readRequest = new SyncDefaultReadRequest<R>();
       ReadableStreamDefaultReaderRead(this, readRequest);
-      assert(promise !== undefined);
-      return promise;
+      assert(readRequest._promise !== undefined);
+      return readRequest._promise;
     }
 
-    let resolvePromise!: (result: ReadableStreamDefaultReadResult<R>) => void;
-    let rejectPromise!: (reason: any) => void;
-    const promise = newPromise<ReadableStreamDefaultReadResult<R>>((resolve, reject) => {
-      resolvePromise = resolve;
-      rejectPromise = reject;
-    });
-    const readRequest: ReadRequest<R> = {
-      _chunkSteps: chunk => resolvePromise({ value: chunk, done: false }),
-      _closeSteps: () => resolvePromise({ value: undefined, done: true }),
-      _errorSteps: e => rejectPromise(e)
-    };
+    const readRequest = new DefaultReadRequest<R>();
     ReadableStreamDefaultReaderRead(this, readRequest);
-    return promise;
+    return readRequest._promise;
   }
 
   /**
@@ -224,6 +209,50 @@ if (typeof Symbol.toStringTag === 'symbol') {
 }
 
 // Abstract operations for the readers.
+
+class DefaultReadRequest<R> implements ReadRequest<R> {
+  readonly _promise: Promise<ReadableStreamDefaultReadResult<R>>;
+  private _resolvePromise!: (result: ReadableStreamDefaultReadResult<R>) => void;
+  private _rejectPromise!: (reason: any) => void;
+
+  constructor() {
+    this._promise = newPromise((resolve, reject) => {
+      this._resolvePromise = resolve;
+      this._rejectPromise = reject;
+    });
+  }
+
+  _chunkSteps(chunk: R) {
+    this._resolvePromise({ value: chunk, done: false });
+  }
+
+  _closeSteps() {
+    this._resolvePromise({ value: undefined, done: true });
+  }
+
+  _errorSteps(e: any) {
+    this._rejectPromise(e);
+  }
+}
+
+class SyncDefaultReadRequest<R> implements ReadRequest<R> {
+  _promise: Promise<ReadableStreamDefaultReadResult<R>> | undefined = undefined;
+
+  _chunkSteps(chunk: R) {
+    assert(this._promise === undefined);
+    this._promise = promiseResolve({ value: chunk, done: false });
+  }
+
+  _closeSteps() {
+    assert(this._promise === undefined);
+    this._promise = promiseResolve({ value: undefined, done: true });
+  }
+
+  _errorSteps(e: any) {
+    assert(this._promise === undefined);
+    this._promise = promiseRejectedWith(e);
+  }
+}
 
 export function IsReadableStreamDefaultReader<R = any>(x: any): x is ReadableStreamDefaultReader<R> {
   if (!typeIsObject(x)) {
