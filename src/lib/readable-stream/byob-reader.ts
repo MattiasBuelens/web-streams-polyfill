@@ -217,15 +217,11 @@ export class ReadableStreamBYOBReader {
 
     // Fast path: if the read can be resolved synchronously,
     // create a fulfilled/rejected promise directly.
-    if (ReadableStreamBYOBReaderCanReadSync(this, view, min)) {
-      const readIntoRequest = new SyncByobReadIntoRequest<T>();
-      ReadableStreamBYOBReaderRead(this, view, min, readIntoRequest);
-      assert(readIntoRequest._promise !== undefined);
-      return readIntoRequest._promise;
-    }
-
-    const readIntoRequest = new ByobReadIntoRequest<T>();
+    const readIntoRequest = ReadableStreamBYOBReaderCanReadSync(this, view, min)
+      ? new SyncByobReadIntoRequest<T>()
+      : new ByobReadIntoRequest<T>();
     ReadableStreamBYOBReaderRead(this, view, min, readIntoRequest);
+    assert(readIntoRequest._promise !== undefined);
     return readIntoRequest._promise;
   }
 

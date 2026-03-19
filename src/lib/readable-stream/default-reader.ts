@@ -158,15 +158,11 @@ export class ReadableStreamDefaultReader<R = any> {
 
     // Fast path: if the read can be resolved synchronously,
     // create a fulfilled/rejected promise directly.
-    if (ReadableStreamDefaultReaderCanReadSync(this)) {
-      const readRequest = new SyncDefaultReadRequest<R>();
-      ReadableStreamDefaultReaderRead(this, readRequest);
-      assert(readRequest._promise !== undefined);
-      return readRequest._promise;
-    }
-
-    const readRequest = new DefaultReadRequest<R>();
+    const readRequest = ReadableStreamDefaultReaderCanReadSync(this)
+      ? new SyncDefaultReadRequest<R>()
+      : new DefaultReadRequest<R>();
     ReadableStreamDefaultReaderRead(this, readRequest);
+    assert(readRequest._promise !== undefined);
     return readRequest._promise;
   }
 
