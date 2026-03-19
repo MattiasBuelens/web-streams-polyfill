@@ -30,10 +30,10 @@ export interface ReadableStreamAsyncIterator<R> extends AsyncIterableIterator<R>
 }
 
 export class ReadableStreamAsyncIteratorImpl<R> {
-  private readonly _reader: ReadableStreamDefaultReader<R>;
-  private readonly _preventCancel: boolean;
-  private _ongoingPromise: Promise<ReadableStreamDefaultReadResult<R>> | undefined = undefined;
-  private _isFinished = false;
+  readonly _reader: ReadableStreamDefaultReader<R>;
+  readonly _preventCancel: boolean;
+  _ongoingPromise: Promise<ReadableStreamDefaultReadResult<R>> | undefined = undefined;
+  _isFinished = false;
 
   constructor(reader: ReadableStreamDefaultReader<R>, preventCancel: boolean) {
     this._reader = reader;
@@ -64,34 +64,9 @@ export class ReadableStreamAsyncIteratorImpl<R> {
     const reader = this._reader;
     assert(reader._ownerReadableStream !== undefined);
 
-    let resolvePromise!: (result: ReadableStreamDefaultReadResult<R>) => void;
-    let rejectPromise!: (reason: any) => void;
-    const promise = newPromise<ReadableStreamDefaultReadResult<R>>((resolve, reject) => {
-      resolvePromise = resolve;
-      rejectPromise = reject;
-    });
-    const readRequest: ReadRequest<R> = {
-      _chunkSteps: (chunk) => {
-        this._ongoingPromise = undefined;
-        // This needs to be delayed by one microtask, otherwise we stop pulling too early which breaks a test.
-        // FIXME Is this a bug in the specification, or in the test?
-        queueMicrotask(() => resolvePromise({ value: chunk, done: false }));
-      },
-      _closeSteps: () => {
-        this._ongoingPromise = undefined;
-        this._isFinished = true;
-        ReadableStreamReaderGenericRelease(reader);
-        resolvePromise({ value: undefined, done: true });
-      },
-      _errorSteps: (reason) => {
-        this._ongoingPromise = undefined;
-        this._isFinished = true;
-        ReadableStreamReaderGenericRelease(reader);
-        rejectPromise(reason);
-      }
-    };
+    const readRequest = new AsyncIteratorReadRequest<R>(this);
     ReadableStreamDefaultReaderRead(reader, readRequest);
-    return promise;
+    return readRequest._promise;
   }
 
   private _returnSteps(value: any): Promise<ReadableStreamDefaultReadResult<any>> {
@@ -112,6 +87,45 @@ export class ReadableStreamAsyncIteratorImpl<R> {
 
     ReadableStreamReaderGenericRelease(reader);
     return promiseResolvedWith({ value, done: true });
+  }
+}
+
+class AsyncIteratorReadRequest<R> implements ReadRequest<R> {
+  private readonly _iterator: ReadableStreamAsyncIteratorImpl<R>;
+  readonly _promise: Promise<ReadableStreamDefaultReadResult<R>>;
+  private _resolvePromise!: (result: ReadableStreamDefaultReadResult<R>) => void;
+  private _rejectPromise!: (reason: any) => void;
+
+  constructor(iterator: ReadableStreamAsyncIteratorImpl<R>) {
+    this._iterator = iterator;
+    this._promise = newPromise((resolve, reject) => {
+      this._resolvePromise = resolve;
+      this._rejectPromise = reject;
+    });
+  }
+
+  _chunkSteps(chunk: R) {
+    const iterator = this._iterator;
+    iterator._ongoingPromise = undefined;
+    // This needs to be delayed by one microtask, otherwise we stop pulling too early which breaks a test.
+    // FIXME Is this a bug in the specification, or in the test?
+    queueMicrotask(() => this._resolvePromise({ value: chunk, done: false }));
+  }
+
+  _closeSteps() {
+    const iterator = this._iterator;
+    iterator._ongoingPromise = undefined;
+    iterator._isFinished = true;
+    ReadableStreamReaderGenericRelease(iterator._reader);
+    this._resolvePromise({ value: undefined, done: true });
+  }
+
+  _errorSteps(reason: any) {
+    const iterator = this._iterator;
+    iterator._ongoingPromise = undefined;
+    iterator._isFinished = true;
+    ReadableStreamReaderGenericRelease(iterator._reader);
+    this._rejectPromise(reason);
   }
 }
 
