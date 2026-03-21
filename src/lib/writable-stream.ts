@@ -80,8 +80,8 @@ class WritableStream<W = any> {
 
   constructor(underlyingSink?: UnderlyingSink<W>, strategy?: QueuingStrategy<W>);
   constructor(
-rawUnderlyingSink: UnderlyingSink<W> | null | undefined = {},
-              rawStrategy: QueuingStrategy<W> | null | undefined = {}
+    rawUnderlyingSink: UnderlyingSink<W> | null | undefined = {},
+    rawStrategy: QueuingStrategy<W> | null | undefined = {}
   ) {
     if (rawUnderlyingSink === undefined) {
       rawUnderlyingSink = null;
