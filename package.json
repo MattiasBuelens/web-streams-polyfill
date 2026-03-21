@@ -79,7 +79,7 @@
     "@rollup/plugin-inject": "^5.0.5",
     "@rollup/plugin-replace": "^6.0.2",
     "@rollup/plugin-strip": "^3.0.4",
-    "@rollup/plugin-terser": "^0.4.4",
+    "@rollup/plugin-terser": "^1.0.0",
     "@rollup/plugin-typescript": "^12.1.4",
     "@stylistic/eslint-plugin": "^2.13.0",
     "@types/node": "^20.19.11",
