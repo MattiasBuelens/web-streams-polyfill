@@ -147,9 +147,9 @@ interface ByteQueueElement {
   byteLength: number;
 }
 
-type PullIntoDescriptor<T extends ArrayBufferView<ArrayBuffer> = ArrayBufferView<ArrayBuffer>> =
-  DefaultPullIntoDescriptor
-  | BYOBPullIntoDescriptor<T>;
+type PullIntoDescriptor<T extends ArrayBufferView<ArrayBuffer> = ArrayBufferView<ArrayBuffer>>
+  = DefaultPullIntoDescriptor
+    | BYOBPullIntoDescriptor<T>;
 
 interface DefaultPullIntoDescriptor {
   buffer: ArrayBuffer;

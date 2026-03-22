@@ -62,9 +62,9 @@ export class TransformStream<I = any, O = any> {
     readableStrategy?: QueuingStrategy<O>
   );
   constructor(
-rawTransformer: Transformer<I, O> | null | undefined = {},
-              rawWritableStrategy: QueuingStrategy<I> | null | undefined = {},
-              rawReadableStrategy: QueuingStrategy<O> | null | undefined = {}
+    rawTransformer: Transformer<I, O> | null | undefined = {},
+    rawWritableStrategy: QueuingStrategy<I> | null | undefined = {},
+    rawReadableStrategy: QueuingStrategy<O> | null | undefined = {}
   ) {
     if (rawTransformer === undefined) {
       rawTransformer = null;

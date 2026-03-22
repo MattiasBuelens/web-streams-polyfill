@@ -99,8 +99,8 @@ export class ReadableStream<R = any> implements AsyncIterable<R> {
   constructor(underlyingSource: UnderlyingByteSource, strategy?: { highWaterMark?: number; size?: undefined });
   constructor(underlyingSource?: UnderlyingSource<R>, strategy?: QueuingStrategy<R>);
   constructor(
-rawUnderlyingSource: UnderlyingSource<R> | UnderlyingByteSource | null | undefined = {},
-              rawStrategy: QueuingStrategy<R> | null | undefined = {}
+    rawUnderlyingSource: UnderlyingSource<R> | UnderlyingByteSource | null | undefined = {},
+    rawStrategy: QueuingStrategy<R> | null | undefined = {}
   ) {
     if (rawUnderlyingSource === undefined) {
       rawUnderlyingSource = null;
@@ -250,7 +250,7 @@ rawUnderlyingSource: UnderlyingSource<R> | UnderlyingByteSource | null | undefin
   pipeTo(destination: WritableStream<R>, options?: StreamPipeOptions): Promise<void>;
   pipeTo(
     destination: WritableStream<R> | null | undefined,
-         rawOptions: StreamPipeOptions | null | undefined = {}
+    rawOptions: StreamPipeOptions | null | undefined = {}
   ): Promise<void> {
     if (!IsReadableStream(this)) {
       return promiseRejectedWith(streamBrandCheckException('pipeTo'));
