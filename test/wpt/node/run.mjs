@@ -33,6 +33,21 @@ ArrayBuffer.prototype.transfer ??= function transfer() {
   return structuredClone(this, { transfer: [this] });
 };
 
+const bufferTypes = [
+  'ArrayBuffer',
+  'SharedArrayBuffer',
+  'Int8Array',
+  'Uint8Array',
+  'Uint8ClampedArray',
+  'Int16Array',
+  'Uint16Array',
+  'Int32Array',
+  'Uint32Array',
+  'Float32Array',
+  'Float64Array',
+  'DataView'
+];
+
 main().catch((e) => {
   console.error(e.stack);
   process.exitCode = 1;
@@ -92,7 +107,15 @@ async function runTests(entryFile, { includedTests = ['**/*.html'], excludedTest
     setup(window) {
       window.Promise.allSettled = Promise.allSettled;
       window.queueMicrotask = global.queueMicrotask;
+
+      // jsdom does not yet support structuredClone, use parent implementation.
       window.structuredClone = global.structuredClone;
+
+      // Use buffer types from parent for structuredClone and transfer to work.
+      for (const name of bufferTypes) {
+        window[name] = global[name];
+      }
+
       window.fetch = async function (url) {
         const filePath = path.join(wptPath, url);
         if (!filePath.startsWith(wptPath)) {
@@ -105,6 +128,7 @@ async function runTests(entryFile, { includedTests = ['**/*.html'], excludedTest
           }
         };
       };
+
       window.eval(bundledJS);
     },
     filter(testPath) {
