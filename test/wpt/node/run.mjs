@@ -28,6 +28,11 @@ process.on('rejectionHandled', (promise) => {
   rejections.delete(promise);
 });
 
+// Polyfill ArrayBuffer.prototype.transfer for Node.js < 21
+ArrayBuffer.prototype.transfer ??= function transfer() {
+  return structuredClone(this, { transfer: [this] });
+};
+
 main().catch((e) => {
   console.error(e.stack);
   process.exitCode = 1;
