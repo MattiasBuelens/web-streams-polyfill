@@ -33,6 +33,17 @@ ArrayBuffer.prototype.transfer ??= function transfer() {
   return structuredClone(this, { transfer: [this] });
 };
 
+// Polyfill Promise.withResolvers for Node.js < 22
+Promise.withResolvers ??= function () {
+  let resolve;
+  let reject;
+  const promise = new this((_resolve, _reject) => {
+    resolve = _resolve;
+    reject = _reject;
+  });
+  return { promise, resolve, reject };
+};
+
 const bufferTypes = [
   'ArrayBuffer',
   'SharedArrayBuffer',
@@ -106,6 +117,7 @@ async function runTests(entryFile, { includedTests = ['**/*.html'], excludedTest
     reporter,
     setup(window) {
       window.Promise.allSettled = Promise.allSettled;
+      window.Promise.withResolvers = Promise.withResolvers;
       window.queueMicrotask = global.queueMicrotask;
 
       // jsdom does not yet support structuredClone, use parent implementation.
