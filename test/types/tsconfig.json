@@ -9,7 +9,8 @@
       "dom",
       "es2018",
       "esnext.asynciterable"
-    ]
+    ],
+    "types": []
   },
   "include": [
     "**/*.ts"
