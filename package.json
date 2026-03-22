@@ -93,7 +93,7 @@
     "tslib": "^2.8.1",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.57.1",
-    "wpt-runner": "^6.0.0"
+    "wpt-runner": "^7.0.0"
   },
   "workspaces": [
     "test/benchmark-test",
