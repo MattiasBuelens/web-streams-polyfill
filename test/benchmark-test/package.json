@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "benchmark": "node --prof queue-size.js"
+    "benchmark": "node --prof index.js"
   },
   "devDependencies": {
     "@stardazed/streams": "^3.1.0",
