@@ -12,7 +12,7 @@ const implementations = [
 ];
 
 // https://github.com/MattiasBuelens/web-streams-polyfill/issues/15
-function testCount(impl, count, deferred) {
+async function testCount(impl, count) {
   const rs = new impl.ReadableStream({
     start(controller) {
       for (let i = 0; i < count; ++i) {
@@ -22,24 +22,19 @@ function testCount(impl, count, deferred) {
     }
   });
   const reader = rs.getReader();
-  return readLoop(count, reader)
-    .then(() => deferred.resolve());
-}
-
-function readLoop(count, reader) {
-  return reader.read().then((result) => {
+  while (true) {
+    const result = await reader.read();
     if (result.done) {
-      return undefined;
+      break;
     }
-    return readLoop(count, reader);
-  });
+  }
 }
 
 for (const [name, impl] of implementations) {
   for (let count = 3545; count <= 113440; count *= 2) {
     suite.add(
       `${name} testCount(${count})`,
-      deferred => testCount(impl, count, deferred),
+      deferred => testCount(impl, count).then(() => deferred.resolve()),
       { defer: true }
     );
   }
