@@ -54,3 +54,56 @@ jobs:
       - run: npm run test:wpt:${{ matrix.browser }}
         env:
           HOME: /root
+
+  benchmark:
+    name: Benchmark on Node ${{ matrix.node-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [24]
+    if: |
+      !contains(github.event.head_commit.message, '[skip ci]')
+    steps:
+      - name: Check out commit
+        uses: actions/checkout@v6
+        with:
+          submodules: true
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+      - run: npm ci --workspaces
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
+      - name: 'Run benchmark: queue size'
+        run: |
+          npm run benchmark:queue-size --workspace=test/benchmark-test | tee benchmark-queue-size.txt
+      - name: 'Run benchmark: buffered reads'
+        run: |
+          npm run benchmark:read-buffered --workspace=test/benchmark-test | tee benchmark-read-buffered.txt
+      - name: Download previous benchmark data
+        uses: actions/cache@v5
+        with:
+          path: ./cache
+          key: ${{ runner.os }}-benchmark
+      - name: 'Store benchmark result: queue size'
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          name: 'Queue size'
+          tool: 'benchmarkjs'
+          output-file-path: benchmark-queue-size.txt
+          external-data-json-path: ./cache/benchmark-data.json
+          auto-push: false
+          summary-always: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: 'Store benchmark result: buffered reads'
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          name: 'Buffered reads'
+          tool: 'benchmarkjs'
+          output-file-path: benchmark-read-buffered.txt
+          external-data-json-path: ./cache/benchmark-data.json
+          auto-push: false
+          summary-always: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}

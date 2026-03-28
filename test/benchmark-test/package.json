@@ -4,10 +4,11 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "benchmark": "node --prof index.js"
+    "benchmark": "npm run benchmark:queue-size && npm run benchmark:read-buffered",
+    "benchmark:queue-size": "node queue-size.js",
+    "benchmark:read-buffered": "node read-buffered.js"
   },
   "devDependencies": {
-    "@stardazed/streams": "^3.1.0",
     "benchmark": "^2.1.4",
     "web-streams-polyfill": "*"
   }
