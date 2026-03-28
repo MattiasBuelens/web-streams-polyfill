@@ -3,7 +3,7 @@ import * as polyfill from 'web-streams-polyfill';
 import * as stardazed from '@stardazed/streams';
 import * as node from 'node:stream/web';
 
-const suite = new Benchmark.Suite();
+const suite = new Benchmark.Suite('queue size');
 
 const implementations = [
   ['web-streams-polyfill', polyfill],
