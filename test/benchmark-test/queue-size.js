@@ -41,9 +41,6 @@ for (const [name, impl] of implementations) {
 suite
   .on('cycle', (event) => {
     const bench = event.target;
-    console.log(`${String(bench)} (period: ${(bench.times.period * 1000).toFixed(2)}ms)`);
-  })
-  .on('complete', () => {
-    console.log('Done');
+    console.log(`${String(bench)}`);
   })
   .run({ async: true });
