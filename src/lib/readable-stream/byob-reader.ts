@@ -10,10 +10,11 @@ import { IsReadableStreamLocked, type ReadableByteStream, type ReadableStream } 
 import {
   IsReadableByteStreamController,
   ReadableByteStreamController,
+  ReadableByteStreamControllerCanPullIntoSync,
   ReadableByteStreamControllerPullInto
 } from './byte-stream-controller';
 import { setFunctionName, typeIsObject } from '../helpers/miscellaneous';
-import { newPromise, promiseRejectedWith } from '../helpers/webidl';
+import { newPromise, promiseRejectedWith, promiseResolve } from '../helpers/webidl';
 import { assertRequiredArgument } from '../validators/basic';
 import { assertReadableStream } from '../validators/readable-stream';
 import { IsDetachedBuffer } from '../abstract-ops/ecmascript';
@@ -214,19 +215,14 @@ export class ReadableStreamBYOBReader {
       return promiseRejectedWith(readerLockException('read from'));
     }
 
-    let resolvePromise!: (result: ReadableStreamBYOBReadResult<T>) => void;
-    let rejectPromise!: (reason: any) => void;
-    const promise = newPromise<ReadableStreamBYOBReadResult<T>>((resolve, reject) => {
-      resolvePromise = resolve;
-      rejectPromise = reject;
-    });
-    const readIntoRequest: ReadIntoRequest<T> = {
-      _chunkSteps: chunk => resolvePromise({ value: chunk, done: false }),
-      _closeSteps: chunk => resolvePromise({ value: chunk, done: true }),
-      _errorSteps: e => rejectPromise(e)
-    };
+    // Fast path: if the read can be resolved synchronously,
+    // create a fulfilled/rejected promise directly.
+    const readIntoRequest = ReadableStreamBYOBReaderCanReadSync(this, view, min)
+      ? new SyncByobReadIntoRequest<T>()
+      : new ByobReadIntoRequest<T>();
     ReadableStreamBYOBReaderRead(this, view, min, readIntoRequest);
-    return promise;
+    assert(readIntoRequest._promise !== undefined);
+    return readIntoRequest._promise;
   }
 
   /**
@@ -269,6 +265,50 @@ if (typeof Symbol.toStringTag === 'symbol') {
 
 // Abstract operations for the readers.
 
+class ByobReadIntoRequest<T extends ArrayBufferView> implements ReadIntoRequest<T> {
+  readonly _promise: Promise<ReadableStreamBYOBReadResult<T>>;
+  private _resolvePromise!: (result: ReadableStreamBYOBReadResult<T>) => void;
+  private _rejectPromise!: (reason: any) => void;
+
+  constructor() {
+    this._promise = newPromise((resolve, reject) => {
+      this._resolvePromise = resolve;
+      this._rejectPromise = reject;
+    });
+  }
+
+  _chunkSteps(chunk: T) {
+    this._resolvePromise({ value: chunk, done: false });
+  }
+
+  _closeSteps(chunk: T | undefined) {
+    this._resolvePromise({ value: chunk, done: true });
+  }
+
+  _errorSteps(e: any) {
+    this._rejectPromise(e);
+  }
+}
+
+class SyncByobReadIntoRequest<T extends ArrayBufferView> implements ReadIntoRequest<T> {
+  _promise: Promise<ReadableStreamBYOBReadResult<T>> | undefined = undefined;
+
+  _chunkSteps(chunk: T) {
+    assert(this._promise === undefined);
+    this._promise = promiseResolve({ value: chunk, done: false });
+  }
+
+  _closeSteps(chunk: T | undefined) {
+    assert(this._promise === undefined);
+    this._promise = promiseResolve({ value: chunk, done: true });
+  }
+
+  _errorSteps(e: any) {
+    assert(this._promise === undefined);
+    this._promise = promiseRejectedWith(e);
+  }
+}
+
 export function IsReadableStreamBYOBReader(x: any): x is ReadableStreamBYOBReader {
   if (!typeIsObject(x)) {
     return false;
@@ -301,6 +341,30 @@ export function ReadableStreamBYOBReaderRead<T extends ArrayBufferView<ArrayBuff
       view,
       min,
       readIntoRequest
+    );
+  }
+}
+
+/**
+ * Returns whether {@link ReadableStreamBYOBReaderRead}
+ * can synchronously read a chunk from the queue.
+ */
+export function ReadableStreamBYOBReaderCanReadSync<T extends ArrayBufferView<ArrayBuffer>>(
+  reader: ReadableStreamBYOBReader,
+  view: T,
+  min: number
+): boolean {
+  const stream = reader._ownerReadableStream;
+
+  assert(stream !== undefined);
+
+  if (stream._state === 'errored') {
+    return true;
+  } else {
+    return ReadableByteStreamControllerCanPullIntoSync(
+      stream._readableStreamController as ReadableByteStreamController,
+      view,
+      min
     );
   }
 }

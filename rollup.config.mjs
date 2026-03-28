@@ -42,6 +42,9 @@ const keepNames = [
 ];
 const keepRegex = new RegExp(`^(${keepNames.join('|')})$`);
 
+/**
+ * @returns {import('rollup').RollupOptions[]}
+ */
 function build({ target } = {}) {
   return [{
     input: `src/polyfill.ts`,
@@ -50,6 +53,7 @@ function build({ target } = {}) {
         file: `dist/polyfill${target === 'es6' ? '' : `.${target}`}.js`,
         format: 'iife',
         exports: 'none',
+        sourcemap: debug ? 'inline' : false,
         banner,
         freeze: false
       }
@@ -62,6 +66,7 @@ function build({ target } = {}) {
         file: `dist/ponyfill${target === 'es6' ? '' : `.${target}`}.js`,
         format: 'umd',
         exports: 'named',
+        sourcemap: debug ? 'inline' : false,
         name: 'WebStreamsPolyfill',
         banner,
         freeze: false
@@ -69,6 +74,7 @@ function build({ target } = {}) {
       {
         file: `dist/ponyfill${target === 'es6' ? '' : `.${target}`}.mjs`,
         format: 'es',
+        sourcemap: debug ? 'inline' : false,
         banner
       }
     ],
@@ -76,10 +82,15 @@ function build({ target } = {}) {
   }];
 }
 
+/**
+ * @returns {import('rollup').Plugin[]}
+ */
 function plugins({ target }) {
   return [
     typescript({
       tsconfig: `tsconfig${target === 'es6' ? '' : `-${target}`}.json`,
+      inlineSourceMap: debug,
+      inlineSources: debug,
       declaration: false,
       declarationMap: false
     }),

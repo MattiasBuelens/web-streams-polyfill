@@ -33,7 +33,7 @@ import {
   IsDetachedBuffer,
   TransferArrayBuffer
 } from '../abstract-ops/ecmascript';
-import { CancelSteps, PullSteps, ReleaseSteps } from '../abstract-ops/internal-methods';
+import { CancelSteps, CanPullSyncSteps, PullSteps, ReleaseSteps } from '../abstract-ops/internal-methods';
 import { promiseResolvedWith, uponPromise } from '../helpers/webidl';
 import { assertRequiredArgument, convertUnsignedLongLongWithEnforceRange } from '../validators/basic';
 import {
@@ -350,6 +350,11 @@ export class ReadableByteStreamController {
 
     ReadableStreamAddReadRequest(stream, readRequest);
     ReadableByteStreamControllerCallPullIfNeeded(this);
+  }
+
+  /** @internal */
+  [CanPullSyncSteps](): boolean {
+    return this._queueTotalSize > 0;
   }
 
   /** @internal */
@@ -731,6 +736,37 @@ export function ReadableByteStreamControllerPullInto<T extends ArrayBufferView<A
 
   ReadableStreamAddReadIntoRequest<T>(stream, readIntoRequest);
   ReadableByteStreamControllerCallPullIfNeeded(controller);
+}
+
+/**
+ * Returns whether {@link ReadableByteStreamControllerPullInto}
+ * can synchronously fill a new read-into request.
+ */
+export function ReadableByteStreamControllerCanPullIntoSync<T extends ArrayBufferView<ArrayBuffer>>(
+  controller: ReadableByteStreamController,
+  view: T,
+  min: number
+): boolean {
+  const stream = controller._controlledReadableByteStream;
+
+  const ctor = view.constructor as ArrayBufferViewConstructor<T>;
+  const elementSize = arrayBufferViewElementSize(ctor);
+
+  const { byteLength } = view;
+
+  const minimumFill = min * elementSize;
+  assert(minimumFill >= elementSize && minimumFill <= byteLength);
+  assert(minimumFill % elementSize === 0);
+
+  if (controller._pendingPullIntos.length > 0) {
+    return false;
+  }
+
+  if (stream._state === 'closed') {
+    return true;
+  }
+
+  return controller._queueTotalSize >= minimumFill;
 }
 
 function ReadableByteStreamControllerRespondInClosedState(
