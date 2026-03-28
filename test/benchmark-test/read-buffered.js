@@ -5,10 +5,9 @@ import * as assert from 'node:assert/strict';
 const suite = new Benchmark.Suite('read buffered');
 
 // https://github.com/nodejs/node/commit/199daab0b0822d6063a73b9362bfce8667d2a112
-async function readLoop(n, bufferSize) {
+function createBufferedStream(n, bufferSize) {
   let enqueued = 0;
-
-  const rs = new ReadableStream({
+  return new ReadableStream({
     start(controller) {
       // Pre-fill the buffer
       for (let i = 0; i < bufferSize; i++) {
@@ -28,9 +27,13 @@ async function readLoop(n, bufferSize) {
       }
     }
   }, {
-    // Use buffer size as high water mark to allow pre-buffering
+    // Use buffer size as high watermark to allow pre-buffering
     highWaterMark: bufferSize
   });
+}
+
+async function readLoop(n, bufferSize) {
+  const rs = createBufferedStream(n, bufferSize);
 
   const reader = rs.getReader();
   let x = null;
