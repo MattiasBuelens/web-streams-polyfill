@@ -1,5 +1,5 @@
 import Benchmark from 'benchmark';
-import { ReadableStream } from 'web-streams-polyfill';
+import { ReadableStream, WritableStream } from 'web-streams-polyfill';
 import * as assert from 'node:assert/strict';
 
 const suite = new Benchmark.Suite('read buffered');
@@ -48,11 +48,39 @@ async function readLoop(n, bufferSize) {
   assert.equal(x, 'a');
 }
 
-for (const bufferSize of [1, 10, 100, 1000]) {
-  const n = 1e5;
+async function pipe(n, bufferSize) {
+  const rs = createBufferedStream(n, bufferSize);
+
+  let x = null;
+  let writes = 0;
+  const ws = new WritableStream({
+    write(chunk) {
+      writes++;
+      x = chunk;
+    }
+  }, {
+    // Never apply backpressure
+    highWaterMark: Infinity
+  });
+
+  await rs.pipeTo(ws);
+  assert.equal(writes, n);
+  assert.equal(x, 'a');
+}
+
+const n = 1e5;
+const bufferSizes = [1, 10, 100, 1000];
+for (const bufferSize of bufferSizes) {
   suite.add(
     `read loop n=${n} bufferSize=${bufferSize}`,
     deferred => readLoop(n, bufferSize).then(() => deferred.resolve()),
+    { defer: true }
+  );
+}
+for (const bufferSize of bufferSizes) {
+  suite.add(
+    `pipe n=${n} bufferSize=${bufferSize}`,
+    deferred => pipe(n, bufferSize).then(() => deferred.resolve()),
     { defer: true }
   );
 }
