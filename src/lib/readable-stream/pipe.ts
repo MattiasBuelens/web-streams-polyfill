@@ -13,6 +13,7 @@ import {
   WritableStream,
   WritableStreamAbort,
   WritableStreamCloseQueuedOrInFlight,
+  WritableStreamDefaultWriter,
   WritableStreamDefaultWriterCloseWithErrorPropagation,
   WritableStreamDefaultWriterRelease,
   WritableStreamDefaultWriterWrite
@@ -53,10 +54,8 @@ export function ReadableStreamPipeTo<T>(
 
   source._disturbed = true;
 
-  let shuttingDown = false;
-
-  // This is used to keep track of the spec's requirement that we wait for ongoing writes during shutdown.
-  let currentWrite = promiseResolvedWith<void>(undefined);
+  const state = new PipeState<T>(writer);
+  const syncReadRequest = new SyncPipeReadRequest<T>(state);
 
   return newPromise((resolve, reject) => {
     let abortAlgorithm: () => void;
@@ -110,47 +109,29 @@ export function ReadableStreamPipeTo<T>(
       });
     }
 
-    const syncPipeToReadRequest: ReadRequest<T> = {
-      _chunkSteps: (chunk) => {
-        currentWrite = PerformPromiseThen(WritableStreamDefaultWriterWrite(writer, chunk), undefined, noop);
-      },
-      _closeSteps: unexpected,
-      _errorSteps: unexpected
-    };
-
     function pipeStep(): Promise<boolean> {
       // Fast path: read available chunks synchronously in a single batch
       while (
-        !shuttingDown
+        !state.shuttingDown
         && !dest._backpressure
         && dest._state === 'writable'
         && !WritableStreamCloseQueuedOrInFlight(dest)
         && source._state === 'readable'
         && ReadableStreamDefaultReaderCanReadSync(reader)
       ) {
-        ReadableStreamDefaultReaderRead(reader, syncPipeToReadRequest);
+        ReadableStreamDefaultReaderRead(reader, syncReadRequest);
       }
 
       // Slow path: wait for chunk to become available
-      if (shuttingDown) {
+      if (state.shuttingDown) {
         return promiseResolvedWith(true);
       }
       if (dest._backpressure) {
         return PerformPromiseThen(writer._readyPromise, pipeStep);
       }
-      return newPromise<boolean>((resolveRead, rejectRead) => {
-        ReadableStreamDefaultReaderRead(
-          reader,
-          {
-            _chunkSteps: (chunk) => {
-              currentWrite = PerformPromiseThen(WritableStreamDefaultWriterWrite(writer, chunk), undefined, noop);
-              resolveRead(false);
-            },
-            _closeSteps: () => resolveRead(true),
-            _errorSteps: rejectRead
-          }
-        );
-      });
+      const request = new PipeReadRequest(state);
+      ReadableStreamDefaultReaderRead(reader, request);
+      return request._promise;
     }
 
     // Errors must be propagated forward
@@ -199,10 +180,10 @@ export function ReadableStreamPipeTo<T>(
     function waitForWritesToFinish(): Promise<void> {
       // Another write may have started while we were waiting on this currentWrite, so we have to be sure to wait
       // for that too.
-      const oldCurrentWrite = currentWrite;
+      const oldCurrentWrite = state.currentWrite;
       return PerformPromiseThen(
-        currentWrite,
-        () => oldCurrentWrite !== currentWrite ? waitForWritesToFinish() : undefined
+        state.currentWrite,
+        () => oldCurrentWrite !== state.currentWrite ? waitForWritesToFinish() : undefined
       );
     }
 
@@ -227,10 +208,10 @@ export function ReadableStreamPipeTo<T>(
     }
 
     function shutdownWithAction(action: () => Promise<unknown>, originalIsError?: boolean, originalError?: any) {
-      if (shuttingDown) {
+      if (state.shuttingDown) {
         return;
       }
-      shuttingDown = true;
+      state.shuttingDown = true;
 
       if (dest._state === 'writable' && !WritableStreamCloseQueuedOrInFlight(dest)) {
         uponFulfillment(waitForWritesToFinish(), doTheRest);
@@ -249,10 +230,10 @@ export function ReadableStreamPipeTo<T>(
     }
 
     function shutdown(isError?: boolean, error?: any) {
-      if (shuttingDown) {
+      if (state.shuttingDown) {
         return;
       }
-      shuttingDown = true;
+      state.shuttingDown = true;
 
       if (dest._state === 'writable' && !WritableStreamCloseQueuedOrInFlight(dest)) {
         uponFulfillment(waitForWritesToFinish(), () => finalize(isError, error));
@@ -277,4 +258,67 @@ export function ReadableStreamPipeTo<T>(
       return null;
     }
   });
+}
+
+class PipeState<T> {
+  shuttingDown = false;
+
+  // This is used to keep track of the spec's requirement that we wait for ongoing writes during shutdown.
+  currentWrite = promiseResolvedWith<void>(undefined);
+
+  constructor(readonly writer: WritableStreamDefaultWriter<T>) {}
+}
+
+class PipeReadRequest<T> implements ReadRequest<T> {
+  readonly _state: PipeState<T>;
+
+  readonly _promise: Promise<boolean>;
+  private _resolvePromise!: (done: boolean) => void;
+  private _rejectPromise!: (reason: any) => void;
+
+  constructor(state: PipeState<T>) {
+    this._state = state;
+    this._promise = newPromise((resolve, reject) => {
+      this._resolvePromise = resolve;
+      this._rejectPromise = reject;
+    });
+  }
+
+  _chunkSteps(chunk: T) {
+    this._state.currentWrite = PerformPromiseThen(
+      WritableStreamDefaultWriterWrite(this._state.writer, chunk),
+      undefined,
+      noop
+    );
+    this._resolvePromise(false);
+  }
+
+  _closeSteps() {
+    this._resolvePromise(true);
+  }
+
+  _errorSteps(e: any) {
+    this._rejectPromise(e);
+  }
+}
+
+class SyncPipeReadRequest<T> implements ReadRequest<T> {
+  constructor(private _state: PipeState<T>) { }
+
+  _chunkSteps(chunk: T) {
+    this._state.currentWrite = PerformPromiseThen(
+      WritableStreamDefaultWriterWrite(this._state.writer, chunk),
+      undefined,
+      noop
+    );
+  }
+
+  _closeSteps() {
+    unexpected();
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _errorSteps(_error: any) {
+    unexpected();
+  }
 }
