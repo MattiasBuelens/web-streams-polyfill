@@ -177,36 +177,6 @@ export function ReadableStreamPipeTo<T>(
 
     setPromiseIsHandledToTrue(pipeLoop());
 
-    function waitForWritesToFinish(): Promise<void> {
-      // Another write may have started while we were waiting on this currentWrite, so we have to be sure to wait
-      // for that too.
-      const oldCurrentWrite = state.currentWrite;
-      return PerformPromiseThen(
-        state.currentWrite,
-        () => oldCurrentWrite !== state.currentWrite ? waitForWritesToFinish() : undefined
-      );
-    }
-
-    function isOrBecomesErrored(
-      stream: ReadableStream | WritableStream,
-      promise: Promise<void>,
-      action: (reason: any) => null
-    ) {
-      if (stream._state === 'errored') {
-        action(stream._storedError);
-      } else {
-        uponRejection(promise, action);
-      }
-    }
-
-    function isOrBecomesClosed(stream: ReadableStream | WritableStream, promise: Promise<void>, action: () => null) {
-      if (stream._state === 'closed') {
-        action();
-      } else {
-        uponFulfillment(promise, action);
-      }
-    }
-
     function shutdownWithAction(action: () => Promise<unknown>, originalIsError?: boolean, originalError?: any) {
       if (state.shuttingDown) {
         return;
@@ -214,7 +184,7 @@ export function ReadableStreamPipeTo<T>(
       state.shuttingDown = true;
 
       if (dest._state === 'writable' && !WritableStreamCloseQueuedOrInFlight(dest)) {
-        uponFulfillment(waitForWritesToFinish(), doTheRest);
+        uponFulfillment(state.waitForWritesToFinish(), doTheRest);
       } else {
         doTheRest();
       }
@@ -236,7 +206,7 @@ export function ReadableStreamPipeTo<T>(
       state.shuttingDown = true;
 
       if (dest._state === 'writable' && !WritableStreamCloseQueuedOrInFlight(dest)) {
-        uponFulfillment(waitForWritesToFinish(), () => finalize(isError, error));
+        uponFulfillment(state.waitForWritesToFinish(), () => finalize(isError, error));
       } else {
         finalize(isError, error);
       }
@@ -267,6 +237,16 @@ class PipeState<T> {
   currentWrite = promiseResolvedWith<void>(undefined);
 
   constructor(readonly writer: WritableStreamDefaultWriter<T>) {}
+
+  waitForWritesToFinish(): Promise<void> {
+    // Another write may have started while we were waiting on this currentWrite, so we have to be sure to wait
+    // for that too.
+    const oldCurrentWrite = this.currentWrite;
+    return PerformPromiseThen(
+      this.currentWrite,
+      () => oldCurrentWrite !== this.currentWrite ? this.waitForWritesToFinish() : undefined
+    );
+  }
 }
 
 class PipeReadRequest<T> implements ReadRequest<T> {
@@ -320,5 +300,25 @@ class SyncPipeReadRequest<T> implements ReadRequest<T> {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _errorSteps(_error: any) {
     unexpected();
+  }
+}
+
+function isOrBecomesErrored(
+  stream: ReadableStream | WritableStream,
+  promise: Promise<void>,
+  action: (reason: any) => null
+) {
+  if (stream._state === 'errored') {
+    action(stream._storedError);
+  } else {
+    uponRejection(promise, action);
+  }
+}
+
+function isOrBecomesClosed(stream: ReadableStream | WritableStream, promise: Promise<void>, action: () => null) {
+  if (stream._state === 'closed') {
+    action();
+  } else {
+    uponFulfillment(promise, action);
   }
 }
