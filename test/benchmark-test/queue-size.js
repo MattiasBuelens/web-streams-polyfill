@@ -1,9 +1,12 @@
-import { prettyReport, Suite } from 'bench-node';
+import { prettyReport, Suite, textReport } from 'bench-node';
 import * as polyfill from 'web-streams-polyfill';
 import * as node from 'node:stream/web';
 
+const { CI } = process.env;
 const suite = new Suite({
-  reporter: prettyReport
+  reporter: CI ? textReport : prettyReport,
+  repeatSuite: CI ? 30 : 1,
+  ttest: Boolean(CI)
 });
 
 const implementations = [

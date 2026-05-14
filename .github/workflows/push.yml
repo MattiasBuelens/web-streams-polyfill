@@ -79,9 +79,13 @@ jobs:
       - name: 'Run benchmark: queue size'
         run: |
           npm run benchmark:queue-size --workspace=test/benchmark-test | tee benchmark-queue-size.txt
+        env:
+          CI: true
       - name: 'Run benchmark: buffered reads'
         run: |
           npm run benchmark:read-buffered --workspace=test/benchmark-test | tee benchmark-read-buffered.txt
+        env:
+          CI: true
       - name: Download previous benchmark data
         uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
         with:
