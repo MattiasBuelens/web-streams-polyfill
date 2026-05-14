@@ -12,3 +12,8 @@ updates:
       interval: weekly
     cooldown:
       default-days: 7
+    groups:
+      production-dependencies:
+        dependency-type: 'production'
+      development-dependencies:
+        dependency-type: 'development'
