@@ -1,16 +1,23 @@
-import Benchmark from 'benchmark';
+import { prettyReport, Suite } from 'bench-node';
 import * as polyfill from 'web-streams-polyfill';
 import * as node from 'node:stream/web';
 
-const suite = new Benchmark.Suite('queue size');
+const suite = new Suite({
+  reporter: prettyReport
+});
 
 const implementations = [
   ['web-streams-polyfill', polyfill],
-  ['node:stream/web', node]
+  ['node web-streams', node]
 ];
 
+// Node's web streams struggle with very large queues.
+const maxCount = 113440;
+
 // https://github.com/MattiasBuelens/web-streams-polyfill/issues/15
-async function testCount(impl, count) {
+async function readFromQueue(name, impl, timer) {
+  const count = Math.min(timer.count, maxCount);
+  timer.start();
   const rs = new impl.ReadableStream({
     start(controller) {
       for (let i = 0; i < count; ++i) {
@@ -26,21 +33,14 @@ async function testCount(impl, count) {
       break;
     }
   }
+  timer.end(count);
 }
 
 for (const [name, impl] of implementations) {
-  for (let count = 3545; count <= 113440; count *= 2) {
-    suite.add(
-      `${name} testCount(${count})`,
-      deferred => testCount(impl, count).then(() => deferred.resolve()),
-      { defer: true }
-    );
-  }
+  suite.add(
+    `readFromQueue/${name}`,
+    async timer => readFromQueue(name, impl, timer)
+  );
 }
 
-suite
-  .on('cycle', (event) => {
-    const bench = event.target;
-    console.log(`${String(bench)}`);
-  })
-  .run({ async: true });
+await suite.run();

@@ -5,11 +5,11 @@
   "type": "module",
   "scripts": {
     "benchmark": "npm run benchmark:queue-size && npm run benchmark:read-buffered",
-    "benchmark:queue-size": "node queue-size.js",
-    "benchmark:read-buffered": "node read-buffered.js"
+    "benchmark:queue-size": "node --allow-natives-syntax queue-size.js",
+    "benchmark:read-buffered": "node --allow-natives-syntax read-buffered.js"
   },
   "devDependencies": {
-    "benchmark": "^2.1.4",
+    "bench-node": "^0.15.0",
     "web-streams-polyfill": "*"
   }
 }
