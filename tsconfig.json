@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "es2015",
     "module": "es2015",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "lib": [
       "es5",
       "es2015.core",
@@ -20,7 +20,7 @@
     "declarationMap": true,
     "isolatedModules": true,
     "verbatimModuleSyntax": true,
-    "baseUrl": "./src"
+    "rootDir": "./src"
   },
   "include": [
     "src/"
