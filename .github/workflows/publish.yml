@@ -17,14 +17,14 @@ jobs:
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           ref: ${{ github.event.release.target_commitish }}
       - name: Validate and extract release information
         id: release
-        uses: manovotny/github-releases-for-automated-package-publishing-action@v2.0.1
+        uses: manovotny/github-releases-for-automated-package-publishing-action@f8f252288da9babb174750562ce48fa5e5df70f5 # v2.0.1
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
         with:
           node-version: ${{ matrix.node-version }}
           registry-url: 'https://registry.npmjs.org'

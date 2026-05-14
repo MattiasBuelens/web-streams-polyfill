@@ -12,11 +12,11 @@ jobs:
       !contains(github.event.head_commit.message, '[skip ci]')
     steps:
       - name: Check out commit
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           submodules: true
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
         with:
           node-version: ${{ matrix.node-version }}
           cache: npm
@@ -42,11 +42,11 @@ jobs:
       !contains(github.event.head_commit.message, '[skip ci]')
     steps:
       - name: Check out commit
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           submodules: true
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
         with:
           node-version: ${{ matrix.node-version }}
           cache: npm
@@ -65,11 +65,11 @@ jobs:
       !contains(github.event.head_commit.message, '[skip ci]')
     steps:
       - name: Check out commit
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           submodules: true
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
         with:
           node-version: ${{ matrix.node-version }}
           cache: npm
@@ -83,12 +83,12 @@ jobs:
         run: |
           npm run benchmark:read-buffered --workspace=test/benchmark-test | tee benchmark-read-buffered.txt
       - name: Download previous benchmark data
-        uses: actions/cache@v5
+        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v5
         with:
           path: ./cache
           key: ${{ runner.os }}-benchmark
       - name: 'Store benchmark result: queue size'
-        uses: benchmark-action/github-action-benchmark@v1
+        uses: benchmark-action/github-action-benchmark@a60cea5bc7b49e15c1f58f411161f99e0df48372 # v1
         with:
           name: 'Queue size'
           tool: 'benchmarkjs'
@@ -98,7 +98,7 @@ jobs:
           summary-always: true
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: 'Store benchmark result: buffered reads'
-        uses: benchmark-action/github-action-benchmark@v1
+        uses: benchmark-action/github-action-benchmark@a60cea5bc7b49e15c1f58f411161f99e0df48372 # v1
         with:
           name: 'Buffered reads'
           tool: 'benchmarkjs'
