@@ -4,7 +4,7 @@ import {
   promiseResolve,
   promiseResolvedWith,
   reflectCall
-} from 'lib/helpers/webidl';
+} from '../helpers/webidl';
 import { typeIsObject } from '../helpers/miscellaneous';
 import assert from '../../stub/assert';
 
