@@ -29,7 +29,8 @@ jobs:
           node-version: ${{ matrix.node-version }}
           registry-url: 'https://registry.npmjs.org'
           always-auth: true
-          cache: 'npm'
+          # Never trust the cache for release builds!
+          cache: ''
       - run: npm ci
       - name: Publish latest version
         if: steps.release.outputs.tag == ''
