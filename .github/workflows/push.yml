@@ -83,10 +83,12 @@ jobs:
         run: |
           npm run benchmark:queue-size --workspace=test/benchmark-test | tee --append $GITHUB_STEP_SUMMARY
         env:
-          CI: true
+          BENCH_TTEST: true
+          BENCH_REPORTER: text
       - name: 'Benchmark: buffered reads'
         # language=bash
         run: |
           npm run benchmark:read-buffered --workspace=test/benchmark-test | tee --append $GITHUB_STEP_SUMMARY
         env:
-          CI: true
+          BENCH_TTEST: true
+          BENCH_REPORTER: text

@@ -2,10 +2,10 @@ import { prettyReport, Suite, textReport } from 'bench-node';
 import { ReadableStream, WritableStream } from 'web-streams-polyfill';
 import * as assert from 'node:assert/strict';
 
-const { CI } = process.env;
+const { BENCH_REPORTER, BENCH_TTEST } = process.env;
 const suite = new Suite({
-  reporter: CI ? textReport : prettyReport,
-  repeatSuite: CI ? 30 : 1
+  reporter: BENCH_REPORTER === 'text' ? textReport : prettyReport,
+  repeatSuite: BENCH_TTEST ? 30 : 1
 });
 
 // https://github.com/nodejs/node/commit/199daab0b0822d6063a73b9362bfce8667d2a112
