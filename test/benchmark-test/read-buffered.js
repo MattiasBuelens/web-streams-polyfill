@@ -1,6 +1,7 @@
 import { prettyReport, Suite, textReport } from 'bench-node';
 import * as baseline from 'web-streams-polyfill-baseline';
 import * as polyfill from 'web-streams-polyfill';
+import * as node from 'node:stream/web';
 import * as assert from 'node:assert/strict';
 
 const { BENCH_REPORTER, BENCH_TTEST } = process.env;
@@ -84,7 +85,7 @@ async function pipe(impl, bufferSize, timer) {
 const readLoopSuite = new Suite(suiteOptions);
 const pipeSuite = new Suite(suiteOptions);
 const bufferSizes = [1, 10, 100, 1000];
-for (const [name, impl] of Object.entries({ baseline, polyfill })) {
+for (const [name, impl] of Object.entries({ baseline, polyfill, node })) {
   for (const bufferSize of bufferSizes) {
     const options = { baseline: name === 'baseline' && bufferSize === 1 };
     readLoopSuite.add(
