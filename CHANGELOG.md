@@ -10,7 +10,7 @@
 > - 🏠 Internal
 > - 💅 Polish
 
-## Unreleased
+## 4.3.0 (2026-05-15)
 
 * 🚀 Optimize reading from a `ReadableStream` with buffered chunks. ([#170](https://github.com/MattiasBuelens/web-streams-polyfill/pull/170))
   * When the stream has a chunk available in its internal queue, `defaultReader.read()` and `byobReader.read(view)`
