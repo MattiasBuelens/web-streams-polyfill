@@ -76,6 +76,8 @@ jobs:
       - run: npm ci --workspaces
         env:
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
+      - name: Update benchmark baseline to latest polyfill
+        run: npm install --workspace test/benchmark-test -D web-streams-polyfill-baseline@npm:web-streams-polyfill@latest
       - name: 'Run benchmark: queue size'
         run: |
           npm run benchmark:queue-size --workspace=test/benchmark-test | tee benchmark-queue-size.txt

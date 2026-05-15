@@ -1,4 +1,5 @@
 import { prettyReport, Suite, textReport } from 'bench-node';
+import * as baseline from 'web-streams-polyfill-baseline';
 import * as polyfill from 'web-streams-polyfill';
 import * as node from 'node:stream/web';
 
@@ -35,12 +36,16 @@ async function readFromQueue(impl, timer) {
 }
 
 suite.add(
-  `readFromQueue/node:web-streams`,
-  { baseline: true },
+  `readFromQueue/node`,
   async timer => readFromQueue(node, timer)
 );
 suite.add(
-  `readFromQueue/web-streams-polyfill`,
+  `readFromQueue/baseline`,
+  { baseline: true },
+  async timer => readFromQueue(baseline, timer)
+);
+suite.add(
+  `readFromQueue/polyfill`,
   async timer => readFromQueue(polyfill, timer)
 );
 
