@@ -34,18 +34,12 @@ async function readFromQueue(impl, timer) {
   timer.end(count);
 }
 
-suite.add(
-  `readFromQueue/baseline`,
-  { baseline: true },
-  async timer => readFromQueue(baseline, timer)
-);
-suite.add(
-  `readFromQueue/polyfill`,
-  async timer => readFromQueue(polyfill, timer)
-);
-suite.add(
-  `readFromQueue/node`,
-  async timer => readFromQueue(node, timer)
-);
+for (const [name, impl] of Object.entries({ baseline, polyfill, node })) {
+  suite.add(
+    `readFromQueue/${name}`,
+    { baseline: name === 'baseline' },
+    async timer => readFromQueue(impl, timer)
+  );
+}
 
 await suite.run();
