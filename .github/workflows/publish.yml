@@ -11,10 +11,6 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    strategy:
-      matrix:
-        node-version: [ 24 ]
-        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
@@ -23,10 +19,11 @@ jobs:
       - name: Validate and extract release information
         id: release
         uses: manovotny/github-releases-for-automated-package-publishing-action@f8f252288da9babb174750562ce48fa5e5df70f5 # v2.0.1
-      - name: Use Node.js ${{ matrix.node-version }}
+      - name: Use Node.js 24
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
-          node-version: ${{ matrix.node-version }}
+          # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+          node-version: 24
           registry-url: 'https://registry.npmjs.org'
           always-auth: true
           # Never trust the cache for release builds!
