@@ -10,6 +10,17 @@
 > - 🏠 Internal
 > - 💅 Polish
 
+## Unreleased
+
+* 🚀 Optimize reading from a `ReadableStream` with buffered chunks. ([#170](https://github.com/MattiasBuelens/web-streams-polyfill/pull/170))
+  * When the stream has a chunk available in its internal queue, `defaultReader.read()` and `byobReader.read(view)`
+    will now immediately return a resolved promise using `Promise.resolve()`.
+    This turns out to be (slightly) faster than creating a `new Promise` and then immediately resolving it.
+* 🚀 Optimize piping from a `ReadableStream` with buffered chunks. ([#170](https://github.com/MattiasBuelens/web-streams-polyfill/pull/170))
+  * When the stream has one or more chunks available in its internal queue, `pipeTo()` will now read all available chunks
+    in a single batch and write them to the destination (while still respecting backpressure).
+  * These optimizations were [inspired by Node.js](https://github.com/nodejs/node/commit/199daab0b0822d6063a73b9362bfce8667d2a112).
+
 ## 4.2.0 (2025-08-17)
 
 * 👓 Align with [spec version `080852c`](https://github.com/whatwg/streams/tree/080852ccd709e063cc6af239ae07fc040e365179/) ([#161](https://github.com/MattiasBuelens/web-streams-polyfill/pull/161))
