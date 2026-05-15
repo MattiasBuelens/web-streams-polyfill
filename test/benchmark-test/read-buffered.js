@@ -4,10 +4,10 @@ import * as polyfill from 'web-streams-polyfill';
 import * as assert from 'node:assert/strict';
 
 const { BENCH_REPORTER, BENCH_TTEST } = process.env;
-const suite = new Suite({
+const suiteOptions = {
   reporter: BENCH_REPORTER === 'text' ? textReport : prettyReport,
   ttest: Boolean(BENCH_TTEST)
-});
+};
 
 // https://github.com/nodejs/node/commit/199daab0b0822d6063a73b9362bfce8667d2a112
 function createBufferedStream(impl, n, bufferSize) {
@@ -81,21 +81,24 @@ async function pipe(impl, bufferSize, timer) {
   assert.equal(x, 'a');
 }
 
+const readLoopSuite = new Suite(suiteOptions);
+const pipeSuite = new Suite(suiteOptions);
 const bufferSizes = [1, 10, 100, 1000];
 for (const [name, impl] of Object.entries({ baseline, polyfill })) {
   for (const bufferSize of bufferSizes) {
-    suite.add(
+    const options = { baseline: name === 'baseline' && bufferSize === 1 };
+    readLoopSuite.add(
       `read loop/${name}/bufferSize=${bufferSize}`,
-      { baseline: name === 'baseline' && bufferSize === 1 },
+      options,
       async timer => readLoop(impl, bufferSize, timer)
     );
-  }
-  for (const bufferSize of bufferSizes) {
-    suite.add(
+    pipeSuite.add(
       `pipe/${name}/bufferSize=${bufferSize}`,
+      options,
       async timer => pipe(impl, bufferSize, timer)
     );
   }
 }
 
-await suite.run();
+await readLoopSuite.run();
+await pipeSuite.run();
