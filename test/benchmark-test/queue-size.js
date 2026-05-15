@@ -36,10 +36,6 @@ async function readFromQueue(impl, timer) {
 }
 
 suite.add(
-  `readFromQueue/node`,
-  async timer => readFromQueue(node, timer)
-);
-suite.add(
   `readFromQueue/baseline`,
   { baseline: true },
   async timer => readFromQueue(baseline, timer)
@@ -47,6 +43,10 @@ suite.add(
 suite.add(
   `readFromQueue/polyfill`,
   async timer => readFromQueue(polyfill, timer)
+);
+suite.add(
+  `readFromQueue/node`,
+  async timer => readFromQueue(node, timer)
 );
 
 await suite.run();
