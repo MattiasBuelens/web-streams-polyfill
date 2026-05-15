@@ -6,7 +6,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [20, 22, 24]
+        node-version: [22, 24, 26]
     # Skip job if commit message contains "[skip ci]"
     if: |
       !contains(github.event.head_commit.message, '[skip ci]')
@@ -60,7 +60,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [24]
+        node-version: [ 26 ]
     if: |
       !contains(github.event.head_commit.message, '[skip ci]')
     steps:
@@ -76,34 +76,25 @@ jobs:
       - run: npm ci --workspaces
         env:
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
-      - name: 'Run benchmark: queue size'
+      - name: Update benchmark baseline to latest polyfill
+        run: npm install --workspace test/benchmark-test -D web-streams-polyfill-baseline@npm:web-streams-polyfill@latest
+      - name: 'Benchmark: queue size'
+        # language=bash
         run: |
-          npm run benchmark:queue-size --workspace=test/benchmark-test | tee benchmark-queue-size.txt
-      - name: 'Run benchmark: buffered reads'
+          echo "## Queue size" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          npm run benchmark:queue-size --workspace=test/benchmark-test | tee --append $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+        env:
+          BENCH_TTEST: true
+          BENCH_REPORTER: text
+      - name: 'Benchmark: buffered reads'
+        # language=bash
         run: |
-          npm run benchmark:read-buffered --workspace=test/benchmark-test | tee benchmark-read-buffered.txt
-      - name: Download previous benchmark data
-        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5
-        with:
-          path: ./cache
-          key: ${{ runner.os }}-benchmark
-      - name: 'Store benchmark result: queue size'
-        uses: benchmark-action/github-action-benchmark@52576c92bccf6ac60c8223ec7eb2565637cae9ba # v1
-        with:
-          name: 'Queue size'
-          tool: 'benchmarkjs'
-          output-file-path: benchmark-queue-size.txt
-          external-data-json-path: ./cache/benchmark-data.json
-          auto-push: false
-          summary-always: true
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-      - name: 'Store benchmark result: buffered reads'
-        uses: benchmark-action/github-action-benchmark@52576c92bccf6ac60c8223ec7eb2565637cae9ba # v1
-        with:
-          name: 'Buffered reads'
-          tool: 'benchmarkjs'
-          output-file-path: benchmark-read-buffered.txt
-          external-data-json-path: ./cache/benchmark-data.json
-          auto-push: false
-          summary-always: true
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          echo "## Buffered reads" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          npm run benchmark:read-buffered --workspace=test/benchmark-test | tee --append $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+        env:
+          BENCH_TTEST: true
+          BENCH_REPORTER: text

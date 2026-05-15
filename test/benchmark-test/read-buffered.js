@@ -1,16 +1,22 @@
-import Benchmark from 'benchmark';
-import { ReadableStream, WritableStream } from 'web-streams-polyfill';
+import { prettyReport, Suite, textReport } from 'bench-node';
+import * as baseline from 'web-streams-polyfill-baseline';
+import * as polyfill from 'web-streams-polyfill';
+import * as node from 'node:stream/web';
 import * as assert from 'node:assert/strict';
 
-const suite = new Benchmark.Suite('read buffered');
+const { BENCH_REPORTER, BENCH_TTEST } = process.env;
+const suiteOptions = {
+  reporter: BENCH_REPORTER === 'text' ? textReport : prettyReport,
+  ttest: Boolean(BENCH_TTEST)
+};
 
 // https://github.com/nodejs/node/commit/199daab0b0822d6063a73b9362bfce8667d2a112
-function createBufferedStream(n, bufferSize) {
+function createBufferedStream(impl, n, bufferSize) {
   let enqueued = 0;
-  return new ReadableStream({
+  return new impl.ReadableStream({
     start(controller) {
       // Pre-fill the buffer
-      for (let i = 0; i < bufferSize; i++) {
+      for (let i = 0; i < Math.min(bufferSize, n); i++) {
         controller.enqueue('a');
         enqueued++;
       }
@@ -32,28 +38,34 @@ function createBufferedStream(n, bufferSize) {
   });
 }
 
-async function readLoop(n, bufferSize) {
-  const rs = createBufferedStream(n, bufferSize);
+async function readLoop(impl, bufferSize, timer) {
+  const { count } = timer;
+  const rs = createBufferedStream(impl, count, bufferSize);
 
   const reader = rs.getReader();
   let x = null;
   let reads = 0;
 
-  while (reads < n) {
+  timer.start();
+  while (reads < count) {
     const { value, done } = await reader.read();
-    if (done) break;
+    if (done) {
+      break;
+    }
     x = value;
     reads++;
   }
+  timer.end(count);
   assert.equal(x, 'a');
 }
 
-async function pipe(n, bufferSize) {
-  const rs = createBufferedStream(n, bufferSize);
+async function pipe(impl, bufferSize, timer) {
+  const { count } = timer;
+  const rs = createBufferedStream(impl, count, bufferSize);
 
   let x = null;
   let writes = 0;
-  const ws = new WritableStream({
+  const ws = new impl.WritableStream({
     write(chunk) {
       writes++;
       x = chunk;
@@ -63,31 +75,31 @@ async function pipe(n, bufferSize) {
     highWaterMark: Infinity
   });
 
+  timer.start();
   await rs.pipeTo(ws);
-  assert.equal(writes, n);
+  timer.end(count);
+  assert.equal(writes, count);
   assert.equal(x, 'a');
 }
 
-const n = 1e5;
+const readLoopSuite = new Suite(suiteOptions);
+const pipeSuite = new Suite(suiteOptions);
 const bufferSizes = [1, 10, 100, 1000];
-for (const bufferSize of bufferSizes) {
-  suite.add(
-    `read loop n=${n} bufferSize=${bufferSize}`,
-    deferred => readLoop(n, bufferSize).then(() => deferred.resolve()),
-    { defer: true }
-  );
-}
-for (const bufferSize of bufferSizes) {
-  suite.add(
-    `pipe n=${n} bufferSize=${bufferSize}`,
-    deferred => pipe(n, bufferSize).then(() => deferred.resolve()),
-    { defer: true }
-  );
+for (const [name, impl] of Object.entries({ baseline, polyfill, node })) {
+  for (const bufferSize of bufferSizes) {
+    const options = { baseline: name === 'baseline' && bufferSize === 1 };
+    readLoopSuite.add(
+      `read loop/${name}/bufferSize=${bufferSize}`,
+      options,
+      async timer => readLoop(impl, bufferSize, timer)
+    );
+    pipeSuite.add(
+      `pipe/${name}/bufferSize=${bufferSize}`,
+      options,
+      async timer => pipe(impl, bufferSize, timer)
+    );
+  }
 }
 
-suite
-  .on('cycle', (event) => {
-    const bench = event.target;
-    console.log(`${String(bench)}`);
-  })
-  .run({ async: true });
+await readLoopSuite.run();
+await pipeSuite.run();
