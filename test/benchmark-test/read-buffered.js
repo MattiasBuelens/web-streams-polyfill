@@ -1,17 +1,18 @@
 import { prettyReport, Suite, textReport } from 'bench-node';
-import { ReadableStream, WritableStream } from 'web-streams-polyfill';
+import * as baseline from 'web-streams-polyfill-baseline';
+import * as polyfill from 'web-streams-polyfill';
 import * as assert from 'node:assert/strict';
 
 const { BENCH_REPORTER, BENCH_TTEST } = process.env;
 const suite = new Suite({
   reporter: BENCH_REPORTER === 'text' ? textReport : prettyReport,
-  repeatSuite: BENCH_TTEST ? 30 : 1
+  ttest: Boolean(BENCH_TTEST)
 });
 
 // https://github.com/nodejs/node/commit/199daab0b0822d6063a73b9362bfce8667d2a112
-function createBufferedStream(n, bufferSize) {
+function createBufferedStream(impl, n, bufferSize) {
   let enqueued = 0;
-  return new ReadableStream({
+  return new impl.ReadableStream({
     start(controller) {
       // Pre-fill the buffer
       for (let i = 0; i < Math.min(bufferSize, n); i++) {
@@ -36,9 +37,9 @@ function createBufferedStream(n, bufferSize) {
   });
 }
 
-async function readLoop(bufferSize, timer) {
+async function readLoop(impl, bufferSize, timer) {
   const { count } = timer;
-  const rs = createBufferedStream(count, bufferSize);
+  const rs = createBufferedStream(impl, count, bufferSize);
 
   const reader = rs.getReader();
   let x = null;
@@ -57,13 +58,13 @@ async function readLoop(bufferSize, timer) {
   assert.equal(x, 'a');
 }
 
-async function pipe(bufferSize, timer) {
+async function pipe(impl, bufferSize, timer) {
   const { count } = timer;
-  const rs = createBufferedStream(count, bufferSize);
+  const rs = createBufferedStream(impl, count, bufferSize);
 
   let x = null;
   let writes = 0;
-  const ws = new WritableStream({
+  const ws = new impl.WritableStream({
     write(chunk) {
       writes++;
       x = chunk;
@@ -81,17 +82,20 @@ async function pipe(bufferSize, timer) {
 }
 
 const bufferSizes = [1, 10, 100, 1000];
-for (const bufferSize of bufferSizes) {
-  suite.add(
-    `read loop/bufferSize=${bufferSize}`,
-    async timer => readLoop(bufferSize, timer)
-  );
-}
-for (const bufferSize of bufferSizes) {
-  suite.add(
-    `pipe/bufferSize=${bufferSize}`,
-    async timer => pipe(bufferSize, timer)
-  );
+for (const [name, impl] of Object.entries({ baseline, polyfill })) {
+  for (const bufferSize of bufferSizes) {
+    suite.add(
+      `read loop/${name}/bufferSize=${bufferSize}`,
+      { baseline: name === 'baseline' && bufferSize === 1 },
+      async timer => readLoop(impl, bufferSize, timer)
+    );
+  }
+  for (const bufferSize of bufferSizes) {
+    suite.add(
+      `pipe/${name}/bufferSize=${bufferSize}`,
+      async timer => pipe(impl, bufferSize, timer)
+    );
+  }
 }
 
 await suite.run();

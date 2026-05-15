@@ -6,7 +6,6 @@ import * as node from 'node:stream/web';
 const { BENCH_REPORTER, BENCH_TTEST } = process.env;
 const suite = new Suite({
   reporter: BENCH_REPORTER === 'text' ? textReport : prettyReport,
-  repeatSuite: BENCH_TTEST ? 30 : 1,
   ttest: Boolean(BENCH_TTEST)
 });
 
