@@ -81,14 +81,20 @@ jobs:
       - name: 'Benchmark: queue size'
         # language=bash
         run: |
+          echo "## Queue size" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
           npm run benchmark:queue-size --workspace=test/benchmark-test | tee --append $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
         env:
           BENCH_TTEST: true
           BENCH_REPORTER: text
       - name: 'Benchmark: buffered reads'
         # language=bash
         run: |
+          echo "## Buffered reads" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
           npm run benchmark:read-buffered --workspace=test/benchmark-test | tee --append $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
         env:
           BENCH_TTEST: true
           BENCH_REPORTER: text
