@@ -81,7 +81,7 @@
     "@rollup/plugin-terser": "^1.0.0",
     "@rollup/plugin-typescript": "^12.3.0",
     "@stylistic/eslint-plugin": "^5.10.0",
-    "@types/node": "~25.6.2",
+    "@types/node": "~25.7.0",
     "eslint": "^10.1.0",
     "globals": "^17.4.0",
     "micromatch": "^4.0.8",
