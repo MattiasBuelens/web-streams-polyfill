@@ -33,8 +33,8 @@ export class ReadableStreamAsyncIteratorImpl<R> {
   readonly _reader: ReadableStreamDefaultReader<R>;
   readonly _preventCancel: boolean;
   private readonly _nextStepsCallback: () => Promise<ReadableStreamDefaultReadResult<R>>;
-  _ongoingPromise: Promise<ReadableStreamDefaultReadResult<R>> | undefined = undefined;
-  _isFinished = false;
+  private _ongoingPromise: Promise<ReadableStreamDefaultReadResult<R>> | undefined = undefined;
+  private _isFinished = false;
 
   constructor(reader: ReadableStreamDefaultReader<R>, preventCancel: boolean) {
     this._reader = reader;
@@ -91,6 +91,18 @@ export class ReadableStreamAsyncIteratorImpl<R> {
     ReadableStreamReaderGenericRelease(reader);
     return promiseResolvedWith({ value, done: true });
   }
+
+  /** @internal */
+  _chunk(): void {
+    this._ongoingPromise = undefined;
+  }
+
+  /** @internal */
+  _finish(): void {
+    this._ongoingPromise = undefined;
+    this._isFinished = true;
+    ReadableStreamReaderGenericRelease(this._reader);
+  }
 }
 
 class AsyncIteratorReadRequest<R> implements ReadRequest<R> {
@@ -108,26 +120,19 @@ class AsyncIteratorReadRequest<R> implements ReadRequest<R> {
   }
 
   _chunkSteps(chunk: R) {
-    const iterator = this._iterator;
-    iterator._ongoingPromise = undefined;
+    this._iterator._chunk();
     // This needs to be delayed by one microtask, otherwise we stop pulling too early which breaks a test.
     // FIXME Is this a bug in the specification, or in the test?
     queueMicrotask(() => this._resolvePromise({ value: chunk, done: false }));
   }
 
   _closeSteps() {
-    const iterator = this._iterator;
-    iterator._ongoingPromise = undefined;
-    iterator._isFinished = true;
-    ReadableStreamReaderGenericRelease(iterator._reader);
+    this._iterator._finish();
     this._resolvePromise({ value: undefined, done: true });
   }
 
   _errorSteps(reason: any) {
-    const iterator = this._iterator;
-    iterator._ongoingPromise = undefined;
-    iterator._isFinished = true;
-    ReadableStreamReaderGenericRelease(iterator._reader);
+    this._iterator._finish();
     this._rejectPromise(reason);
   }
 }
