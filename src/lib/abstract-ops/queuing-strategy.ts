@@ -15,11 +15,13 @@ export function ExtractHighWaterMark(strategy: QueuingStrategy, defaultHWM: numb
   return highWaterMark;
 }
 
+export const defaultSizeAlgorithm: QueuingStrategySizeCallback<unknown> = () => 1;
+
 export function ExtractSizeAlgorithm<T>(strategy: QueuingStrategy<T>): QueuingStrategySizeCallback<T> {
   const { size } = strategy;
 
   if (!size) {
-    return () => 1;
+    return defaultSizeAlgorithm;
   }
 
   return size;
