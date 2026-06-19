@@ -34,7 +34,7 @@ import {
   TransferArrayBuffer
 } from '../abstract-ops/ecmascript';
 import { CancelSteps, CanPullSyncSteps, PullSteps, ReleaseSteps } from '../abstract-ops/internal-methods';
-import { promiseResolvedWith, uponPromise } from '../helpers/webidl';
+import { promiseResolvedWith, queueMicrotask, uponPromise } from '../helpers/webidl';
 import { assertRequiredArgument, convertUnsignedLongLongWithEnforceRange } from '../validators/basic';
 import {
   type ArrayBufferViewConstructor,
@@ -1148,17 +1148,25 @@ export function SetUpReadableByteStreamController(
   stream._readableStreamController = controller;
 
   const startResult = startAlgorithm();
+  const startFulfillSteps = () => {
+    controller._started = true;
+
+    assert(!controller._pulling);
+    assert(!controller._pullAgain);
+
+    ReadableByteStreamControllerCallPullIfNeeded(controller);
+    return null;
+  };
+
+  if (!typeIsObject(startResult)) {
+    // Non-thenable start result: skip fulfilling a promise.
+    queueMicrotask(startFulfillSteps);
+    return;
+  }
+
   uponPromise(
     promiseResolvedWith(startResult),
-    () => {
-      controller._started = true;
-
-      assert(!controller._pulling);
-      assert(!controller._pullAgain);
-
-      ReadableByteStreamControllerCallPullIfNeeded(controller);
-      return null;
-    },
+    startFulfillSteps,
     (r) => {
       ReadableByteStreamControllerError(controller, r);
       return null;
