@@ -2,6 +2,7 @@ import { ReadableStream } from '../readable-stream';
 import {
   AcquireReadableStreamDefaultReader,
   ReadableStreamDefaultReader,
+  ReadableStreamDefaultReaderCanReadSync,
   ReadableStreamDefaultReaderRead,
   type ReadableStreamDefaultReadResult,
   type ReadRequest
@@ -13,6 +14,7 @@ import { typeIsObject } from '../helpers/miscellaneous';
 import {
   newPromise,
   promiseRejectedWith,
+  promiseResolve,
   promiseResolvedWith,
   queueMicrotask,
   transformPromiseWith
@@ -67,8 +69,13 @@ export class ReadableStreamAsyncIteratorImpl<R> {
     const reader = this._reader;
     assert(reader._ownerReadableStream !== undefined);
 
-    const readRequest = new AsyncIteratorReadRequest<R>(this);
+    // Fast path: if the read can be resolved synchronously,
+    // create a fulfilled/rejected promise directly.
+    const readRequest = ReadableStreamDefaultReaderCanReadSync(reader)
+      ? new SyncIteratorReadRequest<R>(this)
+      : new AsyncIteratorReadRequest<R>(this);
     ReadableStreamDefaultReaderRead(reader, readRequest);
+    assert(readRequest._promise !== undefined);
     return readRequest._promise;
   }
 
@@ -134,6 +141,33 @@ class AsyncIteratorReadRequest<R> implements ReadRequest<R> {
   _errorSteps(reason: any) {
     this._iterator._finish();
     this._rejectPromise(reason);
+  }
+}
+
+class SyncIteratorReadRequest<R> implements ReadRequest<R> {
+  private readonly _iterator: ReadableStreamAsyncIteratorImpl<R>;
+  _promise: Promise<ReadableStreamDefaultReadResult<R>> | undefined = undefined;
+
+  constructor(iterator: ReadableStreamAsyncIteratorImpl<R>) {
+    this._iterator = iterator;
+  }
+
+  _chunkSteps(chunk: R) {
+    assert(this._promise === undefined);
+    this._iterator._chunk();
+    this._promise = promiseResolve({ value: chunk, done: false });
+  }
+
+  _closeSteps() {
+    assert(this._promise === undefined);
+    this._iterator._finish();
+    this._promise = promiseResolve({ value: undefined, done: true });
+  }
+
+  _errorSteps(reason: any) {
+    assert(this._promise === undefined);
+    this._iterator._finish();
+    this._promise = promiseRejectedWith(reason);
   }
 }
 
