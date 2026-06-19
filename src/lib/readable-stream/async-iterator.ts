@@ -63,7 +63,7 @@ export class ReadableStreamAsyncIteratorImpl<R> {
 
   private _nextSteps(): Promise<ReadableStreamDefaultReadResult<R>> {
     if (this._isFinished) {
-      return Promise.resolve({ value: undefined, done: true });
+      return promiseResolve({ value: undefined, done: true });
     }
 
     const reader = this._reader;
@@ -81,7 +81,7 @@ export class ReadableStreamAsyncIteratorImpl<R> {
 
   private _returnSteps(value: any): Promise<ReadableStreamDefaultReadResult<any>> {
     if (this._isFinished) {
-      return Promise.resolve({ value, done: true });
+      return promiseResolve({ value, done: true });
     }
     this._isFinished = true;
 
