@@ -21,7 +21,7 @@ import { CreateWritableStream, WritableStream, WritableStreamDefaultControllerEr
 import { setFunctionName, typeIsObject } from './helpers/miscellaneous';
 import { IsNonNegativeNumber } from './abstract-ops/miscellaneous';
 import { convertQueuingStrategy } from './validators/queuing-strategy';
-import { ExtractHighWaterMark, ExtractSizeAlgorithm } from './abstract-ops/queuing-strategy';
+import { defaultSizeAlgorithm, ExtractHighWaterMark, ExtractSizeAlgorithm } from './abstract-ops/queuing-strategy';
 import type {
   Transformer,
   TransformerCancelCallback,
@@ -151,9 +151,9 @@ export function CreateTransformStream<I, O>(
   flushAlgorithm: () => Promise<void>,
   cancelAlgorithm: (reason: any) => Promise<void>,
   writableHighWaterMark = 1,
-  writableSizeAlgorithm: QueuingStrategySizeCallback<I> = () => 1,
+  writableSizeAlgorithm: QueuingStrategySizeCallback<I> = defaultSizeAlgorithm,
   readableHighWaterMark = 0,
-  readableSizeAlgorithm: QueuingStrategySizeCallback<O> = () => 1
+  readableSizeAlgorithm: QueuingStrategySizeCallback<O> = defaultSizeAlgorithm
 ) {
   assert(IsNonNegativeNumber(writableHighWaterMark));
   assert(IsNonNegativeNumber(readableHighWaterMark));
