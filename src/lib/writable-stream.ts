@@ -18,7 +18,7 @@ import { SimpleQueue } from './simple-queue';
 import { setFunctionName, typeIsObject } from './helpers/miscellaneous';
 import { AbortSteps, ErrorSteps } from './abstract-ops/internal-methods';
 import { IsNonNegativeNumber } from './abstract-ops/miscellaneous';
-import { ExtractHighWaterMark, ExtractSizeAlgorithm } from './abstract-ops/queuing-strategy';
+import { defaultSizeAlgorithm, ExtractHighWaterMark, ExtractSizeAlgorithm } from './abstract-ops/queuing-strategy';
 import { convertQueuingStrategy } from './validators/queuing-strategy';
 import type {
   UnderlyingSink,
@@ -229,7 +229,7 @@ function CreateWritableStream<W>(
   closeAlgorithm: () => Promise<void>,
   abortAlgorithm: (reason: any) => Promise<void>,
   highWaterMark = 1,
-  sizeAlgorithm: QueuingStrategySizeCallback<W> = () => 1
+  sizeAlgorithm: QueuingStrategySizeCallback<W> = defaultSizeAlgorithm
 ) {
   assert(IsNonNegativeNumber(highWaterMark));
 

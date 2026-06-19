@@ -54,7 +54,7 @@ import { CancelSteps } from './abstract-ops/internal-methods';
 import { IsNonNegativeNumber } from './abstract-ops/miscellaneous';
 import { assertObject, assertRequiredArgument } from './validators/basic';
 import { convertQueuingStrategy } from './validators/queuing-strategy';
-import { ExtractHighWaterMark, ExtractSizeAlgorithm } from './abstract-ops/queuing-strategy';
+import { defaultSizeAlgorithm, ExtractHighWaterMark, ExtractSizeAlgorithm } from './abstract-ops/queuing-strategy';
 import { convertUnderlyingDefaultOrByteSource } from './validators/underlying-source';
 import type {
   ReadableStreamBYOBReaderReadOptions,
@@ -400,7 +400,7 @@ export function CreateReadableStream<R>(
   pullAlgorithm: () => Promise<void>,
   cancelAlgorithm: (reason: any) => Promise<void>,
   highWaterMark = 1,
-  sizeAlgorithm: QueuingStrategySizeCallback<R> = () => 1
+  sizeAlgorithm: QueuingStrategySizeCallback<R> = defaultSizeAlgorithm
 ): DefaultReadableStream<R> {
   assert(IsNonNegativeNumber(highWaterMark));
 
