@@ -43,17 +43,19 @@ export class ReadableStreamAsyncIteratorImpl<R> {
   }
 
   next(): Promise<ReadableStreamDefaultReadResult<R>> {
-    this._ongoingPromise = this._ongoingPromise
+    this._ongoingPromise = this._ongoingPromise !== undefined
       ? transformPromiseWith(this._ongoingPromise, this._nextStepsCallback, this._nextStepsCallback)
       : this._nextSteps();
     return this._ongoingPromise;
   }
 
   return(value: any): Promise<ReadableStreamDefaultReadResult<any>> {
-    const returnSteps = () => this._returnSteps(value);
-    this._ongoingPromise = this._ongoingPromise
-      ? transformPromiseWith(this._ongoingPromise, returnSteps, returnSteps)
-      : returnSteps();
+    if (this._ongoingPromise === undefined) {
+      this._ongoingPromise = this._returnSteps(value);
+    } else {
+      const returnStepsCallback = () => this._returnSteps(value);
+      this._ongoingPromise = transformPromiseWith(this._ongoingPromise, returnStepsCallback, returnStepsCallback);
+    }
     return this._ongoingPromise;
   }
 
