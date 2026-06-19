@@ -59,6 +59,25 @@ async function readLoop(impl, bufferSize, timer) {
   assert.equal(x, 'a');
 }
 
+async function iterator(impl, bufferSize, timer) {
+  const { count } = timer;
+  const rs = createBufferedStream(impl, count, bufferSize);
+
+  let x = null;
+  let reads = 0;
+
+  timer.start();
+  for await (const value of rs) {
+    x = value;
+    reads++;
+    if (reads >= count) {
+      break;
+    }
+  }
+  timer.end(count);
+  assert.equal(x, 'a');
+}
+
 async function pipe(impl, bufferSize, timer) {
   const { count } = timer;
   const rs = createBufferedStream(impl, count, bufferSize);
@@ -83,6 +102,7 @@ async function pipe(impl, bufferSize, timer) {
 }
 
 const readLoopSuite = new Suite(suiteOptions);
+const iteratorSuite = new Suite(suiteOptions);
 const pipeSuite = new Suite(suiteOptions);
 const bufferSizes = [1, 10, 100, 1000];
 for (const [name, impl] of Object.entries({ baseline, polyfill, node })) {
@@ -93,6 +113,11 @@ for (const [name, impl] of Object.entries({ baseline, polyfill, node })) {
       options,
       async timer => readLoop(impl, bufferSize, timer)
     );
+    iteratorSuite.add(
+      `iterator/${name}/bufferSize=${bufferSize}`,
+      options,
+      async timer => iterator(impl, bufferSize, timer)
+    );
     pipeSuite.add(
       `pipe/${name}/bufferSize=${bufferSize}`,
       options,
@@ -102,4 +127,5 @@ for (const [name, impl] of Object.entries({ baseline, polyfill, node })) {
 }
 
 await readLoopSuite.run();
+await iteratorSuite.run();
 await pipeSuite.run();
