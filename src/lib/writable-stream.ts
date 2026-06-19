@@ -3,6 +3,7 @@ import {
   newPromise,
   promiseRejectedWith,
   promiseResolvedWith,
+  queueMicrotask,
   setPromiseIsHandledToTrue,
   uponPromise
 } from './helpers/webidl';
@@ -1099,15 +1100,22 @@ function SetUpWritableStreamDefaultController<W>(
   WritableStreamUpdateBackpressure(stream, backpressure);
 
   const startResult = startAlgorithm();
-  const startPromise = promiseResolvedWith(startResult);
+  const startFulfillSteps = () => {
+    assert(stream._state === 'writable' || stream._state === 'erroring');
+    controller._started = true;
+    WritableStreamDefaultControllerAdvanceQueueIfNeeded(controller);
+    return null;
+  };
+
+  if (!typeIsObject(startResult)) {
+    // Non-thenable start result: skip fulfilling a promise.
+    queueMicrotask(startFulfillSteps);
+    return;
+  }
+
   uponPromise(
-    startPromise,
-    () => {
-      assert(stream._state === 'writable' || stream._state === 'erroring');
-      controller._started = true;
-      WritableStreamDefaultControllerAdvanceQueueIfNeeded(controller);
-      return null;
-    },
+    promiseResolvedWith(startResult),
+    startFulfillSteps,
     (r) => {
       assert(stream._state === 'writable' || stream._state === 'erroring');
       controller._started = true;
