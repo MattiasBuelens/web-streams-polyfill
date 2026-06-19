@@ -12,7 +12,7 @@ import { IsReadableStreamLocked, ReadableStream, ReadableStreamClose, ReadableSt
 import type { ValidatedUnderlyingSource } from './underlying-source';
 import { setFunctionName, typeIsObject } from '../helpers/miscellaneous';
 import { CancelSteps, CanPullSyncSteps, PullSteps, ReleaseSteps } from '../abstract-ops/internal-methods';
-import { promiseResolvedWith, uponPromise } from '../helpers/webidl';
+import { promiseResolvedWith, queueMicrotask, uponPromise } from '../helpers/webidl';
 
 /**
  * Allows control of a {@link ReadableStream | readable stream}'s state and internal queue.
@@ -373,17 +373,25 @@ export function SetUpReadableStreamDefaultController<R>(
   stream._readableStreamController = controller;
 
   const startResult = startAlgorithm();
+  const startFulfillSteps = () => {
+    controller._started = true;
+
+    assert(!controller._pulling);
+    assert(!controller._pullAgain);
+
+    ReadableStreamDefaultControllerCallPullIfNeeded(controller);
+    return null;
+  };
+
+  if (!typeIsObject(startResult)) {
+    // Non-thenable start result: skip fulfilling a promise.
+    queueMicrotask(startFulfillSteps);
+    return;
+  }
+
   uponPromise(
     promiseResolvedWith(startResult),
-    () => {
-      controller._started = true;
-
-      assert(!controller._pulling);
-      assert(!controller._pullAgain);
-
-      ReadableStreamDefaultControllerCallPullIfNeeded(controller);
-      return null;
-    },
+    startFulfillSteps,
     (r) => {
       ReadableStreamDefaultControllerError(controller, r);
       return null;
