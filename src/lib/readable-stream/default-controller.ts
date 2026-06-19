@@ -33,7 +33,11 @@ export class ReadableStreamDefaultController<R> {
   /** @internal */
   _pullAgain!: boolean;
   /** @internal */
-  _pulling !: boolean;
+  _pulling!: boolean;
+  /** @internal */
+  _pullFulfillCallback: (() => null) | undefined;
+  /** @internal */
+  _pullRejectCallback: ((e: any) => null) | undefined;
   /** @internal */
   _strategySizeAlgorithm!: QueuingStrategySizeCallback<R>;
   /** @internal */
@@ -186,11 +190,9 @@ function ReadableStreamDefaultControllerCallPullIfNeeded(controller: ReadableStr
   assert(!controller._pullAgain);
 
   controller._pulling = true;
-
-  const pullPromise = controller._pullAlgorithm();
-  uponPromise(
-    pullPromise,
-    () => {
+  if (controller._pullFulfillCallback === undefined) {
+    // Optimization: create pull() promise callbacks on first use, and re-use for all subsequent calls.
+    controller._pullFulfillCallback = () => {
       controller._pulling = false;
 
       if (controller._pullAgain) {
@@ -199,11 +201,18 @@ function ReadableStreamDefaultControllerCallPullIfNeeded(controller: ReadableStr
       }
 
       return null;
-    },
-    (e) => {
+    };
+    controller._pullRejectCallback = (e) => {
       ReadableStreamDefaultControllerError(controller, e);
       return null;
-    }
+    };
+  }
+
+  const pullPromise = controller._pullAlgorithm();
+  uponPromise(
+    pullPromise,
+    controller._pullFulfillCallback!,
+    controller._pullRejectCallback!
   );
 }
 
@@ -352,6 +361,8 @@ export function SetUpReadableStreamDefaultController<R>(
   controller._closeRequested = false;
   controller._pullAgain = false;
   controller._pulling = false;
+  controller._pullFulfillCallback = undefined;
+  controller._pullRejectCallback = undefined;
 
   controller._strategySizeAlgorithm = sizeAlgorithm;
   controller._strategyHWM = highWaterMark;
