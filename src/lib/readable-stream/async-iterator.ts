@@ -32,19 +32,20 @@ export interface ReadableStreamAsyncIterator<R> extends AsyncIterableIterator<R>
 export class ReadableStreamAsyncIteratorImpl<R> {
   readonly _reader: ReadableStreamDefaultReader<R>;
   readonly _preventCancel: boolean;
+  private readonly _nextStepsCallback: () => Promise<ReadableStreamDefaultReadResult<R>>;
   _ongoingPromise: Promise<ReadableStreamDefaultReadResult<R>> | undefined = undefined;
   _isFinished = false;
 
   constructor(reader: ReadableStreamDefaultReader<R>, preventCancel: boolean) {
     this._reader = reader;
     this._preventCancel = preventCancel;
+    this._nextStepsCallback = () => this._nextSteps();
   }
 
   next(): Promise<ReadableStreamDefaultReadResult<R>> {
-    const nextSteps = () => this._nextSteps();
     this._ongoingPromise = this._ongoingPromise
-      ? transformPromiseWith(this._ongoingPromise, nextSteps, nextSteps)
-      : nextSteps();
+      ? transformPromiseWith(this._ongoingPromise, this._nextStepsCallback, this._nextStepsCallback)
+      : this._nextSteps();
     return this._ongoingPromise;
   }
 
