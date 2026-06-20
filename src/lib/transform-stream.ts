@@ -488,15 +488,18 @@ function TransformStreamDefaultControllerPerformTransform<I, O>(
   controller: TransformStreamDefaultController<O>,
   chunk: I
 ) {
-  const transformPromise = controller._transformAlgorithm(chunk);
-  if (controller._transformRejectCallback === undefined) {
+  let transformRejectCallback = controller._transformRejectCallback;
+  if (transformRejectCallback === undefined) {
     // Optimization: create transform() promise callbacks on first use, and re-use for all subsequent calls.
-    controller._transformRejectCallback = (r) => {
+    transformRejectCallback = (r) => {
       TransformStreamError(controller._controlledTransformStream, r);
       throw r;
     };
+    controller._transformRejectCallback = transformRejectCallback;
   }
-  return transformPromiseWith(transformPromise, undefined, controller._transformRejectCallback!);
+
+  const transformPromise = controller._transformAlgorithm(chunk);
+  return transformPromiseWith(transformPromise, undefined, transformRejectCallback);
 }
 
 function TransformStreamDefaultControllerTerminate<O>(controller: TransformStreamDefaultController<O>) {
