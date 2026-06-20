@@ -1275,10 +1275,11 @@ function WritableStreamDefaultControllerProcessWrite<W>(controller: WritableStre
 
   WritableStreamMarkFirstWriteRequestInFlight(stream);
 
-  const sinkWritePromise = controller._writeAlgorithm(chunk);
-  if (controller._writeFulfillCallback === undefined) {
+  let writeFulfillCallback = controller._writeFulfillCallback;
+  let writeRejectCallback = controller._writeRejectCallback;
+  if (writeFulfillCallback === undefined) {
     // Optimization: create write() promise callbacks on first use, and re-use for all subsequent calls.
-    controller._writeFulfillCallback = () => {
+    writeFulfillCallback = () => {
       WritableStreamFinishInFlightWrite(stream);
 
       const state = stream._state;
@@ -1294,19 +1295,22 @@ function WritableStreamDefaultControllerProcessWrite<W>(controller: WritableStre
       WritableStreamDefaultControllerAdvanceQueueIfNeeded(controller);
       return null;
     };
-    controller._writeRejectCallback = (reason) => {
+    writeRejectCallback = (reason) => {
       if (stream._state === 'writable') {
         WritableStreamDefaultControllerClearAlgorithms(controller);
       }
       WritableStreamFinishInFlightWriteWithError(stream, reason);
       return null;
     };
+    controller._writeFulfillCallback = writeFulfillCallback;
+    controller._writeRejectCallback = writeRejectCallback;
   }
 
+  const sinkWritePromise = controller._writeAlgorithm(chunk);
   uponPromise(
     sinkWritePromise,
-    controller._writeFulfillCallback!,
-    controller._writeRejectCallback!
+    writeFulfillCallback,
+    writeRejectCallback!
   );
 }
 
