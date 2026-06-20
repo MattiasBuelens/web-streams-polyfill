@@ -612,8 +612,6 @@ export class WritableStreamDefaultWriter<W = any> {
   _readyPromise_resolve?: (value?: undefined) => void;
   /** @internal */
   _readyPromise_reject?: (reason: any) => void;
-  /** @internal */
-  _readyPromiseState!: 'pending' | 'fulfilled' | 'rejected';
 
   constructor(stream: WritableStream<W>) {
     assertRequiredArgument(stream, 1, 'WritableStreamDefaultWriter');
@@ -844,7 +842,7 @@ function WritableStreamDefaultWriterEnsureClosedPromiseRejected(writer: Writable
 }
 
 function WritableStreamDefaultWriterEnsureReadyPromiseRejected(writer: WritableStreamDefaultWriter, error: any) {
-  if (writer._readyPromise !== undefined && writer._readyPromiseState === 'pending') {
+  if (writer._readyPromise !== undefined && writer._readyPromise_reject !== undefined) {
     writerReadyPromiseReject(writer, error);
   } else {
     // Reset the promise. writerReadyPromise will (re-)create the rejected promise on the next access.
@@ -1407,7 +1405,6 @@ export function writerReadyPromise(writer: WritableStreamDefaultWriter<any>): Pr
       // Writer has been released.
       writer._readyPromise = promiseRejectedWith(writerReleasedException());
       setPromiseIsHandledToTrue(writer._readyPromise);
-      writer._readyPromiseState = 'rejected';
     } else {
       switch (stream._state) {
         case 'writable':
@@ -1416,21 +1413,17 @@ export function writerReadyPromise(writer: WritableStreamDefaultWriter<any>): Pr
               writer._readyPromise_resolve = resolve;
               writer._readyPromise_reject = reject;
             });
-            writer._readyPromiseState = 'pending';
           } else {
             writer._readyPromise = promiseResolve(undefined);
-            writer._readyPromiseState = 'fulfilled';
           }
           break;
         case 'closed':
           writer._readyPromise = promiseResolve(undefined);
-          writer._readyPromiseState = 'fulfilled';
           break;
         case 'erroring':
         case 'errored':
           writer._readyPromise = promiseRejectedWith(stream._storedError);
           setPromiseIsHandledToTrue(writer._readyPromise);
-          writer._readyPromiseState = 'rejected';
           break;
       }
     }
@@ -1450,14 +1443,12 @@ function writerReadyPromiseReject(writer: WritableStreamDefaultWriter, reason: a
   writer._readyPromise_reject(reason);
   writer._readyPromise_resolve = undefined;
   writer._readyPromise_reject = undefined;
-  writer._readyPromiseState = 'rejected';
 }
 
 function writerReadyPromiseReset(writer: WritableStreamDefaultWriter) {
   writer._readyPromise = undefined;
   writer._readyPromise_resolve = undefined;
   writer._readyPromise_reject = undefined;
-  writer._readyPromiseState = 'pending';
 }
 
 function writerReadyPromiseResolve(writer: WritableStreamDefaultWriter) {
@@ -1471,5 +1462,4 @@ function writerReadyPromiseResolve(writer: WritableStreamDefaultWriter) {
   writer._readyPromise_resolve(undefined);
   writer._readyPromise_resolve = undefined;
   writer._readyPromise_reject = undefined;
-  writer._readyPromiseState = 'fulfilled';
 }
