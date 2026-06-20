@@ -451,6 +451,7 @@ function TransformStreamDefaultControllerClearAlgorithms(controller: TransformSt
   controller._transformAlgorithm = undefined!;
   controller._flushAlgorithm = undefined!;
   controller._cancelAlgorithm = undefined!;
+  controller._transformRejectCallback = undefined;
 }
 
 function TransformStreamDefaultControllerEnqueue<O>(controller: TransformStreamDefaultController<O>, chunk: O) {
