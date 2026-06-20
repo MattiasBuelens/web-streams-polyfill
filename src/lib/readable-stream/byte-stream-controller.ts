@@ -453,7 +453,6 @@ function ReadableByteStreamControllerCallPullIfNeeded(controller: ReadableByteSt
     controller._pullRejectCallback = pullRejectCallback;
   }
 
-  // TODO: Test controller argument
   const pullPromise = controller._pullAlgorithm();
   uponPromise(
     pullPromise,
