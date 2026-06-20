@@ -8,9 +8,7 @@ export function ReadableStreamReaderGenericInitialize<R>(reader: ReadableStreamR
   stream._reader = reader;
 
   // The closed promise is created lazily by readerClosedPromise.
-  reader._closedPromise = undefined;
-  reader._closedPromise_resolve = undefined;
-  reader._closedPromise_reject = undefined;
+  readerClosedPromiseReset(reader);
 }
 
 // A client of ReadableStreamDefaultReader and ReadableStreamBYOBReader may use these functions directly to bypass state
