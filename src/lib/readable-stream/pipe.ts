@@ -5,7 +5,7 @@ import {
   ReadableStreamDefaultReaderRead,
   type ReadRequest
 } from './default-reader';
-import { ReadableStreamReaderGenericRelease } from './generic-reader';
+import { ReadableStreamReaderGenericRelease, readerClosedPromise } from './generic-reader';
 import {
   AcquireWritableStreamDefaultWriter,
   IsWritableStream,
@@ -137,7 +137,7 @@ export function ReadableStreamPipeTo<T>(
     }
 
     // Errors must be propagated forward
-    isOrBecomesErrored(source, reader._closedPromise, (storedError) => {
+    isOrBecomesErrored(source, readerClosedPromise(reader), (storedError) => {
       if (!preventAbort) {
         shutdownWithAction(() => WritableStreamAbort(dest, storedError), true, storedError);
       } else {
@@ -157,7 +157,7 @@ export function ReadableStreamPipeTo<T>(
     });
 
     // Closing must be propagated forward
-    isOrBecomesClosed(source, reader._closedPromise, () => {
+    isOrBecomesClosed(source, readerClosedPromise(reader), () => {
       if (!preventClose) {
         shutdownWithAction(() => WritableStreamDefaultWriterCloseWithErrorPropagation(writer));
       } else {

@@ -4,6 +4,7 @@ import {
   ReadableStreamReaderGenericCancel,
   ReadableStreamReaderGenericInitialize,
   ReadableStreamReaderGenericRelease,
+  readerClosedPromise,
   readerLockException,
   readerReleasedException
 } from './generic-reader';
@@ -111,7 +112,7 @@ export class ReadableStreamBYOBReader {
   /** @internal */
   _ownerReadableStream!: ReadableByteStream;
   /** @internal */
-  _closedPromise!: Promise<undefined>;
+  _closedPromise?: Promise<undefined>;
   /** @internal */
   _closedPromise_resolve?: (value?: undefined) => void;
   /** @internal */
@@ -146,7 +147,7 @@ export class ReadableStreamBYOBReader {
       return promiseRejectedWith(byobReaderBrandCheckException('closed'));
     }
 
-    return this._closedPromise;
+    return readerClosedPromise(this);
   }
 
   /**
