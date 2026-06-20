@@ -430,9 +430,12 @@ function ReadableByteStreamControllerCallPullIfNeeded(controller: ReadableByteSt
   assert(!controller._pullAgain);
 
   controller._pulling = true;
-  if (controller._pullFulfillCallback === undefined) {
+
+  let pullFulfillCallback = controller._pullFulfillCallback;
+  let pullRejectCallback = controller._pullRejectCallback;
+  if (pullFulfillCallback === undefined) {
     // Optimization: create pull() promise callbacks on first use, and re-use for all subsequent calls.
-    controller._pullFulfillCallback = () => {
+    pullFulfillCallback = () => {
       controller._pulling = false;
 
       if (controller._pullAgain) {
@@ -442,18 +445,20 @@ function ReadableByteStreamControllerCallPullIfNeeded(controller: ReadableByteSt
 
       return null;
     };
-    controller._pullRejectCallback = (e) => {
+    pullRejectCallback = (e) => {
       ReadableByteStreamControllerError(controller, e);
       return null;
     };
+    controller._pullFulfillCallback = pullFulfillCallback;
+    controller._pullRejectCallback = pullRejectCallback;
   }
 
   // TODO: Test controller argument
   const pullPromise = controller._pullAlgorithm();
   uponPromise(
     pullPromise,
-    controller._pullFulfillCallback!,
-    controller._pullRejectCallback!
+    pullFulfillCallback,
+    pullRejectCallback!
   );
 }
 
