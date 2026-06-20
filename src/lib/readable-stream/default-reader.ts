@@ -3,7 +3,7 @@ import { SimpleQueue } from '../simple-queue';
 import {
   ReadableStreamReaderGenericCancel,
   ReadableStreamReaderGenericInitialize,
-  ReadableStreamReaderGenericRelease,
+  ReadableStreamReaderGenericRelease, readerClosedPromise,
   readerLockException,
   readerReleasedException
 } from './generic-reader';
@@ -95,7 +95,7 @@ export class ReadableStreamDefaultReader<R = any> {
   /** @internal */
   _ownerReadableStream!: ReadableStream<R>;
   /** @internal */
-  _closedPromise!: Promise<undefined>;
+  _closedPromise?: Promise<undefined>;
   /** @internal */
   _closedPromise_resolve?: (value?: undefined) => void;
   /** @internal */
@@ -125,7 +125,7 @@ export class ReadableStreamDefaultReader<R = any> {
       return promiseRejectedWith(defaultReaderBrandCheckException('closed'));
     }
 
-    return this._closedPromise;
+    return readerClosedPromise(this);
   }
 
   /**
