@@ -7,7 +7,7 @@ import {
 } from './helpers/webidl';
 import type { QueuingStrategy, QueuingStrategySizeCallback } from './queuing-strategy';
 import { AcquireReadableStreamAsyncIterator, type ReadableStreamAsyncIterator } from './readable-stream/async-iterator';
-import { defaultReaderClosedPromiseReject, defaultReaderClosedPromiseResolve } from './readable-stream/generic-reader';
+import { readerClosedPromiseReject, readerClosedPromiseResolve } from './readable-stream/generic-reader';
 import {
   AcquireReadableStreamDefaultReader,
   IsReadableStreamDefaultReader,
@@ -501,7 +501,7 @@ export function ReadableStreamClose<R>(stream: ReadableStream<R>): void {
     return;
   }
 
-  defaultReaderClosedPromiseResolve(reader);
+  readerClosedPromiseResolve(reader);
 
   if (IsReadableStreamDefaultReader<R>(reader)) {
     const readRequests = reader._readRequests;
@@ -525,7 +525,7 @@ export function ReadableStreamError<R>(stream: ReadableStream<R>, e: any): void 
     return;
   }
 
-  defaultReaderClosedPromiseReject(reader, e);
+  readerClosedPromiseReject(reader, e);
 
   if (IsReadableStreamDefaultReader<R>(reader)) {
     ReadableStreamDefaultReaderErrorReadRequests(reader, e);

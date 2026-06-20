@@ -30,13 +30,13 @@ export function ReadableStreamReaderGenericRelease(reader: ReadableStreamReader<
   if (stream._state === 'readable') {
     if (reader._closedPromise !== undefined) {
       const e = readerReleasedException();
-      defaultReaderClosedPromiseReject(reader, e);
+      readerClosedPromiseReject(reader, e);
     } else {
       // Do nothing. readerClosedPromise will create the rejected promise on first access.
     }
   } else {
     // Reset the promise. readerClosedPromise will re-create the rejected promise on the next access.
-    defaultReaderClosedPromiseReset(reader);
+    readerClosedPromiseReset(reader);
   }
 
   stream._readableStreamController[ReleaseSteps]();
@@ -87,7 +87,7 @@ export function readerClosedPromise(reader: ReadableStreamReader<any>): Promise<
   return reader._closedPromise;
 }
 
-export function defaultReaderClosedPromiseReject(reader: ReadableStreamReader<any>, reason: any) {
+export function readerClosedPromiseReject(reader: ReadableStreamReader<any>, reason: any) {
   if (reader._closedPromise_reject === undefined) {
     // If closed promise isn't created yet, skip. readerClosedPromise will set it to a rejected promise on first access.
     // If already resolved/rejected, rejecting it again is a no-op.
@@ -100,13 +100,13 @@ export function defaultReaderClosedPromiseReject(reader: ReadableStreamReader<an
   reader._closedPromise_reject = undefined;
 }
 
-export function defaultReaderClosedPromiseReset(reader: ReadableStreamReader<any>) {
+export function readerClosedPromiseReset(reader: ReadableStreamReader<any>) {
   reader._closedPromise = undefined;
   reader._closedPromise_resolve = undefined;
   reader._closedPromise_reject = undefined;
 }
 
-export function defaultReaderClosedPromiseResolve(reader: ReadableStreamReader<any>) {
+export function readerClosedPromiseResolve(reader: ReadableStreamReader<any>) {
   if (reader._closedPromise_resolve === undefined) {
     // If closed promise isn't created yet, skip. readerClosedPromise will set it to a resolved promise on first access.
     // If already resolved/rejected, resolving it again is a no-op.
