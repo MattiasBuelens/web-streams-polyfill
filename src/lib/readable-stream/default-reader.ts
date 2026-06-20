@@ -4,7 +4,8 @@ import {
   ReadableStreamReaderGenericCancel,
   ReadableStreamReaderGenericInitialize,
   ReadableStreamReaderGenericRelease,
-  readerLockException
+  readerLockException,
+  readerReleasedException
 } from './generic-reader';
 import { IsReadableStreamLocked, ReadableStream } from '../readable-stream';
 import { setFunctionName, typeIsObject } from '../helpers/miscellaneous';
@@ -303,7 +304,7 @@ export function ReadableStreamDefaultReaderCanReadSync<R>(reader: ReadableStream
 
 export function ReadableStreamDefaultReaderRelease(reader: ReadableStreamDefaultReader) {
   ReadableStreamReaderGenericRelease(reader);
-  const e = new TypeError('Reader was released');
+  const e = readerReleasedException();
   ReadableStreamDefaultReaderErrorReadRequests(reader, e);
 }
 

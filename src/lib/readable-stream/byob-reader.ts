@@ -4,7 +4,8 @@ import {
   ReadableStreamReaderGenericCancel,
   ReadableStreamReaderGenericInitialize,
   ReadableStreamReaderGenericRelease,
-  readerLockException
+  readerLockException,
+  readerReleasedException
 } from './generic-reader';
 import { IsReadableStreamLocked, type ReadableByteStream, type ReadableStream } from '../readable-stream';
 import {
@@ -371,7 +372,7 @@ export function ReadableStreamBYOBReaderCanReadSync<T extends ArrayBufferView<Ar
 
 export function ReadableStreamBYOBReaderRelease(reader: ReadableStreamBYOBReader) {
   ReadableStreamReaderGenericRelease(reader);
-  const e = new TypeError('Reader was released');
+  const e = readerReleasedException();
   ReadableStreamBYOBReaderErrorReadIntoRequests(reader, e);
 }
 
