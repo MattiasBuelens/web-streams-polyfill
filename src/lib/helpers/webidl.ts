@@ -44,11 +44,16 @@ export function uponPromise<T>(
   onFulfilled: ((value: T) => null | PromiseLike<null>) | undefined,
   onRejected: (reason: any) => null | PromiseLike<null>
 ): void {
-  PerformPromiseThen(
-    PerformPromiseThen(promise, onFulfilled, onRejected),
-    undefined,
-    rethrowAssertionErrorRejection
-  );
+  if (DEBUG) {
+    // Check for any assertion errors inside onFulfilled and onRejected.
+    PerformPromiseThen(
+      PerformPromiseThen(promise, onFulfilled, onRejected),
+      undefined,
+      rethrowAssertionErrorRejection
+    );
+  } else {
+    PerformPromiseThen(promise, onFulfilled, onRejected);
+  }
 }
 
 export function uponFulfillment<T>(promise: Promise<T>, onFulfilled: (value: T) => null | PromiseLike<null>): void {
