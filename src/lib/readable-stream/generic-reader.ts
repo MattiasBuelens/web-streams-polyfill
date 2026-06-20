@@ -32,16 +32,11 @@ export function ReadableStreamReaderGenericRelease(reader: ReadableStreamReader<
   assert(stream !== undefined);
   assert(stream._reader === reader);
 
+  const e = readerReleasedException();
   if (stream._state === 'readable') {
-    defaultReaderClosedPromiseReject(
-      reader,
-      new TypeError(`Reader was released and can no longer be used to monitor the stream's closedness`)
-    );
+    defaultReaderClosedPromiseReject(reader, e);
   } else {
-    defaultReaderClosedPromiseResetToRejected(
-      reader,
-      new TypeError(`Reader was released and can no longer be used to monitor the stream's closedness`)
-    );
+    defaultReaderClosedPromiseResetToRejected(reader, e);
   }
 
   stream._readableStreamController[ReleaseSteps]();
@@ -54,6 +49,10 @@ export function ReadableStreamReaderGenericRelease(reader: ReadableStreamReader<
 
 export function readerLockException(name: string): TypeError {
   return new TypeError('Cannot ' + name + ' a stream using a released reader');
+}
+
+export function readerReleasedException(): TypeError {
+  return new TypeError('Reader was released');
 }
 
 // Helper functions for the ReadableStreamDefaultReader.
