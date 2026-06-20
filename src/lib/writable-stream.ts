@@ -626,6 +626,7 @@ export class WritableStreamDefaultWriter<W = any> {
     this._ownerWritableStream = stream;
     stream._writer = this;
 
+    // The ready and closed promises are created lazily by writerReadyPromise and writerClosedPromise.
     writerReadyPromiseReset(this);
     writerClosedPromiseReset(this);
 
@@ -1330,7 +1331,7 @@ function defaultWriterBrandCheckException(name: string): TypeError {
 }
 
 function writerLockException(name: string): TypeError {
-  return new TypeError('Cannot ' + name + ' a stream using a released writer');
+  return new TypeError(`Cannot ${name} a stream using a released writer`);
 }
 
 function writerReleasedException(): TypeError {

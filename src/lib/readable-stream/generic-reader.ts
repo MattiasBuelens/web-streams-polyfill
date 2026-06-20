@@ -46,7 +46,7 @@ export function ReadableStreamReaderGenericRelease(reader: ReadableStreamReader<
 // Helper functions for the readers.
 
 export function readerLockException(name: string): TypeError {
-  return new TypeError('Cannot ' + name + ' a stream using a released reader');
+  return new TypeError(`Cannot ${name} a stream using a released reader`);
 }
 
 export function readerReleasedException(): TypeError {
