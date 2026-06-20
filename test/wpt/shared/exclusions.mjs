@@ -18,9 +18,9 @@ export const excludedTestsBase = [
   'readable-streams/tee-detached-context-crash.html',
   'transform-streams/invalid-realm.tentative.window.html',
   // We don't support MessagePort or VideoFrame.
-  'readable-streams/owning-type-message-port.any.html',
-  'readable-streams/owning-type-video-frame.any.html',
-  'readable-streams/owning-type.any.html' // FIXME: reenable this test once owning type PR lands.
+  'readable-streams/owning-type-message-port*.any.html',
+  'readable-streams/owning-type-video-frame*.any.html',
+  'readable-streams/owning-type*.any.html' // FIXME: reenable this test once owning type PR lands.
 ];
 
 export const excludedTestsNonES2018 = [
