@@ -8,7 +8,7 @@ import {
   ReadableStreamCancel,
   type ReadableStreamReader
 } from '../readable-stream';
-import { ReadableStreamReaderGenericRelease } from './generic-reader';
+import { ReadableStreamReaderGenericRelease, readerClosedPromise } from './generic-reader';
 import {
   AcquireReadableStreamDefaultReader,
   IsReadableStreamDefaultReader,
@@ -164,7 +164,7 @@ export function ReadableStreamDefaultTee<R>(
   branch1 = CreateReadableStream(startAlgorithm, pullAlgorithm, cancel1Algorithm);
   branch2 = CreateReadableStream(startAlgorithm, pullAlgorithm, cancel2Algorithm);
 
-  uponRejection(reader._closedPromise, (r: any) => {
+  uponRejection(readerClosedPromise(reader), (r: any) => {
     ReadableStreamDefaultControllerError(branch1._readableStreamController, r);
     ReadableStreamDefaultControllerError(branch2._readableStreamController, r);
     if (!canceled1 || !canceled2) {
@@ -197,7 +197,7 @@ export function ReadableByteStreamTee(stream: ReadableByteStream): [ReadableByte
   });
 
   function forwardReaderError(thisReader: ReadableStreamReader<Uint8Array<ArrayBuffer>>) {
-    uponRejection(thisReader._closedPromise, (r) => {
+    uponRejection(readerClosedPromise(thisReader), (r) => {
       if (thisReader !== reader) {
         return null;
       }
