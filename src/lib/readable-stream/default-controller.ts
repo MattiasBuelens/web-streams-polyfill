@@ -244,6 +244,8 @@ function ReadableStreamDefaultControllerClearAlgorithms(controller: ReadableStre
   controller._pullAlgorithm = undefined!;
   controller._cancelAlgorithm = undefined!;
   controller._strategySizeAlgorithm = undefined!;
+  controller._pullFulfillCallback = undefined;
+  controller._pullRejectCallback = undefined;
 }
 
 // A client of ReadableStreamDefaultController may use these functions directly to bypass state check.
