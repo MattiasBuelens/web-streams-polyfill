@@ -892,7 +892,7 @@ function WritableStreamDefaultWriterRelease(writer: WritableStreamDefaultWriter)
   assert(stream !== undefined);
   assert(stream._writer === writer);
 
-  const releasedError = new TypeError(`Writer was released and can no longer be used to monitor the stream's closedness`);
+  const releasedError = writerReleasedException();
 
   WritableStreamDefaultWriterEnsureReadyPromiseRejected(writer, releasedError);
 
@@ -1348,6 +1348,10 @@ function defaultWriterBrandCheckException(name: string): TypeError {
 
 function writerLockException(name: string): TypeError {
   return new TypeError('Cannot ' + name + ' a stream using a released writer');
+}
+
+function writerReleasedException(): TypeError {
+  return new TypeError(`Writer was released`);
 }
 
 function writerClosedPromiseInitialize(writer: WritableStreamDefaultWriter) {
