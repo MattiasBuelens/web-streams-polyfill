@@ -297,6 +297,8 @@ export class TransformStreamDefaultController<O> {
   /** @internal */
   _transformAlgorithm: (chunk: any) => Promise<void>;
   /** @internal */
+  _transformRejectCallback: ((r: any) => never) | undefined;
+  /** @internal */
   _flushAlgorithm: () => Promise<void>;
   /** @internal */
   _cancelAlgorithm: (reason: any) => Promise<void>;
@@ -400,6 +402,7 @@ function SetUpTransformStreamDefaultController<I, O>(
   controller._transformAlgorithm = transformAlgorithm;
   controller._flushAlgorithm = flushAlgorithm;
   controller._cancelAlgorithm = cancelAlgorithm;
+  controller._transformRejectCallback = undefined;
 
   controller._finishPromise = undefined;
   controller._finishPromise_resolve = undefined;
@@ -485,10 +488,14 @@ function TransformStreamDefaultControllerPerformTransform<I, O>(
   chunk: I
 ) {
   const transformPromise = controller._transformAlgorithm(chunk);
-  return transformPromiseWith(transformPromise, undefined, (r) => {
-    TransformStreamError(controller._controlledTransformStream, r);
-    throw r;
-  });
+  if (controller._transformRejectCallback === undefined) {
+    // Optimization: create transform() promise callbacks on first use, and re-use for all subsequent calls.
+    controller._transformRejectCallback = (r) => {
+      TransformStreamError(controller._controlledTransformStream, r);
+      throw r;
+    };
+  }
+  return transformPromiseWith(transformPromise, undefined, controller._transformRejectCallback!);
 }
 
 function TransformStreamDefaultControllerTerminate<O>(controller: TransformStreamDefaultController<O>) {
