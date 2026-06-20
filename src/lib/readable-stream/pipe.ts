@@ -16,7 +16,8 @@ import {
   WritableStreamDefaultWriter,
   WritableStreamDefaultWriterCloseWithErrorPropagation,
   WritableStreamDefaultWriterRelease,
-  WritableStreamDefaultWriterWrite
+  WritableStreamDefaultWriterWrite,
+  writerClosedPromise
 } from '../writable-stream';
 import assert, { unexpected } from '../../stub/assert';
 import {
@@ -145,7 +146,7 @@ export function ReadableStreamPipeTo<T>(
     });
 
     // Errors must be propagated backward
-    isOrBecomesErrored(dest, writer._closedPromise, (storedError) => {
+    isOrBecomesErrored(dest, writerClosedPromise(writer), (storedError) => {
       if (!preventCancel) {
         shutdownWithAction(() => ReadableStreamCancel(source, storedError), true, storedError);
       } else {
