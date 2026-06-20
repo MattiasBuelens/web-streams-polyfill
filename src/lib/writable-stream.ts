@@ -612,6 +612,8 @@ export class WritableStreamDefaultWriter<W = any> {
   _readyPromise_resolve?: (value?: undefined) => void;
   /** @internal */
   _readyPromise_reject?: (reason: any) => void;
+  /** @internal */
+  _releasedError?: TypeError;
 
   constructor(stream: WritableStream<W>) {
     assertRequiredArgument(stream, 1, 'WritableStreamDefaultWriter');
@@ -626,6 +628,8 @@ export class WritableStreamDefaultWriter<W = any> {
 
     writerReadyPromiseReset(this);
     writerClosedPromiseReset(this);
+
+    this._releasedError = undefined;
   }
 
   /**
@@ -871,6 +875,7 @@ function WritableStreamDefaultWriterRelease(writer: WritableStreamDefaultWriter)
   assert(stream._writer === writer);
 
   const releasedError = writerReleasedException();
+  writer._releasedError = releasedError;
 
   WritableStreamDefaultWriterEnsureReadyPromiseRejected(writer, releasedError);
 
@@ -1339,7 +1344,8 @@ export function writerClosedPromise(writer: WritableStreamDefaultWriter<any>): P
     const stream = writer._ownerWritableStream;
     if (stream === undefined) {
       // Writer has been released.
-      writer._closedPromise = promiseRejectedWith(writerReleasedException());
+      assert(writer._releasedError !== undefined);
+      writer._closedPromise = promiseRejectedWith(writer._releasedError);
       setPromiseIsHandledToTrue(writer._closedPromise);
     } else {
       switch (stream._state) {
@@ -1403,7 +1409,8 @@ export function writerReadyPromise(writer: WritableStreamDefaultWriter<any>): Pr
     const stream = writer._ownerWritableStream;
     if (stream === undefined) {
       // Writer has been released.
-      writer._readyPromise = promiseRejectedWith(writerReleasedException());
+      assert(writer._releasedError !== undefined);
+      writer._readyPromise = promiseRejectedWith(writer._releasedError);
       setPromiseIsHandledToTrue(writer._readyPromise);
     } else {
       switch (stream._state) {
