@@ -153,7 +153,7 @@ Thanks to these people for their work on [the original polyfill][creatorrr-polyf
 [abortcontroller-polyfill]: https://www.npmjs.com/package/abortcontroller-polyfill
 [mdn-byob-read]: https://developer.mozilla.org/en-US/docs/Web/API/ReadableStreamBYOBReader/read
 [spec-snapshot]: https://streams.spec.whatwg.org/commit-snapshots/080852ccd709e063cc6af239ae07fc040e365179/
-[wpt]: https://github.com/web-platform-tests/wpt/tree/186a9fd7abc3d9c31e2b37680be757e992af9e3a/streams
-[wpt-async-iterator-prototype]: https://github.com/web-platform-tests/wpt/blob/186a9fd7abc3d9c31e2b37680be757e992af9e3a/streams/readable-streams/async-iterator.any.js#L24
+[wpt]: https://github.com/web-platform-tests/wpt/tree/c05b447326585237713013c66341eab2cdf967b6/streams
+[wpt-async-iterator-prototype]: https://github.com/web-platform-tests/wpt/blob/c05b447326585237713013c66341eab2cdf967b6/streams/readable-streams/async-iterator.any.js#L24
 [stub-async-iterator-prototype]: https://github.com/MattiasBuelens/web-streams-polyfill/blob/v4.0.0/src/lib/readable-stream/async-iterator.ts#L143-L147
 [creatorrr-polyfill]: https://github.com/creatorrr/web-streams-polyfill
