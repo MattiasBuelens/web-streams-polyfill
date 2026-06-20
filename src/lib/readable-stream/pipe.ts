@@ -17,7 +17,8 @@ import {
   WritableStreamDefaultWriterCloseWithErrorPropagation,
   WritableStreamDefaultWriterRelease,
   WritableStreamDefaultWriterWrite,
-  writerClosedPromise
+  writerClosedPromise,
+  writerReadyPromise
 } from '../writable-stream';
 import assert, { unexpected } from '../../stub/assert';
 import {
@@ -128,7 +129,7 @@ export function ReadableStreamPipeTo<T>(
         return promiseResolvedWith(true);
       }
       if (dest._backpressure) {
-        return PerformPromiseThen(writer._readyPromise, pipeStep);
+        return PerformPromiseThen(writerReadyPromise(writer), pipeStep);
       }
       const request = new PipeReadRequest(state);
       ReadableStreamDefaultReaderRead(reader, request);
