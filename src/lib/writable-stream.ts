@@ -607,8 +607,6 @@ export class WritableStreamDefaultWriter<W = any> {
   /** @internal */
   _closedPromise_reject?: (reason: any) => void;
   /** @internal */
-  _closedPromiseState!: 'pending' | 'resolved' | 'rejected';
-  /** @internal */
   _readyPromise!: Promise<undefined>;
   /** @internal */
   _readyPromise_resolve?: (value?: undefined) => void;
@@ -854,7 +852,7 @@ function WritableStreamDefaultWriterCloseWithErrorPropagation(writer: WritableSt
 }
 
 function WritableStreamDefaultWriterEnsureClosedPromiseRejected(writer: WritableStreamDefaultWriter, error: any) {
-  if (writer._closedPromise !== undefined && writer._closedPromiseState === 'pending') {
+  if (writer._closedPromise !== undefined && writer._closedPromise_reject !== undefined) {
     writerClosedPromiseReject(writer, error);
   } else {
     // Reset the promise. writerClosedPromise will (re-)create the rejected promise on the next access.
@@ -1361,7 +1359,6 @@ export function writerClosedPromise(writer: WritableStreamDefaultWriter<any>): P
       // Writer has been released.
       writer._closedPromise = promiseRejectedWith(writerReleasedException());
       setPromiseIsHandledToTrue(writer._closedPromise);
-      writer._closedPromiseState = 'rejected';
     } else {
       switch (stream._state) {
         case 'writable':
@@ -1370,16 +1367,13 @@ export function writerClosedPromise(writer: WritableStreamDefaultWriter<any>): P
             writer._closedPromise_resolve = resolve;
             writer._closedPromise_reject = reject;
           });
-          writer._closedPromiseState = 'pending';
           break;
         case 'closed':
           writer._closedPromise = promiseResolve(undefined);
-          writer._closedPromiseState = 'resolved';
           break;
         case 'errored':
           writer._closedPromise = promiseRejectedWith(stream._storedError);
           setPromiseIsHandledToTrue(writer._closedPromise);
-          writer._closedPromiseState = 'rejected';
           break;
       }
     }
@@ -1394,20 +1388,17 @@ function writerClosedPromiseReject(writer: WritableStreamDefaultWriter, reason: 
     return;
   }
   assert(writer._closedPromise !== undefined);
-  assert(writer._closedPromiseState === 'pending');
 
   setPromiseIsHandledToTrue(writer._closedPromise);
   writer._closedPromise_reject(reason);
   writer._closedPromise_resolve = undefined;
   writer._closedPromise_reject = undefined;
-  writer._closedPromiseState = 'rejected';
 }
 
 function writerClosedPromiseReset(writer: WritableStreamDefaultWriter) {
   writer._closedPromise = undefined;
   writer._closedPromise_resolve = undefined;
   writer._closedPromise_reject = undefined;
-  writer._closedPromiseState = 'pending';
 }
 
 function writerClosedPromiseResolve(writer: WritableStreamDefaultWriter) {
@@ -1417,12 +1408,10 @@ function writerClosedPromiseResolve(writer: WritableStreamDefaultWriter) {
     return;
   }
   assert(writer._closedPromise !== undefined);
-  assert(writer._closedPromiseState === 'pending');
 
   writer._closedPromise_resolve(undefined);
   writer._closedPromise_resolve = undefined;
   writer._closedPromise_reject = undefined;
-  writer._closedPromiseState = 'resolved';
 }
 
 function writerReadyPromiseInitialize(writer: WritableStreamDefaultWriter) {
