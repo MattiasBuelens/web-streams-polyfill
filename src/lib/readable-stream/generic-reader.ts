@@ -33,7 +33,7 @@ export function ReadableStreamReaderGenericRelease(reader: ReadableStreamReader<
       // Do nothing. readerClosedPromise will create the rejected promise on first access.
     }
   } else {
-    // Reset the promise. readerClosedPromise will re-create the rejected promise on the next access.
+    // Reset the promise. readerClosedPromise will (re-)create the rejected promise on the next access.
     readerClosedPromiseReset(reader);
   }
 
