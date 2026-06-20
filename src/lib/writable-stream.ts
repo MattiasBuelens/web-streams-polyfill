@@ -1158,6 +1158,8 @@ function WritableStreamDefaultControllerClearAlgorithms(controller: WritableStre
   controller._closeAlgorithm = undefined!;
   controller._abortAlgorithm = undefined!;
   controller._strategySizeAlgorithm = undefined!;
+  controller._writeFulfillCallback = undefined;
+  controller._writeRejectCallback = undefined;
 }
 
 function WritableStreamDefaultControllerClose<W>(controller: WritableStreamDefaultController<W>) {
