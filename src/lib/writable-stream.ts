@@ -607,7 +607,7 @@ export class WritableStreamDefaultWriter<W = any> {
   /** @internal */
   _closedPromise_reject?: (reason: any) => void;
   /** @internal */
-  _readyPromise!: Promise<undefined>;
+  _readyPromise?: Promise<undefined>;
   /** @internal */
   _readyPromise_resolve?: (value?: undefined) => void;
   /** @internal */
@@ -626,25 +626,8 @@ export class WritableStreamDefaultWriter<W = any> {
     this._ownerWritableStream = stream;
     stream._writer = this;
 
-    const state = stream._state;
-
+    writerReadyPromiseReset(this);
     writerClosedPromiseReset(this);
-    if (state === 'writable') {
-      if (!WritableStreamCloseQueuedOrInFlight(stream) && stream._backpressure) {
-        writerReadyPromiseInitialize(this);
-      } else {
-        writerReadyPromiseInitializeAsResolved(this);
-      }
-    } else if (state === 'erroring') {
-      writerReadyPromiseInitializeAsRejected(this, stream._storedError);
-    } else if (state === 'closed') {
-      writerReadyPromiseInitializeAsResolved(this);
-    } else {
-      assert(state === 'errored');
-
-      const storedError = stream._storedError;
-      writerReadyPromiseInitializeAsRejected(this, storedError);
-    }
   }
 
   /**
@@ -692,7 +675,7 @@ export class WritableStreamDefaultWriter<W = any> {
       return promiseRejectedWith(defaultWriterBrandCheckException('ready'));
     }
 
-    return this._readyPromise;
+    return writerReadyPromise(this);
   }
 
   /**
@@ -861,10 +844,11 @@ function WritableStreamDefaultWriterEnsureClosedPromiseRejected(writer: Writable
 }
 
 function WritableStreamDefaultWriterEnsureReadyPromiseRejected(writer: WritableStreamDefaultWriter, error: any) {
-  if (writer._readyPromiseState === 'pending') {
+  if (writer._readyPromise !== undefined && writer._readyPromiseState === 'pending') {
     writerReadyPromiseReject(writer, error);
   } else {
-    writerReadyPromiseResetToRejected(writer, error);
+    // Reset the promise. writerReadyPromise will (re-)create the rejected promise on the next access.
+    writerReadyPromiseReset(writer);
   }
 }
 
@@ -1414,28 +1398,53 @@ function writerClosedPromiseResolve(writer: WritableStreamDefaultWriter) {
   writer._closedPromise_reject = undefined;
 }
 
-function writerReadyPromiseInitialize(writer: WritableStreamDefaultWriter) {
-  writer._readyPromise = newPromise((resolve, reject) => {
-    writer._readyPromise_resolve = resolve;
-    writer._readyPromise_reject = reject;
-  });
-  writer._readyPromiseState = 'pending';
-}
-
-function writerReadyPromiseInitializeAsRejected(writer: WritableStreamDefaultWriter, reason: any) {
-  writerReadyPromiseInitialize(writer);
-  writerReadyPromiseReject(writer, reason);
-}
-
-function writerReadyPromiseInitializeAsResolved(writer: WritableStreamDefaultWriter) {
-  writerReadyPromiseInitialize(writer);
-  writerReadyPromiseResolve(writer);
+export function writerReadyPromise(writer: WritableStreamDefaultWriter<any>): Promise<undefined> {
+  if (writer._readyPromise === undefined) {
+    assert(writer._readyPromise_resolve === undefined);
+    assert(writer._readyPromise_reject === undefined);
+    const stream = writer._ownerWritableStream;
+    if (stream === undefined) {
+      // Writer has been released.
+      writer._readyPromise = promiseRejectedWith(writerReleasedException());
+      setPromiseIsHandledToTrue(writer._readyPromise);
+      writer._readyPromiseState = 'rejected';
+    } else {
+      switch (stream._state) {
+        case 'writable':
+          if (!WritableStreamCloseQueuedOrInFlight(stream) && stream._backpressure) {
+            writer._readyPromise = newPromise((resolve, reject) => {
+              writer._readyPromise_resolve = resolve;
+              writer._readyPromise_reject = reject;
+            });
+            writer._readyPromiseState = 'pending';
+          } else {
+            writer._readyPromise = promiseResolve(undefined);
+            writer._readyPromiseState = 'fulfilled';
+          }
+          break;
+        case 'closed':
+          writer._readyPromise = promiseResolve(undefined);
+          writer._readyPromiseState = 'fulfilled';
+          break;
+        case 'erroring':
+        case 'errored':
+          writer._readyPromise = promiseRejectedWith(stream._storedError);
+          setPromiseIsHandledToTrue(writer._readyPromise);
+          writer._readyPromiseState = 'rejected';
+          break;
+      }
+    }
+  }
+  return writer._readyPromise;
 }
 
 function writerReadyPromiseReject(writer: WritableStreamDefaultWriter, reason: any) {
   if (writer._readyPromise_reject === undefined) {
+    // If ready promise isn't created yet, skip. writerReadyPromise will set it to a rejected promise on first access.
+    // If already resolved/rejected, rejecting it again is a no-op.
     return;
   }
+  assert(writer._readyPromise !== undefined);
 
   setPromiseIsHandledToTrue(writer._readyPromise);
   writer._readyPromise_reject(reason);
@@ -1445,23 +1454,19 @@ function writerReadyPromiseReject(writer: WritableStreamDefaultWriter, reason: a
 }
 
 function writerReadyPromiseReset(writer: WritableStreamDefaultWriter) {
-  assert(writer._readyPromise_resolve === undefined);
-  assert(writer._readyPromise_reject === undefined);
-
-  writerReadyPromiseInitialize(writer);
-}
-
-function writerReadyPromiseResetToRejected(writer: WritableStreamDefaultWriter, reason: any) {
-  assert(writer._readyPromise_resolve === undefined);
-  assert(writer._readyPromise_reject === undefined);
-
-  writerReadyPromiseInitializeAsRejected(writer, reason);
+  writer._readyPromise = undefined;
+  writer._readyPromise_resolve = undefined;
+  writer._readyPromise_reject = undefined;
+  writer._readyPromiseState = 'pending';
 }
 
 function writerReadyPromiseResolve(writer: WritableStreamDefaultWriter) {
   if (writer._readyPromise_resolve === undefined) {
+    // If ready promise isn't created yet, skip. writerReadyPromise will set it to a resolved promise on first access.
+    // If already resolved/rejected, resolving it again is a no-op.
     return;
   }
+  assert(writer._readyPromise !== undefined);
 
   writer._readyPromise_resolve(undefined);
   writer._readyPromise_resolve = undefined;

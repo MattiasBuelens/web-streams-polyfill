@@ -17,7 +17,8 @@ import {
   WritableStreamDefaultWriterCloseWithErrorPropagation,
   WritableStreamDefaultWriterRelease,
   WritableStreamDefaultWriterWrite,
-  writerClosedPromise
+  writerClosedPromise,
+  writerReadyPromise
 } from '../writable-stream';
 import assert, { unexpected } from '../../stub/assert';
 import {
@@ -130,7 +131,7 @@ export function ReadableStreamPipeTo<T>(
       if (dest._backpressure) {
         // Resume through pipeLoop instead of recursively adopting the next step's promise.
         // Otherwise, repeated backpressure retains a promise chain until the pipe finishes.
-        return PerformPromiseThen(writer._readyPromise, () => false);
+        return PerformPromiseThen(writerReadyPromise(writer), () => false);
       }
       const request = new PipeReadRequest(state);
       ReadableStreamDefaultReaderRead(reader, request);
