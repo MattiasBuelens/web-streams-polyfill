@@ -41,8 +41,8 @@ export function PerformPromiseThen<T, TResult1 = T, TResult2 = never>(
 // http://bluebirdjs.com/docs/warning-explanations.html#warning-a-promise-was-created-in-a-handler-but-was-not-returned-from-it
 export function uponPromise<T>(
   promise: Promise<T>,
-  onFulfilled?: (value: T) => null | PromiseLike<null>,
-  onRejected?: (reason: any) => null | PromiseLike<null>
+  onFulfilled: ((value: T) => null | PromiseLike<null>) | undefined,
+  onRejected: (reason: any) => null | PromiseLike<null>
 ): void {
   PerformPromiseThen(
     PerformPromiseThen(promise, onFulfilled, onRejected),
@@ -52,7 +52,7 @@ export function uponPromise<T>(
 }
 
 export function uponFulfillment<T>(promise: Promise<T>, onFulfilled: (value: T) => null | PromiseLike<null>): void {
-  uponPromise(promise, onFulfilled);
+  uponPromise(promise, onFulfilled, rethrowAssertionErrorRejection);
 }
 
 export function uponRejection(promise: Promise<unknown>, onRejected: (reason: any) => null | PromiseLike<null>): void {

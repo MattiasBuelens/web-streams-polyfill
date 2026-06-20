@@ -1,11 +1,10 @@
-import { noop } from '../../utils';
 import { AssertionError } from '../../stub/assert';
 
 export function typeIsObject(x: any): x is object {
   return (typeof x === 'object' && x !== null) || typeof x === 'function';
 }
 
-export const rethrowAssertionErrorRejection: (e: any) => void
+export const rethrowAssertionErrorRejection: (e: any) => null
   = DEBUG
     ? (e) => {
         // Used throughout the reference implementation, as `.catch(rethrowAssertionErrorRejection)`, to ensure any errors
@@ -16,8 +15,9 @@ export const rethrowAssertionErrorRejection: (e: any) => void
             throw e;
           }, 0);
         }
+        return null;
       }
-    : noop;
+    : () => null;
 
 export function setFunctionName(fn: (...args: any[]) => any, name: string): void {
   try {
