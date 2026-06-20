@@ -950,6 +950,10 @@ export class WritableStreamDefaultController<W = any> {
   /** @internal */
   _writeAlgorithm!: (chunk: W) => Promise<void>;
   /** @internal */
+  _writeFulfillCallback: (() => null) | undefined;
+  /** @internal */
+  _writeRejectCallback: ((e: any) => null) | undefined;
+  /** @internal */
   _closeAlgorithm!: () => Promise<void>;
   /** @internal */
   _abortAlgorithm!: (reason: any) => Promise<void>;
@@ -1079,6 +1083,8 @@ function SetUpWritableStreamDefaultController<W>(
   controller._writeAlgorithm = writeAlgorithm;
   controller._closeAlgorithm = closeAlgorithm;
   controller._abortAlgorithm = abortAlgorithm;
+  controller._writeFulfillCallback = undefined;
+  controller._writeRejectCallback = undefined;
 
   const backpressure = WritableStreamDefaultControllerGetBackpressure(controller);
   WritableStreamUpdateBackpressure(stream, backpressure);
@@ -1268,9 +1274,9 @@ function WritableStreamDefaultControllerProcessWrite<W>(controller: WritableStre
   WritableStreamMarkFirstWriteRequestInFlight(stream);
 
   const sinkWritePromise = controller._writeAlgorithm(chunk);
-  uponPromise(
-    sinkWritePromise,
-    () => {
+  if (controller._writeFulfillCallback === undefined) {
+    // Optimization: create write() promise callbacks on first use, and re-use for all subsequent calls.
+    controller._writeFulfillCallback = () => {
       WritableStreamFinishInFlightWrite(stream);
 
       const state = stream._state;
@@ -1285,14 +1291,20 @@ function WritableStreamDefaultControllerProcessWrite<W>(controller: WritableStre
 
       WritableStreamDefaultControllerAdvanceQueueIfNeeded(controller);
       return null;
-    },
-    (reason) => {
+    };
+    controller._writeRejectCallback = (reason) => {
       if (stream._state === 'writable') {
         WritableStreamDefaultControllerClearAlgorithms(controller);
       }
       WritableStreamFinishInFlightWriteWithError(stream, reason);
       return null;
-    }
+    };
+  }
+
+  uponPromise(
+    sinkWritePromise,
+    controller._writeFulfillCallback!,
+    controller._writeRejectCallback!
   );
 }
 
