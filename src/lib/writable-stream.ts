@@ -530,7 +530,6 @@ function WritableStreamFinishInFlightCloseWithError(stream: WritableStream, erro
   WritableStreamDealWithRejection(stream, error);
 }
 
-// TODO(ricea): Fix alphabetical order.
 function WritableStreamCloseQueuedOrInFlight(stream: WritableStream): boolean {
   if (stream._closeRequest === undefined && stream._inFlightCloseRequest === undefined) {
     return false;
