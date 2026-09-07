@@ -127,7 +127,9 @@ export function ReadableStreamPipeTo<T>(
         return promiseResolvedWith(true);
       }
       if (dest._backpressure) {
-        return PerformPromiseThen(writer._readyPromise, pipeStep);
+        // Resume through pipeLoop instead of recursively adopting the next step's promise.
+        // Otherwise, repeated backpressure retains a promise chain until the pipe finishes.
+        return PerformPromiseThen(writer._readyPromise, () => false);
       }
       const request = new PipeReadRequest(state);
       ReadableStreamDefaultReaderRead(reader, request);
