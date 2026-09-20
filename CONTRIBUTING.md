@@ -14,6 +14,34 @@
   - `npm run test:unit` runs a few unit tests in a Node environment, to verify that the polyfill also works without a browser environment.
   - `npm run test:bundlers` runs integration tests with popular bundlers, to verify that they can correctly resolve and bundle the polyfill.
 
+## Changelog
+
+Install [Changie v1.26.0](https://github.com/miniscruff/changie/releases/tag/v1.26.0)
+and make the `changie` executable available on your `PATH`.
+
+For a user-facing change, run `changie new` and select one of the changelog tags.
+Write the description as Markdown, including any pull request or issue links.
+For longer descriptions, use `changie new --editor` to open your editor.
+Continuation lines are indented automatically when rendered; nested bullets in
+the fragment body should start with `* `, without the outer bullet's indentation.
+Commit the generated YAML file in `.changes/unreleased/` with your change.
+
+To preview the changelog, including pending changes:
+
+```shell
+changie merge --include-unreleased "## Unreleased" --dry-run
+```
+
+`CHANGELOG.md` is generated when preparing a release. Add pending entries through
+fragments instead of editing it directly; the checked-in `Unreleased` section is
+only refreshed when the changelog is regenerated. To regenerate it locally, omit
+`--dry-run` from the command above.
+
+The header and tag legend live in `.changes/header.tpl.md`. Published release
+notes live in `.changes/v<version>.md`; `.changes/v4.3.0.md` contains the imported
+history through 4.3.0, preserving the original Markdown. Make any corrections to
+published notes in those files, then regenerate the changelog.
+
 ## Miscellaneous
 
 - Do not manually change any files within `test/web-platform-tests`, as they are part of a Git submodule.
