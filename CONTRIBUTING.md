@@ -42,6 +42,46 @@ notes live in `.changes/v<version>.md`; `.changes/v4.3.0.md` contains the import
 history through 4.3.0, preserving the original Markdown. Make any corrections to
 published notes in those files, then regenerate the changelog.
 
+## Preparing a release
+
+1. In GitHub Actions, select **Prepare release**, then **Run workflow**.
+1. Select the branch to release from (normally `master`) and a `major`, `minor`,
+   or `patch` bump.
+1. The workflow batches pending fragments, regenerates `CHANGELOG.md`, updates
+   `package.json` and `package-lock.json`, and opens a draft release pull request.
+   It requires at least one pending fragment and matching package/changelog versions.
+1. Review the notes and version, then mark the pull request **Ready for review**
+   to trigger the normal test workflow. After the checks pass, merge it.
+1. Create a GitHub Release for the new `v<version>` tag on the merged release
+   commit, using the notes in `.changes/v<version>.md`. The existing **Publish
+   release** workflow publishes the package to npm.
+
+Marking the draft ready for review as a maintainer triggers the configured
+`ready_for_review` event. If GitHub displays an **Approve workflows to run**
+banner on the bot-created PR, approve the runs as well.
+
+Release branches are named `release/v<version>` (for example, `release/v4.3.1`).
+Rerunning preparation on the same base branch for the same version updates the
+same release PR. Selecting a different bump creates a separate release branch
+and PR; close the superseded PR if it is no longer needed. Preparation regenerates
+the notes from the base branch's fragments, so make lasting corrections there
+before rerunning. After updating an existing release PR, the workflow returns
+it to draft; mark it ready again to
+trigger CI for the new commit.
+
+To prepare the same changes locally, run these commands from a clean checkout
+with the matching package/changelog version, substituting the chosen bump:
+
+```shell
+changie batch patch --allow-no-changes=false
+changie merge --include-unreleased "## Unreleased"
+npm version <new-version> --no-git-tag-version --ignore-scripts --workspaces=false
+```
+
+Use the version printed by `changie latest` for `<new-version>`, and commit the
+changed release files together. These commands prepare files only; they do not
+create a tag or publish a package.
+
 ## Miscellaneous
 
 - Do not manually change any files within `test/web-platform-tests`, as they are part of a Git submodule.
