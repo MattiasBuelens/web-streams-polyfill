@@ -1,5 +1,9 @@
-name: Test on push
-on: [push]
+name: Test
+on:
+  push:
+    branches: [master]
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
 jobs:
   test-node:
     name: Node ${{ matrix.node-version }}
@@ -7,9 +11,10 @@ jobs:
     strategy:
       matrix:
         node-version: [22, 24, 26]
-    # Skip job if commit message contains "[skip ci]"
+    # Skip draft pull requests, and allow pushes to skip CI.
     if: |
-      !contains(github.event.head_commit.message, '[skip ci]')
+      (github.event_name != 'pull_request' || github.event.pull_request.draft != true) &&
+      (github.event_name != 'push' || !contains(github.event.head_commit.message, '[skip ci]'))
     steps:
       - name: Check out commit
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -39,7 +44,8 @@ jobs:
         browser: [chromium, firefox]
         node-version: [ 24 ]
     if: |
-      !contains(github.event.head_commit.message, '[skip ci]')
+      (github.event_name != 'pull_request' || github.event.pull_request.draft != true) &&
+      (github.event_name != 'push' || !contains(github.event.head_commit.message, '[skip ci]'))
     steps:
       - name: Check out commit
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -59,7 +65,8 @@ jobs:
     name: Benchmark on Node ${{ matrix.node-version }}
     runs-on: ubuntu-latest
     if: |
-      !contains(github.event.head_commit.message, '[skip ci]')
+      (github.event_name != 'pull_request' || github.event.pull_request.draft != true) &&
+      (github.event_name != 'push' || !contains(github.event.head_commit.message, '[skip ci]'))
     steps:
       - name: Check out commit
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
