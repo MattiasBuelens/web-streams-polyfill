@@ -1,8 +1,58 @@
 const { describe, it } = require('node:test');
 const assert = require('node:assert/strict');
+const { createHook } = require('node:async_hooks');
 const { ReadableStream, WritableStream } = require('web-streams-polyfill');
 
 describe('ReadableStream.pipeTo', () => {
+  it('does not retain a growing promise chain while waiting for backpressure', async () => {
+    const pendingPromises = new Set();
+    const samples = [];
+    const hook = createHook({
+      init(id, type) {
+        if (type === 'PROMISE') {
+          pendingPromises.add(id);
+        }
+      },
+      promiseResolve(id) {
+        pendingPromises.delete(id);
+      }
+    });
+    const count = 8192;
+    let enqueued = 0;
+    let written = 0;
+    const source = new ReadableStream({
+      pull(controller) {
+        if (enqueued++ < count) {
+          controller.enqueue('a');
+        } else {
+          controller.close();
+        }
+      }
+    });
+    const destination = new WritableStream({
+      write() {
+        if (++written % 1024 === 0) {
+          samples.push(pendingPromises.size);
+        }
+      }
+    });
+
+    hook.enable();
+    try {
+      await source.pipeTo(destination);
+    } finally {
+      hook.disable();
+    }
+
+    assert.equal(written, count);
+    assert.equal(source.locked, false);
+    assert.equal(destination.locked, false);
+    // Allow fixed bookkeeping overhead, but not growth proportional to chunks.
+    // Unlike heap measurements, this does not depend on garbage collection.
+    assert.ok(Math.max(...samples) <= samples[0] + 32,
+      `Pending promises grew during piping: ${samples.join(', ')}`);
+  });
+
   // https://github.com/nodejs/node/commit/199daab0b0822d6063a73b9362bfce8667d2a112
   describe('with prefilled buffer', () => {
     const n = 1e5;
