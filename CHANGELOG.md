@@ -10,6 +10,11 @@
 > - 🏠 Internal
 > - 💅 Polish
 
+## Unreleased
+
+* 🐛 Fix memory leak where internal promises kept piling up inside `ReadableStream.pipeTo()`
+  whenever the destination applies backpressure. ([#217](https://github.com/MattiasBuelens/web-streams-polyfill/pull/217))
+
 ## 4.3.0 (2026-05-15)
 
 * 🚀 Optimize reading from a `ReadableStream` with buffered chunks. ([#170](https://github.com/MattiasBuelens/web-streams-polyfill/pull/170))
