@@ -1,5 +1,6 @@
 changesDir: .changes
 unreleasedDir: unreleased
+fragmentFileFormat: '{{.Time.Format "20060102-150405"}}'
 headerPath: header.tpl.md
 changelogPath: CHANGELOG.md
 versionExt: md
