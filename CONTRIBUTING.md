@@ -26,6 +26,13 @@ Continuation lines are indented automatically when rendered; nested bullets in
 the fragment body should start with `* `, without the outer bullet's indentation.
 Commit the generated YAML file in `.changes/unreleased/` with your change.
 
+The **Changelog entry** PR check requires a newly added fragment; modifying an
+existing entry does not satisfy it. For changes that do not need release notes
+(such as documentation or development tooling), a maintainer can apply the
+`skip-changelog` label. Adding or removing the label reruns the check. Release
+PRs created by **Prepare release** are exempt because they consume fragments.
+The separate **Validate changelog fragments** check runs even for exempt PRs.
+
 To preview the changelog, including pending changes:
 
 ```shell
