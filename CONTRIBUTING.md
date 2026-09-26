@@ -16,78 +16,25 @@
 
 ## Changelog
 
-Install [Changie v1.26.0](https://github.com/miniscruff/changie/releases/tag/v1.26.0)
-and make the `changie` executable available on your `PATH`.
+We use [Changie](https://changie.dev/guide/quick_start/) to manage release notes.
+Install [v1.26.0](https://github.com/miniscruff/changie/releases/tag/v1.26.0), run
+`changie new`, and commit the generated file in `.changes/unreleased/` with your
+change. Write the entry as Markdown, including relevant PR or issue links.
+`CHANGELOG.md` is generated; add new entries through fragments.
 
-For a user-facing change, run `changie new` and select one of the changelog tags.
-Write the description as Markdown, including any pull request or issue links.
-For longer descriptions, use `changie new --editor` to open your editor.
-Continuation lines are indented automatically when rendered; nested bullets in
-the fragment body should start with `* `, without the outer bullet's indentation.
-Commit the generated YAML file in `.changes/unreleased/` with your change.
-
-The **Changelog entry** PR check requires a newly added fragment; modifying an
-existing entry does not satisfy it. For changes that do not need release notes
-(such as documentation or development tooling), a maintainer can apply the
-`skip-changelog` label. Adding or removing the label reruns the check. Release
-PRs created by **Prepare release** are exempt because they consume fragments.
-The separate **Validate changelog fragments** check runs even for exempt PRs.
-
-To preview the changelog, including pending changes:
-
-```shell
-changie merge --include-unreleased "## Unreleased" --dry-run
-```
-
-`CHANGELOG.md` is generated when preparing a release. Add pending entries through
-fragments instead of editing it directly; the checked-in `Unreleased` section is
-only refreshed when the changelog is regenerated. To regenerate it locally, omit
-`--dry-run` from the command above.
-
-The header and tag legend live in `.changes/header.tpl.md`. Published release
-notes live in `.changes/v<version>.md`; `.changes/v4.3.0.md` contains the imported
-history through 4.3.0, preserving the original Markdown. Make any corrections to
-published notes in those files, then regenerate the changelog.
+PRs must add a new fragment unless a maintainer applies `skip-changelog`.
+Generated release PRs are exempt. See the [Changie CLI docs](https://changie.dev/cli/changie_new/)
+for editing options and the [configuration reference](https://changie.dev/config/)
+for formatting details.
 
 ## Preparing a release
 
-1. In GitHub Actions, select **Prepare release**, then **Run workflow**.
-1. Select the branch to release from (normally `master`) and a `major`, `minor`,
-   or `patch` bump.
-1. The workflow batches pending fragments, regenerates `CHANGELOG.md`, updates
-   `package.json` and `package-lock.json`, and opens a draft release pull request.
-   It requires at least one pending fragment and matching package/changelog versions.
-1. Review the notes and version, then mark the pull request **Ready for review**
-   to trigger the normal test workflow. After the checks pass, merge it.
-1. Create a GitHub Release for the new `v<version>` tag on the merged release
-   commit, using the notes in `.changes/v<version>.md`. The existing **Publish
-   release** workflow publishes the package to npm.
-
-Marking the draft ready for review as a maintainer triggers the configured
-`ready_for_review` event. If GitHub displays an **Approve workflows to run**
-banner on the bot-created PR, approve the runs as well.
-
-Release branches are named `release/v<version>` (for example, `release/v4.3.1`).
-Rerunning preparation on the same base branch for the same version updates the
-same release PR. Selecting a different bump creates a separate release branch
-and PR; close the superseded PR if it is no longer needed. Preparation regenerates
-the notes from the base branch's fragments, so make lasting corrections there
-before rerunning. After updating an existing release PR, the workflow returns
-it to draft; mark it ready again to
-trigger CI for the new commit.
-
-To prepare the same changes locally, run these commands from a clean checkout
-with the matching package/changelog version, substituting the chosen bump:
-
-```shell
-changie batch patch --allow-no-changes=false
-changie merge --include-unreleased "## Unreleased"
-npm version <new-version> --no-git-tag-version --ignore-scripts --workspaces=false
-```
-
-Use the version printed by `changie latest` for `<new-version>`, and commit the
-changed release files together. These commands prepare files only; they do not
-create a tag or publish a package.
+1. In GitHub Actions, run **Prepare release** on the target branch (normally
+   `master`), choosing a `major`, `minor`, or `patch` bump.
+1. Review the generated draft PR, which updates the changelog and package
+   versions. Mark it **Ready for review**, wait for CI to pass, and merge it.
+1. Create a GitHub Release with a `v<version>` tag on the merged release commit,
+   using the notes in `.changes/v<version>.md`. This triggers publishing to npm.
 
 ## Miscellaneous
 
