@@ -1,0 +1,33 @@
+changesDir: .changes
+unreleasedDir: unreleased
+fragmentFileFormat: '{{.Time.Format "20060102-150405"}}'
+headerPath: header.tpl.md
+changelogPath: CHANGELOG.md
+versionExt: md
+versionFormat: '## {{.VersionNoPrefix}} ({{.Time.Format "2006-01-02"}})'
+kindFormat: ''
+changeFormat: '* {{.Kind}} {{.Body | trim | replace "\n" "\n  "}}'
+kinds:
+  - key: 💥
+    label: 💥 Breaking Change
+  - key: 👓
+    label: 👓 Spec Compliance
+  - key: 🚀
+    label: 🚀 New Feature
+  - key: 🐛
+    label: 🐛 Bug Fix
+  - key: 👎
+    label: 👎 Deprecation
+  - key: 📝
+    label: 📝 Documentation
+  - key: 🏠
+    label: 🏠 Internal
+  - key: 💅
+    label: 💅 Polish
+body:
+  block: true
+newlines:
+  afterChangelogHeader: 0
+  beforeChangelogVersion: 1
+  afterVersion: 1
+  endOfVersion: 1

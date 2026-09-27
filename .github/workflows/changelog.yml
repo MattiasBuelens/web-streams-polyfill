@@ -1,0 +1,65 @@
+name: Changelog
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review, labeled, unlabeled]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: changelog-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  entry:
+    name: Changelog entry
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require a new changelog fragment
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            if (pr.labels.some(label => label.name === 'skip-changelog')) {
+              core.info('Changelog entry waived by the skip-changelog label.');
+              return;
+            }
+
+            // Only exempt release PRs created by our preparation workflow.
+            const isRelease = pr.user.login === 'github-actions[bot]' &&
+              pr.head.repo?.full_name === pr.base.repo.full_name &&
+              /^release\/v\d+\.\d+\.\d+$/.test(pr.head.ref);
+            if (isRelease) {
+              core.info('Release preparation consumes existing changelog fragments.');
+              return;
+            }
+
+            const files = await github.paginate(github.rest.pulls.listFiles, {
+              ...context.repo,
+              pull_number: pr.number,
+              per_page: 100
+            });
+            const hasEntry = files.some(file => file.status === 'added' &&
+              /^\.changes\/unreleased\/[^/]+\.yaml$/.test(file.filename));
+            if (!hasEntry) {
+              core.setFailed('Add a new changelog fragment with `changie new` and commit ' +
+                'the generated .changes/unreleased/*.yaml file. For changes that do not ' +
+                'need release notes, ask a maintainer to apply the skip-changelog label.');
+            }
+
+  validate:
+    name: Validate changelog fragments
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # Validate even when the entry requirement is waived. Empty batches are
+      # allowed because release preparation removes the pending fragments.
+      - name: Validate fragments with Changie
+        uses: miniscruff/changie-action@3223cb29b92a0972dedc864ace3da01e04780ae4 # v3
+        with:
+          version: v1.26.0
+          args: batch major --dry-run
