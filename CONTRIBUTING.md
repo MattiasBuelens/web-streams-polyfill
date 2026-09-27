@@ -23,7 +23,7 @@ change. Write the entry as Markdown, including relevant PR or issue links.
 `CHANGELOG.md` is generated; add new entries through fragments.
 
 PRs must add a new fragment unless a maintainer applies `skip-changelog`.
-Generated release PRs are exempt. See the [Changie CLI docs](https://changie.dev/cli/changie_new/)
+Dependabot and generated release PRs are exempt. See the [Changie CLI docs](https://changie.dev/cli/changie_new/)
 for editing options and the [configuration reference](https://changie.dev/config/)
 for formatting details.
 

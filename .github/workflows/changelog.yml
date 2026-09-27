@@ -21,6 +21,11 @@ jobs:
         with:
           script: |
             const pr = context.payload.pull_request;
+            if (pr.user.login === 'dependabot[bot]') {
+              core.info('Dependabot dependency updates do not require a changelog entry.');
+              return;
+            }
+
             if (pr.labels.some(label => label.name === 'skip-changelog')) {
               core.info('Changelog entry waived by the skip-changelog label.');
               return;
