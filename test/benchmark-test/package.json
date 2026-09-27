@@ -11,6 +11,6 @@
   "devDependencies": {
     "bench-node": "^0.15.0",
     "web-streams-polyfill": "*",
-    "web-streams-polyfill-baseline": "npm:web-streams-polyfill@^4.2.0"
+    "web-streams-polyfill-baseline": "npm:web-streams-polyfill@^4.3.0"
   }
 }
