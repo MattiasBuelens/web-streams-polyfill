@@ -1,14 +1,8 @@
-import { prettyReport, Suite, textReport } from 'bench-node';
 import * as baseline from 'web-streams-polyfill-baseline';
 import * as polyfill from 'web-streams-polyfill';
 import * as node from 'node:stream/web';
 import * as assert from 'node:assert/strict';
-
-const { BENCH_REPORTER, BENCH_TTEST } = process.env;
-const suiteOptions = {
-  reporter: BENCH_REPORTER === 'text' ? textReport : prettyReport,
-  ttest: Boolean(BENCH_TTEST)
-};
+import { runComparison } from './runner.js';
 
 // https://github.com/nodejs/node/commit/199daab0b0822d6063a73b9362bfce8667d2a112
 function createBufferedStream(impl, n, bufferSize) {
@@ -82,24 +76,23 @@ async function pipe(impl, bufferSize, timer) {
   assert.equal(x, 'a');
 }
 
-const readLoopSuite = new Suite(suiteOptions);
-const pipeSuite = new Suite(suiteOptions);
+const implementations = { baseline, polyfill, node };
 const bufferSizes = [1, 10, 100, 1000];
-for (const [name, impl] of Object.entries({ baseline, polyfill, node })) {
-  for (const bufferSize of bufferSizes) {
-    const options = { baseline: name === 'baseline' && bufferSize === 1 };
-    readLoopSuite.add(
-      `read loop/${name}/bufferSize=${bufferSize}`,
-      options,
-      async timer => readLoop(impl, bufferSize, timer)
-    );
-    pipeSuite.add(
-      `pipe/${name}/bufferSize=${bufferSize}`,
-      options,
-      async timer => pipe(impl, bufferSize, timer)
-    );
-  }
-}
 
-await readLoopSuite.run();
-await pipeSuite.run();
+await runComparison({
+  title: 'Read loop',
+  implementations,
+  cases: bufferSizes.map(bufferSize => ({
+    name: `bufferSize=${bufferSize}`,
+    fn: (impl, timer) => readLoop(impl, bufferSize, timer)
+  }))
+});
+
+await runComparison({
+  title: 'Pipe',
+  implementations,
+  cases: bufferSizes.map(bufferSize => ({
+    name: `bufferSize=${bufferSize}`,
+    fn: (impl, timer) => pipe(impl, bufferSize, timer)
+  }))
+});
