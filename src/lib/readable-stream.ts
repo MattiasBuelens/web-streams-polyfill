@@ -338,6 +338,7 @@ export class ReadableStream<R = any> implements AsyncIterable<R> {
    * such as an array, an async generator, or a Node.js readable stream.
    */
   static from<R>(asyncIterable: Iterable<R> | AsyncIterable<R> | ReadableStreamLike<R>): ReadableStream<R> {
+    assertObject(asyncIterable, 'First parameter');
     return ReadableStreamFrom(asyncIterable);
   }
 }
