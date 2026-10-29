@@ -36,8 +36,6 @@ jobs:
   test-browser:
     name: ${{ matrix.browser }}
     runs-on: ubuntu-latest
-    container:
-      image: mcr.microsoft.com/playwright:v1.60.0-noble
     strategy:
       fail-fast: false
       matrix:
@@ -57,9 +55,8 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: npm
       - run: npm ci
+      - run: npx playwright install --with-deps ${{ matrix.browser }}
       - run: npm run test:wpt:${{ matrix.browser }}
-        env:
-          HOME: /root
 
   changes:
     name: Detect changes
