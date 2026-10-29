@@ -13,7 +13,8 @@ updates:
     cooldown:
       default-days: 7
     groups:
-      production-dependencies:
-        dependency-type: 'production'
       development-dependencies:
+        dependency-type: 'development'
+      development-security-updates:
+        applies-to: security-updates
         dependency-type: 'development'
