@@ -1,0 +1,3 @@
+kind: "\U0001F453"
+body: Reject strings and other non-object values in `ReadableStream.from()`, as the argument is now converted to an IDL `async_sequence`. ([whatwg/streams#1372](https://github.com/whatwg/streams/pull/1372))
+time: 2026-10-26T16:36:17.040584799Z

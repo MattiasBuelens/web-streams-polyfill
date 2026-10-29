@@ -8,6 +8,7 @@ export const excludedTestsBase = [
   // The crash tests require creating and terminating workers and iframes.
   'piping/crashtests/**',
   'readable-streams/cross-realm-crash.window.html',
+  'readable-byte-streams/crashtests/from-cross-realm*.html',
   'readable-streams/crashtests/**',
   // This test is blocked on an unresolved spec issue: https://github.com/whatwg/streams/issues/1243
   'piping/general-addition.any.html',
