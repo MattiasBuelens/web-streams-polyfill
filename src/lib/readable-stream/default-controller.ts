@@ -176,9 +176,17 @@ function IsReadableStreamDefaultController<R = any>(x: any): x is ReadableStream
   return x instanceof ReadableStreamDefaultController;
 }
 
+// Pull algorithm for an underlying source without pull(). Calling it has no observable effect.
+const noPullAlgorithm = (): Promise<void> => promiseResolvedWith(undefined);
+
 function ReadableStreamDefaultControllerCallPullIfNeeded(controller: ReadableStreamDefaultController<any>): void {
   const shouldPull = ReadableStreamDefaultControllerShouldCallPull(controller);
   if (!shouldPull) {
+    return;
+  }
+
+  if (controller._pullAlgorithm === noPullAlgorithm) {
+    // Optimization: skip the pull cycle, it only does internal bookkeeping.
     return;
   }
 
@@ -390,6 +398,13 @@ export function SetUpReadableStreamDefaultController<R>(
     return null;
   };
 
+  if (startResult === undefined && pullAlgorithm === noPullAlgorithm) {
+    // Optimization: without pull(), the started flag only gates the (skipped) pull cycle,
+    // so nothing observable is waiting for the start steps.
+    controller._started = true;
+    return;
+  }
+
   if (!typeIsObject(startResult)) {
     // Non-thenable start result: skip fulfilling a promise.
     queueMicrotask(startFulfillSteps);
@@ -426,7 +441,7 @@ export function SetUpReadableStreamDefaultControllerFromUnderlyingSource<R>(
   if (underlyingSource.pull !== undefined) {
     pullAlgorithm = () => underlyingSource.pull!(controller);
   } else {
-    pullAlgorithm = () => promiseResolvedWith(undefined);
+    pullAlgorithm = noPullAlgorithm;
   }
   if (underlyingSource.cancel !== undefined) {
     cancelAlgorithm = reason => underlyingSource.cancel!(reason);
