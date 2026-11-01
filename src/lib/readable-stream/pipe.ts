@@ -2,6 +2,7 @@ import { IsReadableStream, IsReadableStreamLocked, ReadableStream, ReadableStrea
 import {
   AcquireReadableStreamDefaultReader,
   ReadableStreamDefaultReaderCanReadSync,
+  ReadableStreamDefaultReader,
   ReadableStreamDefaultReaderRead,
   type ReadRequest
 } from './default-reader';
@@ -57,240 +58,75 @@ export function ReadableStreamPipeTo<T>(
 
   source._disturbed = true;
 
-  const state = new PipeState<T>(writer);
-  const syncReadRequest = new SyncPipeReadRequest<T>(state);
-
   return newPromise((resolve, reject) => {
-    let abortAlgorithm: () => void;
-    if (signal !== undefined) {
-      abortAlgorithm = () => {
-        const error = signal.reason !== undefined ? signal.reason : new DOMException('Aborted', 'AbortError');
-        const actions: Array<() => Promise<void>> = [];
-        if (!preventAbort) {
-          actions.push(() => {
-            if (dest._state === 'writable') {
-              return WritableStreamAbort(dest, error);
-            }
-            return promiseResolvedWith(undefined);
-          });
-        }
-        if (!preventCancel) {
-          actions.push(() => {
-            if (source._state === 'readable') {
-              return ReadableStreamCancel(source, error);
-            }
-            return promiseResolvedWith(undefined);
-          });
-        }
-        shutdownWithAction(() => Promise.all(actions.map(action => action())), true, error);
-      };
-
-      if (signal.aborted) {
-        abortAlgorithm();
-        return;
-      }
-
-      signal.addEventListener('abort', abortAlgorithm);
-    }
-
-    // Using reader and writer, read all chunks from this and write them to dest
-    // - Backpressure must be enforced
-    // - Shutdown must stop all activity
-    function pipeLoop() {
-      return newPromise<void>((resolveLoop, rejectLoop) => {
-        function next(done: boolean) {
-          if (done) {
-            resolveLoop();
-          } else {
-            // Use `PerformPromiseThen` instead of `uponPromise` to avoid
-            // adding unnecessary `.catch(rethrowAssertionErrorRejection)` handlers
-            PerformPromiseThen(pipeStep(), next, rejectLoop);
-          }
-        }
-
-        next(false);
-      });
-    }
-
-    function pipeStep(): Promise<boolean> {
-      // Fast path: read available chunks synchronously in a single batch
-      while (
-        !state._shuttingDown
-        && !dest._backpressure
-        && dest._state === 'writable'
-        && !WritableStreamCloseQueuedOrInFlight(dest)
-        && source._state === 'readable'
-        && ReadableStreamDefaultReaderCanReadSync(reader)
-      ) {
-        ReadableStreamDefaultReaderRead(reader, syncReadRequest);
-      }
-
-      // Slow path: wait for chunk to become available
-      if (state._shuttingDown) {
-        return promiseResolvedWith(true);
-      }
-      if (dest._backpressure) {
-        // Resume through pipeLoop instead of recursively adopting the next step's promise.
-        // Otherwise, repeated backpressure retains a promise chain until the pipe finishes.
-        return PerformPromiseThen(writerReadyPromise(writer), () => false);
-      }
-      const request = new PipeReadRequest(state);
-      ReadableStreamDefaultReaderRead(reader, request);
-      return request._promise;
-    }
-
-    // Errors must be propagated forward
-    function sourceErrored(storedError: any) {
-      if (!preventAbort) {
-        shutdownWithAction(() => WritableStreamAbort(dest, storedError), true, storedError);
-      } else {
-        shutdown(true, storedError);
-      }
-    }
-
-    // Errors must be propagated backward
-    function destErrored(storedError: any) {
-      if (!preventCancel) {
-        shutdownWithAction(() => ReadableStreamCancel(source, storedError), true, storedError);
-      } else {
-        shutdown(true, storedError);
-      }
-    }
-
-    // Closing must be propagated forward
-    function sourceClosed() {
-      if (!preventClose) {
-        shutdownWithAction(() => WritableStreamDefaultWriterCloseWithErrorPropagation(writer));
-      } else {
-        shutdown();
-      }
-    }
-
-    if (source._state === 'errored') {
-      sourceErrored(source._storedError);
-    }
-    if (dest._state === 'errored') {
-      destErrored(dest._storedError);
-    }
-    if (source._state === 'closed') {
-      sourceClosed();
-    }
-
-    // Closing must be propagated backward
-    if (WritableStreamCloseQueuedOrInFlight(dest) || dest._state === 'closed') {
-      const destClosed = new TypeError('the destination writable stream closed before all data could be piped to it');
-
-      if (!preventCancel) {
-        shutdownWithAction(() => ReadableStreamCancel(source, destClosed), true, destClosed);
-      } else {
-        shutdown(true, destClosed);
-      }
-    }
-
-    if (!state._shuttingDown) {
-      watchForStateChanges();
-      setPromiseIsHandledToTrue(pipeLoop());
-    }
-
-    // Instead of reacting to the closed promises of the reader and the writer (which would need to be materialized
-    // and then rejected again on release), listen for state changes directly. The first change settles a single
-    // promise that the pipe reacts to, so the shutdown steps still run in the same microtask as a reaction on
-    // the closed promise would have, and in the async context of the pipeTo() call.
-    function watchForStateChanges() {
-      let stateChangeSteps: (() => void) | undefined;
-      let resolveStateChange!: () => void;
-      const stateChangePromise = newPromise<void>((resolveFn) => {
-        resolveStateChange = resolveFn;
-      });
-      uponFulfillment(stateChangePromise, () => {
-        stateChangeSteps!();
-        return null;
-      });
-
-      function onStateChange(steps: () => void) {
-        if (stateChangeSteps !== undefined) {
-          // Already notified. The shutdown steps of the first change win, as with separate promise reactions.
-          return;
-        }
-        stateChangeSteps = steps;
-        resolveStateChange();
-      }
-
-      if (source._state === 'readable') {
-        readerSetStateChangeListener(reader, () => {
-          if (source._state === 'errored') {
-            const storedError = source._storedError;
-            onStateChange(() => sourceErrored(storedError));
-          } else {
-            assert(source._state === 'closed');
-            onStateChange(sourceClosed);
-          }
-        });
-      }
-      if (dest._state === 'writable' || dest._state === 'erroring') {
-        writerSetStateChangeListener(writer, () => {
-          assert(dest._state === 'errored');
-          const storedError = dest._storedError;
-          onStateChange(() => destErrored(storedError));
-        });
-      }
-    }
-
-    function shutdownWithAction(action: () => Promise<unknown>, originalIsError?: boolean, originalError?: any) {
-      if (state._shuttingDown) {
-        return;
-      }
-      state._shuttingDown = true;
-
-      if (dest._state === 'writable' && !WritableStreamCloseQueuedOrInFlight(dest)) {
-        uponFulfillment(state._waitForWritesToFinish(), doTheRest);
-      } else {
-        doTheRest();
-      }
-
-      function doTheRest(): null {
-        uponPromise(
-          action(),
-          () => finalize(originalIsError, originalError),
-          newError => finalize(true, newError)
-        );
-        return null;
-      }
-    }
-
-    function shutdown(isError?: boolean, error?: any) {
-      if (state._shuttingDown) {
-        return;
-      }
-      state._shuttingDown = true;
-
-      if (dest._state === 'writable' && !WritableStreamCloseQueuedOrInFlight(dest)) {
-        uponFulfillment(state._waitForWritesToFinish(), () => finalize(isError, error));
-      } else {
-        finalize(isError, error);
-      }
-    }
-
-    function finalize(isError?: boolean, error?: any): null {
-      WritableStreamDefaultWriterRelease(writer);
-      ReadableStreamReaderGenericRelease(reader);
-
-      if (signal !== undefined) {
-        signal.removeEventListener('abort', abortAlgorithm);
-      }
-      if (isError) {
-        reject(error);
-      } else {
-        resolve(undefined);
-      }
-
-      return null;
-    }
+    const engine = new PipeEngine<T>(
+      source,
+      dest,
+      reader,
+      writer,
+      preventClose,
+      preventAbort,
+      preventCancel,
+      signal,
+      resolve,
+      reject
+    );
+    engine._start();
   });
 }
 
-class PipeState<T> {
+const enum StateChange {
+  None,
+  SourceErrored,
+  SourceClosed,
+  DestErrored
+}
+
+const resolvedPromise = promiseResolvedWith<void>(undefined);
+const resolvedTruePromise = promiseResolvedWith(true);
+const returnFalse = () => false;
+
+/**
+ * Holds all state of a single pipeTo() operation.
+ *
+ * The specification describes the pipe with many promises and closures. To keep allocations down,
+ * the engine keeps that state in fields, and acts as its own read request and write tracker.
+ * Callbacks that are needed for every chunk are created once per pipe.
+ * Every promise reaction is still registered at the same time (and thus in the same async context)
+ * as in the specification, so the pipe runs on exactly the same microtask ticks.
+ */
+class PipeEngine<T> implements ReadRequest<T> {
+  readonly _source: ReadableStream<T>;
+  readonly _dest: WritableStream<T>;
+  readonly _reader: ReadableStreamDefaultReader<T>;
+  readonly _writer: WritableStreamDefaultWriter<T>;
+  readonly _preventClose: boolean;
+  readonly _preventAbort: boolean;
+  readonly _preventCancel: boolean;
+  readonly _signal: AbortSignal | undefined;
+  _abortAlgorithm: (() => void) | undefined = undefined;
+  readonly _resolve: (value: undefined) => void;
+  readonly _reject: (reason: any) => void;
+
   _shuttingDown = false;
+  // The action to perform while shutting down, and the error to shut down with (if any).
+  _shutdownAction: ((this: PipeEngine<T>) => Promise<unknown>) | undefined = undefined;
+  _shutdownIsError = false;
+  _shutdownError: any = undefined;
+
+  // The pipe loop.
+  _resolveLoop!: () => void;
+  _rejectLoop!: (reason: any) => void;
+  readonly _next: (done: boolean) => void;
+  // The pending read of the current pipe step, if any.
+  _resolveStep: ((done: boolean) => void) | undefined = undefined;
+  _rejectStep: ((reason: any) => void) | undefined = undefined;
+  readonly _stepExecutor: (resolve: (done: boolean) => void, reject: (reason: any) => void) => void;
+
+  // The first state change of the source or the destination.
+  _stateChange = StateChange.None;
+  _stateChangeError: any = undefined;
+  _resolveStateChange: (() => void) | undefined = undefined;
 
   // This is used to keep track of the spec's requirement that we wait for ongoing writes during shutdown.
   // In the specification, currentWrite is the last write's promise transformed with a no-op rejection handler,
@@ -307,7 +143,41 @@ class PipeState<T> {
   _resolveCurrentWrite: (() => void) | undefined = undefined;
   readonly _settleTick: () => null;
 
-  constructor(readonly _writer: WritableStreamDefaultWriter<T>) {
+  constructor(
+    source: ReadableStream<T>,
+    dest: WritableStream<T>,
+    reader: ReadableStreamDefaultReader<T>,
+    writer: WritableStreamDefaultWriter<T>,
+    preventClose: boolean,
+    preventAbort: boolean,
+    preventCancel: boolean,
+    signal: AbortSignal | undefined,
+    resolve: (value: undefined) => void,
+    reject: (reason: any) => void
+  ) {
+    this._source = source;
+    this._dest = dest;
+    this._reader = reader;
+    this._writer = writer;
+    this._preventClose = preventClose;
+    this._preventAbort = preventAbort;
+    this._preventCancel = preventCancel;
+    this._signal = signal;
+    this._resolve = resolve;
+    this._reject = reject;
+    this._next = (done) => {
+      if (done) {
+        this._resolveLoop();
+      } else {
+        // Use `PerformPromiseThen` instead of `uponPromise` to avoid
+        // adding unnecessary `.catch(rethrowAssertionErrorRejection)` handlers
+        PerformPromiseThen(this._pipeStep(), this._next, this._rejectLoop);
+      }
+    };
+    this._stepExecutor = (resolveStep, rejectStep) => {
+      this._resolveStep = resolveStep;
+      this._rejectStep = rejectStep;
+    };
     this._settleTick = () => {
       this._pendingSettleTicks--;
       if (this._pendingSettleTicks === 0 && this._lastWriteSettled) {
@@ -315,6 +185,294 @@ class PipeState<T> {
       }
       return null;
     };
+  }
+
+  _start(): void {
+    const source = this._source;
+    const dest = this._dest;
+    const signal = this._signal;
+
+    if (signal !== undefined) {
+      const abortAlgorithm = this._abortAlgorithm = () => this._abort();
+      if (signal.aborted) {
+        abortAlgorithm();
+        return;
+      }
+      signal.addEventListener('abort', abortAlgorithm);
+    }
+
+    if (source._state === 'errored') {
+      this._sourceErrored(source._storedError);
+    }
+    if (dest._state === 'errored') {
+      this._destErrored(dest._storedError);
+    }
+    if (source._state === 'closed') {
+      this._sourceClosed();
+    }
+
+    // Closing must be propagated backward
+    if (WritableStreamCloseQueuedOrInFlight(dest) || dest._state === 'closed') {
+      const destClosed = new TypeError('the destination writable stream closed before all data could be piped to it');
+
+      if (!this._preventCancel) {
+        this._shutdownWithAction(this._cancelSource, true, destClosed);
+      } else {
+        this._shutdown(true, destClosed);
+      }
+    }
+
+    if (!this._shuttingDown) {
+      this._watchForStateChanges();
+      setPromiseIsHandledToTrue(this._pipeLoop());
+    }
+  }
+
+  _abort(): void {
+    const signal = this._signal!;
+    const error = signal.reason !== undefined ? signal.reason : new DOMException('Aborted', 'AbortError');
+    this._shutdownWithAction(this._abortDestAndCancelSource, true, error);
+  }
+
+  // Using reader and writer, read all chunks from this and write them to dest
+  // - Backpressure must be enforced
+  // - Shutdown must stop all activity
+  _pipeLoop(): Promise<void> {
+    return newPromise<void>((resolveLoop, rejectLoop) => {
+      this._resolveLoop = resolveLoop;
+      this._rejectLoop = rejectLoop;
+      this._next(false);
+    });
+  }
+
+  _pipeStep(): Promise<boolean> {
+    const source = this._source;
+    const dest = this._dest;
+    const reader = this._reader;
+
+    // Fast path: read available chunks synchronously in a single batch
+    while (
+      !this._shuttingDown
+      && !dest._backpressure
+      && dest._state === 'writable'
+      && !WritableStreamCloseQueuedOrInFlight(dest)
+      && source._state === 'readable'
+      && ReadableStreamDefaultReaderCanReadSync(reader)
+    ) {
+      ReadableStreamDefaultReaderRead(reader, this);
+    }
+
+    // Slow path: wait for chunk to become available
+    if (this._shuttingDown) {
+      return resolvedTruePromise;
+    }
+    if (dest._backpressure) {
+      // Resume through pipeLoop instead of recursively adopting the next step's promise.
+      // Otherwise, repeated backpressure retains a promise chain until the pipe finishes.
+      return PerformPromiseThen(writerReadyPromise(this._writer), returnFalse);
+    }
+    const stepPromise = newPromise(this._stepExecutor);
+    ReadableStreamDefaultReaderRead(reader, this);
+    return stepPromise;
+  }
+
+  // The engine is the read request for every read of the pipe.
+  // A synchronous read (in the fast path of a pipe step) always has a chunk available,
+  // otherwise the pending read of the current pipe step is settled.
+  _chunkSteps(chunk: T): void {
+    this._write(chunk);
+    const resolveStep = this._resolveStep;
+    if (resolveStep !== undefined) {
+      this._resolveStep = undefined;
+      this._rejectStep = undefined;
+      resolveStep(false);
+    }
+  }
+
+  _closeSteps(): void {
+    const resolveStep = this._resolveStep!;
+    assert(resolveStep !== undefined);
+    this._resolveStep = undefined;
+    this._rejectStep = undefined;
+    resolveStep(true);
+  }
+
+  _errorSteps(e: any): void {
+    const rejectStep = this._rejectStep!;
+    assert(rejectStep !== undefined);
+    this._resolveStep = undefined;
+    this._rejectStep = undefined;
+    rejectStep(e);
+  }
+
+  // Instead of reacting to the closed promises of the reader and the writer (which would need to be materialized
+  // and then rejected again on release), listen for state changes directly. The first change settles a single
+  // promise that the pipe reacts to, so the shutdown steps still run in the same microtask as a reaction on
+  // the closed promise would have, and in the async context of the pipeTo() call.
+  _watchForStateChanges(): void {
+    const source = this._source;
+    const dest = this._dest;
+
+    const stateChangePromise = newPromise<void>((resolveFn) => {
+      this._resolveStateChange = resolveFn;
+    });
+    uponFulfillment(stateChangePromise, () => {
+      this._runStateChangeSteps();
+      return null;
+    });
+
+    if (source._state === 'readable') {
+      readerSetStateChangeListener(this._reader, () => {
+        if (source._state === 'errored') {
+          this._onStateChange(StateChange.SourceErrored, source._storedError);
+        } else {
+          assert(source._state === 'closed');
+          this._onStateChange(StateChange.SourceClosed, undefined);
+        }
+      });
+    }
+    if (dest._state === 'writable' || dest._state === 'erroring') {
+      writerSetStateChangeListener(this._writer, () => {
+        assert(dest._state === 'errored');
+        this._onStateChange(StateChange.DestErrored, dest._storedError);
+      });
+    }
+  }
+
+  _onStateChange(stateChange: StateChange, storedError: any): void {
+    if (this._stateChange !== StateChange.None) {
+      // Already notified. The shutdown steps of the first change win, as with separate promise reactions.
+      return;
+    }
+    this._stateChange = stateChange;
+    this._stateChangeError = storedError;
+    this._resolveStateChange!();
+  }
+
+  _runStateChangeSteps(): void {
+    switch (this._stateChange) {
+      case StateChange.SourceErrored:
+        this._sourceErrored(this._stateChangeError);
+        break;
+      case StateChange.SourceClosed:
+        this._sourceClosed();
+        break;
+      case StateChange.DestErrored:
+        this._destErrored(this._stateChangeError);
+        break;
+      default:
+        unexpected();
+    }
+  }
+
+  // Errors must be propagated forward
+  _sourceErrored(storedError: any): void {
+    if (!this._preventAbort) {
+      this._shutdownWithAction(this._abortDest, true, storedError);
+    } else {
+      this._shutdown(true, storedError);
+    }
+  }
+
+  // Errors must be propagated backward
+  _destErrored(storedError: any): void {
+    if (!this._preventCancel) {
+      this._shutdownWithAction(this._cancelSource, true, storedError);
+    } else {
+      this._shutdown(true, storedError);
+    }
+  }
+
+  // Closing must be propagated forward
+  _sourceClosed(): void {
+    if (!this._preventClose) {
+      this._shutdownWithAction(this._closeDest, false, undefined);
+    } else {
+      this._shutdown(false, undefined);
+    }
+  }
+
+  // Shutdown actions. The error (if any) is the shutdown error.
+  _abortDest(): Promise<unknown> {
+    return WritableStreamAbort(this._dest, this._shutdownError);
+  }
+
+  _cancelSource(): Promise<unknown> {
+    return ReadableStreamCancel(this._source, this._shutdownError);
+  }
+
+  _closeDest(): Promise<unknown> {
+    return WritableStreamDefaultWriterCloseWithErrorPropagation(this._writer);
+  }
+
+  _abortDestAndCancelSource(): Promise<unknown> {
+    const source = this._source;
+    const dest = this._dest;
+    const error = this._shutdownError;
+    const promises: Array<Promise<void>> = [];
+    if (!this._preventAbort) {
+      promises.push(dest._state === 'writable' ? WritableStreamAbort(dest, error) : promiseResolvedWith(undefined));
+    }
+    if (!this._preventCancel) {
+      promises.push(source._state === 'readable' ? ReadableStreamCancel(source, error) : promiseResolvedWith(undefined));
+    }
+    return Promise.all(promises);
+  }
+
+  _shutdownWithAction(action: (this: PipeEngine<T>) => Promise<unknown>, originalIsError: boolean, originalError: any) {
+    if (this._shuttingDown) {
+      return;
+    }
+    this._shuttingDown = true;
+    this._shutdownAction = action;
+    this._shutdownIsError = originalIsError;
+    this._shutdownError = originalError;
+
+    const dest = this._dest;
+    if (dest._state === 'writable' && !WritableStreamCloseQueuedOrInFlight(dest)) {
+      uponFulfillment(this._waitForWritesToFinish(), () => this._performShutdownAction());
+    } else {
+      this._performShutdownAction();
+    }
+  }
+
+  _performShutdownAction(): null {
+    uponPromise(
+      this._shutdownAction!.call(this),
+      () => this._finalize(this._shutdownIsError, this._shutdownError),
+      newError => this._finalize(true, newError)
+    );
+    return null;
+  }
+
+  _shutdown(isError: boolean, error: any) {
+    if (this._shuttingDown) {
+      return;
+    }
+    this._shuttingDown = true;
+
+    const dest = this._dest;
+    if (dest._state === 'writable' && !WritableStreamCloseQueuedOrInFlight(dest)) {
+      uponFulfillment(this._waitForWritesToFinish(), () => this._finalize(isError, error));
+    } else {
+      this._finalize(isError, error);
+    }
+  }
+
+  _finalize(isError: boolean, error: any): null {
+    WritableStreamDefaultWriterRelease(this._writer);
+    ReadableStreamReaderGenericRelease(this._reader);
+
+    if (this._signal !== undefined) {
+      this._signal.removeEventListener('abort', this._abortAlgorithm!);
+    }
+    if (isError) {
+      this._reject(error);
+    } else {
+      this._resolve(undefined);
+    }
+
+    return null;
   }
 
   _write(chunk: T): void {
@@ -387,63 +545,15 @@ class PipeState<T> {
   }
 }
 
-const resolvedPromise = promiseResolvedWith<void>(undefined);
-
 class PipeWriteRequest<T> implements WriteRequest {
-  constructor(private readonly _state: PipeState<T>, private readonly _writeNumber: number) {}
+  constructor(private readonly _engine: PipeEngine<T>, private readonly _writeNumber: number) {}
 
   _resolve() {
-    this._state._writeSettled(this._writeNumber);
+    this._engine._writeSettled(this._writeNumber);
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _reject(_reason: any) {
-    this._state._writeSettled(this._writeNumber);
-  }
-}
-
-class PipeReadRequest<T> implements ReadRequest<T> {
-  readonly _state: PipeState<T>;
-
-  readonly _promise: Promise<boolean>;
-  private _resolvePromise!: (done: boolean) => void;
-  private _rejectPromise!: (reason: any) => void;
-
-  constructor(state: PipeState<T>) {
-    this._state = state;
-    this._promise = newPromise((resolve, reject) => {
-      this._resolvePromise = resolve;
-      this._rejectPromise = reject;
-    });
-  }
-
-  _chunkSteps(chunk: T) {
-    this._state._write(chunk);
-    this._resolvePromise(false);
-  }
-
-  _closeSteps() {
-    this._resolvePromise(true);
-  }
-
-  _errorSteps(e: any) {
-    this._rejectPromise(e);
-  }
-}
-
-class SyncPipeReadRequest<T> implements ReadRequest<T> {
-  constructor(private _state: PipeState<T>) { }
-
-  _chunkSteps(chunk: T) {
-    this._state._write(chunk);
-  }
-
-  _closeSteps() {
-    unexpected();
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  _errorSteps(_error: any) {
-    unexpected();
+    this._engine._writeSettled(this._writeNumber);
   }
 }
