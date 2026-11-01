@@ -836,15 +836,6 @@ function WritableStreamDefaultWriterCloseWithErrorPropagation(writer: WritableSt
   return WritableStreamDefaultWriterClose(writer);
 }
 
-function WritableStreamDefaultWriterEnsureClosedPromiseRejected(writer: WritableStreamDefaultWriter, error: any) {
-  if (writer._closedPromise !== undefined && writer._closedPromise_reject !== undefined) {
-    writerClosedPromiseReject(writer, error);
-  } else {
-    // Reset the promise. writerClosedPromise will (re-)create the rejected promise on the next access.
-    writerClosedPromiseReset(writer);
-  }
-}
-
 function WritableStreamDefaultWriterEnsureReadyPromiseRejected(writer: WritableStreamDefaultWriter, error: any) {
   if (writer._readyPromise !== undefined && writer._readyPromise_reject !== undefined) {
     writerReadyPromiseReject(writer, error);
@@ -874,14 +865,22 @@ function WritableStreamDefaultWriterRelease(writer: WritableStreamDefaultWriter)
   assert(stream !== undefined);
   assert(stream._writer === writer);
 
-  const releasedError = writerReleasedException();
-  writer._releasedError = releasedError;
-
-  WritableStreamDefaultWriterEnsureReadyPromiseRejected(writer, releasedError);
+  // Optimization: only create the released error when a pending promise needs to be rejected with it.
+  // Otherwise, writerReadyPromise and writerClosedPromise will create it on first access.
+  // This avoids capturing a stack trace for writers whose promises are never observed (e.g. inside pipeTo()).
+  if (writer._readyPromise_reject !== undefined) {
+    writerReadyPromiseReject(writer, writerReleasedError(writer));
+  } else {
+    writerReadyPromiseReset(writer);
+  }
 
   // The state transitions to "errored" before the sink abort() method runs, but the writer.closed promise is not
   // rejected until afterwards. This means that simply testing state will not work.
-  WritableStreamDefaultWriterEnsureClosedPromiseRejected(writer, releasedError);
+  if (writer._closedPromise_reject !== undefined) {
+    writerClosedPromiseReject(writer, writerReleasedError(writer));
+  } else {
+    writerClosedPromiseReset(writer);
+  }
 
   stream._writer = undefined;
   writer._ownerWritableStream = undefined!;
@@ -1355,6 +1354,14 @@ function writerReleasedException(): TypeError {
   return new TypeError(`Writer was released`);
 }
 
+// Both writer.ready and writer.closed must be rejected with the same released error.
+function writerReleasedError(writer: WritableStreamDefaultWriter): TypeError {
+  if (writer._releasedError === undefined) {
+    writer._releasedError = writerReleasedException();
+  }
+  return writer._releasedError;
+}
+
 export function writerClosedPromise(writer: WritableStreamDefaultWriter<any>): Promise<undefined> {
   if (writer._closedPromise === undefined) {
     assert(writer._closedPromise_resolve === undefined);
@@ -1362,8 +1369,7 @@ export function writerClosedPromise(writer: WritableStreamDefaultWriter<any>): P
     const stream = writer._ownerWritableStream;
     if (stream === undefined) {
       // Writer has been released.
-      assert(writer._releasedError !== undefined);
-      writer._closedPromise = promiseRejectedWith(writer._releasedError);
+      writer._closedPromise = promiseRejectedWith(writerReleasedError(writer));
       setPromiseIsHandledToTrue(writer._closedPromise);
     } else {
       switch (stream._state) {
@@ -1427,8 +1433,7 @@ export function writerReadyPromise(writer: WritableStreamDefaultWriter<any>): Pr
     const stream = writer._ownerWritableStream;
     if (stream === undefined) {
       // Writer has been released.
-      assert(writer._releasedError !== undefined);
-      writer._readyPromise = promiseRejectedWith(writer._releasedError);
+      writer._readyPromise = promiseRejectedWith(writerReleasedError(writer));
       setPromiseIsHandledToTrue(writer._readyPromise);
     } else {
       switch (stream._state) {
