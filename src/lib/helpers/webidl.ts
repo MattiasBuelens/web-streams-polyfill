@@ -1,4 +1,4 @@
-import { rethrowAssertionErrorRejection } from './miscellaneous';
+import { rethrowAssertionErrorRejection, typeIsObject } from './miscellaneous';
 import assert from '../../stub/assert';
 
 const originalPromise = Promise;
@@ -18,6 +18,10 @@ export function newPromise<T>(executor: (
 
 // https://webidl.spec.whatwg.org/#a-promise-resolved-with
 export function promiseResolvedWith<T>(value: T | PromiseLike<T>): Promise<T> {
+  if (!typeIsObject(value)) {
+    // Not a thenable: no observable `then` lookup, so this is equivalent and avoids the executor closure.
+    return originalPromiseResolve(value);
+  }
   return newPromise(resolve => resolve(value));
 }
 
