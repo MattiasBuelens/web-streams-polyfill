@@ -17,6 +17,8 @@ import {
   WritableStreamDefaultWriterCloseWithErrorPropagation,
   WritableStreamDefaultWriterRelease,
   WritableStreamDefaultWriterWrite,
+  WritableStreamDefaultWriterWriteWithRequest,
+  type WriteRequest,
   writerReadyPromise,
   writerSetStateChangeListener
 } from '../writable-stream';
@@ -291,18 +293,112 @@ class PipeState<T> {
   _shuttingDown = false;
 
   // This is used to keep track of the spec's requirement that we wait for ongoing writes during shutdown.
-  _currentWrite = promiseResolvedWith<void>(undefined);
+  // In the specification, currentWrite is the last write's promise transformed with a no-op rejection handler,
+  // so it fulfills one microtask after the last write settles.
+  // Optimization: instead of creating these promises for every write, we track writes with lightweight
+  // write requests, and only materialize currentWrite when the pipe starts shutting down.
+  _currentWrite: Promise<void> | undefined = undefined;
+  // The number of the last write, and whether it has settled.
+  _lastWrite = 0;
+  _lastWriteSettled = true;
+  // The number of pending microtasks that stand in for the reactions that would settle currentWrite.
+  _pendingSettleTicks = 0;
+  // Resolves the materialized currentWrite (or the promise it is derived from).
+  _resolveCurrentWrite: (() => void) | undefined = undefined;
+  readonly _settleTick: () => null;
 
-  constructor(readonly _writer: WritableStreamDefaultWriter<T>) {}
+  constructor(readonly _writer: WritableStreamDefaultWriter<T>) {
+    this._settleTick = () => {
+      this._pendingSettleTicks--;
+      if (this._pendingSettleTicks === 0 && this._lastWriteSettled) {
+        this._runResolveCurrentWrite();
+      }
+      return null;
+    };
+  }
+
+  _write(chunk: T): void {
+    if (this._currentWrite !== undefined) {
+      // Already waiting for writes to finish (e.g. a pending read was fulfilled during shutdown).
+      // Track this write with a promise, exactly like the specification.
+      this._currentWrite = PerformPromiseThen(
+        WritableStreamDefaultWriterWrite(this._writer, chunk),
+        undefined,
+        noop
+      );
+      return;
+    }
+    const writeNumber = ++this._lastWrite;
+    this._lastWriteSettled = false;
+    WritableStreamDefaultWriterWriteWithRequest(this._writer, chunk, new PipeWriteRequest(this, writeNumber));
+  }
+
+  _writeSettled(writeNumber: number): void {
+    if (writeNumber !== this._lastWrite) {
+      return;
+    }
+    this._lastWriteSettled = true;
+    if (this._currentWrite !== undefined) {
+      // currentWrite is derived from a promise that settles now.
+      this._runResolveCurrentWrite();
+      return;
+    }
+    // Stand in for the reaction that would settle currentWrite one microtask from now.
+    this._pendingSettleTicks++;
+    PerformPromiseThen(resolvedPromise, this._settleTick);
+  }
+
+  _runResolveCurrentWrite(): void {
+    const resolveCurrentWrite = this._resolveCurrentWrite;
+    if (resolveCurrentWrite !== undefined) {
+      this._resolveCurrentWrite = undefined;
+      resolveCurrentWrite();
+    }
+  }
 
   _waitForWritesToFinish(): Promise<void> {
+    if (this._currentWrite === undefined) {
+      // Materialize currentWrite, settling at the same time as in the specification.
+      if (!this._lastWriteSettled) {
+        // The last write is still pending: settle one microtask after it does.
+        this._currentWrite = PerformPromiseThen(
+          newPromise<void>((resolveFn) => {
+            this._resolveCurrentWrite = resolveFn;
+          }),
+          undefined,
+          noop
+        );
+      } else if (this._pendingSettleTicks > 0) {
+        // The last write has just settled: settle when its stand-in reaction runs.
+        this._currentWrite = newPromise<void>((resolveFn) => {
+          this._resolveCurrentWrite = resolveFn;
+        });
+      } else {
+        this._currentWrite = resolvedPromise;
+      }
+    }
     // Another write may have started while we were waiting on this currentWrite, so we have to be sure to wait
     // for that too.
     const oldCurrentWrite = this._currentWrite;
     return PerformPromiseThen(
-      this._currentWrite,
+      oldCurrentWrite,
       () => oldCurrentWrite !== this._currentWrite ? this._waitForWritesToFinish() : undefined
     );
+  }
+}
+
+const resolvedPromise = promiseResolvedWith<void>(undefined);
+
+class PipeWriteRequest<T> implements WriteRequest {
+  constructor(private readonly _state: PipeState<T>, private readonly _writeNumber: number) {}
+
+  _resolve() {
+    this._state._writeSettled(this._writeNumber);
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _reject(_reason: any) {
+    this._state._writeSettled(this._writeNumber);
   }
 }
 
@@ -322,11 +418,7 @@ class PipeReadRequest<T> implements ReadRequest<T> {
   }
 
   _chunkSteps(chunk: T) {
-    this._state._currentWrite = PerformPromiseThen(
-      WritableStreamDefaultWriterWrite(this._state._writer, chunk),
-      undefined,
-      noop
-    );
+    this._state._write(chunk);
     this._resolvePromise(false);
   }
 
@@ -343,11 +435,7 @@ class SyncPipeReadRequest<T> implements ReadRequest<T> {
   constructor(private _state: PipeState<T>) { }
 
   _chunkSteps(chunk: T) {
-    this._state._currentWrite = PerformPromiseThen(
-      WritableStreamDefaultWriterWrite(this._state._writer, chunk),
-      undefined,
-      noop
-    );
+    this._state._write(chunk);
   }
 
   _closeSteps() {

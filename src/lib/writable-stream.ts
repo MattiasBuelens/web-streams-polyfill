@@ -42,7 +42,7 @@ interface WriteOrCloseRequest {
   _reject: (reason: any) => void;
 }
 
-type WriteRequest = WriteOrCloseRequest;
+export type WriteRequest = WriteOrCloseRequest;
 type CloseRequest = WriteOrCloseRequest;
 
 interface PendingAbortRequest {
@@ -207,6 +207,7 @@ export {
   WritableStreamDefaultWriterCloseWithErrorPropagation,
   WritableStreamDefaultWriterRelease,
   WritableStreamDefaultWriterWrite,
+  WritableStreamDefaultWriterWriteWithRequest,
   WritableStreamCloseQueuedOrInFlight
 };
 
@@ -381,20 +382,11 @@ function WritableStreamClose(stream: WritableStream<any>): Promise<undefined> {
 
 // WritableStream API exposed for controllers.
 
-function WritableStreamAddWriteRequest(stream: WritableStream): Promise<undefined> {
+function WritableStreamAddWriteRequest(stream: WritableStream, writeRequest: WriteRequest): void {
   assert(IsWritableStreamLocked(stream));
   assert(stream._state === 'writable');
 
-  const promise = newPromise<undefined>((resolve, reject) => {
-    const writeRequest: WriteRequest = {
-      _resolve: resolve,
-      _reject: reject
-    };
-
-    stream._writeRequests.push(writeRequest);
-  });
-
-  return promise;
+  stream._writeRequests.push(writeRequest);
 }
 
 function WritableStreamDealWithRejection(stream: WritableStream, error: any) {
@@ -892,6 +884,25 @@ function WritableStreamDefaultWriterRelease(writer: WritableStreamDefaultWriter)
 }
 
 function WritableStreamDefaultWriterWrite<W>(writer: WritableStreamDefaultWriter<W>, chunk: W): Promise<undefined> {
+  let writeRequest!: WriteRequest;
+  const promise = newPromise<undefined>((resolve, reject) => {
+    writeRequest = {
+      _resolve: resolve,
+      _reject: reject
+    };
+  });
+  WritableStreamDefaultWriterWriteWithRequest(writer, chunk, writeRequest);
+  return promise;
+}
+
+// Like WritableStreamDefaultWriterWrite, but settles the given write request instead of returning a promise.
+// This lets internal clients (such as pipeTo()) track their writes without allocating promises.
+// The request is settled at the same time as the promise returned by WritableStreamDefaultWriterWrite.
+function WritableStreamDefaultWriterWriteWithRequest<W>(
+  writer: WritableStreamDefaultWriter<W>,
+  chunk: W,
+  writeRequest: WriteRequest
+): void {
   const stream = writer._ownerWritableStream;
 
   assert(stream !== undefined);
@@ -901,27 +912,29 @@ function WritableStreamDefaultWriterWrite<W>(writer: WritableStreamDefaultWriter
   const chunkSize = WritableStreamDefaultControllerGetChunkSize(controller, chunk);
 
   if (stream !== writer._ownerWritableStream) {
-    return promiseRejectedWith(writerLockException('write to'));
+    writeRequest._reject(writerLockException('write to'));
+    return;
   }
 
   const state = stream._state;
   if (state === 'errored') {
-    return promiseRejectedWith(stream._storedError);
+    writeRequest._reject(stream._storedError);
+    return;
   }
   if (WritableStreamCloseQueuedOrInFlight(stream) || state === 'closed') {
-    return promiseRejectedWith(new TypeError('The stream is closing or closed and cannot be written to'));
+    writeRequest._reject(new TypeError('The stream is closing or closed and cannot be written to'));
+    return;
   }
   if (state === 'erroring') {
-    return promiseRejectedWith(stream._storedError);
+    writeRequest._reject(stream._storedError);
+    return;
   }
 
   assert(state === 'writable');
 
-  const promise = WritableStreamAddWriteRequest(stream);
+  WritableStreamAddWriteRequest(stream, writeRequest);
 
   WritableStreamDefaultControllerWrite(controller, chunk, chunkSize);
-
-  return promise;
 }
 
 const closeSentinel: unique symbol = {} as any;
