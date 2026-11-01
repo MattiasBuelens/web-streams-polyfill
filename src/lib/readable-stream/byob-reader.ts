@@ -118,6 +118,8 @@ export class ReadableStreamBYOBReader {
   /** @internal */
   _closedPromise_reject?: (reason: any) => void;
   /** @internal */
+  _stateChangeListener: (() => void) | undefined;
+  /** @internal */
   _readIntoRequests: SimpleQueue<ReadIntoRequest<any>>;
 
   constructor(stream: ReadableStream<Uint8Array>) {

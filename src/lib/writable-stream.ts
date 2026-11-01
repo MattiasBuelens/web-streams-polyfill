@@ -570,6 +570,7 @@ function WritableStreamRejectCloseAndClosedPromiseIfNeeded(stream: WritableStrea
   const writer = stream._writer;
   if (writer !== undefined) {
     writerClosedPromiseReject(writer, stream._storedError);
+    writerRunStateChangeListener(writer);
   }
 }
 
@@ -613,6 +614,8 @@ export class WritableStreamDefaultWriter<W = any> {
   _readyPromise_reject?: (reason: any) => void;
   /** @internal */
   _releasedError?: TypeError;
+  /** @internal */
+  _stateChangeListener: (() => void) | undefined;
 
   constructor(stream: WritableStream<W>) {
     assertRequiredArgument(stream, 1, 'WritableStreamDefaultWriter');
@@ -630,6 +633,7 @@ export class WritableStreamDefaultWriter<W = any> {
     writerClosedPromiseReset(this);
 
     this._releasedError = undefined;
+    this._stateChangeListener = undefined;
   }
 
   /**
@@ -884,6 +888,7 @@ function WritableStreamDefaultWriterRelease(writer: WritableStreamDefaultWriter)
 
   stream._writer = undefined;
   writer._ownerWritableStream = undefined!;
+  writer._stateChangeListener = undefined;
 }
 
 function WritableStreamDefaultWriterWrite<W>(writer: WritableStreamDefaultWriter<W>, chunk: W): Promise<undefined> {
@@ -1352,6 +1357,25 @@ function writerLockException(name: string): TypeError {
 
 function writerReleasedException(): TypeError {
   return new TypeError(`Writer was released`);
+}
+
+// Optimization: an internal client (such as pipeTo()) can listen for the stream becoming errored
+// without materializing the writer's closed promise. The listener is called synchronously, right after the
+// closed promise would be rejected. To keep the same timing and async context as a reaction on
+// the closed promise, the client should only use it to settle a promise that it is already reacting to.
+
+export function writerSetStateChangeListener(writer: WritableStreamDefaultWriter<any>, listener: () => void) {
+  assert(writer._ownerWritableStream !== undefined);
+  assert(writer._stateChangeListener === undefined);
+  writer._stateChangeListener = listener;
+}
+
+function writerRunStateChangeListener(writer: WritableStreamDefaultWriter<any>) {
+  const listener = writer._stateChangeListener;
+  if (listener !== undefined) {
+    writer._stateChangeListener = undefined;
+    listener();
+  }
 }
 
 // Both writer.ready and writer.closed must be rejected with the same released error.

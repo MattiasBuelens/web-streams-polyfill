@@ -9,6 +9,7 @@ export function ReadableStreamReaderGenericInitialize<R>(reader: ReadableStreamR
 
   // The closed promise is created lazily by readerClosedPromise.
   readerClosedPromiseReset(reader);
+  reader._stateChangeListener = undefined;
 }
 
 // A client of ReadableStreamDefaultReader and ReadableStreamBYOBReader may use these functions directly to bypass state
@@ -41,6 +42,27 @@ export function ReadableStreamReaderGenericRelease(reader: ReadableStreamReader<
 
   stream._reader = undefined;
   reader._ownerReadableStream = undefined!;
+  reader._stateChangeListener = undefined;
+}
+
+// Optimization: an internal client (such as pipeTo()) can listen for the stream becoming closed or errored
+// without materializing the reader's closed promise. The listener is called synchronously, right after the
+// closed promise would be resolved or rejected. To keep the same timing and async context as a reaction on
+// the closed promise, the client should only use it to settle a promise that it is already reacting to.
+
+export function readerSetStateChangeListener(reader: ReadableStreamReader<any>, listener: () => void) {
+  assert(reader._ownerReadableStream !== undefined);
+  assert(reader._ownerReadableStream._state === 'readable');
+  assert(reader._stateChangeListener === undefined);
+  reader._stateChangeListener = listener;
+}
+
+export function readerRunStateChangeListener(reader: ReadableStreamReader<any>) {
+  const listener = reader._stateChangeListener;
+  if (listener !== undefined) {
+    reader._stateChangeListener = undefined;
+    listener();
+  }
 }
 
 // Helper functions for the readers.

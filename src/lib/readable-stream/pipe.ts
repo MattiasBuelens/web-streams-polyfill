@@ -5,7 +5,7 @@ import {
   ReadableStreamDefaultReaderRead,
   type ReadRequest
 } from './default-reader';
-import { ReadableStreamReaderGenericRelease, readerClosedPromise } from './generic-reader';
+import { ReadableStreamReaderGenericRelease, readerSetStateChangeListener } from './generic-reader';
 import {
   AcquireWritableStreamDefaultWriter,
   IsWritableStream,
@@ -17,8 +17,8 @@ import {
   WritableStreamDefaultWriterCloseWithErrorPropagation,
   WritableStreamDefaultWriterRelease,
   WritableStreamDefaultWriterWrite,
-  writerClosedPromise,
-  writerReadyPromise
+  writerReadyPromise,
+  writerSetStateChangeListener
 } from '../writable-stream';
 import assert, { unexpected } from '../../stub/assert';
 import {
@@ -27,8 +27,7 @@ import {
   promiseResolvedWith,
   setPromiseIsHandledToTrue,
   uponFulfillment,
-  uponPromise,
-  uponRejection
+  uponPromise
 } from '../helpers/webidl';
 import { noop } from '../../utils';
 import { type AbortSignal, isAbortSignal } from '../abort-signal';
@@ -139,34 +138,41 @@ export function ReadableStreamPipeTo<T>(
     }
 
     // Errors must be propagated forward
-    isOrBecomesErrored(source, readerClosedPromise(reader), (storedError) => {
+    function sourceErrored(storedError: any) {
       if (!preventAbort) {
         shutdownWithAction(() => WritableStreamAbort(dest, storedError), true, storedError);
       } else {
         shutdown(true, storedError);
       }
-      return null;
-    });
+    }
 
     // Errors must be propagated backward
-    isOrBecomesErrored(dest, writerClosedPromise(writer), (storedError) => {
+    function destErrored(storedError: any) {
       if (!preventCancel) {
         shutdownWithAction(() => ReadableStreamCancel(source, storedError), true, storedError);
       } else {
         shutdown(true, storedError);
       }
-      return null;
-    });
+    }
 
     // Closing must be propagated forward
-    isOrBecomesClosed(source, readerClosedPromise(reader), () => {
+    function sourceClosed() {
       if (!preventClose) {
         shutdownWithAction(() => WritableStreamDefaultWriterCloseWithErrorPropagation(writer));
       } else {
         shutdown();
       }
-      return null;
-    });
+    }
+
+    if (source._state === 'errored') {
+      sourceErrored(source._storedError);
+    }
+    if (dest._state === 'errored') {
+      destErrored(dest._storedError);
+    }
+    if (source._state === 'closed') {
+      sourceClosed();
+    }
 
     // Closing must be propagated backward
     if (WritableStreamCloseQueuedOrInFlight(dest) || dest._state === 'closed') {
@@ -179,7 +185,54 @@ export function ReadableStreamPipeTo<T>(
       }
     }
 
-    setPromiseIsHandledToTrue(pipeLoop());
+    if (!state._shuttingDown) {
+      watchForStateChanges();
+      setPromiseIsHandledToTrue(pipeLoop());
+    }
+
+    // Instead of reacting to the closed promises of the reader and the writer (which would need to be materialized
+    // and then rejected again on release), listen for state changes directly. The first change settles a single
+    // promise that the pipe reacts to, so the shutdown steps still run in the same microtask as a reaction on
+    // the closed promise would have, and in the async context of the pipeTo() call.
+    function watchForStateChanges() {
+      let stateChangeSteps: (() => void) | undefined;
+      let resolveStateChange!: () => void;
+      const stateChangePromise = newPromise<void>((resolveFn) => {
+        resolveStateChange = resolveFn;
+      });
+      uponFulfillment(stateChangePromise, () => {
+        stateChangeSteps!();
+        return null;
+      });
+
+      function onStateChange(steps: () => void) {
+        if (stateChangeSteps !== undefined) {
+          // Already notified. The shutdown steps of the first change win, as with separate promise reactions.
+          return;
+        }
+        stateChangeSteps = steps;
+        resolveStateChange();
+      }
+
+      if (source._state === 'readable') {
+        readerSetStateChangeListener(reader, () => {
+          if (source._state === 'errored') {
+            const storedError = source._storedError;
+            onStateChange(() => sourceErrored(storedError));
+          } else {
+            assert(source._state === 'closed');
+            onStateChange(sourceClosed);
+          }
+        });
+      }
+      if (dest._state === 'writable' || dest._state === 'erroring') {
+        writerSetStateChangeListener(writer, () => {
+          assert(dest._state === 'errored');
+          const storedError = dest._storedError;
+          onStateChange(() => destErrored(storedError));
+        });
+      }
+    }
 
     function shutdownWithAction(action: () => Promise<unknown>, originalIsError?: boolean, originalError?: any) {
       if (state._shuttingDown) {
@@ -304,25 +357,5 @@ class SyncPipeReadRequest<T> implements ReadRequest<T> {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _errorSteps(_error: any) {
     unexpected();
-  }
-}
-
-function isOrBecomesErrored(
-  stream: ReadableStream | WritableStream,
-  promise: Promise<void>,
-  action: (reason: any) => null
-) {
-  if (stream._state === 'errored') {
-    action(stream._storedError);
-  } else {
-    uponRejection(promise, action);
-  }
-}
-
-function isOrBecomesClosed(stream: ReadableStream | WritableStream, promise: Promise<void>, action: () => null) {
-  if (stream._state === 'closed') {
-    action();
-  } else {
-    uponFulfillment(promise, action);
   }
 }

@@ -101,6 +101,8 @@ export class ReadableStreamDefaultReader<R = any> {
   /** @internal */
   _closedPromise_reject?: (reason: any) => void;
   /** @internal */
+  _stateChangeListener: (() => void) | undefined;
+  /** @internal */
   _readRequests: SimpleQueue<ReadRequest<R>>;
 
   constructor(stream: ReadableStream<R>) {
