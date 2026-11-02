@@ -3,7 +3,8 @@ import { SimpleQueue } from '../simple-queue';
 import {
   ReadableStreamReaderGenericCancel,
   ReadableStreamReaderGenericInitialize,
-  ReadableStreamReaderGenericRelease, readerClosedPromise,
+  ReadableStreamReaderGenericRelease,
+  readerClosedPromise,
   readerLockException,
   readerReleasedException
 } from './generic-reader';
