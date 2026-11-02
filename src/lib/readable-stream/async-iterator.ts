@@ -2,7 +2,6 @@ import { ReadableStream } from '../readable-stream';
 import {
   AcquireReadableStreamDefaultReader,
   ReadableStreamDefaultReader,
-  ReadableStreamDefaultReaderCanReadSync,
   ReadableStreamDefaultReaderRead,
   type ReadableStreamDefaultReadResult,
   type ReadRequest
@@ -38,12 +37,9 @@ export class ReadableStreamAsyncIteratorImpl<R> implements ReadRequest<R> {
   private _ongoingPromise: Promise<ReadableStreamDefaultReadResult<R>> | undefined = undefined;
   private _isFinished = false;
 
-  // Optimization: the iterator is its own read request. Only one read is in flight at a time,
+  // Optimization: the iterator is its own read request. Usually only one read is in flight at a time,
   // so we don't need to allocate a new read request for every chunk.
-  // Whether the current read can complete synchronously, and if so, its result.
-  private _readIsSync = false;
-  private _syncReadPromise: Promise<ReadableStreamDefaultReadResult<R>> | undefined = undefined;
-  // The pending asynchronous read.
+  // The pending read using the iterator as read request.
   private _resolveRead: ((result: ReadableStreamDefaultReadResult<R>) => void) | undefined = undefined;
   private _rejectRead: ((reason: any) => void) | undefined = undefined;
   private readonly _readExecutor: (
@@ -100,27 +96,16 @@ export class ReadableStreamAsyncIteratorImpl<R> implements ReadRequest<R> {
     const reader = this._reader;
     assert(reader._ownerReadableStream !== undefined);
 
-    // Fast path: if the read can be resolved synchronously,
-    // create a fulfilled/rejected promise directly.
-    if (ReadableStreamDefaultReaderCanReadSync(reader)) {
-      this._readIsSync = true;
-      ReadableStreamDefaultReaderRead(reader, this);
-      this._readIsSync = false;
-      const promise = this._syncReadPromise!;
-      assert(promise !== undefined);
-      this._syncReadPromise = undefined;
-      return promise;
-    }
-
-    if (this._deliveryPending) {
-      // The previous chunk is still waiting to be delivered (this can only happen if next() is called
-      // synchronously from within enqueue()). Use a separate read request for this read.
+    if (this._resolveRead !== undefined || this._deliveryPending) {
+      // The iterator is still busy with a previous read. This can only happen if next() is called reentrantly,
+      // e.g. from within the source's pull() while the previous read is still in progress, or from within
+      // enqueue() while the previous chunk is still waiting to be delivered.
+      // Use a separate read request for this read.
       const readRequest = new AsyncIteratorReadRequest<R>(this);
       ReadableStreamDefaultReaderRead(reader, readRequest);
       return readRequest._promise;
     }
 
-    assert(this._resolveRead === undefined);
     const promise = newPromise(this._readExecutor);
     ReadableStreamDefaultReaderRead(reader, this);
     return promise;
@@ -159,12 +144,6 @@ export class ReadableStreamAsyncIteratorImpl<R> implements ReadRequest<R> {
   }
 
   _chunkSteps(chunk: R): void {
-    if (this._readIsSync) {
-      assert(this._syncReadPromise === undefined);
-      this._chunk();
-      this._syncReadPromise = promiseResolve({ value: chunk, done: false });
-      return;
-    }
     const resolve = this._takeResolveRead();
     this._chunk();
     // This needs to be delayed by one microtask, otherwise we stop pulling too early which breaks a test.
@@ -176,24 +155,12 @@ export class ReadableStreamAsyncIteratorImpl<R> implements ReadRequest<R> {
   }
 
   _closeSteps(): void {
-    if (this._readIsSync) {
-      assert(this._syncReadPromise === undefined);
-      this._finish();
-      this._syncReadPromise = promiseResolve({ value: undefined, done: true });
-      return;
-    }
     const resolve = this._takeResolveRead();
     this._finish();
     resolve({ value: undefined, done: true });
   }
 
   _errorSteps(reason: any): void {
-    if (this._readIsSync) {
-      assert(this._syncReadPromise === undefined);
-      this._finish();
-      this._syncReadPromise = promiseRejectedWith(reason);
-      return;
-    }
     const reject = this._rejectRead!;
     assert(reject !== undefined);
     this._resolveRead = undefined;
