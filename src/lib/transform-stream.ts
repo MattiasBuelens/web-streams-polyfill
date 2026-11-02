@@ -10,21 +10,7 @@ import {
 import { CreateReadableStream, type DefaultReadableStream, ReadableStream } from './readable-stream';
 import type { QueuingStrategy, QueuingStrategySizeCallback } from './queuing-strategy';
 import { CreateWritableStream, WritableStream } from './writable-stream';
-import {
-  ReadableSideCanCloseOrEnqueue,
-  ReadableSideClose,
-  ReadableSideEnqueue,
-  ReadableSideError,
-  ReadableSideGetDesiredSize,
-  ReadableSideGetStoredError,
-  ReadableSideHasBackpressure,
-  ReadableSideIsErrored,
-  WritableSideErrorIfNeeded,
-  WritableSideGetStoredError,
-  WritableSideIsErrored,
-  WritableSideIsErroring,
-  WritableSideIsWritable
-} from './transform-stream/sides';
+import { referenceSides, type TransformStreamSides } from './transform-stream/sides';
 import { setFunctionName, typeIsObject } from './helpers/miscellaneous';
 import { IsNonNegativeNumber } from './abstract-ops/miscellaneous';
 import { convertQueuingStrategy } from './validators/queuing-strategy';
@@ -54,6 +40,8 @@ export class TransformStream<I = any, O = any> {
   _writable!: WritableStream<I>;
   /** @internal */
   _readable!: DefaultReadableStream<O>;
+  /** @internal */
+  _sides!: TransformStreamSides;
   /** @internal */
   _backpressure!: boolean;
   /** @internal */
@@ -210,6 +198,8 @@ function InitializeTransformStream<I, O>(
     return TransformStreamDefaultSinkCloseAlgorithm(stream);
   }
 
+  stream._sides = referenceSides;
+
   stream._writable = CreateWritableStream(
     startAlgorithm, writeAlgorithm, closeAlgorithm, abortAlgorithm,
     writableHighWaterMark, writableSizeAlgorithm
@@ -251,13 +241,13 @@ function IsTransformStream(x: unknown): x is TransformStream {
 
 // This is a no-op if both sides are already errored.
 function TransformStreamError(stream: TransformStream, e: any) {
-  ReadableSideError(stream._readable, e);
+  stream._sides.readableError(stream, e);
   TransformStreamErrorWritableAndUnblockWrite(stream, e);
 }
 
 function TransformStreamErrorWritableAndUnblockWrite(stream: TransformStream, e: any) {
   TransformStreamDefaultControllerClearAlgorithms(stream._transformStreamController);
-  WritableSideErrorIfNeeded(stream._writable, e);
+  stream._sides.writableErrorIfNeeded(stream, e);
   TransformStreamUnblockWrite(stream);
 }
 
@@ -322,7 +312,8 @@ export class TransformStreamDefaultController<O> {
       throw defaultControllerBrandCheckException('desiredSize');
     }
 
-    return ReadableSideGetDesiredSize(this._controlledTransformStream._readable);
+    const stream = this._controlledTransformStream;
+    return stream._sides.readableGetDesiredSize(stream);
   }
 
   /**
@@ -462,8 +453,7 @@ function TransformStreamDefaultControllerClearAlgorithms(controller: TransformSt
 
 function TransformStreamDefaultControllerEnqueue<O>(controller: TransformStreamDefaultController<O>, chunk: O) {
   const stream = controller._controlledTransformStream;
-  const readable = stream._readable;
-  if (!ReadableSideCanCloseOrEnqueue(readable)) {
+  if (!stream._sides.readableCanCloseOrEnqueue(stream)) {
     throw new TypeError('Readable side is not in a state that permits enqueue');
   }
 
@@ -471,15 +461,15 @@ function TransformStreamDefaultControllerEnqueue<O>(controller: TransformStreamD
   // accept TransformStreamDefaultControllerEnqueue() calls.
 
   try {
-    ReadableSideEnqueue(readable, chunk);
+    stream._sides.readableEnqueue(stream, chunk);
   } catch (e) {
     // This happens when readableStrategy.size() throws.
     TransformStreamErrorWritableAndUnblockWrite(stream, e);
 
-    throw ReadableSideGetStoredError(readable);
+    throw stream._sides.readableGetStoredError(stream);
   }
 
-  const backpressure = ReadableSideHasBackpressure(readable);
+  const backpressure = stream._sides.readableHasBackpressure(stream);
   if (backpressure !== stream._backpressure) {
     assert(backpressure);
     TransformStreamSetBackpressure(stream, true);
@@ -511,7 +501,7 @@ function TransformStreamDefaultControllerPerformTransform<I, O>(
 function TransformStreamDefaultControllerTerminate<O>(controller: TransformStreamDefaultController<O>) {
   const stream = controller._controlledTransformStream;
 
-  ReadableSideClose(stream._readable);
+  stream._sides.readableClose(stream);
 
   const error = new TypeError('TransformStream terminated');
   TransformStreamErrorWritableAndUnblockWrite(stream, error);
@@ -520,7 +510,7 @@ function TransformStreamDefaultControllerTerminate<O>(controller: TransformStrea
 // TransformStreamDefaultSink Algorithms
 
 function TransformStreamDefaultSinkWriteAlgorithm<I, O>(stream: TransformStream<I, O>, chunk: I): Promise<void> {
-  assert(WritableSideIsWritable(stream._writable));
+  assert(stream._sides.writableIsWritable(stream));
 
   const controller = stream._transformStreamController;
 
@@ -528,11 +518,10 @@ function TransformStreamDefaultSinkWriteAlgorithm<I, O>(stream: TransformStream<
     const backpressureChangePromise = stream._backpressureChangePromise;
     assert(backpressureChangePromise !== undefined);
     return transformPromiseWith(backpressureChangePromise, () => {
-      const writable = stream._writable;
-      if (WritableSideIsErroring(writable)) {
-        throw WritableSideGetStoredError(writable);
+      if (stream._sides.writableIsErroring(stream)) {
+        throw stream._sides.writableGetStoredError(stream);
       }
-      assert(WritableSideIsWritable(writable));
+      assert(stream._sides.writableIsWritable(stream));
       return TransformStreamDefaultControllerPerformTransform<I, O>(controller, chunk);
     });
   }
@@ -546,9 +535,6 @@ function TransformStreamDefaultSinkAbortAlgorithm<I, O>(stream: TransformStream<
     return controller._finishPromise;
   }
 
-  // stream._readable cannot change after construction, so caching it across a call to user code is safe.
-  const readable = stream._readable;
-
   // Assign the _finishPromise now so that if _cancelAlgorithm calls readable.cancel() internally,
   // we don't run the _cancelAlgorithm again.
   controller._finishPromise = newPromise((resolve, reject) => {
@@ -560,15 +546,15 @@ function TransformStreamDefaultSinkAbortAlgorithm<I, O>(stream: TransformStream<
   TransformStreamDefaultControllerClearAlgorithms(controller);
 
   uponPromise(cancelPromise, () => {
-    if (ReadableSideIsErrored(readable)) {
-      defaultControllerFinishPromiseReject(controller, ReadableSideGetStoredError(readable));
+    if (stream._sides.readableIsErrored(stream)) {
+      defaultControllerFinishPromiseReject(controller, stream._sides.readableGetStoredError(stream));
     } else {
-      ReadableSideError(readable, reason);
+      stream._sides.readableError(stream, reason);
       defaultControllerFinishPromiseResolve(controller);
     }
     return null;
   }, (r) => {
-    ReadableSideError(readable, r);
+    stream._sides.readableError(stream, r);
     defaultControllerFinishPromiseReject(controller, r);
     return null;
   });
@@ -582,9 +568,6 @@ function TransformStreamDefaultSinkCloseAlgorithm<I, O>(stream: TransformStream<
     return controller._finishPromise;
   }
 
-  // stream._readable cannot change after construction, so caching it across a call to user code is safe.
-  const readable = stream._readable;
-
   // Assign the _finishPromise now so that if _flushAlgorithm calls readable.cancel() internally,
   // we don't also run the _cancelAlgorithm.
   controller._finishPromise = newPromise((resolve, reject) => {
@@ -596,15 +579,15 @@ function TransformStreamDefaultSinkCloseAlgorithm<I, O>(stream: TransformStream<
   TransformStreamDefaultControllerClearAlgorithms(controller);
 
   uponPromise(flushPromise, () => {
-    if (ReadableSideIsErrored(readable)) {
-      defaultControllerFinishPromiseReject(controller, ReadableSideGetStoredError(readable));
+    if (stream._sides.readableIsErrored(stream)) {
+      defaultControllerFinishPromiseReject(controller, stream._sides.readableGetStoredError(stream));
     } else {
-      ReadableSideClose(readable);
+      stream._sides.readableClose(stream);
       defaultControllerFinishPromiseResolve(controller);
     }
     return null;
   }, (r) => {
-    ReadableSideError(readable, r);
+    stream._sides.readableError(stream, r);
     defaultControllerFinishPromiseReject(controller, r);
     return null;
   });
@@ -632,9 +615,6 @@ function TransformStreamDefaultSourceCancelAlgorithm<I, O>(stream: TransformStre
     return controller._finishPromise;
   }
 
-  // stream._writable cannot change after construction, so caching it across a call to user code is safe.
-  const writable = stream._writable;
-
   // Assign the _finishPromise now so that if _flushAlgorithm calls writable.abort() or
   // writable.cancel() internally, we don't run the _cancelAlgorithm again, or also run the
   // _flushAlgorithm.
@@ -647,16 +627,16 @@ function TransformStreamDefaultSourceCancelAlgorithm<I, O>(stream: TransformStre
   TransformStreamDefaultControllerClearAlgorithms(controller);
 
   uponPromise(cancelPromise, () => {
-    if (WritableSideIsErrored(writable)) {
-      defaultControllerFinishPromiseReject(controller, WritableSideGetStoredError(writable));
+    if (stream._sides.writableIsErrored(stream)) {
+      defaultControllerFinishPromiseReject(controller, stream._sides.writableGetStoredError(stream));
     } else {
-      WritableSideErrorIfNeeded(writable, reason);
+      stream._sides.writableErrorIfNeeded(stream, reason);
       TransformStreamUnblockWrite(stream);
       defaultControllerFinishPromiseResolve(controller);
     }
     return null;
   }, (r) => {
-    WritableSideErrorIfNeeded(writable, r);
+    stream._sides.writableErrorIfNeeded(stream, r);
     TransformStreamUnblockWrite(stream);
     defaultControllerFinishPromiseReject(controller, r);
     return null;

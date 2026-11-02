@@ -1,16 +1,16 @@
 /**
  * Operations that a TransformStream performs on its readable and writable sides.
  *
- * The TransformStream abstract operations only reach into the state of its two sides through these functions.
- * Everything else that the TransformStream needs (backpressure, the transformer algorithms, the finish promise)
- * is owned by the TransformStream and its controller.
+ * The TransformStream abstract operations only reach into the state of its two sides through
+ * the {@link TransformStreamSides} object stored on the stream. Everything else that the TransformStream needs
+ * (backpressure, the transformer algorithms, the finish promise) is owned by the TransformStream and its controller.
  *
  * Keeping this boundary in one place means the TransformStream logic doesn't depend on how its sides are implemented.
- * Here, the sides are this library's own ReadableStream and WritableStream, so every operation is a direct call
- * to the corresponding abstract operation or a read of the corresponding internal slot.
+ * {@link referenceSides} is used when the sides are this library's own ReadableStream and WritableStream,
+ * so every operation is a direct call to the corresponding abstract operation or a read of the corresponding slot.
  */
 
-import type { DefaultReadableStream } from '../readable-stream';
+import type { TransformStream } from '../transform-stream';
 import {
   ReadableStreamDefaultControllerCanCloseOrEnqueue,
   ReadableStreamDefaultControllerClose,
@@ -19,60 +19,66 @@ import {
   ReadableStreamDefaultControllerGetDesiredSize,
   ReadableStreamDefaultControllerHasBackpressure
 } from '../readable-stream/default-controller';
-import { type WritableStream, WritableStreamDefaultControllerErrorIfNeeded } from '../writable-stream';
+import { WritableStreamDefaultControllerErrorIfNeeded } from '../writable-stream';
 
-// Readable side
+export interface TransformStreamSides {
+  // Readable side
+  readableGetDesiredSize(stream: TransformStream): number | null;
+  readableCanCloseOrEnqueue(stream: TransformStream): boolean;
+  readableEnqueue<O>(stream: TransformStream<any, O>, chunk: O): void;
+  readableHasBackpressure(stream: TransformStream): boolean;
+  readableClose(stream: TransformStream): void;
+  readableError(stream: TransformStream, e: any): void;
+  readableIsErrored(stream: TransformStream): boolean;
+  readableGetStoredError(stream: TransformStream): any;
 
-export function ReadableSideGetDesiredSize(readable: DefaultReadableStream): number | null {
-  return ReadableStreamDefaultControllerGetDesiredSize(readable._readableStreamController);
+  // Writable side
+  writableIsWritable(stream: TransformStream): boolean;
+  writableIsErroring(stream: TransformStream): boolean;
+  writableIsErrored(stream: TransformStream): boolean;
+  writableGetStoredError(stream: TransformStream): any;
+  writableErrorIfNeeded(stream: TransformStream, e: any): void;
 }
 
-export function ReadableSideCanCloseOrEnqueue(readable: DefaultReadableStream): boolean {
-  return ReadableStreamDefaultControllerCanCloseOrEnqueue(readable._readableStreamController);
-}
+export const referenceSides: TransformStreamSides = {
+  readableGetDesiredSize(stream) {
+    return ReadableStreamDefaultControllerGetDesiredSize(stream._readable._readableStreamController);
+  },
+  readableCanCloseOrEnqueue(stream) {
+    return ReadableStreamDefaultControllerCanCloseOrEnqueue(stream._readable._readableStreamController);
+  },
+  readableEnqueue(stream, chunk) {
+    ReadableStreamDefaultControllerEnqueue(stream._readable._readableStreamController, chunk);
+  },
+  readableHasBackpressure(stream) {
+    return ReadableStreamDefaultControllerHasBackpressure(stream._readable._readableStreamController);
+  },
+  readableClose(stream) {
+    ReadableStreamDefaultControllerClose(stream._readable._readableStreamController);
+  },
+  readableError(stream, e) {
+    ReadableStreamDefaultControllerError(stream._readable._readableStreamController, e);
+  },
+  readableIsErrored(stream) {
+    return stream._readable._state === 'errored';
+  },
+  readableGetStoredError(stream) {
+    return stream._readable._storedError;
+  },
 
-export function ReadableSideEnqueue<R>(readable: DefaultReadableStream<R>, chunk: R): void {
-  ReadableStreamDefaultControllerEnqueue(readable._readableStreamController, chunk);
-}
-
-export function ReadableSideHasBackpressure(readable: DefaultReadableStream): boolean {
-  return ReadableStreamDefaultControllerHasBackpressure(readable._readableStreamController);
-}
-
-export function ReadableSideClose(readable: DefaultReadableStream): void {
-  ReadableStreamDefaultControllerClose(readable._readableStreamController);
-}
-
-export function ReadableSideError(readable: DefaultReadableStream, e: any): void {
-  ReadableStreamDefaultControllerError(readable._readableStreamController, e);
-}
-
-export function ReadableSideIsErrored(readable: DefaultReadableStream): boolean {
-  return readable._state === 'errored';
-}
-
-export function ReadableSideGetStoredError(readable: DefaultReadableStream): any {
-  return readable._storedError;
-}
-
-// Writable side
-
-export function WritableSideIsWritable(writable: WritableStream): boolean {
-  return writable._state === 'writable';
-}
-
-export function WritableSideIsErroring(writable: WritableStream): boolean {
-  return writable._state === 'erroring';
-}
-
-export function WritableSideIsErrored(writable: WritableStream): boolean {
-  return writable._state === 'errored';
-}
-
-export function WritableSideGetStoredError(writable: WritableStream): any {
-  return writable._storedError;
-}
-
-export function WritableSideErrorIfNeeded(writable: WritableStream, e: any): void {
-  WritableStreamDefaultControllerErrorIfNeeded(writable._writableStreamController, e);
-}
+  writableIsWritable(stream) {
+    return stream._writable._state === 'writable';
+  },
+  writableIsErroring(stream) {
+    return stream._writable._state === 'erroring';
+  },
+  writableIsErrored(stream) {
+    return stream._writable._state === 'errored';
+  },
+  writableGetStoredError(stream) {
+    return stream._writable._storedError;
+  },
+  writableErrorIfNeeded(stream, e) {
+    WritableStreamDefaultControllerErrorIfNeeded(stream._writable._writableStreamController, e);
+  }
+};
