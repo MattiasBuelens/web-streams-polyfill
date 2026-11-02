@@ -31,17 +31,48 @@ export interface ReadableStreamAsyncIterator<R> extends AsyncIterableIterator<R>
   return(value?: any): Promise<IteratorResult<any>>;
 }
 
-export class ReadableStreamAsyncIteratorImpl<R> {
+export class ReadableStreamAsyncIteratorImpl<R> implements ReadRequest<R> {
   readonly _reader: ReadableStreamDefaultReader<R>;
   readonly _preventCancel: boolean;
   private readonly _nextStepsCallback: () => Promise<ReadableStreamDefaultReadResult<R>>;
   private _ongoingPromise: Promise<ReadableStreamDefaultReadResult<R>> | undefined = undefined;
   private _isFinished = false;
 
+  // Optimization: the iterator is its own read request. Only one read is in flight at a time,
+  // so we don't need to allocate a new read request for every chunk.
+  // Whether the current read can complete synchronously, and if so, its result.
+  private _readIsSync = false;
+  private _syncReadPromise: Promise<ReadableStreamDefaultReadResult<R>> | undefined = undefined;
+  // The pending asynchronous read.
+  private _resolveRead: ((result: ReadableStreamDefaultReadResult<R>) => void) | undefined = undefined;
+  private _rejectRead: ((reason: any) => void) | undefined = undefined;
+  private readonly _readExecutor: (
+    resolve: (result: ReadableStreamDefaultReadResult<R>) => void,
+    reject: (reason: any) => void
+  ) => void;
+
+  // A chunk that is waiting to be delivered in a microtask.
+  private _deliveryPending = false;
+  private _deliveryChunk: R | undefined = undefined;
+  private _deliveryResolve: ((result: ReadableStreamDefaultReadResult<R>) => void) | undefined = undefined;
+  private readonly _deliverChunk: () => void;
+
   constructor(reader: ReadableStreamDefaultReader<R>, preventCancel: boolean) {
     this._reader = reader;
     this._preventCancel = preventCancel;
     this._nextStepsCallback = () => this._nextSteps();
+    this._readExecutor = (resolve, reject) => {
+      this._resolveRead = resolve;
+      this._rejectRead = reject;
+    };
+    this._deliverChunk = () => {
+      const resolve = this._deliveryResolve!;
+      const chunk = this._deliveryChunk!;
+      this._deliveryPending = false;
+      this._deliveryChunk = undefined;
+      this._deliveryResolve = undefined;
+      resolve({ value: chunk, done: false });
+    };
   }
 
   next(): Promise<ReadableStreamDefaultReadResult<R>> {
@@ -71,12 +102,28 @@ export class ReadableStreamAsyncIteratorImpl<R> {
 
     // Fast path: if the read can be resolved synchronously,
     // create a fulfilled/rejected promise directly.
-    const readRequest = ReadableStreamDefaultReaderCanReadSync(reader)
-      ? new SyncIteratorReadRequest<R>(this)
-      : new AsyncIteratorReadRequest<R>(this);
-    ReadableStreamDefaultReaderRead(reader, readRequest);
-    assert(readRequest._promise !== undefined);
-    return readRequest._promise;
+    if (ReadableStreamDefaultReaderCanReadSync(reader)) {
+      this._readIsSync = true;
+      ReadableStreamDefaultReaderRead(reader, this);
+      this._readIsSync = false;
+      const promise = this._syncReadPromise!;
+      assert(promise !== undefined);
+      this._syncReadPromise = undefined;
+      return promise;
+    }
+
+    if (this._deliveryPending) {
+      // The previous chunk is still waiting to be delivered (this can only happen if next() is called
+      // synchronously from within enqueue()). Use a separate read request for this read.
+      const readRequest = new AsyncIteratorReadRequest<R>(this);
+      ReadableStreamDefaultReaderRead(reader, readRequest);
+      return readRequest._promise;
+    }
+
+    assert(this._resolveRead === undefined);
+    const promise = newPromise(this._readExecutor);
+    ReadableStreamDefaultReaderRead(reader, this);
+    return promise;
   }
 
   private _returnSteps(value: any): Promise<ReadableStreamDefaultReadResult<any>> {
@@ -110,6 +157,61 @@ export class ReadableStreamAsyncIteratorImpl<R> {
     this._isFinished = true;
     ReadableStreamReaderGenericRelease(this._reader);
   }
+
+  /** @internal */
+  _chunkSteps(chunk: R): void {
+    if (this._readIsSync) {
+      assert(this._syncReadPromise === undefined);
+      this._chunk();
+      this._syncReadPromise = promiseResolve({ value: chunk, done: false });
+      return;
+    }
+    const resolve = this._takeResolveRead();
+    this._chunk();
+    // This needs to be delayed by one microtask, otherwise we stop pulling too early which breaks a test.
+    // FIXME Is this a bug in the specification, or in the test?
+    this._deliveryPending = true;
+    this._deliveryChunk = chunk;
+    this._deliveryResolve = resolve;
+    queueMicrotask(this._deliverChunk);
+  }
+
+  /** @internal */
+  _closeSteps(): void {
+    if (this._readIsSync) {
+      assert(this._syncReadPromise === undefined);
+      this._finish();
+      this._syncReadPromise = promiseResolve({ value: undefined, done: true });
+      return;
+    }
+    const resolve = this._takeResolveRead();
+    this._finish();
+    resolve({ value: undefined, done: true });
+  }
+
+  /** @internal */
+  _errorSteps(reason: any): void {
+    if (this._readIsSync) {
+      assert(this._syncReadPromise === undefined);
+      this._finish();
+      this._syncReadPromise = promiseRejectedWith(reason);
+      return;
+    }
+    const reject = this._rejectRead!;
+    assert(reject !== undefined);
+    this._resolveRead = undefined;
+    this._rejectRead = undefined;
+    this._finish();
+    reject(reason);
+  }
+
+  private _takeResolveRead(): (result: ReadableStreamDefaultReadResult<R>) => void {
+    const resolve = this._resolveRead!;
+    assert(resolve !== undefined);
+    this._resolveRead = undefined;
+    this._rejectRead = undefined;
+    return resolve;
+  }
 }
 
 class AsyncIteratorReadRequest<R> implements ReadRequest<R> {
@@ -141,33 +243,6 @@ class AsyncIteratorReadRequest<R> implements ReadRequest<R> {
   _errorSteps(reason: any) {
     this._iterator._finish();
     this._rejectPromise(reason);
-  }
-}
-
-class SyncIteratorReadRequest<R> implements ReadRequest<R> {
-  private readonly _iterator: ReadableStreamAsyncIteratorImpl<R>;
-  _promise: Promise<ReadableStreamDefaultReadResult<R>> | undefined = undefined;
-
-  constructor(iterator: ReadableStreamAsyncIteratorImpl<R>) {
-    this._iterator = iterator;
-  }
-
-  _chunkSteps(chunk: R) {
-    assert(this._promise === undefined);
-    this._iterator._chunk();
-    this._promise = promiseResolve({ value: chunk, done: false });
-  }
-
-  _closeSteps() {
-    assert(this._promise === undefined);
-    this._iterator._finish();
-    this._promise = promiseResolve({ value: undefined, done: true });
-  }
-
-  _errorSteps(reason: any) {
-    assert(this._promise === undefined);
-    this._iterator._finish();
-    this._promise = promiseRejectedWith(reason);
   }
 }
 
