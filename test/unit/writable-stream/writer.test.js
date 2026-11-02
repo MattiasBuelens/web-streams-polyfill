@@ -78,5 +78,25 @@ describe('WritableStreamDefaultWriter', () => {
       await Promise.all([closing, aborting]);
       assert.equal(await settledState(writer.ready), 'rejected: late abort');
     });
+
+    it('stays rejected for a writer acquired while erroring, after an in-flight close succeeds', async () => {
+      let finishClose;
+      const ws = new WritableStream({
+        close() {
+          return new Promise((resolve) => {
+            finishClose = resolve;
+          });
+        }
+      });
+      const firstWriter = ws.getWriter();
+      const closing = firstWriter.close();
+      await flush();
+      const aborting = firstWriter.abort('late abort');
+      firstWriter.releaseLock();
+      const secondWriter = ws.getWriter();
+      finishClose();
+      await Promise.all([closing, aborting]);
+      assert.equal(await settledState(secondWriter.ready), 'rejected: late abort');
+    });
   });
 });

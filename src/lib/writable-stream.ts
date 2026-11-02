@@ -623,7 +623,11 @@ export class WritableStreamDefaultWriter<W = any> {
     // The ready and closed promises are created lazily by writerReadyPromise and writerClosedPromise.
     writerReadyPromiseReset(this);
     writerClosedPromiseReset(this);
-    if (stream._state === 'errored') {
+    if (stream._state === 'erroring') {
+      // A writer acquired on an erroring stream gets a rejected ready promise right away. It must stay rejected,
+      // even if an in-flight close succeeds and the stream becomes closed before the ready promise is first accessed.
+      WritableStreamDefaultWriterEnsureReadyPromiseRejected(this, stream._storedError);
+    } else if (stream._state === 'errored') {
       // A writer acquired on an errored stream gets a rejected closed promise right away, even if the sink's abort()
       // is still pending. (writerClosedPromise keeps the promise pending in that state, for writers that existed
       // before the stream became errored.)
