@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { build, defineConfig, RolldownMagicString, type InputOptions, type ModuleFormat, type Plugin, type RolldownOptions } from 'rolldown';
 import { parseAst } from 'rolldown/parseAst';
+import { Visitor } from 'rolldown/utils';
 import { dts } from 'rolldown-plugin-dts';
 import { minify as swcMinify, transform as swcTransform } from '@swc/core';
 import * as acorn from 'acorn';
@@ -93,28 +94,16 @@ function stripAsserts(): Plugin {
       handler(code, id) {
         const ast = parseAst(code, { lang: 'ts', sourceType: 'module' }, id);
         const s = new RolldownMagicString(code);
-        (function visit(node: unknown): void {
-          if (Array.isArray(node)) {
-            node.forEach(visit);
-            return;
+        new Visitor({
+          ExpressionStatement({ expression, start, end }) {
+            if (expression.type === 'CallExpression'
+              && expression.callee.type === 'Identifier'
+              && expression.callee.name === 'assert') {
+              // Keep an empty statement, in case this is the body of e.g. an `if` without braces.
+              s.overwrite(start, end, ';');
+            }
           }
-          if (node === null || typeof node !== 'object') {
-            return;
-          }
-          const { type, expression } = node as { type?: string; expression?: any };
-          if (type === 'ExpressionStatement'
-            && expression.type === 'CallExpression'
-            && expression.callee.type === 'Identifier'
-            && expression.callee.name === 'assert') {
-            const { start, end } = node as { start: number; end: number };
-            // Keep an empty statement, in case this is the body of e.g. an `if` without braces.
-            s.overwrite(start, end, ';');
-            return;
-          }
-          for (const value of Object.values(node)) {
-            visit(value);
-          }
-        })(ast);
+        }).visit(ast);
         return { code: s };
       }
     }
@@ -285,18 +274,17 @@ function outputGuard(target: Target): Plugin {
         try {
           ast = acorn.parse(code, { ecmaVersion, sourceType, ranges: true });
         } catch (error) {
-          const pos = (error as { pos?: number }).pos ?? 0;
-          this.error(`${file.fileName}: not valid ${target} syntax: ${(error as Error).message} `
-            + `near "${code.slice(Math.max(0, pos - 40), pos + 40)}"`);
+          this.error(`${file.fileName}: not valid ${target} syntax: ${String(error)}`);
         }
         if (target !== 'es5') {
           continue;
         }
-        const { globalScope } = analyzeScopes(ast as any, { ecmaVersion: 5, sourceType });
+        // Acorn's AST types differ slightly from @types/estree (which eslint-scope uses), but the AST is the same.
+        const { globalScope } = analyzeScopes(ast as Parameters<typeof analyzeScopes>[0], { ecmaVersion: 5, sourceType });
         for (const name of polyfilledGlobals) {
           const references = globalScope!.through.filter(reference => reference.identifier.name === name);
           if (references.length > 0) {
-            const [start] = (references[0].identifier as acorn.Node & { range: [number, number] }).range;
+            const [start] = references[0].identifier.range!;
             this.error(`${file.fileName}: ${references.length} free references to the global "${name}" `
               + `bypass the polyfill (first near "${code.slice(Math.max(0, start - 40), start + 40)}")`);
           }
@@ -314,7 +302,7 @@ function bundle({ entry, format, ext }: Output, target: Target): RolldownOptions
     : sourceInput(entry);
   return {
     ...input,
-    plugins: [...((input.plugins as Plugin[] | undefined) ?? []), outputGuard(target)],
+    plugins: [input.plugins, outputGuard(target)],
     output: {
       file: `dist/${name}.${ext}`,
       format,
