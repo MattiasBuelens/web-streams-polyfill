@@ -189,6 +189,9 @@ function bundle({ entry, format, ext }: Output, target: Target): RolldownOptions
       format,
       name: format === 'umd' ? 'WebStreamsPolyfill' : undefined,
       exports: format === 'iife' ? 'none' : 'named',
+      strict: true,
+      // Don't emit `Symbol.toStringTag` on the exports object: ES5 environments may not have `Symbol`.
+      generatedCode: { symbols: false },
       sourcemap: debug ? 'inline' : false,
       // Added after minification, so the minifier can't move or drop it.
       postBanner: banner,
