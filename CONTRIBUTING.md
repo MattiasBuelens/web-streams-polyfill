@@ -12,6 +12,9 @@
   These generated files are **not** checked into version control.
   - The ES5 bundles are first bundled at ES2015, then downleveled to ES5 with [SWC](https://swc.rs/)
     and wrapped in a second Rolldown pass. See `rolldown.config.ts` for details.
+  - The ES2015 bundles are minified with Oxc (Rolldown's built-in minifier), and the ES5 bundles with SWC.
+    Oxc can't output ES5, and SWC drops `= undefined` default parameters, which changes `Function.length`
+    and fails WPT for the ES2015 bundles.
 - `npm run build:debug` generates unminified bundles with assertions enabled, `DEBUG` set to `true`
   and inline source maps. Use this while debugging a failing test.
 - `npm run build:watch` runs the debug build in watch mode.

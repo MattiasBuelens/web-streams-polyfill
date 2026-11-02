@@ -193,7 +193,14 @@ function relowerES5(): Plugin {
 
 /**
  * Minifies an ES5 chunk with SWC.
- * Oxc's minifier only supports ES2015+ (e.g. it turns string literals into template literals).
+ *
+ * ES2015 and ES5 bundles intentionally use different minifiers:
+ * - Oxc's minifier only supports ES2015+ (e.g. it turns string literals into template literals),
+ *   so it can't be used for ES5.
+ * - SWC's compressor always rewrites `cancel(reason = undefined)` to `cancel(reason)`, changing
+ *   `cancel.length` from 0 to 1, which fails the WPT IDL tests for the ES2015 bundles. (The ES5 bundles
+ *   already lose default parameters when lowering to ES5, so those tests are expected to fail there anyway.)
+ * The output guard checks the syntax of both.
  */
 function minifyES5(): Plugin {
   return {
@@ -282,6 +289,7 @@ function bundle({ entry, format, ext }: Output, target: Target): RolldownOptions
       postBanner: banner,
       // Drop /* @__PURE__ */ annotations and JSDoc from production bundles.
       comments: debug ? true : { legal: false, annotation: false, jsdoc: false },
+      // ES2015 bundles are minified with Oxc, ES5 bundles with SWC. See `minifyES5()` for why.
       minify: debug || isES5
         ? false
         : {
