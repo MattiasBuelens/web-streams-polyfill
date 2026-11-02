@@ -7,14 +7,24 @@
   "types": "types/ponyfill.d.ts",
   "exports": {
     ".": {
-      "types": "./types/ponyfill.d.ts",
-      "import": "./dist/ponyfill.mjs",
-      "require": "./dist/ponyfill.js"
+      "import": {
+        "types": "./types/ponyfill.d.mts",
+        "default": "./dist/ponyfill.mjs"
+      },
+      "require": {
+        "types": "./types/ponyfill.d.ts",
+        "default": "./dist/ponyfill.js"
+      }
     },
     "./es5": {
-      "types": "./types/ponyfill.d.ts",
-      "import": "./dist/ponyfill.es5.mjs",
-      "require": "./dist/ponyfill.es5.js"
+      "import": {
+        "types": "./types/ponyfill.d.mts",
+        "default": "./dist/ponyfill.es5.mjs"
+      },
+      "require": {
+        "types": "./types/ponyfill.d.ts",
+        "default": "./dist/ponyfill.es5.js"
+      }
     },
     "./polyfill": {
       "types": "./types/polyfill.d.ts",
@@ -30,21 +40,26 @@
     "./package.json": "./package.json"
   },
   "scripts": {
-    "test": "npm run test:types && npm run test:unit && npm run test:wpt && npm run test:bundlers",
+    "test": "npm run test:types && npm run test:api && npm run test:unit && npm run test:wpt && npm run test:bundlers && npm run test:package",
     "test:wpt": "npm run test:wpt:node && npm run test:wpt:chromium && npm run test:wpt:firefox",
     "test:wpt:node": "node --expose_gc ./test/wpt/node/run.mjs",
     "test:wpt:chromium": "node ./test/wpt/browser/run.mjs --browser chromium",
     "test:wpt:firefox": "node ./test/wpt/browser/run.mjs --browser firefox",
-    "test:bundlers": "npm run test:bundler:rollup && npm run test:bundler:webpack",
+    "test:bundlers": "npm run test:bundler:rolldown && npm run test:bundler:rollup && npm run test:bundler:webpack",
+    "test:bundler:rolldown": "npm test --workspace=test/rolldown-test",
     "test:bundler:rollup": "npm test --workspace=test/rollup-test",
     "test:bundler:webpack": "npm test --workspace=test/webpack-test",
     "test:types": "tsc -p ./test/types/tsconfig.json",
+    "test:api": "node ./scripts/check-api.mjs",
+    "test:package": "publint --strict && attw --pack . --profile node16 --ignore-rules named-exports",
     "test:unit": "cd test/unit && node --test",
-    "lint": "eslint \"*.mjs\" \"src/**/*.ts\"",
-    "build": "npm run build:bundle && npm run build:types",
-    "build:bundle": "rollup -c",
-    "build:types": "tsc --project . --emitDeclarationOnly --declarationDir ./lib && api-extractor run",
-    "accept:types": "npm run build:types -- --local",
+    "lint": "eslint \"*.mjs\" \"*.ts\" \"scripts/**/*.mjs\" \"src/**/*.ts\"",
+    "build": "npm run build:prod",
+    "build:prod": "rolldown -c rolldown.config.ts",
+    "build:debug": "rolldown -c rolldown.config.ts --environment BUILD:debug",
+    "build:watch": "rolldown -c rolldown.config.ts --watch --environment BUILD:debug",
+    "accept:api": "node ./scripts/check-api.mjs --accept",
+    "size": "node ./scripts/size.mjs",
     "prepare": "npm run build"
   },
   "files": [
@@ -73,29 +88,27 @@
   },
   "homepage": "https://github.com/MattiasBuelens/web-streams-polyfill#readme",
   "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.5",
     "@eslint/js": "^10.0.1",
-    "@microsoft/api-extractor": "^7.58.7",
-    "@rollup/plugin-inject": "^5.0.5",
-    "@rollup/plugin-replace": "^6.0.3",
-    "@rollup/plugin-strip": "^3.0.4",
-    "@rollup/plugin-terser": "^1.0.0",
-    "@rollup/plugin-typescript": "^12.3.0",
     "@stylistic/eslint-plugin": "^5.10.0",
+    "@swc/core": "^1.16.21",
     "@types/node": "~26.6.5",
     "eslint": "^10.1.0",
     "globals": "^17.4.0",
     "micromatch": "^4.0.8",
     "minimist": "^1.2.8",
     "playwright": "^1.60.0",
-    "rollup": "^4.60.0",
+    "publint": "^0.3.25",
+    "rolldown": "^1.2.16",
+    "rolldown-plugin-dts": "^0.29.0",
     "st": "^4.0.12",
-    "tslib": "^2.8.1",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.59.3",
     "wpt-runner": "^7.0.0"
   },
   "workspaces": [
     "test/benchmark-test",
+    "test/rolldown-test",
     "test/rollup-test",
     "test/webpack-test"
   ]

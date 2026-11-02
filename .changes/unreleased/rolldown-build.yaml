@@ -1,0 +1,7 @@
+kind: 🏠
+body: |
+  Build with Rolldown instead of Rollup, generate type definitions with rolldown-plugin-dts instead of API Extractor,
+  and downlevel the ES5 bundles with SWC instead of TypeScript.
+  * The `import` condition of `web-streams-polyfill` and `web-streams-polyfill/es5` now uses ESM type definitions (`types/ponyfill.d.mts`).
+  * `types/tsdoc-metadata.json` is no longer published.
+time: 2026-11-02T14:30:00Z

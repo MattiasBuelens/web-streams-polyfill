@@ -29,9 +29,35 @@ jobs:
         env:
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
       - run: npm run test:types
+      - run: npm run test:api
       - run: npm run test:unit
       - run: npm run test:wpt:node
       - run: npm run test:bundlers
+
+  package:
+    name: Package
+    runs-on: ubuntu-latest
+    if: |
+      (github.event_name != 'pull_request' || github.event.pull_request.draft != true) &&
+      (github.event_name != 'push' || !contains(github.event.head_commit.message, '[skip ci]'))
+    steps:
+      - name: Check out commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Use Node.js 24
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v6
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --workspaces
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
+      - name: Lint package exports and types
+        run: npm run test:package
+      - name: Compare bundle sizes with latest release
+        run: |
+          npm install --workspace test/benchmark-test -D web-streams-polyfill-baseline@npm:web-streams-polyfill@latest
+          echo '## Bundle size' >> $GITHUB_STEP_SUMMARY
+          npm run --silent size | tee --append $GITHUB_STEP_SUMMARY
 
   test-browser:
     name: ${{ matrix.browser }}
@@ -78,7 +104,7 @@ jobs:
           filters: |
             benchmark:
               - 'src/**'
-              - 'rollup.config.mjs'
+              - 'rolldown.config.ts'
               - 'tsconfig.json'
               - 'test/benchmark-test/**'
               - '.github/workflows/test.yml'

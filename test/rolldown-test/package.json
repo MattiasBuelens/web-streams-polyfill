@@ -1,0 +1,15 @@
+{
+  "name": "rolldown-test",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "test": "node dist/app.js",
+    "pretest": "rolldown -c"
+  },
+  "dependencies": {
+    "web-streams-polyfill": "*"
+  },
+  "devDependencies": {
+    "rolldown": "^1.2.16"
+  }
+}

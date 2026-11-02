@@ -15,7 +15,6 @@
     "types": [],
     "strict": true,
     "stripInternal": true,
-    "importHelpers": true,
     "declaration": true,
     "declarationMap": true,
     "isolatedModules": true,
