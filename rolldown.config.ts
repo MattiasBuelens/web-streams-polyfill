@@ -3,6 +3,8 @@ import path from 'node:path';
 import { build, defineConfig, RolldownMagicString, type InputOptions, type ModuleFormat, type Plugin, type RolldownOptions } from 'rolldown';
 import { dts } from 'rolldown-plugin-dts';
 import { minify as swcMinify, transform as swcTransform } from '@swc/core';
+import * as acorn from 'acorn';
+import { analyze as analyzeScopes } from 'eslint-scope';
 
 /**
  * Build mode, set with `rolldown -c --environment BUILD:debug`.
@@ -64,7 +66,7 @@ const outputs: Output[] = [
 /**
  * Input options shared by all bundles, for bundling our TypeScript sources at ES2015.
  */
-function sourceInput(entry: string, target: Target): InputOptions {
+function sourceInput(entry: string): InputOptions {
   return {
     input: `src/${entry}.ts`,
     tsconfig: 'tsconfig.json',
@@ -72,7 +74,6 @@ function sourceInput(entry: string, target: Target): InputOptions {
       target: 'es2015',
       define: { DEBUG: String(debug) }
     },
-    plugins: target === 'es5' ? [injectSymbolStub()] : [],
     treeshake: debug ? true : { manualPureFunctions: ['assert'] },
     checks: { circularDependency: false }
   };
@@ -82,13 +83,14 @@ const symbolStub = path.resolve('src/stub/symbol.ts');
 
 /**
  * ES5 environments may not have `Symbol`, so we replace it with `src/stub/symbol.ts`.
+ * This runs on the downleveled ES5 module, so it also covers SWC's helpers.
  * (Rolldown's built-in `transform.inject` would also rewrite `Symbol` inside the stub itself.)
  */
 function injectSymbolStub(): Plugin {
   return {
     name: 'inject-symbol-stub',
     transform: {
-      filter: { id: { include: /[\\/]src[\\/].*\.ts$/, exclude: /[\\/]src[\\/]stub[\\/]symbol\.ts$/ } },
+      filter: { id: /^es5:/ },
       handler(code) {
         if (!/\bSymbol\b/.test(code)) {
           return;
@@ -125,7 +127,7 @@ function es5Entry(entry: string): Plugin {
         return;
       }
       const result = await build({
-        ...sourceInput(entry, 'es5'),
+        ...sourceInput(entry),
         write: false,
         logLevel: 'warn',
         output: { format: 'esm', sourcemap: debug }
@@ -156,6 +158,40 @@ function es5Entry(entry: string): Plugin {
 }
 
 /**
+ * Lowers the wrapped chunk to ES5 once more.
+ * Rolldown re-prints the (already ES5) module in the second pass, and its code generator
+ * re-introduces ES2015 syntax such as shorthand properties (`{ size }`).
+ * The code is already ES5 apart from that, so SWC doesn't need to add any helpers here.
+ */
+function relowerES5(): Plugin {
+  return {
+    name: 'relower-es5',
+    async renderChunk(code, _chunk, options) {
+      const result = await swcTransform(code, {
+        configFile: false,
+        swcrc: false,
+        sourceMaps: debug,
+        inputSourceMap: false,
+        isModule: options.format === 'es',
+        env: {
+          // IE 11 lacks all ES2015 syntax, so this lowers the same syntax as `target: 'es5'`.
+          targets: 'ie 11',
+          loose: true,
+          // Rolldown's UMD wrapper uses `"u" > typeof module`. Lowering that for symbols
+          // would add a helper above the wrapper, which references the global `Symbol`.
+          exclude: ['transform-typeof-symbol']
+        },
+        jsc: {
+          parser: { syntax: 'ecmascript' },
+          externalHelpers: false
+        }
+      });
+      return { code: result.code, map: result.map ? JSON.parse(result.map) : null };
+    }
+  };
+}
+
+/**
  * Minifies an ES5 chunk with SWC.
  * Oxc's minifier only supports ES2015+ (e.g. it turns string literals into template literals).
  */
@@ -176,22 +212,71 @@ function minifyES5(): Plugin {
   };
 }
 
+/** Globals that the ES5 builds polyfill; any free reference to them bypasses the polyfill. */
+const polyfilledGlobals = ['Symbol'];
+
+/**
+ * Verifies the final output: parses each chunk at the target's ECMAScript version and,
+ * for ES5, checks that no free references to polyfilled globals remain.
+ * This catches syntax that Oxc or SWC left unlowered, and helpers that reference a global directly.
+ */
+function outputGuard(target: Target): Plugin {
+  const ecmaVersion = target === 'es5' ? 5 : 2015;
+  return {
+    name: 'output-guard',
+    generateBundle(options, files) {
+      const sourceType = options.format === 'es' ? 'module' : 'script';
+      for (const file of Object.values(files)) {
+        if (file.type !== 'chunk') {
+          continue;
+        }
+        const code = file.code;
+        let ast: acorn.Program;
+        try {
+          ast = acorn.parse(code, { ecmaVersion, sourceType, ranges: true });
+        } catch (error) {
+          const pos = (error as { pos?: number }).pos ?? 0;
+          this.error(`${file.fileName}: not valid ${target} syntax: ${(error as Error).message} `
+            + `near "${code.slice(Math.max(0, pos - 40), pos + 40)}"`);
+        }
+        if (target !== 'es5') {
+          continue;
+        }
+        const { globalScope } = analyzeScopes(ast as any, { ecmaVersion: 5, sourceType });
+        for (const name of polyfilledGlobals) {
+          const references = globalScope!.through.filter(reference => reference.identifier.name === name);
+          if (references.length > 0) {
+            const [start] = (references[0].identifier as acorn.Node & { range: [number, number] }).range;
+            this.error(`${file.fileName}: ${references.length} free references to the global "${name}" `
+              + `bypass the polyfill (first near "${code.slice(Math.max(0, start - 40), start + 40)}")`);
+          }
+        }
+      }
+    }
+  };
+}
+
 function bundle({ entry, format, ext }: Output, target: Target): RolldownOptions {
   const isES5 = target === 'es5';
   const name = isES5 ? `${entry}.es5` : entry;
   const input: InputOptions = isES5
-    ? { input: `es5:${entry}`, plugins: [es5Entry(entry), !debug && minifyES5()], checks: { circularDependency: false } }
-    : sourceInput(entry, target);
+    ? { input: `es5:${entry}`, plugins: [es5Entry(entry), injectSymbolStub(), relowerES5(), !debug && minifyES5()], checks: { circularDependency: false } }
+    : sourceInput(entry);
   return {
     ...input,
+    plugins: [...((input.plugins as Plugin[] | undefined) ?? []), outputGuard(target)],
     output: {
       file: `dist/${name}.${ext}`,
       format,
       name: format === 'umd' ? 'WebStreamsPolyfill' : undefined,
       exports: format === 'iife' ? 'none' : 'named',
-      strict: true,
-      // Don't emit `Symbol.toStringTag` on the exports object: ES5 environments may not have `Symbol`.
-      generatedCode: { symbols: false },
+      // Rolldown puts "use strict" above the IIFE/UMD wrapper, where it would also apply to any scripts
+      // concatenated with ours. Put it inside the wrapper instead (like Rollup did).
+      strict: false,
+      intro: format === 'esm' ? undefined : '"use strict";',
+      // Use ES5 syntax in Rolldown's own generated code for ES5 bundles, and don't emit `Symbol.toStringTag`
+      // on the exports object (ES5 environments may not have `Symbol`).
+      generatedCode: { preset: isES5 ? 'es5' : 'es2015', symbols: false },
       sourcemap: debug ? 'inline' : false,
       // Added after minification, so the minifier can't move or drop it.
       postBanner: banner,
@@ -215,8 +300,8 @@ function bundle({ entry, format, ext }: Output, target: Target): RolldownOptions
 function dtsForESM(): Plugin {
   return {
     name: 'dts-for-esm',
-    generateBundle(_options, bundle) {
-      const file = bundle['ponyfill.d.ts'];
+    generateBundle(_options, files) {
+      const file = files['ponyfill.d.ts'];
       if (file?.type === 'chunk') {
         this.emitFile({ type: 'asset', fileName: 'ponyfill.d.mts', source: file.code });
       }
