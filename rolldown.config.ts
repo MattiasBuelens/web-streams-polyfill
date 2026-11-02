@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { build, defineConfig, RolldownMagicString, type InputOptions, type ModuleFormat, type Plugin, type RolldownOptions } from 'rolldown';
+import { parseAst } from 'rolldown/parseAst';
 import { dts } from 'rolldown-plugin-dts';
 import { minify as swcMinify, transform as swcTransform } from '@swc/core';
 import * as acorn from 'acorn';
@@ -74,8 +75,49 @@ function sourceInput(entry: string): InputOptions {
       target: 'es2015',
       define: { DEBUG: String(debug) }
     },
-    treeshake: debug ? true : { manualPureFunctions: ['assert'] },
+    plugins: [!debug && stripAsserts()],
     checks: { circularDependency: false }
+  };
+}
+
+/**
+ * Removes every `assert(...)` statement, including its arguments.
+ * (Marking `assert` as a pure function isn't enough: that keeps any arguments with side effects,
+ * such as `assert(IsReadableStreamDefaultReader(reader))`, which slows down hot paths.)
+ */
+function stripAsserts(): Plugin {
+  return {
+    name: 'strip-asserts',
+    transform: {
+      filter: { id: /\.ts$/, code: 'assert(' },
+      handler(code, id) {
+        const ast = parseAst(code, { lang: 'ts', sourceType: 'module' }, id);
+        const s = new RolldownMagicString(code);
+        (function visit(node: unknown): void {
+          if (Array.isArray(node)) {
+            node.forEach(visit);
+            return;
+          }
+          if (node === null || typeof node !== 'object') {
+            return;
+          }
+          const { type, expression } = node as { type?: string; expression?: any };
+          if (type === 'ExpressionStatement'
+            && expression.type === 'CallExpression'
+            && expression.callee.type === 'Identifier'
+            && expression.callee.name === 'assert') {
+            const { start, end } = node as { start: number; end: number };
+            // Keep an empty statement, in case this is the body of e.g. an `if` without braces.
+            s.overwrite(start, end, ';');
+            return;
+          }
+          for (const value of Object.values(node)) {
+            visit(value);
+          }
+        })(ast);
+        return { code: s };
+      }
+    }
   };
 }
 
