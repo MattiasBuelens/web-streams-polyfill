@@ -200,6 +200,7 @@ function relowerES5(): Plugin {
  * - SWC's compressor always rewrites `cancel(reason = undefined)` to `cancel(reason)`, changing
  *   `cancel.length` from 0 to 1, which fails the WPT IDL tests for the ES2015 bundles. (The ES5 bundles
  *   already lose default parameters when lowering to ES5, so those tests are expected to fail there anyway.)
+ *   See https://github.com/swc-project/swc/issues/12203
  * The output guard checks the syntax of both.
  */
 function minifyES5(): Plugin {
