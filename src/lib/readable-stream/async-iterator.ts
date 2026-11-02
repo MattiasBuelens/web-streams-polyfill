@@ -158,7 +158,6 @@ export class ReadableStreamAsyncIteratorImpl<R> implements ReadRequest<R> {
     ReadableStreamReaderGenericRelease(this._reader);
   }
 
-  /** @internal */
   _chunkSteps(chunk: R): void {
     if (this._readIsSync) {
       assert(this._syncReadPromise === undefined);
@@ -176,7 +175,6 @@ export class ReadableStreamAsyncIteratorImpl<R> implements ReadRequest<R> {
     queueMicrotask(this._deliverChunk);
   }
 
-  /** @internal */
   _closeSteps(): void {
     if (this._readIsSync) {
       assert(this._syncReadPromise === undefined);
@@ -189,7 +187,6 @@ export class ReadableStreamAsyncIteratorImpl<R> implements ReadRequest<R> {
     resolve({ value: undefined, done: true });
   }
 
-  /** @internal */
   _errorSteps(reason: any): void {
     if (this._readIsSync) {
       assert(this._syncReadPromise === undefined);
