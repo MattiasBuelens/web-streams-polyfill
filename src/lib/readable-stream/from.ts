@@ -5,6 +5,7 @@ import {
   type ReadableStreamLike
 } from './readable-stream-like';
 import { ReadableStreamDefaultControllerClose, ReadableStreamDefaultControllerEnqueue } from './default-controller';
+import type { ReadableStreamDefaultReadResult } from './default-reader';
 import { GetIterator, GetMethod, IteratorNext } from '../abstract-ops/ecmascript';
 import { promiseCall, promiseRejectedWith, promiseResolvedWith, transformPromiseWith } from '../helpers/webidl';
 import { typeIsObject } from '../helpers/miscellaneous';
@@ -23,6 +24,20 @@ export function ReadableStreamFromIterable<R>(asyncIterable: Iterable<R> | Async
 
   const startAlgorithm = noop;
 
+  // Optimization: create the reaction to the iterator results once, and re-use it for every pull.
+  const onIterResult = (iterResult: IteratorResult<R>): void => {
+    if (!typeIsObject(iterResult)) {
+      throw new TypeError('The promise returned by the iterator.next() method must fulfill with an object');
+    }
+    const done = iterResult.done;
+    if (done) {
+      ReadableStreamDefaultControllerClose(stream._readableStreamController);
+    } else {
+      const value = iterResult.value;
+      ReadableStreamDefaultControllerEnqueue(stream._readableStreamController, value);
+    }
+  };
+
   function pullAlgorithm(): Promise<void> {
     let nextResult;
     try {
@@ -31,18 +46,7 @@ export function ReadableStreamFromIterable<R>(asyncIterable: Iterable<R> | Async
       return promiseRejectedWith(e);
     }
     const nextPromise = promiseResolvedWith(nextResult);
-    return transformPromiseWith(nextPromise, (iterResult) => {
-      if (!typeIsObject(iterResult)) {
-        throw new TypeError('The promise returned by the iterator.next() method must fulfill with an object');
-      }
-      const done = iterResult.done;
-      if (done) {
-        ReadableStreamDefaultControllerClose(stream._readableStreamController);
-      } else {
-        const value = iterResult.value;
-        ReadableStreamDefaultControllerEnqueue(stream._readableStreamController, value);
-      }
-    });
+    return transformPromiseWith(nextPromise, onIterResult);
   }
 
   function cancelAlgorithm(reason: any): Promise<void> {
@@ -74,6 +78,19 @@ export function ReadableStreamFromDefaultReader<R>(reader: ReadableStreamDefault
 
   const startAlgorithm = noop;
 
+  // Optimization: create the reaction to the read results once, and re-use it for every pull.
+  const onReadResult = (readResult: ReadableStreamDefaultReadResult<R>): void => {
+    if (!typeIsObject(readResult)) {
+      throw new TypeError('The promise returned by the reader.read() method must fulfill with an object');
+    }
+    if (readResult.done) {
+      ReadableStreamDefaultControllerClose(stream._readableStreamController);
+    } else {
+      const value = readResult.value;
+      ReadableStreamDefaultControllerEnqueue(stream._readableStreamController, value);
+    }
+  };
+
   function pullAlgorithm(): Promise<void> {
     let readPromise;
     try {
@@ -81,17 +98,7 @@ export function ReadableStreamFromDefaultReader<R>(reader: ReadableStreamDefault
     } catch (e) {
       return promiseRejectedWith(e);
     }
-    return transformPromiseWith(readPromise, (readResult) => {
-      if (!typeIsObject(readResult)) {
-        throw new TypeError('The promise returned by the reader.read() method must fulfill with an object');
-      }
-      if (readResult.done) {
-        ReadableStreamDefaultControllerClose(stream._readableStreamController);
-      } else {
-        const value = readResult.value;
-        ReadableStreamDefaultControllerEnqueue(stream._readableStreamController, value);
-      }
-    });
+    return transformPromiseWith(readPromise, onReadResult);
   }
 
   function cancelAlgorithm(reason: any): Promise<void> {
