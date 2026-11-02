@@ -7,12 +7,27 @@
 
 ## Scripts
 
-- `npm run build` generates the bundled JavaScript (`.js`) and TypeScript type definitions (`.d.ts`), and outputs them to `dist/`. These generated files are **not** checked into version control.
-- `npm test` runs the three test suites:
+- `npm run build` (or `npm run build:prod`) generates the minified JavaScript bundles in `dist/`
+  and the bundled TypeScript type definitions in `types/`, using [Rolldown](https://rolldown.rs/).
+  These generated files are **not** checked into version control.
+  - The ES5 bundles are first bundled at ES2015, then downleveled to ES5 with [SWC](https://swc.rs/)
+    and wrapped in a second Rolldown pass. See `rolldown.config.ts` for details.
+  - The ES2015 bundles are minified with Oxc (Rolldown's built-in minifier), and the ES5 bundles with SWC.
+    Oxc can't output ES5, and SWC drops `= undefined` default parameters, which changes `Function.length`
+    and fails WPT for the ES2015 bundles ([swc#12203](https://github.com/swc-project/swc/issues/12203)).
+- `npm run build:debug` generates unminified bundles with assertions enabled, `DEBUG` set to `true`
+  and inline source maps. Use this while debugging a failing test.
+- `npm run build:watch` runs the debug build in watch mode.
+- `npm test` runs all test suites:
   - `npm run test:wpt` runs the [Web Platform Tests for Streams][wpt-streams] against the generated JavaScript bundle, to verify that the polyfill's run-time behavior matches the specification.
   - `npm run test:types` runs the TypeScript compiler against some reference code that uses the generated type definitions, to verify that the code successfully passes the type check.
+  - `npm run test:api` checks that the generated type definitions match the API snapshot in `etc/ponyfill.api.d.ts`.
+    After an intentional API change, run `npm run accept:api` and commit the updated snapshot.
   - `npm run test:unit` runs a few unit tests in a Node environment, to verify that the polyfill also works without a browser environment.
   - `npm run test:bundlers` runs integration tests with popular bundlers, to verify that they can correctly resolve and bundle the polyfill.
+  - `npm run test:package` checks the published package's `exports` and types
+    with [publint](https://publint.dev/) and [Are the types wrong?](https://arethetypeswrong.github.io/).
+- `npm run size` prints the size of each bundle, compared with the latest release when it is installed.
 
 ## Using an installed browser for Web Platform Tests
 
