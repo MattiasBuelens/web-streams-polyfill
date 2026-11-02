@@ -623,6 +623,12 @@ export class WritableStreamDefaultWriter<W = any> {
     // The ready and closed promises are created lazily by writerReadyPromise and writerClosedPromise.
     writerReadyPromiseReset(this);
     writerClosedPromiseReset(this);
+    if (stream._state === 'errored') {
+      // A writer acquired on an errored stream gets a rejected closed promise right away, even if the sink's abort()
+      // is still pending. (writerClosedPromise keeps the promise pending in that state, for writers that existed
+      // before the stream became errored.)
+      writerClosedPromiseSetRejected(this, stream._storedError);
+    }
 
     this._releasedError = undefined;
     this._stateChangeListener = undefined;
@@ -833,11 +839,14 @@ function WritableStreamDefaultWriterCloseWithErrorPropagation(writer: WritableSt
 }
 
 function WritableStreamDefaultWriterEnsureReadyPromiseRejected(writer: WritableStreamDefaultWriter, error: any) {
-  if (writer._readyPromise !== undefined && writer._readyPromise_reject !== undefined) {
+  if (writer._readyPromise_reject !== undefined) {
     writerReadyPromiseReject(writer, error);
   } else {
-    // Reset the promise. writerReadyPromise will (re-)create the rejected promise on the next access.
-    writerReadyPromiseReset(writer);
+    // Create the rejected promise now, rather than deriving it from the stream state on first access.
+    // The ready promise must stay rejected even if the stream later becomes closed (e.g. an in-flight close succeeds
+    // after the stream was aborted).
+    writer._readyPromise = promiseRejectedWith(error);
+    setPromiseIsHandledToTrue(writer._readyPromise);
   }
 }
 
@@ -1412,6 +1421,10 @@ export function writerClosedPromise(writer: WritableStreamDefaultWriter<any>): P
       switch (stream._state) {
         case 'writable':
         case 'erroring':
+        case 'errored':
+          // If the stream is errored, the closed promise is only rejected once the sink's abort() has settled
+          // (in WritableStreamFinishErroring). Until then, it must stay pending.
+          // Once rejected, writerClosedPromiseReject has already created the rejected promise.
           writer._closedPromise = newPromise((resolve, reject) => {
             writer._closedPromise_resolve = resolve;
             writer._closedPromise_reject = reject;
@@ -1420,19 +1433,28 @@ export function writerClosedPromise(writer: WritableStreamDefaultWriter<any>): P
         case 'closed':
           writer._closedPromise = promiseResolve(undefined);
           break;
-        case 'errored':
-          writer._closedPromise = promiseRejectedWith(stream._storedError);
-          setPromiseIsHandledToTrue(writer._closedPromise);
-          break;
       }
     }
   }
   return writer._closedPromise;
 }
 
+function writerClosedPromiseSetRejected(writer: WritableStreamDefaultWriter, reason: any) {
+  writer._closedPromise = promiseRejectedWith(reason);
+  setPromiseIsHandledToTrue(writer._closedPromise);
+  writer._closedPromise_resolve = undefined;
+  writer._closedPromise_reject = undefined;
+}
+
 function writerClosedPromiseReject(writer: WritableStreamDefaultWriter, reason: any) {
+  if (writer._closedPromise === undefined) {
+    // If closed promise isn't created yet, create it as a rejected promise now.
+    // writerClosedPromise cannot derive this from the stream state, since the stream becomes errored
+    // before the closed promise is rejected.
+    writerClosedPromiseSetRejected(writer, reason);
+    return;
+  }
   if (writer._closedPromise_reject === undefined) {
-    // If closed promise isn't created yet, skip. writerClosedPromise will set it to a rejected promise on first access.
     // If already resolved/rejected, rejecting it again is a no-op.
     return;
   }
