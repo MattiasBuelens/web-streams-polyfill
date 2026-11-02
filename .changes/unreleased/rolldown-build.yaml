@@ -1,6 +1,0 @@
-kind: 🐛
-body: |
-  Use ESM type definitions (`types/ponyfill.d.mts`) for the `import` condition of `web-streams-polyfill` and `web-streams-polyfill/es5`,
-  so TypeScript no longer treats them as CommonJS types. ([#242](https://github.com/MattiasBuelens/web-streams-polyfill/pull/242))
-  * `types/tsdoc-metadata.json` is no longer published.
-time: 2026-11-02T14:30:00Z

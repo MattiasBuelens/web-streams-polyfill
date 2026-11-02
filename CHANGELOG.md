@@ -10,6 +10,20 @@
 > - 🏠 Internal
 > - 💅 Polish
 
+## 4.5.0 (2026-11-02)
+
+* 🚀 Reduce allocations and promise overhead throughout the implementation. ([#237](https://github.com/MattiasBuelens/web-streams-polyfill/pull/237))
+  * `reader.closed`, `writer.closed` and `writer.ready` are now created lazily on first access,
+    and internal promise callbacks are re-used instead of being recreated for every chunk.
+  * `pipeTo()`, `tee()` and async iteration re-use their internal read requests,
+    and `pipeTo()` no longer creates a promise for every written chunk.
+  * Creating a `ReadableStream` without a `pull()` method no longer schedules a pull or an extra microtask.
+  * These optimizations were inspired by similar work in Node.js:
+    [#63572](https://github.com/nodejs/node/pull/63572), [#63876](https://github.com/nodejs/node/pull/63876), [#64320](https://github.com/nodejs/node/pull/64320), [#64431](https://github.com/nodejs/node/pull/64431), [#64818](https://github.com/nodejs/node/pull/64818), [#64890](https://github.com/nodejs/node/pull/64890), [#65138](https://github.com/nodejs/node/pull/65138), [#65414](https://github.com/nodejs/node/pull/65414), [#66052](https://github.com/nodejs/node/pull/66052), [#66154](https://github.com/nodejs/node/pull/66154), [#66392](https://github.com/nodejs/node/pull/66392), [#66424](https://github.com/nodejs/node/pull/66424).
+* 🐛 Use ESM type definitions (`types/ponyfill.d.mts`) for the `import` condition of `web-streams-polyfill` and `web-streams-polyfill/es5`,
+  so TypeScript no longer treats them as CommonJS types. ([#242](https://github.com/MattiasBuelens/web-streams-polyfill/pull/242))
+  * `types/tsdoc-metadata.json` is no longer published.
+
 ## 4.4.0 (2026-11-02)
 
 * 🐛 Fix memory leak where internal promises kept piling up inside `ReadableStream.pipeTo()`
