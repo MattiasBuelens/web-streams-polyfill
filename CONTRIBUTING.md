@@ -14,6 +14,18 @@
   - `npm run test:unit` runs a few unit tests in a Node environment, to verify that the polyfill also works without a browser environment.
   - `npm run test:bundlers` runs integration tests with popular bundlers, to verify that they can correctly resolve and bundle the polyfill.
 
+## Using an installed browser for Web Platform Tests
+
+The browser tests use Playwright's bundled browsers by default. To use an existing
+browser executable, set `WPT_BROWSER_EXECUTABLE_PATH` for the matching test command:
+
+```sh
+WPT_BROWSER_EXECUTABLE_PATH=/usr/bin/chromium npm run test:wpt:chromium
+```
+
+Custom browser versions may be incompatible with Playwright. Firefox requires
+Playwright's patched Firefox build; a standard Firefox installation is not supported.
+
 ## Changelog
 
 We use [Changie](https://changie.dev/guide/quick_start/) to manage release notes.

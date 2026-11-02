@@ -42,7 +42,9 @@ async function main() {
     const urlPrefix = `http://127.0.0.1:${server.address().port}`;
     console.log(`Server running at ${urlPrefix}`);
 
-    browser = await browserTypeByName(browserType).launch();
+    browser = await browserTypeByName(browserType).launch({
+      executablePath: process.env.WPT_BROWSER_EXECUTABLE_PATH || undefined
+    });
     const testOptions = { includedTests, excludedTests, browser, wptPath, urlPrefix };
     results.push(await runTests({
       ...testOptions,
