@@ -76,6 +76,59 @@ export function ReadableStreamDefaultTee<R>(
     resolveCancelPromise = resolve;
   });
 
+  // Only one read is in flight at a time, so the same read request (and its chunk microtask) can be reused
+  // for every read.
+  let pendingChunk: R | undefined;
+  const chunkMicrotask = () => {
+    readAgain = false;
+    const chunk1 = pendingChunk!;
+    const chunk2 = pendingChunk!;
+    pendingChunk = undefined;
+
+    // There is no way to access the cloning code right now in the reference implementation.
+    // If we add one then we'll need an implementation for serializable objects.
+    // if (!canceled2 && cloneForBranch2) {
+    //   chunk2 = StructuredDeserialize(StructuredSerialize(chunk2));
+    // }
+
+    if (!canceled1) {
+      ReadableStreamDefaultControllerEnqueue(branch1._readableStreamController, chunk1);
+    }
+    if (!canceled2) {
+      ReadableStreamDefaultControllerEnqueue(branch2._readableStreamController, chunk2);
+    }
+
+    reading = false;
+    if (readAgain) {
+      pullAlgorithm();
+    }
+  };
+  const readRequest: ReadRequest<R> = {
+    _chunkSteps: (chunk) => {
+      // This needs to be delayed a microtask because it takes at least a microtask to detect errors (using
+      // reader._closedPromise below), and we want errors in stream to error both branches immediately. We cannot let
+      // successful synchronously-available reads get ahead of asynchronously-available errors.
+      pendingChunk = chunk;
+      queueMicrotask(chunkMicrotask);
+    },
+    _closeSteps: () => {
+      reading = false;
+      if (!canceled1) {
+        ReadableStreamDefaultControllerClose(branch1._readableStreamController);
+      }
+      if (!canceled2) {
+        ReadableStreamDefaultControllerClose(branch2._readableStreamController);
+      }
+
+      if (!canceled1 || !canceled2) {
+        resolveCancelPromise(undefined);
+      }
+    },
+    _errorSteps: () => {
+      reading = false;
+    }
+  };
+
   function pullAlgorithm(): Promise<void> {
     if (reading) {
       readAgain = true;
@@ -83,53 +136,6 @@ export function ReadableStreamDefaultTee<R>(
     }
 
     reading = true;
-
-    const readRequest: ReadRequest<R> = {
-      _chunkSteps: (chunk) => {
-        // This needs to be delayed a microtask because it takes at least a microtask to detect errors (using
-        // reader._closedPromise below), and we want errors in stream to error both branches immediately. We cannot let
-        // successful synchronously-available reads get ahead of asynchronously-available errors.
-        queueMicrotask(() => {
-          readAgain = false;
-          const chunk1 = chunk;
-          const chunk2 = chunk;
-
-          // There is no way to access the cloning code right now in the reference implementation.
-          // If we add one then we'll need an implementation for serializable objects.
-          // if (!canceled2 && cloneForBranch2) {
-          //   chunk2 = StructuredDeserialize(StructuredSerialize(chunk2));
-          // }
-
-          if (!canceled1) {
-            ReadableStreamDefaultControllerEnqueue(branch1._readableStreamController, chunk1);
-          }
-          if (!canceled2) {
-            ReadableStreamDefaultControllerEnqueue(branch2._readableStreamController, chunk2);
-          }
-
-          reading = false;
-          if (readAgain) {
-            pullAlgorithm();
-          }
-        });
-      },
-      _closeSteps: () => {
-        reading = false;
-        if (!canceled1) {
-          ReadableStreamDefaultControllerClose(branch1._readableStreamController);
-        }
-        if (!canceled2) {
-          ReadableStreamDefaultControllerClose(branch2._readableStreamController);
-        }
-
-        if (!canceled1 || !canceled2) {
-          resolveCancelPromise(undefined);
-        }
-      },
-      _errorSteps: () => {
-        reading = false;
-      }
-    };
     ReadableStreamDefaultReaderRead(reader, readRequest);
 
     return promiseResolvedWith(undefined);
