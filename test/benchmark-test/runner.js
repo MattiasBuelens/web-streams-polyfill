@@ -96,11 +96,11 @@ function runInWorker(title, label) {
       stdio: ['ignore', 'inherit', 'inherit', 'ipc']
     });
     let result;
-    child.on('message', message => {
+    child.on('message', (message) => {
       result = message;
     });
     child.on('error', reject);
-    child.on('exit', code => {
+    child.on('exit', (code) => {
       if (code !== 0 || result === undefined) {
         reject(new Error(`${title}: ${label} failed with exit code ${code}`));
       } else {

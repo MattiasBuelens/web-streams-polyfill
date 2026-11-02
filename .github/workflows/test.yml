@@ -107,17 +107,13 @@ jobs:
           PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
       - name: Update benchmark baseline to latest polyfill
         run: npm install --workspace test/benchmark-test -D web-streams-polyfill-baseline@npm:web-streams-polyfill@latest
-      - name: 'Benchmark: queue size'
+      - name: Benchmark
         # language=bash
         run: |
-          echo "## Queue size" >> $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
-          npm run benchmark:queue-size --workspace=test/benchmark-test | tee --append $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
-      - name: 'Benchmark: buffered reads'
-        # language=bash
-        run: |
-          echo "## Buffered reads" >> $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
-          npm run benchmark:read-buffered --workspace=test/benchmark-test | tee --append $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
+          set -o pipefail
+          for area in readable writable transform pipe tee; do
+            echo "## ${area^}" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            npm run benchmark:$area --workspace=test/benchmark-test | tee --append $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          done
