@@ -12,7 +12,7 @@ import { IsReadableStreamLocked, ReadableStream, ReadableStreamClose, ReadableSt
 import type { ValidatedUnderlyingSource } from './underlying-source';
 import { setFunctionName, typeIsObject } from '../helpers/miscellaneous';
 import { CancelSteps, CanPullSyncSteps, PullSteps, ReleaseSteps } from '../abstract-ops/internal-methods';
-import { promiseResolvedWith, uponPromise } from '../helpers/webidl';
+import { promiseResolvedWith, queueMicrotask, uponPromise } from '../helpers/webidl';
 
 /**
  * Allows control of a {@link ReadableStream | readable stream}'s state and internal queue.
@@ -33,7 +33,11 @@ export class ReadableStreamDefaultController<R> {
   /** @internal */
   _pullAgain!: boolean;
   /** @internal */
-  _pulling !: boolean;
+  _pulling!: boolean;
+  /** @internal */
+  _pullFulfillCallback: (() => null) | undefined;
+  /** @internal */
+  _pullRejectCallback: ((e: any) => null) | undefined;
   /** @internal */
   _strategySizeAlgorithm!: QueuingStrategySizeCallback<R>;
   /** @internal */
@@ -172,9 +176,17 @@ function IsReadableStreamDefaultController<R = any>(x: any): x is ReadableStream
   return x instanceof ReadableStreamDefaultController;
 }
 
+// Pull algorithm for an underlying source without pull(). Calling it has no observable effect.
+const noPullAlgorithm = (): Promise<void> => promiseResolvedWith(undefined);
+
 function ReadableStreamDefaultControllerCallPullIfNeeded(controller: ReadableStreamDefaultController<any>): void {
   const shouldPull = ReadableStreamDefaultControllerShouldCallPull(controller);
   if (!shouldPull) {
+    return;
+  }
+
+  if (controller._pullAlgorithm === noPullAlgorithm) {
+    // Optimization: skip the pull cycle, it only does internal bookkeeping.
     return;
   }
 
@@ -187,10 +199,11 @@ function ReadableStreamDefaultControllerCallPullIfNeeded(controller: ReadableStr
 
   controller._pulling = true;
 
-  const pullPromise = controller._pullAlgorithm();
-  uponPromise(
-    pullPromise,
-    () => {
+  let pullFulfillCallback = controller._pullFulfillCallback;
+  let pullRejectCallback = controller._pullRejectCallback;
+  if (pullFulfillCallback === undefined) {
+    // Optimization: create pull() promise callbacks on first use, and re-use for all subsequent calls.
+    pullFulfillCallback = () => {
       controller._pulling = false;
 
       if (controller._pullAgain) {
@@ -199,11 +212,20 @@ function ReadableStreamDefaultControllerCallPullIfNeeded(controller: ReadableStr
       }
 
       return null;
-    },
-    (e) => {
+    };
+    pullRejectCallback = (e) => {
       ReadableStreamDefaultControllerError(controller, e);
       return null;
-    }
+    };
+    controller._pullFulfillCallback = pullFulfillCallback;
+    controller._pullRejectCallback = pullRejectCallback;
+  }
+
+  const pullPromise = controller._pullAlgorithm();
+  uponPromise(
+    pullPromise,
+    pullFulfillCallback,
+    pullRejectCallback!
   );
 }
 
@@ -235,6 +257,8 @@ function ReadableStreamDefaultControllerClearAlgorithms(controller: ReadableStre
   controller._pullAlgorithm = undefined!;
   controller._cancelAlgorithm = undefined!;
   controller._strategySizeAlgorithm = undefined!;
+  controller._pullFulfillCallback = undefined;
+  controller._pullRejectCallback = undefined;
 }
 
 // A client of ReadableStreamDefaultController may use these functions directly to bypass state check.
@@ -352,6 +376,8 @@ export function SetUpReadableStreamDefaultController<R>(
   controller._closeRequested = false;
   controller._pullAgain = false;
   controller._pulling = false;
+  controller._pullFulfillCallback = undefined;
+  controller._pullRejectCallback = undefined;
 
   controller._strategySizeAlgorithm = sizeAlgorithm;
   controller._strategyHWM = highWaterMark;
@@ -362,17 +388,32 @@ export function SetUpReadableStreamDefaultController<R>(
   stream._readableStreamController = controller;
 
   const startResult = startAlgorithm();
+  const startFulfillSteps = () => {
+    controller._started = true;
+
+    assert(!controller._pulling);
+    assert(!controller._pullAgain);
+
+    ReadableStreamDefaultControllerCallPullIfNeeded(controller);
+    return null;
+  };
+
+  if (startResult === undefined && pullAlgorithm === noPullAlgorithm) {
+    // Optimization: without pull(), the started flag only gates the (skipped) pull cycle,
+    // so nothing observable is waiting for the start steps.
+    controller._started = true;
+    return;
+  }
+
+  if (!typeIsObject(startResult)) {
+    // Non-thenable start result: skip fulfilling a promise.
+    queueMicrotask(startFulfillSteps);
+    return;
+  }
+
   uponPromise(
     promiseResolvedWith(startResult),
-    () => {
-      controller._started = true;
-
-      assert(!controller._pulling);
-      assert(!controller._pullAgain);
-
-      ReadableStreamDefaultControllerCallPullIfNeeded(controller);
-      return null;
-    },
+    startFulfillSteps,
     (r) => {
       ReadableStreamDefaultControllerError(controller, r);
       return null;
@@ -400,7 +441,7 @@ export function SetUpReadableStreamDefaultControllerFromUnderlyingSource<R>(
   if (underlyingSource.pull !== undefined) {
     pullAlgorithm = () => underlyingSource.pull!(controller);
   } else {
-    pullAlgorithm = () => promiseResolvedWith(undefined);
+    pullAlgorithm = noPullAlgorithm;
   }
   if (underlyingSource.cancel !== undefined) {
     cancelAlgorithm = reason => underlyingSource.cancel!(reason);

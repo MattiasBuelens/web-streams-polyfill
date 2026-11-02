@@ -4,7 +4,9 @@ import {
   ReadableStreamReaderGenericCancel,
   ReadableStreamReaderGenericInitialize,
   ReadableStreamReaderGenericRelease,
-  readerLockException
+  readerClosedPromise,
+  readerLockException,
+  readerReleasedException
 } from './generic-reader';
 import { IsReadableStreamLocked, type ReadableByteStream, type ReadableStream } from '../readable-stream';
 import {
@@ -110,11 +112,13 @@ export class ReadableStreamBYOBReader {
   /** @internal */
   _ownerReadableStream!: ReadableByteStream;
   /** @internal */
-  _closedPromise!: Promise<undefined>;
+  _closedPromise?: Promise<undefined>;
   /** @internal */
   _closedPromise_resolve?: (value?: undefined) => void;
   /** @internal */
   _closedPromise_reject?: (reason: any) => void;
+  /** @internal */
+  _stateChangeListener: (() => void) | undefined;
   /** @internal */
   _readIntoRequests: SimpleQueue<ReadIntoRequest<any>>;
 
@@ -145,7 +149,7 @@ export class ReadableStreamBYOBReader {
       return promiseRejectedWith(byobReaderBrandCheckException('closed'));
     }
 
-    return this._closedPromise;
+    return readerClosedPromise(this);
   }
 
   /**
@@ -371,7 +375,7 @@ export function ReadableStreamBYOBReaderCanReadSync<T extends ArrayBufferView<Ar
 
 export function ReadableStreamBYOBReaderRelease(reader: ReadableStreamBYOBReader) {
   ReadableStreamReaderGenericRelease(reader);
-  const e = new TypeError('Reader was released');
+  const e = readerReleasedException();
   ReadableStreamBYOBReaderErrorReadIntoRequests(reader, e);
 }
 

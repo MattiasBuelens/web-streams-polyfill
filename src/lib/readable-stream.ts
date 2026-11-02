@@ -7,7 +7,11 @@ import {
 } from './helpers/webidl';
 import type { QueuingStrategy, QueuingStrategySizeCallback } from './queuing-strategy';
 import { AcquireReadableStreamAsyncIterator, type ReadableStreamAsyncIterator } from './readable-stream/async-iterator';
-import { defaultReaderClosedPromiseReject, defaultReaderClosedPromiseResolve } from './readable-stream/generic-reader';
+import {
+  readerClosedPromiseReject,
+  readerClosedPromiseResolve,
+  readerRunStateChangeListener
+} from './readable-stream/generic-reader';
 import {
   AcquireReadableStreamDefaultReader,
   IsReadableStreamDefaultReader,
@@ -54,7 +58,7 @@ import { CancelSteps } from './abstract-ops/internal-methods';
 import { IsNonNegativeNumber } from './abstract-ops/miscellaneous';
 import { assertObject, assertRequiredArgument } from './validators/basic';
 import { convertQueuingStrategy } from './validators/queuing-strategy';
-import { ExtractHighWaterMark, ExtractSizeAlgorithm } from './abstract-ops/queuing-strategy';
+import { defaultSizeAlgorithm, ExtractHighWaterMark, ExtractSizeAlgorithm } from './abstract-ops/queuing-strategy';
 import { convertUnderlyingDefaultOrByteSource } from './validators/underlying-source';
 import type {
   ReadableStreamBYOBReaderReadOptions,
@@ -401,7 +405,7 @@ export function CreateReadableStream<R>(
   pullAlgorithm: () => Promise<void>,
   cancelAlgorithm: (reason: any) => Promise<void>,
   highWaterMark = 1,
-  sizeAlgorithm: QueuingStrategySizeCallback<R> = () => 1
+  sizeAlgorithm: QueuingStrategySizeCallback<R> = defaultSizeAlgorithm
 ): DefaultReadableStream<R> {
   assert(IsNonNegativeNumber(highWaterMark));
 
@@ -502,7 +506,8 @@ export function ReadableStreamClose<R>(stream: ReadableStream<R>): void {
     return;
   }
 
-  defaultReaderClosedPromiseResolve(reader);
+  readerClosedPromiseResolve(reader);
+  readerRunStateChangeListener(reader);
 
   if (IsReadableStreamDefaultReader<R>(reader)) {
     const readRequests = reader._readRequests;
@@ -526,7 +531,8 @@ export function ReadableStreamError<R>(stream: ReadableStream<R>, e: any): void 
     return;
   }
 
-  defaultReaderClosedPromiseReject(reader, e);
+  readerClosedPromiseReject(reader, e);
+  readerRunStateChangeListener(reader);
 
   if (IsReadableStreamDefaultReader<R>(reader)) {
     ReadableStreamDefaultReaderErrorReadRequests(reader, e);

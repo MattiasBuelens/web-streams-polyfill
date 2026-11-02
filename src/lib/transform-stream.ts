@@ -21,7 +21,7 @@ import { CreateWritableStream, WritableStream, WritableStreamDefaultControllerEr
 import { setFunctionName, typeIsObject } from './helpers/miscellaneous';
 import { IsNonNegativeNumber } from './abstract-ops/miscellaneous';
 import { convertQueuingStrategy } from './validators/queuing-strategy';
-import { ExtractHighWaterMark, ExtractSizeAlgorithm } from './abstract-ops/queuing-strategy';
+import { defaultSizeAlgorithm, ExtractHighWaterMark, ExtractSizeAlgorithm } from './abstract-ops/queuing-strategy';
 import type {
   Transformer,
   TransformerCancelCallback,
@@ -151,9 +151,9 @@ export function CreateTransformStream<I, O>(
   flushAlgorithm: () => Promise<void>,
   cancelAlgorithm: (reason: any) => Promise<void>,
   writableHighWaterMark = 1,
-  writableSizeAlgorithm: QueuingStrategySizeCallback<I> = () => 1,
+  writableSizeAlgorithm: QueuingStrategySizeCallback<I> = defaultSizeAlgorithm,
   readableHighWaterMark = 0,
-  readableSizeAlgorithm: QueuingStrategySizeCallback<O> = () => 1
+  readableSizeAlgorithm: QueuingStrategySizeCallback<O> = defaultSizeAlgorithm
 ) {
   assert(IsNonNegativeNumber(writableHighWaterMark));
   assert(IsNonNegativeNumber(readableHighWaterMark));
@@ -297,6 +297,8 @@ export class TransformStreamDefaultController<O> {
   /** @internal */
   _transformAlgorithm: (chunk: any) => Promise<void>;
   /** @internal */
+  _transformRejectCallback: ((r: any) => never) | undefined;
+  /** @internal */
   _flushAlgorithm: () => Promise<void>;
   /** @internal */
   _cancelAlgorithm: (reason: any) => Promise<void>;
@@ -400,6 +402,7 @@ function SetUpTransformStreamDefaultController<I, O>(
   controller._transformAlgorithm = transformAlgorithm;
   controller._flushAlgorithm = flushAlgorithm;
   controller._cancelAlgorithm = cancelAlgorithm;
+  controller._transformRejectCallback = undefined;
 
   controller._finishPromise = undefined;
   controller._finishPromise_resolve = undefined;
@@ -448,6 +451,7 @@ function TransformStreamDefaultControllerClearAlgorithms(controller: TransformSt
   controller._transformAlgorithm = undefined!;
   controller._flushAlgorithm = undefined!;
   controller._cancelAlgorithm = undefined!;
+  controller._transformRejectCallback = undefined;
 }
 
 function TransformStreamDefaultControllerEnqueue<O>(controller: TransformStreamDefaultController<O>, chunk: O) {
@@ -484,11 +488,18 @@ function TransformStreamDefaultControllerPerformTransform<I, O>(
   controller: TransformStreamDefaultController<O>,
   chunk: I
 ) {
+  let transformRejectCallback = controller._transformRejectCallback;
+  if (transformRejectCallback === undefined) {
+    // Optimization: create transform() promise callbacks on first use, and re-use for all subsequent calls.
+    transformRejectCallback = (r) => {
+      TransformStreamError(controller._controlledTransformStream, r);
+      throw r;
+    };
+    controller._transformRejectCallback = transformRejectCallback;
+  }
+
   const transformPromise = controller._transformAlgorithm(chunk);
-  return transformPromiseWith(transformPromise, undefined, (r) => {
-    TransformStreamError(controller._controlledTransformStream, r);
-    throw r;
-  });
+  return transformPromiseWith(transformPromise, undefined, transformRejectCallback);
 }
 
 function TransformStreamDefaultControllerTerminate<O>(controller: TransformStreamDefaultController<O>) {

@@ -10,6 +10,14 @@ interface Node<T> {
   _next: Node<T> | undefined;
 }
 
+// Optimization: a new queue starts out with this shared empty node, and only allocates its own node on the first
+// push. Many queues (such as a stream's read requests or write requests) stay empty for their whole lifetime.
+// This node is never mutated: push() replaces it before adding any element.
+const EMPTY_NODE: Node<any> = {
+  _elements: [],
+  _next: undefined
+};
+
 /**
  * Simple queue structure.
  *
@@ -24,11 +32,8 @@ export class SimpleQueue<T> {
 
   constructor() {
     // _front and _back are always defined.
-    this._front = {
-      _elements: [],
-      _next: undefined
-    };
-    this._back = this._front;
+    this._front = EMPTY_NODE;
+    this._back = EMPTY_NODE;
     // The cursor is used to avoid calling Array.shift().
     // It contains the index of the front element of the array inside the
     // front-most node. It is always in the range [0, QUEUE_MAX_ARRAY_SIZE).
@@ -46,6 +51,19 @@ export class SimpleQueue<T> {
   // 2. Calculate required state mutations
   // 3. Perform state mutations
   push(element: T): void {
+    if (this._back === EMPTY_NODE) {
+      assert(this._size === 0);
+      const node: Node<T> = {
+        _elements: [element],
+        _next: undefined
+      };
+      this._front = node;
+      this._back = node;
+      this._cursor = 0;
+      this._size = 1;
+      return;
+    }
+
     const oldBack = this._back;
     let newBack = oldBack;
     assert(oldBack._next === undefined);

@@ -1,0 +1,11 @@
+kind: 🚀
+body: |
+  Reduce allocations and promise overhead throughout the implementation. ([#237](https://github.com/MattiasBuelens/web-streams-polyfill/pull/237))
+  * `reader.closed`, `writer.closed` and `writer.ready` are now created lazily on first access,
+    and internal promise callbacks are re-used instead of being recreated for every chunk.
+  * `pipeTo()`, `tee()` and async iteration re-use their internal read requests,
+    and `pipeTo()` no longer creates a promise for every written chunk.
+  * Creating a `ReadableStream` without a `pull()` method no longer schedules a pull or an extra microtask.
+  * These optimizations were inspired by similar work in Node.js:
+    [#63572](https://github.com/nodejs/node/pull/63572), [#63876](https://github.com/nodejs/node/pull/63876), [#64320](https://github.com/nodejs/node/pull/64320), [#64431](https://github.com/nodejs/node/pull/64431), [#64818](https://github.com/nodejs/node/pull/64818), [#64890](https://github.com/nodejs/node/pull/64890), [#65138](https://github.com/nodejs/node/pull/65138), [#65414](https://github.com/nodejs/node/pull/65414), [#66052](https://github.com/nodejs/node/pull/66052), [#66154](https://github.com/nodejs/node/pull/66154), [#66392](https://github.com/nodejs/node/pull/66392), [#66424](https://github.com/nodejs/node/pull/66424).
+time: 2026-11-02T07:50:00Z

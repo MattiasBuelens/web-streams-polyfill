@@ -1,21 +1,15 @@
 import assert from '../../stub/assert';
 import { ReadableStream, ReadableStreamCancel, type ReadableStreamReader } from '../readable-stream';
-import { newPromise, setPromiseIsHandledToTrue } from '../helpers/webidl';
+import { newPromise, promiseRejectedWith, promiseResolve, setPromiseIsHandledToTrue } from '../helpers/webidl';
 import { ReleaseSteps } from '../abstract-ops/internal-methods';
 
 export function ReadableStreamReaderGenericInitialize<R>(reader: ReadableStreamReader<R>, stream: ReadableStream<R>) {
   reader._ownerReadableStream = stream;
   stream._reader = reader;
 
-  if (stream._state === 'readable') {
-    defaultReaderClosedPromiseInitialize(reader);
-  } else if (stream._state === 'closed') {
-    defaultReaderClosedPromiseInitializeAsResolved(reader);
-  } else {
-    assert(stream._state === 'errored');
-
-    defaultReaderClosedPromiseInitializeAsRejected(reader, stream._storedError);
-  }
+  // The closed promise is created lazily by readerClosedPromise.
+  readerClosedPromiseReset(reader);
+  reader._stateChangeListener = undefined;
 }
 
 // A client of ReadableStreamDefaultReader and ReadableStreamBYOBReader may use these functions directly to bypass state
@@ -33,71 +27,112 @@ export function ReadableStreamReaderGenericRelease(reader: ReadableStreamReader<
   assert(stream._reader === reader);
 
   if (stream._state === 'readable') {
-    defaultReaderClosedPromiseReject(
-      reader,
-      new TypeError(`Reader was released and can no longer be used to monitor the stream's closedness`)
-    );
+    if (reader._closedPromise !== undefined) {
+      const e = readerReleasedException();
+      readerClosedPromiseReject(reader, e);
+    } else {
+      // Do nothing. readerClosedPromise will create the rejected promise on first access.
+    }
   } else {
-    defaultReaderClosedPromiseResetToRejected(
-      reader,
-      new TypeError(`Reader was released and can no longer be used to monitor the stream's closedness`)
-    );
+    // Reset the promise. readerClosedPromise will (re-)create the rejected promise on the next access.
+    readerClosedPromiseReset(reader);
   }
 
   stream._readableStreamController[ReleaseSteps]();
 
   stream._reader = undefined;
   reader._ownerReadableStream = undefined!;
+  reader._stateChangeListener = undefined;
+}
+
+// Optimization: an internal client (such as pipeTo()) can listen for the stream becoming closed or errored
+// without materializing the reader's closed promise. The listener is called synchronously, right after the
+// closed promise would be resolved or rejected. To keep the same timing and async context as a reaction on
+// the closed promise, the client should only use it to settle a promise that it is already reacting to.
+
+export function readerSetStateChangeListener(reader: ReadableStreamReader<any>, listener: () => void) {
+  assert(reader._ownerReadableStream !== undefined);
+  assert(reader._ownerReadableStream._state === 'readable');
+  assert(reader._stateChangeListener === undefined);
+  reader._stateChangeListener = listener;
+}
+
+export function readerRunStateChangeListener(reader: ReadableStreamReader<any>) {
+  const listener = reader._stateChangeListener;
+  if (listener !== undefined) {
+    reader._stateChangeListener = undefined;
+    listener();
+  }
 }
 
 // Helper functions for the readers.
 
 export function readerLockException(name: string): TypeError {
-  return new TypeError('Cannot ' + name + ' a stream using a released reader');
+  return new TypeError(`Cannot ${name} a stream using a released reader`);
+}
+
+export function readerReleasedException(): TypeError {
+  return new TypeError('Reader was released');
 }
 
 // Helper functions for the ReadableStreamDefaultReader.
 
-export function defaultReaderClosedPromiseInitialize(reader: ReadableStreamReader<any>) {
-  reader._closedPromise = newPromise((resolve, reject) => {
-    reader._closedPromise_resolve = resolve;
-    reader._closedPromise_reject = reject;
-  });
+export function readerClosedPromise(reader: ReadableStreamReader<any>): Promise<undefined> {
+  if (reader._closedPromise === undefined) {
+    assert(reader._closedPromise_resolve === undefined);
+    assert(reader._closedPromise_reject === undefined);
+    const stream = reader._ownerReadableStream;
+    if (stream === undefined) {
+      // Reader has been released.
+      reader._closedPromise = promiseRejectedWith(readerReleasedException());
+      setPromiseIsHandledToTrue(reader._closedPromise);
+    } else {
+      switch (stream._state) {
+        case 'readable':
+          reader._closedPromise = newPromise((resolve, reject) => {
+            reader._closedPromise_resolve = resolve;
+            reader._closedPromise_reject = reject;
+          });
+          break;
+        case 'closed':
+          reader._closedPromise = promiseResolve(undefined);
+          break;
+        case 'errored':
+          reader._closedPromise = promiseRejectedWith(stream._storedError);
+          setPromiseIsHandledToTrue(reader._closedPromise);
+          break;
+      }
+    }
+  }
+  return reader._closedPromise;
 }
 
-export function defaultReaderClosedPromiseInitializeAsRejected(reader: ReadableStreamReader<any>, reason: any) {
-  defaultReaderClosedPromiseInitialize(reader);
-  defaultReaderClosedPromiseReject(reader, reason);
-}
-
-export function defaultReaderClosedPromiseInitializeAsResolved(reader: ReadableStreamReader<any>) {
-  defaultReaderClosedPromiseInitialize(reader);
-  defaultReaderClosedPromiseResolve(reader);
-}
-
-export function defaultReaderClosedPromiseReject(reader: ReadableStreamReader<any>, reason: any) {
+export function readerClosedPromiseReject(reader: ReadableStreamReader<any>, reason: any) {
   if (reader._closedPromise_reject === undefined) {
+    // If closed promise isn't created yet, skip. readerClosedPromise will set it to a rejected promise on first access.
+    // If already resolved/rejected, rejecting it again is a no-op.
     return;
   }
-
+  assert(reader._closedPromise !== undefined);
   setPromiseIsHandledToTrue(reader._closedPromise);
   reader._closedPromise_reject(reason);
   reader._closedPromise_resolve = undefined;
   reader._closedPromise_reject = undefined;
 }
 
-export function defaultReaderClosedPromiseResetToRejected(reader: ReadableStreamReader<any>, reason: any) {
-  assert(reader._closedPromise_resolve === undefined);
-  assert(reader._closedPromise_reject === undefined);
-
-  defaultReaderClosedPromiseInitializeAsRejected(reader, reason);
+export function readerClosedPromiseReset(reader: ReadableStreamReader<any>) {
+  reader._closedPromise = undefined;
+  reader._closedPromise_resolve = undefined;
+  reader._closedPromise_reject = undefined;
 }
 
-export function defaultReaderClosedPromiseResolve(reader: ReadableStreamReader<any>) {
+export function readerClosedPromiseResolve(reader: ReadableStreamReader<any>) {
   if (reader._closedPromise_resolve === undefined) {
+    // If closed promise isn't created yet, skip. readerClosedPromise will set it to a resolved promise on first access.
+    // If already resolved/rejected, resolving it again is a no-op.
     return;
   }
-
+  assert(reader._closedPromise !== undefined);
   reader._closedPromise_resolve(undefined);
   reader._closedPromise_resolve = undefined;
   reader._closedPromise_reject = undefined;

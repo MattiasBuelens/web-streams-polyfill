@@ -4,7 +4,9 @@ import {
   ReadableStreamReaderGenericCancel,
   ReadableStreamReaderGenericInitialize,
   ReadableStreamReaderGenericRelease,
-  readerLockException
+  readerClosedPromise,
+  readerLockException,
+  readerReleasedException
 } from './generic-reader';
 import { IsReadableStreamLocked, ReadableStream } from '../readable-stream';
 import { setFunctionName, typeIsObject } from '../helpers/miscellaneous';
@@ -94,11 +96,13 @@ export class ReadableStreamDefaultReader<R = any> {
   /** @internal */
   _ownerReadableStream!: ReadableStream<R>;
   /** @internal */
-  _closedPromise!: Promise<undefined>;
+  _closedPromise?: Promise<undefined>;
   /** @internal */
   _closedPromise_resolve?: (value?: undefined) => void;
   /** @internal */
   _closedPromise_reject?: (reason: any) => void;
+  /** @internal */
+  _stateChangeListener: (() => void) | undefined;
   /** @internal */
   _readRequests: SimpleQueue<ReadRequest<R>>;
 
@@ -124,7 +128,7 @@ export class ReadableStreamDefaultReader<R = any> {
       return promiseRejectedWith(defaultReaderBrandCheckException('closed'));
     }
 
-    return this._closedPromise;
+    return readerClosedPromise(this);
   }
 
   /**
@@ -303,7 +307,7 @@ export function ReadableStreamDefaultReaderCanReadSync<R>(reader: ReadableStream
 
 export function ReadableStreamDefaultReaderRelease(reader: ReadableStreamDefaultReader) {
   ReadableStreamReaderGenericRelease(reader);
-  const e = new TypeError('Reader was released');
+  const e = readerReleasedException();
   ReadableStreamDefaultReaderErrorReadRequests(reader, e);
 }
 

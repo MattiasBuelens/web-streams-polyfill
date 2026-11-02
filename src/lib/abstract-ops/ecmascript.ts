@@ -155,13 +155,17 @@ export function CreateAsyncFromSyncIterator<T>(syncIteratorRecord: SyncIteratorR
   return { iterator: asyncIterator, nextMethod, done: false };
 }
 
+const unwrapDone = <T>(value: T): IteratorResult<T> => ({ done: true, value });
+const unwrapNotDone = <T>(value: T): IteratorResult<T> => ({ done: false, value });
+
 // https://tc39.es/ecma262/#sec-asyncfromsynciteratorcontinuation
 function AsyncFromSyncIteratorContinuation<T>(result: IteratorResult<SyncOrAsync<T>>): Promise<IteratorResult<T>> {
   try {
     const done = result.done;
     const value = result.value;
     const valueWrapper = promiseResolve(value);
-    return PerformPromiseThen(valueWrapper, v => ({ done, value: v }));
+    // Optimization: re-use the same unwrap function for every result with the same `done` flag.
+    return PerformPromiseThen(valueWrapper, done ? unwrapDone : unwrapNotDone);
   } catch (e) {
     return promiseRejectedWith(e);
   }

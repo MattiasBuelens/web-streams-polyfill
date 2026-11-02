@@ -34,7 +34,7 @@ import {
   TransferArrayBuffer
 } from '../abstract-ops/ecmascript';
 import { CancelSteps, CanPullSyncSteps, PullSteps, ReleaseSteps } from '../abstract-ops/internal-methods';
-import { promiseResolvedWith, uponPromise } from '../helpers/webidl';
+import { promiseResolvedWith, queueMicrotask, uponPromise } from '../helpers/webidl';
 import { assertRequiredArgument, convertUnsignedLongLongWithEnforceRange } from '../validators/basic';
 import {
   type ArrayBufferViewConstructor,
@@ -194,7 +194,11 @@ export class ReadableByteStreamController {
   /** @internal */
   _pullAgain!: boolean;
   /** @internal */
-  _pulling !: boolean;
+  _pulling!: boolean;
+  /** @internal */
+  _pullFulfillCallback: (() => null) | undefined;
+  /** @internal */
+  _pullRejectCallback: ((e: any) => null) | undefined;
   /** @internal */
   _strategyHWM!: number;
   /** @internal */
@@ -427,11 +431,11 @@ function ReadableByteStreamControllerCallPullIfNeeded(controller: ReadableByteSt
 
   controller._pulling = true;
 
-  // TODO: Test controller argument
-  const pullPromise = controller._pullAlgorithm();
-  uponPromise(
-    pullPromise,
-    () => {
+  let pullFulfillCallback = controller._pullFulfillCallback;
+  let pullRejectCallback = controller._pullRejectCallback;
+  if (pullFulfillCallback === undefined) {
+    // Optimization: create pull() promise callbacks on first use, and re-use for all subsequent calls.
+    pullFulfillCallback = () => {
       controller._pulling = false;
 
       if (controller._pullAgain) {
@@ -440,11 +444,20 @@ function ReadableByteStreamControllerCallPullIfNeeded(controller: ReadableByteSt
       }
 
       return null;
-    },
-    (e) => {
+    };
+    pullRejectCallback = (e) => {
       ReadableByteStreamControllerError(controller, e);
       return null;
-    }
+    };
+    controller._pullFulfillCallback = pullFulfillCallback;
+    controller._pullRejectCallback = pullRejectCallback;
+  }
+
+  const pullPromise = controller._pullAlgorithm();
+  uponPromise(
+    pullPromise,
+    pullFulfillCallback,
+    pullRejectCallback!
   );
 }
 
@@ -1115,6 +1128,8 @@ export function SetUpReadableByteStreamController(
 
   controller._pullAgain = false;
   controller._pulling = false;
+  controller._pullFulfillCallback = undefined;
+  controller._pullRejectCallback = undefined;
 
   controller._byobRequest = null;
 
@@ -1137,17 +1152,25 @@ export function SetUpReadableByteStreamController(
   stream._readableStreamController = controller;
 
   const startResult = startAlgorithm();
+  const startFulfillSteps = () => {
+    controller._started = true;
+
+    assert(!controller._pulling);
+    assert(!controller._pullAgain);
+
+    ReadableByteStreamControllerCallPullIfNeeded(controller);
+    return null;
+  };
+
+  if (!typeIsObject(startResult)) {
+    // Non-thenable start result: skip fulfilling a promise.
+    queueMicrotask(startFulfillSteps);
+    return;
+  }
+
   uponPromise(
     promiseResolvedWith(startResult),
-    () => {
-      controller._started = true;
-
-      assert(!controller._pulling);
-      assert(!controller._pullAgain);
-
-      ReadableByteStreamControllerCallPullIfNeeded(controller);
-      return null;
-    },
+    startFulfillSteps,
     (r) => {
       ReadableByteStreamControllerError(controller, r);
       return null;
