@@ -4,9 +4,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "benchmark": "npm run benchmark:queue-size && npm run benchmark:read-buffered",
+    "benchmark": "npm run benchmark:queue-size && npm run benchmark:read-buffered && npm run benchmark:workloads",
     "benchmark:queue-size": "node --allow-natives-syntax queue-size.js",
-    "benchmark:read-buffered": "node --allow-natives-syntax read-buffered.js"
+    "benchmark:read-buffered": "node --allow-natives-syntax read-buffered.js",
+    "benchmark:workloads": "node --allow-natives-syntax workloads.js"
   },
   "devDependencies": {
     "bench-node": "^0.15.0",
