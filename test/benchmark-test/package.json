@@ -4,10 +4,12 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "benchmark": "npm run benchmark:queue-size && npm run benchmark:read-buffered && npm run benchmark:workloads",
-    "benchmark:queue-size": "node --allow-natives-syntax queue-size.js",
-    "benchmark:read-buffered": "node --allow-natives-syntax read-buffered.js",
-    "benchmark:workloads": "node --allow-natives-syntax workloads.js"
+    "benchmark": "npm run benchmark:readable && npm run benchmark:writable && npm run benchmark:transform && npm run benchmark:pipe && npm run benchmark:tee",
+    "benchmark:readable": "node --allow-natives-syntax readable.js",
+    "benchmark:writable": "node --allow-natives-syntax writable.js",
+    "benchmark:transform": "node --allow-natives-syntax transform.js",
+    "benchmark:pipe": "node --allow-natives-syntax pipe.js",
+    "benchmark:tee": "node --allow-natives-syntax tee.js"
   },
   "devDependencies": {
     "bench-node": "^0.15.0",
