@@ -167,6 +167,9 @@ export function install(classes: StreamClasses = getGlobals()): boolean {
         if (result.done && cancelCounts.get(reader) !== cancelCount) {
           // The reader was cancelled while this read was pending, so it resolves without a view,
           // even if it only started its native read after that.
+          // Known gap: if the stream was closed right before cancel(), between two native reads,
+          // the spec would return the filled view instead. We can't tell that apart synchronously
+          // without an extra native read, which could call pull() one more time.
           return { done: true, value: undefined };
         }
         return result;
