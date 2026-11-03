@@ -111,30 +111,11 @@ class AsyncIteratorState {
   private readonly _methods: ReaderMethods;
   private _ongoingPromise: Promise<IterResult> | undefined = undefined;
   private _isFinished = false;
-  private readonly _nextSteps: () => Promise<IterResult>;
-  private readonly _onReadResult: (result: ReadResult) => IterResult;
-  private readonly _onReadError: (reason: any) => never;
 
   constructor(reader: ReadableStreamDefaultReader, preventCancel: boolean, methods: ReaderMethods) {
     this._reader = reader;
     this._preventCancel = preventCancel;
     this._methods = methods;
-    this._nextSteps = () => this._doNextSteps();
-    this._onReadResult = (result) => {
-      this._ongoingPromise = undefined;
-      if (result.done) {
-        this._isFinished = true;
-        reflectCall(this._methods.releaseLock, this._reader, []);
-        return { value: undefined, done: true };
-      }
-      return { value: result.value, done: false };
-    };
-    this._onReadError = (reason) => {
-      this._ongoingPromise = undefined;
-      this._isFinished = true;
-      reflectCall(this._methods.releaseLock, this._reader, []);
-      throw reason;
-    };
   }
 
   next(): Promise<IterResult> {
@@ -152,13 +133,30 @@ class AsyncIteratorState {
     return transformPromiseWith(this._ongoingPromise, () => ({ value, done: true }));
   }
 
-  private _doNextSteps(): Promise<IterResult> {
+  private readonly _nextSteps = (): Promise<IterResult> => {
     if (this._isFinished) {
       return promiseResolvedWith({ value: undefined, done: true });
     }
     const readPromise = reflectCall(this._methods.read, this._reader, []);
     return transformPromiseWith(readPromise, this._onReadResult, this._onReadError);
-  }
+  };
+
+  private readonly _onReadResult = (result: ReadResult): IterResult => {
+    this._ongoingPromise = undefined;
+    if (result.done) {
+      this._isFinished = true;
+      reflectCall(this._methods.releaseLock, this._reader, []);
+      return { value: undefined, done: true };
+    }
+    return { value: result.value, done: false };
+  };
+
+  private readonly _onReadError = (reason: any): never => {
+    this._ongoingPromise = undefined;
+    this._isFinished = true;
+    reflectCall(this._methods.releaseLock, this._reader, []);
+    throw reason;
+  };
 
   private _returnSteps(value: any): Promise<IterResult> {
     if (this._isFinished) {
