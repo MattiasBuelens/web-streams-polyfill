@@ -1,5 +1,5 @@
 kind: 🚀
 body: |
   Add `web-streams-polyfill/feature/byob-read-min`, which adds support for `reader.read(view, { min })`
-  on top of a native `ReadableStreamBYOBReader`.
+  on top of a native `ReadableStreamBYOBReader`. ([#249](https://github.com/MattiasBuelens/web-streams-polyfill/pull/249))
 time: 2026-11-03T12:00:00Z
