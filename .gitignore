@@ -139,3 +139,4 @@ typings/
 /dist/
 /types/ponyfill.d.ts
 /types/ponyfill.d.mts
+/types/feature/

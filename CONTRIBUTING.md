@@ -38,13 +38,24 @@ without loading the polyfill. The tests that each browser fails are recorded in
 a new failure is reported as unexpected, and an expected failure that now passes is listed at the end.
 These baselines tell us which tests a browser already fails on its own, before the polyfill changes anything.
 
+`npm run test:wpt:patched` runs them again after installing the feature modules (`web-streams-polyfill/feature`)
+on top of each native implementation, and compares against `test/wpt/expectations/patched-<browser>.json`.
+Installing features must never break a test that passes natively: re-recording patched expectations fails
+if a test fails only when patched.
+
+Node.js implements every feature already, so `npm run test:wpt:patched:node` first removes the native
+`ReadableStream.from()` and async iteration, so that our feature modules are tested on top of Node's streams.
+The Node.js tests run in jsdom, whose objects come from a different realm than Node's streams.
+That's why some tests fail in both the native and the patched Node.js run, e.g. those comparing prototypes.
+The Node.js expectations are recorded with Node.js 22.
+
 The expectations follow the browser versions of the installed Playwright release.
-After updating Playwright, re-record them and commit the result:
+After updating Playwright (or Node.js 22 for the Node.js expectations), re-record them and commit the result:
 
 ```sh
 npm run test:wpt:native:chromium -- --update-expectations
-npm run test:wpt:native:firefox -- --update-expectations
-npm run test:wpt:native:webkit -- --update-expectations
+npm run test:wpt:patched:chromium -- --update-expectations
+# ...and the same for firefox, webkit and node
 ```
 
 ## Using an installed browser for Web Platform Tests

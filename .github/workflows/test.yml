@@ -32,6 +32,13 @@ jobs:
       - run: npm run test:api
       - run: npm run test:unit
       - run: npm run test:wpt:node
+      # The Node expectations are recorded with Node 22.
+      - name: Check native Node against its recorded expectations
+        if: matrix.node-version == 22
+        run: npm run test:wpt:native:node
+      - name: Check Node with forced features against its recorded expectations
+        if: matrix.node-version == 22
+        run: npm run test:wpt:patched:node
       - run: npm run test:bundlers
 
   package:
@@ -119,6 +126,10 @@ jobs:
           HOME: /root
       - name: Check native ${{ matrix.browser }} against its recorded expectations
         run: npm run test:wpt:native:${{ matrix.browser }}
+        env:
+          HOME: /root
+      - name: Check ${{ matrix.browser }} with features installed against its recorded expectations
+        run: npm run test:wpt:patched:${{ matrix.browser }}
         env:
           HOME: /root
 
