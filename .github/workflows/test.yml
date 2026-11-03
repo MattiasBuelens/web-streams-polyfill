@@ -97,7 +97,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        browser: [chromium, firefox]
+        browser: [chromium, firefox, webkit]
         node-version: [ 24 ]
     if: |
       (github.event_name != 'pull_request' || github.event.pull_request.draft != true) &&
@@ -116,6 +116,10 @@ jobs:
       - run: npm run test:wpt:${{ matrix.browser }}
         env:
           # Firefox won't launch as root when HOME is owned by another user (/github/home).
+          HOME: /root
+      - name: Check native ${{ matrix.browser }} against its recorded expectations
+        run: npm run test:wpt:native:${{ matrix.browser }}
+        env:
           HOME: /root
 
   changes:
