@@ -8,7 +8,7 @@ import type {
   TransformerTransformCallback,
   ValidatedTransformer
 } from '../transform-stream/transformer';
-import { TransformStreamDefaultController } from '../transform-stream';
+import type { TransformStreamDefaultController } from '../transform-stream';
 
 export function convertTransformer<I, O>(
   original: Transformer<I, O> | null,

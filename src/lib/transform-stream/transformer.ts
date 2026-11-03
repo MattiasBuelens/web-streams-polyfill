@@ -1,4 +1,4 @@
-import { TransformStreamDefaultController } from '../transform-stream';
+import type { TransformStreamDefaultController } from '../transform-stream';
 
 /** @public */
 export type TransformerStartCallback<O>
