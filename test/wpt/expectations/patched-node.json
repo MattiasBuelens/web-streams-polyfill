@@ -1,71 +1,8 @@
 {
   "runtime": "node v22.23.4",
   "failures": {
-    "idlharness.any.html": [
-      "ByteLengthQueuingStrategy interface: existence and properties of interface object",
-      "ByteLengthQueuingStrategy interface: existence and properties of interface prototype object",
-      "ByteLengthQueuingStrategy interface: new ByteLengthQueuingStrategy({ highWaterMark: 5 }) must inherit property \"size\" with the proper type",
-      "CountQueuingStrategy interface: existence and properties of interface object",
-      "CountQueuingStrategy interface: existence and properties of interface prototype object",
-      "CountQueuingStrategy interface: new CountQueuingStrategy({ highWaterMark: 5 }) must inherit property \"size\" with the proper type",
-      "ReadableByteStreamController interface: existence and properties of interface object",
-      "ReadableByteStreamController interface: existence and properties of interface prototype object",
-      "ReadableStream interface: existence and properties of interface object",
-      "ReadableStream interface: existence and properties of interface prototype object",
-      "ReadableStreamBYOBReader interface: existence and properties of interface object",
-      "ReadableStreamBYOBReader interface: existence and properties of interface prototype object",
-      "ReadableStreamBYOBRequest interface: existence and properties of interface object",
-      "ReadableStreamBYOBRequest interface: existence and properties of interface prototype object",
-      "ReadableStreamDefaultController interface: existence and properties of interface object",
-      "ReadableStreamDefaultController interface: existence and properties of interface prototype object",
-      "ReadableStreamDefaultReader interface: existence and properties of interface object",
-      "ReadableStreamDefaultReader interface: existence and properties of interface prototype object",
-      "TransformStream interface: existence and properties of interface object",
-      "TransformStream interface: existence and properties of interface prototype object",
-      "TransformStreamDefaultController interface: existence and properties of interface object",
-      "TransformStreamDefaultController interface: existence and properties of interface prototype object",
-      "WritableStream interface: existence and properties of interface object",
-      "WritableStream interface: existence and properties of interface prototype object",
-      "WritableStreamDefaultController interface: existence and properties of interface object",
-      "WritableStreamDefaultController interface: existence and properties of interface prototype object",
-      "WritableStreamDefaultWriter interface: existence and properties of interface object",
-      "WritableStreamDefaultWriter interface: existence and properties of interface prototype object"
-    ],
-    "queuing-strategies.any.html": [
-      "ByteLengthQueuingStrategy: size should not be a constructor",
-      "CountQueuingStrategy: size should not be a constructor"
-    ],
-    "readable-byte-streams/patched-global.any.html": [
-      "Patched then() sees byobRequest after filling all pending pull-into descriptors"
-    ],
-    "readable-streams/async-iterator.any.html": [
-      "Acquiring a reader after return()ing from a stream that errors",
-      "Acquiring a reader and reading the remaining chunks after partially async-iterating a stream with preventCancel = true",
-      "Async iterator instances should have the correct list of properties",
-      "Async-iterating a partially consumed stream",
-      "Async-iterating a pull source manually",
-      "next() rejects if the stream errors",
-      "next() that succeeds; next() that reports an error(); next() [no awaiting]",
-      "next() that succeeds; next() that reports an error(); return()",
-      "next() that succeeds; next() that reports an error(); return() [no awaiting]",
-      "next() that succeeds; next() that reports an error; next()",
-      "next() that succeeds; return()",
-      "next() that succeeds; return() [no awaiting]",
-      "return() does not rejects if the stream has not errored yet",
-      "return(); next()",
-      "return(); next() [no awaiting]",
-      "return(); next() with delayed cancel()",
-      "return(); next() with delayed cancel() [no awaiting]",
-      "return(); return()",
-      "return(); return() [no awaiting]"
-    ],
     "writable-streams/aborting.any.html": [
-      "WritableStreamDefaultController.signal",
-      "recursive abort() call from abort() aborting signal",
-      "the abort signal is signalled synchronously - write"
-    ],
-    "writable-streams/close.any.html": [
-      "ready promise should be initialised as fulfilled for a writer on a closed stream"
+      "recursive abort() call from abort() aborting signal"
     ]
   }
 }

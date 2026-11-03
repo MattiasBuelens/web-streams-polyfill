@@ -3,10 +3,12 @@
 
 import path from 'node:path';
 import fs from 'node:fs/promises';
+import { Worker } from 'node:worker_threads';
 import micromatch from 'micromatch';
 import minimist from 'minimist';
 import wptRunner from 'wpt-runner';
 import consoleReporter from 'wpt-runner/lib/console-reporter.js';
+import { SourceFile } from 'wpt-runner/lib/internal/sourcefile.js';
 import { FilteringReporter } from '../shared/filtering-reporter.mjs';
 import { expectationsPath, readExpectations, writeExpectations } from '../shared/expectations.mjs';
 import {
@@ -59,31 +61,6 @@ const bufferTypes = [
   'Float32Array',
   'Float64Array',
   'DataView'
-];
-
-// The stream classes that Node.js provides as globals.
-const streamClasses = [
-  'ReadableStream',
-  'ReadableStreamDefaultController',
-  'ReadableByteStreamController',
-  'ReadableStreamBYOBRequest',
-  'ReadableStreamDefaultReader',
-  'ReadableStreamBYOBReader',
-  'WritableStream',
-  'WritableStreamDefaultController',
-  'WritableStreamDefaultWriter',
-  'ByteLengthQueuingStrategy',
-  'CountQueuingStrategy',
-  'TransformStream',
-  'TransformStreamDefaultController'
-];
-
-// (Sharing other intrinsics such as Promise or Object breaks testharness.js in jsdom.)
-const realmIntrinsics = [
-  'Error',
-  'TypeError',
-  'RangeError',
-  'SyntaxError'
 ];
 
 const argv = minimist(process.argv.slice(2), {
@@ -146,26 +123,20 @@ async function runPolyfillTests(results, { includedTests, excludedTests }) {
  * Runs the tests against Node's own streams implementation.
  * With --patched, the feature modules are force-installed first: Node implements every feature,
  * so we remove the native ones to exercise our implementations against Node's streams.
+ *
+ * These tests don't use jsdom, since it runs scripts in a different realm than Node's own stream classes.
+ * Instead, each test file runs in a worker thread, in Node's own realm.
  */
 async function runNativeTests({ includedTests, excludedTests }) {
   const mode = argv.patched ? 'patched' : 'native';
   const label = `${mode} node ${process.version}`;
   const expectationsFile = expectationsPath(`${mode}-node`);
 
-  if (argv.patched) {
-    delete ReadableStream.from;
-    delete ReadableStream.prototype.values;
-    delete ReadableStream.prototype[Symbol.asyncIterator];
-    const { installAll } = await import('../../../dist/feature/index.mjs');
-    const report = installAll(globalThis);
-    console.log(`Installed features: ${report.installed.join(', ')}`);
-    if (!report.success || report.installed.length === 0) {
-      throw new Error('Failed to install the feature modules');
-    }
-  }
-
-  const result = await runTests(undefined, {
+  const result = await runWorkerTests({
     label,
+    featureInstaller: argv.patched
+      ? path.resolve(import.meta.dirname, '../../../dist/feature/index.mjs')
+      : undefined,
     includedTests,
     excludedTests,
     ignoredFailures: argv['update-expectations'] ? {} : await readExpectations(expectationsFile)
@@ -200,6 +171,103 @@ async function runNativeTests({ includedTests, excludedTests }) {
   return result;
 }
 
+async function runWorkerTests({ label, featureInstaller, includedTests, excludedTests, ignoredFailures }) {
+  const wptPath = path.resolve(import.meta.dirname, '../../web-platform-tests');
+  const testsPath = path.resolve(wptPath, 'streams');
+
+  const includeMatcher = micromatch.matcher(includedTests);
+  const excludeMatcher = micromatch.matcher(excludedTests);
+  // Only the .any.js tests can run without a DOM.
+  const testPaths = (await readTestPaths(testsPath)).filter((testPath) => {
+    return testPath.endsWith('.any.html')
+      && includeMatcher(testPath)
+      && !excludeMatcher(testPath);
+  });
+
+  const reporter = new FilteringReporter(consoleReporter, ignoredFailures);
+  let rejectionsCount = 0;
+
+  console.log(`>>> ${label}`);
+
+  for (const testPath of testPaths) {
+    reporter.startSuite(testPath);
+    const testFile = path.resolve(testsPath, testPath.replace(/\.any\.html$/, '.any.js'));
+    const { results, harnessStatus, unhandledRejections } = await runWorker({ wptPath, testFile, featureInstaller });
+    for (const test of results) {
+      reportTestResult(reporter, test);
+    }
+    reportHarnessStatus(reporter, harnessStatus);
+    for (const reason of unhandledRejections) {
+      reporter.fail('unhandled promise rejection\n');
+      reporter.reportStack(reason);
+      rejectionsCount++;
+    }
+  }
+
+  const testResults = reporter.getResults();
+  console.log();
+
+  return { label, failures: testResults.failed, testResults, rejectionsCount };
+}
+
+function runWorker(workerData, timeout = 60_000) {
+  return new Promise((resolve) => {
+    const worker = new Worker(new URL('./native-worker.mjs', import.meta.url), { workerData });
+    const timer = setTimeout(() => {
+      worker.terminate();
+      resolve({ results: [], harnessStatus: { status: 2 }, unhandledRejections: [] });
+    }, timeout);
+    worker.once('message', (message) => {
+      clearTimeout(timer);
+      worker.terminate();
+      resolve(message);
+    });
+    worker.once('error', (e) => {
+      clearTimeout(timer);
+      resolve({ results: [], harnessStatus: { status: 1, message: e.message, stack: e.stack }, unhandledRejections: [] });
+    });
+  });
+}
+
+const testStatusSuffixes = ['', '', ' (timeout)', ' (incomplete)', ' (precondition failed)'];
+
+function reportTestResult(reporter, { name, status, message, stack }) {
+  if (status === 0) {
+    reporter.pass(name);
+  } else if (status in testStatusSuffixes) {
+    reporter.fail(`${name}${testStatusSuffixes[status]}\n`);
+    reporter.reportStack(`${message}\n${stack}`);
+  } else {
+    reporter.fail(`unknown test status: ${status}`);
+  }
+}
+
+function reportHarnessStatus(reporter, { status, message, stack }) {
+  if (status === 0) {
+    return;
+  }
+  if (status === 1) {
+    reporter.fail('test harness threw unexpected error');
+    reporter.reportStack(`${message}\n${stack}`);
+  } else if (status === 2) {
+    reporter.fail('test harness should not timeout');
+  } else if (status === 4) {
+    reporter.fail('test harness precondition failed');
+    reporter.reportStack(`${message}\n${stack}`);
+  } else {
+    reporter.fail(`unknown test harness status: ${status}`);
+  }
+}
+
+async function readTestPaths(testsPath) {
+  const fileNames = await fs.readdir(testsPath, { recursive: true });
+  const testPaths = [];
+  for (const fileName of fileNames) {
+    testPaths.push(...new SourceFile(testsPath, fileName).testPaths());
+  }
+  return testPaths.sort();
+}
+
 async function runTests(entryFile, { label = entryFile, includedTests = ['**/*.html'], excludedTests = [], ignoredFailures = {} } = {}) {
   const wptPath = path.resolve(import.meta.dirname, '../../web-platform-tests');
   const testsPath = path.resolve(wptPath, 'streams');
@@ -210,9 +278,7 @@ async function runTests(entryFile, { label = entryFile, includedTests = ['**/*.h
 
   const reporter = new FilteringReporter(consoleReporter, ignoredFailures);
 
-  const bundledJS = entryFile
-    ? await fs.readFile(path.resolve(import.meta.dirname, `../../../dist/${entryFile}`), { encoding: 'utf8' })
-    : undefined;
+  const bundledJS = await fs.readFile(path.resolve(import.meta.dirname, `../../../dist/${entryFile}`), { encoding: 'utf8' });
 
   console.log(`>>> ${label}`);
 
@@ -245,19 +311,7 @@ async function runTests(entryFile, { label = entryFile, includedTests = ['**/*.h
         };
       };
 
-      if (bundledJS !== undefined) {
-        window.eval(bundledJS);
-      } else {
-        // Use Node's own stream classes.
-        for (const name of streamClasses) {
-          window[name] = global[name];
-        }
-        // The tests run in jsdom's realm, while Node's streams throw errors from Node's realm.
-        // Share the error constructors, so that e.g. assert_throws_js(TypeError, ...) recognizes them.
-        for (const name of realmIntrinsics) {
-          window[name] = global[name];
-        }
-      }
+      window.eval(bundledJS);
     },
     filter(testPath) {
       // Ignore the worker versions

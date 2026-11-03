@@ -45,8 +45,8 @@ if a test fails only when patched.
 
 Node.js implements every feature already, so `npm run test:wpt:patched:node` first removes the native
 `ReadableStream.from()` and async iteration, so that our feature modules are tested on top of Node's streams.
-The Node.js tests run in jsdom, whose objects come from a different realm than Node's streams.
-That's why some tests fail in both the native and the patched Node.js run, e.g. those comparing prototypes.
+The native and patched Node.js runs don't use jsdom, since it runs scripts in a different realm than Node's streams.
+Instead, each `.any.js` test file runs in a worker thread, in Node's own realm.
 The Node.js expectations are recorded with Node.js 22.
 
 The expectations follow the browser versions of the installed Playwright release.
