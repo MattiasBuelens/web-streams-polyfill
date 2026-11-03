@@ -50,6 +50,9 @@ export default tseslint.config(
       '@typescript-eslint/no-non-null-assertion': 'off',
       '@typescript-eslint/no-redeclare': 'error',
       '@typescript-eslint/no-shadow': 'error',
+      '@typescript-eslint/no-unused-vars': ['error', {
+        varsIgnorePattern: '^_'
+      }],
       '@typescript-eslint/no-useless-constructor': 'error'
     }
   }
