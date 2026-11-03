@@ -1,7 +1,7 @@
 name: Test
 on:
   push:
-    branches: [master]
+    branches: [master, v5]
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review]
 jobs:
