@@ -1,0 +1,11 @@
+kind: 🚀
+body: |
+  Add feature modules that install missing features on top of a native streams implementation,
+  instead of replacing it. ([#247](https://github.com/MattiasBuelens/web-streams-polyfill/pull/247))
+  * `web-streams-polyfill/feature/readable-stream-from` adds `ReadableStream.from()`.
+  * `web-streams-polyfill/feature/async-iterator` adds `ReadableStream.prototype.values()` and `[Symbol.asyncIterator]()`.
+  * Each feature exports `check(classes)` and `install(classes)`, where `classes` defaults to `globalThis`.
+  * `web-streams-polyfill/feature` exports `installAll(classes)`, which installs every missing feature
+    if the native implementation is complete enough to build on (see `checkCore(classes)`).
+  * These are only available as ES modules.
+time: 2026-11-03T06:00:00Z
