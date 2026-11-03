@@ -50,6 +50,10 @@
       "types": "./types/feature/async-iterator.d.mts",
       "default": "./dist/feature/async-iterator.mjs"
     },
+    "./feature/transformer-cancel": {
+      "types": "./types/feature/transformer-cancel.d.mts",
+      "default": "./dist/feature/transformer-cancel.mjs"
+    },
     "./dist/*": "./dist/*",
     "./types/*": "./types/*",
     "./package": "./package.json",
@@ -72,6 +76,11 @@
     "test:wpt:patched:firefox": "node ./test/wpt/browser/run.mjs --patched --browser firefox",
     "test:wpt:patched:webkit": "node ./test/wpt/browser/run.mjs --patched --browser webkit",
     "test:wpt:patched:node": "node --expose_gc ./test/wpt/node/run.mjs --patched",
+    "test:wpt:patched-forced": "npm run test:wpt:patched-forced:chromium && npm run test:wpt:patched-forced:firefox && npm run test:wpt:patched-forced:webkit && npm run test:wpt:patched-forced:node",
+    "test:wpt:patched-forced:chromium": "node ./test/wpt/browser/run.mjs --patched --force --browser chromium",
+    "test:wpt:patched-forced:firefox": "node ./test/wpt/browser/run.mjs --patched --force --browser firefox",
+    "test:wpt:patched-forced:webkit": "node ./test/wpt/browser/run.mjs --patched --force --browser webkit",
+    "test:wpt:patched-forced:node": "node --expose_gc ./test/wpt/node/run.mjs --patched --force",
     "test:bundlers": "npm run test:bundler:rolldown && npm run test:bundler:rollup && npm run test:bundler:webpack",
     "test:bundler:rolldown": "npm test --workspace=test/rolldown-test",
     "test:bundler:rollup": "npm test --workspace=test/rollup-test",

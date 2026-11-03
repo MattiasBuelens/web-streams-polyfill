@@ -1,6 +1,7 @@
 import { isPatchable } from './patchable';
 import * as asyncIterator from './async-iterator';
 import * as readableStreamFrom from './readable-stream-from';
+import * as transformerCancel from './transformer-cancel';
 import { getGlobals, type StreamClasses } from './types';
 
 export { isPatchable };
@@ -26,7 +27,8 @@ export interface Feature {
  */
 export const features: readonly Feature[] = [
   readableStreamFrom,
-  asyncIterator
+  asyncIterator,
+  transformerCancel
 ];
 
 /**
