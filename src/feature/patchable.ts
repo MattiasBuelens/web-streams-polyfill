@@ -10,7 +10,7 @@ import { getGlobals, type StreamClasses } from './types';
  *
  * @public
  */
-export function checkCore(classes: StreamClasses = getGlobals()): boolean {
+export function isPatchable(classes: StreamClasses = getGlobals()): boolean {
   const { ReadableStream, WritableStream, TransformStream } = classes;
   if (typeof ReadableStream !== 'function'
     || typeof WritableStream !== 'function'

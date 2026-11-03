@@ -1,9 +1,9 @@
-import { checkCore } from './core';
+import { isPatchable } from './patchable';
 import * as asyncIterator from './async-iterator';
 import * as readableStreamFrom from './readable-stream-from';
 import { getGlobals, type StreamClasses } from './types';
 
-export { checkCore };
+export { isPatchable };
 export type { StreamClasses };
 
 /**
@@ -36,7 +36,7 @@ export const features: readonly Feature[] = [
  */
 export interface InstallReport {
   /**
-   * Whether the classes passed {@link checkCore}. If not, no features were installed.
+   * Whether the classes are {@link isPatchable | patchable}. If not, no features were installed.
    */
   success: boolean;
   /**
@@ -48,14 +48,14 @@ export interface InstallReport {
 /**
  * Installs every feature that the given classes are missing.
  *
- * This only installs features on top of a native implementation that passes {@link checkCore}.
+ * This only installs features on top of a native implementation that {@link isPatchable | is patchable}.
  * Otherwise, it does nothing, so that one stream graph never mixes two implementations.
  *
  * @public
  */
 export function installAll(classes: StreamClasses = getGlobals()): InstallReport {
   const installed: string[] = [];
-  if (!checkCore(classes)) {
+  if (!isPatchable(classes)) {
     return { success: false, installed };
   }
   for (const feature of features) {
