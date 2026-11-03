@@ -23,7 +23,7 @@ const serverCloseAsync = promisify(http.Server.prototype.close);
 
 const argv = minimist(process.argv.slice(2), {
   string: ['browser'],
-  boolean: ['native', 'patched', 'update-expectations']
+  boolean: ['native', 'patched', 'force', 'update-expectations']
 });
 
 main().catch((e) => {
@@ -54,14 +54,16 @@ async function main() {
     if (argv.native || argv.patched) {
       // Run against the browser's own implementation, without loading the polyfill.
       // With --patched, first install the feature modules that the browser is missing.
+      // With --patched --force, hide the browser's own features first, so all feature modules get installed,
+      // and use our TransformStream (on top of native streams) for every transformer.
       // Known failures are recorded per browser in an expectations file.
-      const mode = argv.patched ? 'patched' : 'native';
+      const mode = !argv.patched ? 'native' : argv.force ? 'patched-forced' : 'patched';
       const label = `${mode} ${browserType} ${browserVersion}`;
       const expectationsFile = expectationsPath(`${mode}-${browserType}`);
       const result = await runTests({
         ...testOptions,
         label,
-        initScript: argv.patched ? { content: await bundleFeatureInstaller() } : undefined,
+        initScript: argv.patched ? { content: await bundleFeatureInstaller({ force: argv.force }) } : undefined,
         ignoredFailures: argv['update-expectations'] ? {} : await readExpectations(expectationsFile)
       });
       if (argv['update-expectations']) {
@@ -132,11 +134,20 @@ function distPath(file) {
  * Bundles a classic script that installs all feature modules on the global classes,
  * since the feature modules are only published as ES modules.
  */
-async function bundleFeatureInstaller() {
-  const entry = `
-    import { installAll } from ${JSON.stringify(distPath('feature/index.mjs'))};
-    globalThis.__featureReport = installAll(globalThis);
-  `;
+async function bundleFeatureInstaller({ force = false } = {}) {
+  const forceFeatures = JSON.stringify(path.resolve(import.meta.dirname, '../shared/force-features.mjs'));
+  const entry = force
+    ? `
+      import { installAll } from ${JSON.stringify(distPath('feature/index.mjs'))};
+      import { hideNativeFeatures, forceOwnTransformStream } from ${forceFeatures};
+      hideNativeFeatures(globalThis);
+      globalThis.__featureReport = installAll(globalThis);
+      forceOwnTransformStream(globalThis);
+    `
+    : `
+      import { installAll } from ${JSON.stringify(distPath('feature/index.mjs'))};
+      globalThis.__featureReport = installAll(globalThis);
+    `;
   const result = await build({
     input: 'virtual:feature-installer',
     plugins: [{

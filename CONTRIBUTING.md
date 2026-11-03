@@ -43,8 +43,15 @@ on top of each native implementation, and compares against `test/wpt/expectation
 Installing features must never break a test that passes natively: re-recording patched expectations fails
 if a test fails only when patched.
 
-Node.js implements every feature already, so `npm run test:wpt:patched:node` first removes the native
-`ReadableStream.from()` and async iteration, so that our feature modules are tested on top of Node's streams.
+`npm run test:wpt:patched-forced` goes one step further: it first hides the browser's own features
+(`ReadableStream.from()`, async iteration and `transformer.cancel()`), so that every feature module is installed,
+and then makes every `TransformStream` use our implementation on top of the native streams,
+not only those whose transformer has a `cancel()` method. That runs all TransformStream tests against our code.
+The results are compared against `test/wpt/expectations/patched-forced-<browser>.json`,
+and must not fail any test that passes natively either.
+
+Node.js implements every feature already, so `npm run test:wpt:patched:node` also hides Node's own features first,
+so that our feature modules are tested on top of Node's streams.
 The native and patched Node.js runs don't use jsdom, since it runs scripts in a different realm than Node's streams.
 Instead, each `.any.js` test file runs in a worker thread, in Node's own realm.
 The Node.js expectations are recorded with Node.js 22.
@@ -55,6 +62,7 @@ After updating Playwright (or Node.js 22 for the Node.js expectations), re-recor
 ```sh
 npm run test:wpt:native:chromium -- --update-expectations
 npm run test:wpt:patched:chromium -- --update-expectations
+npm run test:wpt:patched-forced:chromium -- --update-expectations
 # ...and the same for firefox, webkit and node
 ```
 

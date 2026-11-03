@@ -1,0 +1,8 @@
+{
+  "runtime": "node v22.23.4",
+  "failures": {
+    "writable-streams/aborting.any.html": [
+      "recursive abort() call from abort() aborting signal"
+    ]
+  }
+}

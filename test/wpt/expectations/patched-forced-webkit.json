@@ -1,0 +1,15 @@
+{
+  "browser": "webkit 27.2",
+  "failures": {
+    "idlharness.any.html": [
+      "CountQueuingStrategy interface: attribute size",
+      "WritableStreamDefaultController interface: operation error(optional any)"
+    ],
+    "piping/abort.any.html": [
+      "a rejection from underlyingSink.abort() should be preferred to one from underlyingSource.cancel()"
+    ],
+    "piping/error-propagation-backward.any.html": [
+      "test harness threw unexpected error"
+    ]
+  }
+}

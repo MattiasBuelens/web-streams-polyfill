@@ -64,7 +64,7 @@ const bufferTypes = [
 ];
 
 const argv = minimist(process.argv.slice(2), {
-  boolean: ['native', 'patched', 'update-expectations']
+  boolean: ['native', 'patched', 'force', 'update-expectations']
 });
 
 main().catch((e) => {
@@ -121,14 +121,15 @@ async function runPolyfillTests(results, { includedTests, excludedTests }) {
 
 /**
  * Runs the tests against Node's own streams implementation.
- * With --patched, the feature modules are force-installed first: Node implements every feature,
- * so we remove the native ones to exercise our implementations against Node's streams.
+ * With --patched, the feature modules are installed first: Node implements every feature,
+ * so we hide the native ones to exercise our implementations against Node's streams.
+ * With --patched --force, every TransformStream also uses our implementation on top of Node's streams.
  *
  * These tests don't use jsdom, since it runs scripts in a different realm than Node's own stream classes.
  * Instead, each test file runs in a worker thread, in Node's own realm.
  */
 async function runNativeTests({ includedTests, excludedTests }) {
-  const mode = argv.patched ? 'patched' : 'native';
+  const mode = !argv.patched ? 'native' : argv.force ? 'patched-forced' : 'patched';
   const label = `${mode} node ${process.version}`;
   const expectationsFile = expectationsPath(`${mode}-node`);
 
@@ -137,6 +138,7 @@ async function runNativeTests({ includedTests, excludedTests }) {
     featureInstaller: argv.patched
       ? path.resolve(import.meta.dirname, '../../../dist/feature/index.mjs')
       : undefined,
+    force: argv.force,
     includedTests,
     excludedTests,
     ignoredFailures: argv['update-expectations'] ? {} : await readExpectations(expectationsFile)
@@ -171,7 +173,7 @@ async function runNativeTests({ includedTests, excludedTests }) {
   return result;
 }
 
-async function runWorkerTests({ label, featureInstaller, includedTests, excludedTests, ignoredFailures }) {
+async function runWorkerTests({ label, featureInstaller, force, includedTests, excludedTests, ignoredFailures }) {
   const wptPath = path.resolve(import.meta.dirname, '../../web-platform-tests');
   const testsPath = path.resolve(wptPath, 'streams');
 
@@ -192,7 +194,7 @@ async function runWorkerTests({ label, featureInstaller, includedTests, excluded
   for (const testPath of testPaths) {
     reporter.startSuite(testPath);
     const testFile = path.resolve(testsPath, testPath.replace(/\.any\.html$/, '.any.js'));
-    const { results, harnessStatus, unhandledRejections } = await runWorker({ wptPath, testFile, featureInstaller });
+    const { results, harnessStatus, unhandledRejections } = await runWorker({ wptPath, testFile, featureInstaller, force });
     for (const test of results) {
       reportTestResult(reporter, test);
     }
