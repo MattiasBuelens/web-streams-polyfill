@@ -107,12 +107,12 @@ async function main() {
 }
 
 async function runPolyfillTests(results, { includedTests, excludedTests }) {
-  results.push(await runTests('polyfill.js', {
+  results.push(await runJsdomTests('polyfill.js', {
     includedTests,
     excludedTests,
     ignoredFailures: mergeIgnoredFailures(ignoredFailuresBase, ignoredFailuresMinified)
   }));
-  results.push(await runTests('polyfill.es5.js', {
+  results.push(await runJsdomTests('polyfill.es5.js', {
     includedTests,
     excludedTests,
     ignoredFailures: mergeIgnoredFailures(ignoredFailuresES5, ignoredFailuresMinified)
@@ -268,7 +268,11 @@ async function readTestPaths(testsPath) {
   return testPaths.sort();
 }
 
-async function runTests(entryFile, { label = entryFile, includedTests = ['**/*.html'], excludedTests = [], ignoredFailures = {} } = {}) {
+/**
+ * Runs the tests against a polyfill bundle, which is loaded inside the jsdom window of each test.
+ */
+async function runJsdomTests(entryFile, { includedTests = ['**/*.html'], excludedTests = [], ignoredFailures = {} } = {}) {
+  const label = entryFile;
   const wptPath = path.resolve(import.meta.dirname, '../../web-platform-tests');
   const testsPath = path.resolve(wptPath, 'streams');
 
