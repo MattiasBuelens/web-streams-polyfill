@@ -38,7 +38,7 @@ export interface InstallReport {
   /**
    * Whether the classes passed {@link checkCore}. If not, no features were installed.
    */
-  core: boolean;
+  success: boolean;
   /**
    * The names of the features that were installed by this call.
    */
@@ -56,12 +56,12 @@ export interface InstallReport {
 export function installAll(classes: StreamClasses = getGlobals()): InstallReport {
   const installed: string[] = [];
   if (!checkCore(classes)) {
-    return { core: false, installed };
+    return { success: false, installed };
   }
   for (const feature of features) {
     if (feature.install(classes)) {
       installed.push(feature.name);
     }
   }
-  return { core: true, installed };
+  return { success: true, installed };
 }

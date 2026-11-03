@@ -159,7 +159,7 @@ async function runNativeTests({ includedTests, excludedTests }) {
     const { installAll } = await import('../../../dist/feature/index.mjs');
     const report = installAll(globalThis);
     console.log(`Installed features: ${report.installed.join(', ')}`);
-    if (!report.core || report.installed.length === 0) {
+    if (!report.success || report.installed.length === 0) {
       throw new Error('Failed to install the feature modules');
     }
   }
