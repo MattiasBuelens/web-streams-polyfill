@@ -1,19 +1,15 @@
 import { assertDictionary, assertFunction } from './basic';
 import { promiseCall, reflectCall } from '../helpers/webidl';
-import type {
-  Transformer,
-  TransformerCancelCallback,
-  TransformerFlushCallback,
-  TransformerStartCallback,
-  TransformerTransformCallback,
-  ValidatedTransformer
-} from '../transform-stream/transformer';
+import type { Transformer, ValidatedTransformer } from '../transform-stream/transformer';
 import type { TransformStreamDefaultController } from '../transform-stream';
 
-export function convertTransformer<I, O>(
+/**
+ * Reads and validates the members of a transformer dictionary, without wrapping its callbacks.
+ */
+export function readTransformer<I, O>(
   original: Transformer<I, O> | null,
   context: string
-): ValidatedTransformer<I, O> {
+): Transformer<I, O> {
   assertDictionary(original, context);
   const cancel = original?.cancel;
   const flush = original?.flush;
@@ -21,56 +17,51 @@ export function convertTransformer<I, O>(
   const start = original?.start;
   const transform = original?.transform;
   const writableType = original?.writableType;
+  if (cancel !== undefined) {
+    assertFunction(cancel, `${context} has member 'cancel' that`);
+  }
+  if (flush !== undefined) {
+    assertFunction(flush, `${context} has member 'flush' that`);
+  }
+  if (start !== undefined) {
+    assertFunction(start, `${context} has member 'start' that`);
+  }
+  if (transform !== undefined) {
+    assertFunction(transform, `${context} has member 'transform' that`);
+  }
+  return { cancel, flush, readableType, start, transform, writableType };
+}
+
+/**
+ * Wraps the callbacks of a transformer that was read by {@link readTransformer},
+ * so they're called with the original transformer as `this`.
+ */
+export function wrapTransformer<I, O>(
+  members: Transformer<I, O>,
+  original: Transformer<I, O> | null
+): ValidatedTransformer<I, O> {
+  const { cancel, flush, readableType, start, transform, writableType } = members;
   return {
     cancel: cancel === undefined
       ? undefined
-      : convertTransformerCancelCallback(cancel, original!, `${context} has member 'cancel' that`),
+      : (reason: any) => promiseCall(cancel, original, [reason]),
     flush: flush === undefined
       ? undefined
-      : convertTransformerFlushCallback(flush, original!, `${context} has member 'flush' that`),
+      : (controller: TransformStreamDefaultController<O>) => promiseCall(flush, original, [controller]),
     readableType,
     start: start === undefined
       ? undefined
-      : convertTransformerStartCallback(start, original!, `${context} has member 'start' that`),
+      : (controller: TransformStreamDefaultController<O>) => reflectCall(start, original, [controller]),
     transform: transform === undefined
       ? undefined
-      : convertTransformerTransformCallback(transform, original!, `${context} has member 'transform' that`),
+      : (chunk: I, controller: TransformStreamDefaultController<O>) => promiseCall(transform, original, [chunk, controller]),
     writableType
   };
 }
 
-function convertTransformerFlushCallback<I, O>(
-  fn: TransformerFlushCallback<O>,
-  original: Transformer<I, O>,
+export function convertTransformer<I, O>(
+  original: Transformer<I, O> | null,
   context: string
-): (controller: TransformStreamDefaultController<O>) => Promise<void> {
-  assertFunction(fn, context);
-  return (controller: TransformStreamDefaultController<O>) => promiseCall(fn, original, [controller]);
-}
-
-function convertTransformerStartCallback<I, O>(
-  fn: TransformerStartCallback<O>,
-  original: Transformer<I, O>,
-  context: string
-): TransformerStartCallback<O> {
-  assertFunction(fn, context);
-  return (controller: TransformStreamDefaultController<O>) => reflectCall(fn, original, [controller]);
-}
-
-function convertTransformerTransformCallback<I, O>(
-  fn: TransformerTransformCallback<I, O>,
-  original: Transformer<I, O>,
-  context: string
-): (chunk: I, controller: TransformStreamDefaultController<O>) => Promise<void> {
-  assertFunction(fn, context);
-  return (chunk: I, controller: TransformStreamDefaultController<O>) => promiseCall(fn, original, [chunk, controller]);
-}
-
-function convertTransformerCancelCallback<I, O>(
-  fn: TransformerCancelCallback,
-  original: Transformer<I, O>,
-  context: string
-): (reason: any) => Promise<void> {
-  assertFunction(fn, context);
-  return (reason: any) => promiseCall(fn, original, [reason]);
+): ValidatedTransformer<I, O> {
+  return wrapTransformer(readTransformer(original, context), original);
 }

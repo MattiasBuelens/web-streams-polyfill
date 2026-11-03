@@ -13,10 +13,10 @@ import {
   TransformStreamDefaultSourcePullAlgorithm
 } from '../lib/transform-stream/core';
 import type { Transformer } from '../lib/transform-stream/transformer';
-import { convertTransformer } from '../lib/validators/transformer';
+import { readTransformer, wrapTransformer } from '../lib/validators/transformer';
 import { convertQueuingStrategy } from '../lib/validators/queuing-strategy';
 import { ExtractHighWaterMark, ExtractSizeAlgorithm } from '../lib/abstract-ops/queuing-strategy';
-import { typeIsObject } from '../lib/helpers/miscellaneous';
+import { setFunctionName, typeIsObject } from '../lib/helpers/miscellaneous';
 import { newPromise, promiseResolvedWith, reflectCall, setPromiseIsHandledToTrue, uponPromise } from '../lib/helpers/webidl';
 import { getGlobals, type StreamClasses } from './types';
 
@@ -92,19 +92,20 @@ export function install(classes: StreamClasses = getGlobals()): boolean {
       if (rawTransformer === undefined) {
         rawTransformer = null;
       }
-      const transformer = convertTransformer(rawTransformer, 'First parameter');
-      if (transformer.cancel === undefined) {
+      const members = readTransformer(rawTransformer, 'First parameter');
+      if (members.cancel === undefined) {
         // Hand off to the native constructor, without reading the transformer's members again.
         const nativeArgs = args.slice();
-        nativeArgs[0] = toNativeTransformer(rawTransformer, transformer);
+        nativeArgs[0] = toNativeTransformer(rawTransformer, members);
         return Reflect.construct(NativeTransformStream, nativeArgs, new.target);
       }
+      const transformer = wrapTransformer(members, rawTransformer);
       const stream: NativeBackedTransformStream = Object.create(new.target.prototype);
       SetUpNativeBackedTransformStream(env, stream, controllerPrototype, transformer, args[1], args[2]);
       return stream;
     }
   };
-  Object.defineProperty(TransformStream, 'name', { value: 'TransformStream', configurable: true });
+  setFunctionName(TransformStream, 'TransformStream');
   Object.defineProperty(TransformStream, 'prototype', { value: streamPrototype, writable: false });
   Object.defineProperty(streamPrototype, 'constructor', {
     ...Object.getOwnPropertyDescriptor(streamPrototype, 'constructor'),
@@ -192,7 +193,7 @@ function SetUpNativeBackedTransformStream(
   env: NativeEnvironment,
   stream: NativeBackedTransformStream,
   controllerPrototype: object,
-  transformer: ReturnType<typeof convertTransformer>,
+  transformer: ReturnType<typeof wrapTransformer>,
   rawWritableStrategy: QueuingStrategy | null | undefined,
   rawReadableStrategy: QueuingStrategy | null | undefined
 ) {
@@ -323,7 +324,22 @@ function InitializeNativeSides(
   };
   const writableStrategy = Object.create(null);
   writableStrategy.highWaterMark = writableHighWaterMark;
-  writableStrategy.size = writableSizeAlgorithm;
+  writableStrategy.size = (chunk: any): number => {
+    // When size() throws or returns an invalid size, the native stream errors itself without telling the sink.
+    // Validate the size here instead, so the shadow state knows about the error.
+    try {
+      const size = Number(writableSizeAlgorithm(chunk));
+      if (!(size >= 0) || size === Infinity) {
+        throw new RangeError('Size must be a finite, non-NaN, non-negative number.');
+      }
+      return size;
+    } catch (e) {
+      if (state.writableState === 'writable') {
+        writableStartErroring(state, e);
+      }
+      throw e;
+    }
+  };
   stream._writable = new env.NativeWritableStream(sink, writableStrategy);
 
   const source = Object.create(null);
@@ -460,29 +476,23 @@ const nativeSides: TransformStreamSides = {
  * Passes the transformer's members to the native constructor, so it doesn't read them a second time.
  * The callbacks are still called with the original transformer as `this`.
  */
-function toNativeTransformer(
-  rawTransformer: Transformer | null,
-  transformer: ReturnType<typeof convertTransformer>
-): Transformer {
+function toNativeTransformer(rawTransformer: Transformer | null, members: Transformer): Transformer {
+  const { flush, readableType, start, transform, writableType } = members;
   const result: any = Object.create(null);
-  if (rawTransformer === null) {
-    return result;
+  if (flush !== undefined) {
+    result.flush = (controller: any) => reflectCall(flush, rawTransformer, [controller]);
   }
-  const { flush, start, transform } = rawTransformer;
-  if (transformer.flush !== undefined) {
-    result.flush = (controller: any) => reflectCall(flush!, rawTransformer, [controller]);
+  if (readableType !== undefined) {
+    result.readableType = readableType;
   }
-  if (transformer.readableType !== undefined) {
-    result.readableType = transformer.readableType;
+  if (start !== undefined) {
+    result.start = (controller: any) => reflectCall(start, rawTransformer, [controller]);
   }
-  if (transformer.start !== undefined) {
-    result.start = (controller: any) => reflectCall(start!, rawTransformer, [controller]);
+  if (transform !== undefined) {
+    result.transform = (chunk: any, controller: any) => reflectCall(transform, rawTransformer, [chunk, controller]);
   }
-  if (transformer.transform !== undefined) {
-    result.transform = (chunk: any, controller: any) => reflectCall(transform!, rawTransformer, [chunk, controller]);
-  }
-  if (transformer.writableType !== undefined) {
-    result.writableType = transformer.writableType;
+  if (writableType !== undefined) {
+    result.writableType = writableType;
   }
   return result;
 }
@@ -516,7 +526,7 @@ function getControllerPrototype(TransformStream: any): any {
  * and falls back to the native getter for native objects.
  */
 function patchGetter(prototype: any, key: string, source: object, isOwn: (x: any) => boolean) {
-  const nativeDescriptor = Object.getOwnPropertyDescriptor(prototype, key)!;
+  const nativeDescriptor = getPropertyDescriptor(prototype, key)!;
   const nativeGetter = nativeDescriptor.get!;
   const ownGetter = Object.getOwnPropertyDescriptor(source, key)!.get!;
   const getter = Object.getOwnPropertyDescriptor({
@@ -535,7 +545,7 @@ function patchGetter(prototype: any, key: string, source: object, isOwn: (x: any
  * and falls back to the native method for native objects.
  */
 function patchMethod(prototype: any, key: string, source: Record<string, (...args: any[]) => any>, isOwn: (x: any) => boolean) {
-  const nativeDescriptor = Object.getOwnPropertyDescriptor(prototype, key)!;
+  const nativeDescriptor = getPropertyDescriptor(prototype, key)!;
   const nativeMethod = nativeDescriptor.value;
   const ownMethod = source[key];
   const { [key]: method } = {
@@ -547,4 +557,18 @@ function patchMethod(prototype: any, key: string, source: Record<string, (...arg
     }
   };
   Object.defineProperty(prototype, key, { ...nativeDescriptor, value: method });
+}
+
+/**
+ * Finds a property descriptor on the prototype chain, e.g. when the classes are subclasses of the native ones.
+ */
+function getPropertyDescriptor(object: any, key: string): PropertyDescriptor | undefined {
+  while (object !== null) {
+    const descriptor = Object.getOwnPropertyDescriptor(object, key);
+    if (descriptor !== undefined) {
+      return descriptor;
+    }
+    object = Object.getPrototypeOf(object);
+  }
+  return undefined;
 }
