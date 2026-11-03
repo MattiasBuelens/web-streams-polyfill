@@ -1,12 +1,8 @@
-import { IsDetachedBuffer } from '../lib/abstract-ops/ecmascript';
-import {
-  arrayBufferViewElementSize,
-  isDataView,
-  type ArrayBufferViewConstructor,
-  type TypedArray
-} from '../lib/helpers/array-buffer-view';
+import { IsDetachedBuffer, TransferArrayBuffer } from '../lib/abstract-ops/ecmascript';
+import type { ArrayBufferViewConstructor } from '../lib/helpers/array-buffer-view';
 import { typeIsObject } from '../lib/helpers/miscellaneous';
 import {
+  newPromise,
   PerformPromiseThen,
   promiseRejectedWith,
   reflectCall,
@@ -104,12 +100,12 @@ export function install(classes: StreamClasses = getGlobals()): boolean {
       if (min === 0) {
         return promiseRejectedWith(new TypeError('options.min must be greater than 0'));
       }
-      if (!isDataView(view)) {
-        if (min > (view as unknown as TypedArray).length) {
-          return promiseRejectedWith(new RangeError('options.min must be less than or equal to view\'s length'));
-        }
-      } else if (min > view.byteLength) {
-        return promiseRejectedWith(new RangeError('options.min must be less than or equal to view\'s byteLength'));
+      const typedArrayElementSize = getTypedArrayElementSize(view);
+      const elementSize = typedArrayElementSize ?? 1;
+      if (min > view.byteLength / elementSize) {
+        return promiseRejectedWith(new RangeError(typedArrayElementSize === undefined
+          ? 'options.min must be less than or equal to view\'s byteLength'
+          : 'options.min must be less than or equal to view\'s length'));
       }
 
       if (!typeIsObject(this)) {
@@ -121,7 +117,7 @@ export function install(classes: StreamClasses = getGlobals()): boolean {
         // Fast path: a single native read is enough, and nothing is waiting before it.
         return reflectCall(nativeRead, this, [view]);
       }
-      return queueRead(this, view, min, pending);
+      return queueRead(this, view, min, elementSize, pending);
     }
   };
   const { cancel } = {
@@ -139,12 +135,32 @@ export function install(classes: StreamClasses = getGlobals()): boolean {
     reader: ReadableStreamBYOBReader,
     view: T,
     min: number,
+    elementSize: number,
     pending: Promise<unknown> | undefined
   ): Promise<ReadResult<T>> {
     const cancelCount = cancelCounts.get(reader);
+    if (pending !== undefined) {
+      // A native read transfers the view's buffer right away, even if it has to wait for earlier reads.
+      // Do the same while this read waits for the earlier ones.
+      const ctor = view.constructor as ArrayBufferViewConstructor<T>;
+      const { byteOffset, byteLength } = view;
+      view = new ctor(TransferArrayBuffer(view.buffer as ArrayBuffer), byteOffset, byteLength / elementSize);
+    }
+    // Register this read before starting it: the native read can call the underlying source's pull() synchronously,
+    // and a read() from inside that pull() must wait for this one.
+    let settle!: () => void;
+    const settled = newPromise<void>((resolve) => {
+      settle = resolve;
+    });
+    pendingReads.set(reader, settled);
+    PerformPromiseThen(settled, () => {
+      if (pendingReads.get(reader) === settled) {
+        pendingReads.delete(reader);
+      }
+    });
     const doRead = () => (min === 1
       ? reflectCall(nativeRead, reader, [view])
-      : readWithMin(nativeRead, reader, view, min));
+      : readWithMin(nativeRead, reader, view, min, elementSize));
     const promise = PerformPromiseThen(
       pending === undefined ? doRead() : PerformPromiseThen(pending, doRead, doRead),
       (result): ReadResult<T> => {
@@ -156,18 +172,8 @@ export function install(classes: StreamClasses = getGlobals()): boolean {
         return result;
       }
     );
-    trackPendingRead(reader, promise);
+    PerformPromiseThen(promise, settle, settle);
     return promise;
-  }
-
-  function trackPendingRead(reader: object, promise: Promise<unknown>) {
-    const settled = PerformPromiseThen(promise, noop, noop);
-    pendingReads.set(reader, settled);
-    PerformPromiseThen(settled, () => {
-      if (pendingReads.get(reader) === settled) {
-        pendingReads.delete(reader);
-      }
-    });
   }
 
   return true;
@@ -181,10 +187,10 @@ function readWithMin<T extends ArrayBufferView>(
   nativeRead: NativeRead,
   reader: ReadableStreamBYOBReader,
   view: T,
-  min: number
+  min: number,
+  elementSize: number
 ): Promise<ReadResult<T>> {
   const ctor = view.constructor as ArrayBufferViewConstructor<T>;
-  const elementSize = arrayBufferViewElementSize(ctor);
   const byteOffset = view.byteOffset;
   const byteLength = view.byteLength;
   const minimumFill = min * elementSize;
@@ -226,6 +232,11 @@ function getByobReader(classes: StreamClasses): ReadableStreamBYOBReader | undef
   }
 }
 
-function noop() {
-  // do nothing
+/**
+ * Returns the element size of a typed array, or `undefined` for a `DataView`.
+ * Unlike checking the constructor, this also works for views from another realm.
+ */
+function getTypedArrayElementSize(view: ArrayBufferView): number | undefined {
+  const elementSize = (view as Partial<Int8Array>).BYTES_PER_ELEMENT;
+  return typeof elementSize === 'number' ? elementSize : undefined;
 }

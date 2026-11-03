@@ -1,5 +1,6 @@
 import { before, describe, it } from 'node:test';
 import assert from 'node:assert/strict';
+import vm from 'node:vm';
 import { check, install } from 'web-streams-polyfill/feature/byob-read-min';
 
 /**
@@ -70,6 +71,58 @@ describe('byob-read-min feature', () => {
     assert.deepEqual([...(await first).value], [1, 2, 3]);
     assert.deepEqual([...(await second).value], [4]);
     assert.deepEqual(order, ['first', 'second']);
+  });
+
+  it('makes a read() from inside pull() wait for the read that called pull()', async () => {
+    let controller;
+    let second;
+    let pulled = false;
+    const stream = new ReadableStream({
+      type: 'bytes',
+      start(c) {
+        controller = c;
+      },
+      pull() {
+        if (pulled) {
+          return;
+        }
+        pulled = true;
+        second = reader.read(new Uint8Array(1));
+        controller.enqueue(new Uint8Array([1]));
+      }
+    });
+    const reader = stream.getReader({ mode: 'byob' });
+    // Wait for start() to finish, so read() calls pull() synchronously.
+    await new Promise(resolve => setTimeout(resolve));
+    const first = reader.read(new Uint8Array(2), { min: 2 });
+    assert.ok(pulled);
+    controller.enqueue(new Uint8Array([2, 3]));
+    assert.deepEqual([...(await first).value], [1, 2]);
+    assert.deepEqual([...(await second).value], [3]);
+  });
+
+  it('transfers the buffer of a read that waits for an earlier read', async () => {
+    const { stream, controller } = createStream();
+    const reader = stream.getReader({ mode: 'byob' });
+    const first = reader.read(new Uint8Array(2), { min: 2 });
+    const view = new Uint8Array(1);
+    const second = reader.read(view);
+    assert.equal(view.buffer.byteLength, 0);
+    controller.enqueue(new Uint8Array([1, 2, 3]));
+    assert.deepEqual([...(await first).value], [1, 2]);
+    assert.deepEqual([...(await second).value], [3]);
+  });
+
+  it('accepts a DataView from another realm', async () => {
+    const { stream, controller } = createStream();
+    const reader = stream.getReader({ mode: 'byob' });
+    const view = vm.runInNewContext('new DataView(new ArrayBuffer(3))');
+    const read = reader.read(view, { min: 3 });
+    controller.enqueue(new Uint8Array([1]));
+    controller.enqueue(new Uint8Array([2, 3]));
+    const { value } = await read;
+    assert.equal(value.byteLength, 3);
+    assert.deepEqual([value.getUint8(0), value.getUint8(1), value.getUint8(2)], [1, 2, 3]);
   });
 
   it('returns the filled part when the stream closes', async () => {
