@@ -10,8 +10,7 @@ function createClasses() {
     construct(target, args, newTarget) {
       const [transformer] = args;
       if (transformer !== null && typeof transformer === 'object' && 'cancel' in transformer) {
-        const withoutCancel = { ...transformer };
-        delete withoutCancel.cancel;
+        const { cancel, ...withoutCancel } = transformer;
         args = [withoutCancel, ...args.slice(1)];
       }
       return Reflect.construct(target, args, newTarget === NativeTransformStream ? target : newTarget);
