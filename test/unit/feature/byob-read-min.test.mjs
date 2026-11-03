@@ -132,6 +132,8 @@ describe('byob-read-min feature', () => {
     controller.enqueue(new Uint8Array([1, 2]));
     await Promise.resolve();
     controller.close();
+    // If a read is still pending, the underlying byte source must respond to it after closing.
+    controller.byobRequest?.respond(0);
     const { done, value } = await read;
     assert.equal(done, true);
     assert.deepEqual([...value], [1, 2]);
