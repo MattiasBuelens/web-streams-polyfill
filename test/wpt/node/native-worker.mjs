@@ -55,7 +55,7 @@ if (featureInstaller) {
   hideNativeFeatures(globalThis);
   const { installAll } = await import(featureInstaller);
   const report = installAll(globalThis);
-  if (!report.success || report.installed.length !== 3) {
+  if (!report.success || report.installed.length !== 4) {
     throw new Error(`Failed to install the feature modules: ${report.installed.join(', ')}`);
   }
   if (force) {

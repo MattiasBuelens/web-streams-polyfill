@@ -9,6 +9,17 @@ export function hideNativeFeatures(global) {
   delete global.ReadableStream.prototype.values;
   delete global.ReadableStream.prototype[Symbol.asyncIterator];
 
+  // Ignore the options of ReadableStreamBYOBReader.prototype.read(view, { min }).
+  const byobReaderPrototype = Object.getPrototypeOf(new global.ReadableStream({ type: 'bytes' }).getReader({ mode: 'byob' }));
+  const nativeRead = byobReaderPrototype.read;
+  Object.defineProperty(byobReaderPrototype, 'read', {
+    value: {
+      read(view) {
+        return nativeRead.call(this, view);
+      }
+    }.read
+  });
+
   // We can't remove native support for transformer.cancel(), so hide the cancel() method from the native constructor.
   const NativeTransformStream = global.TransformStream;
   global.TransformStream = new Proxy(NativeTransformStream, {
