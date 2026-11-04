@@ -30,10 +30,20 @@ const delta = (now, before) => {
   return ` (${percent >= 0 ? '+' : ''}${percent.toFixed(1)}%)`;
 };
 
+// Bundles that were renamed since the baseline release.
+const baselineNames = {
+  'replace.js': 'polyfill.js',
+  'replace.es5.js': 'polyfill.es5.js'
+};
+
 const rows = [['File', 'Size', 'Gzip', 'Brotli']];
-for (const name of fs.readdirSync(distDir).sort()) {
+const names = fs.readdirSync(distDir, { recursive: true })
+  .filter(name => fs.statSync(path.join(distDir, name)).isFile())
+  .map(name => name.split(path.sep).join('/'))
+  .sort();
+for (const name of names) {
   const now = sizes(path.join(distDir, name));
-  const before = hasBaseline ? sizes(path.join(baselineDir, name)) : undefined;
+  const before = hasBaseline ? sizes(path.join(baselineDir, baselineNames[name] ?? name)) : undefined;
   rows.push([
     name,
     kB(now.raw) + delta(now.raw, before?.raw),
