@@ -1,46 +1,5 @@
-import {
-  ByteLengthQueuingStrategy,
-  CountQueuingStrategy,
-  ReadableByteStreamController,
-  ReadableStream,
-  ReadableStreamBYOBReader,
-  ReadableStreamBYOBRequest,
-  ReadableStreamDefaultController,
-  ReadableStreamDefaultReader,
-  TransformStream,
-  TransformStreamDefaultController,
-  WritableStream,
-  WritableStreamDefaultController,
-  WritableStreamDefaultWriter
-} from './ponyfill';
 import { globals } from './globals';
+import { installGlobals } from './install-globals';
 
-const exports = {
-  ReadableStream,
-  ReadableStreamDefaultController,
-  ReadableByteStreamController,
-  ReadableStreamBYOBRequest,
-  ReadableStreamDefaultReader,
-  ReadableStreamBYOBReader,
-
-  WritableStream,
-  WritableStreamDefaultController,
-  WritableStreamDefaultWriter,
-
-  ByteLengthQueuingStrategy,
-  CountQueuingStrategy,
-
-  TransformStream,
-  TransformStreamDefaultController
-};
-
-// Add classes to global scope
-for (const prop in exports) {
-  if (Object.prototype.hasOwnProperty.call(exports, prop)) {
-    Object.defineProperty(globals!, prop, {
-      value: exports[prop as (keyof typeof exports)],
-      writable: true,
-      configurable: true
-    });
-  }
-}
+// Replace the stream classes in the global scope, even if they exist natively.
+installGlobals(globals!);

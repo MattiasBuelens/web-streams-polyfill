@@ -1,0 +1,6 @@
+kind: 💥
+body: |
+  Rename `web-streams-polyfill/polyfill` to `web-streams-polyfill/replace`, and `web-streams-polyfill/polyfill/es5`
+  to `web-streams-polyfill/replace/es5`. These still replace the native stream classes on the global scope.
+  The old paths are removed. ([#250](https://github.com/MattiasBuelens/web-streams-polyfill/pull/250))
+time: 2026-11-04T08:30:00Z

@@ -1,7 +1,7 @@
 /*
  * This test verifies that the polyfill's type definitions correctly augment TypeScript's built-in DOM types.
  */
-import 'web-streams-polyfill/polyfill';
+import 'web-streams-polyfill/replace';
 
 const readable = new ReadableStream<Uint8Array>({
   // TODO Figure out a way to augment the type of "declare var ReadableStream"?

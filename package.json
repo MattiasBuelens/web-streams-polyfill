@@ -30,13 +30,17 @@
         "default": "./dist/ponyfill.es5.js"
       }
     },
-    "./polyfill": {
-      "types": "./types/polyfill.d.ts",
-      "default": "./dist/polyfill.js"
+    "./auto": {
+      "types": "./types/auto.d.ts",
+      "default": "./dist/auto.js"
     },
-    "./polyfill/es5": {
-      "types": "./types/polyfill.d.ts",
-      "default": "./dist/polyfill.es5.js"
+    "./replace": {
+      "types": "./types/replace.d.ts",
+      "default": "./dist/replace.js"
+    },
+    "./replace/es5": {
+      "types": "./types/replace.d.ts",
+      "default": "./dist/replace.es5.js"
     },
     "./feature": {
       "types": "./types/feature/index.d.mts",

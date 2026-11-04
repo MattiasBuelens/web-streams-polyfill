@@ -101,6 +101,15 @@ export const replacedTestsPatched = {
 };
 
 /**
+ * Returns whether the given test is one of the {@link replacedTestsPatched}.
+ * These may pass in the patched runs when the native implementation already has the feature,
+ * so they're not reported as expected failures that didn't fail.
+ */
+export function isReplacedTest(suite, test) {
+  return (replacedTestsPatched[suite] ?? []).some(replaced => String(replaced) === test);
+}
+
+/**
  * Removes the {@link replacedTestsPatched} from the given failures.
  */
 export function withoutReplacedTests(failures) {

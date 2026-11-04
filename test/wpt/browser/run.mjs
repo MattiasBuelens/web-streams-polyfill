@@ -17,6 +17,7 @@ import {
   ignoredFailuresBase,
   ignoredFailuresMinified,
   ignoredFailuresES5,
+  isReplacedTest,
   modifiedSuitePrefix,
   modifiedTestsPath,
   replacedTestsPatched,
@@ -79,7 +80,8 @@ async function main() {
       const result = await runTests({
         ...testOptions,
         label,
-        initScript: argv.patched ? { content: await bundleFeatureInstaller({ force: argv.force }) } : undefined,
+        // Without --force, this is exactly what `web-streams-polyfill/auto` does.
+        initScript: !argv.patched ? undefined : argv.force ? { content: await bundleFeatureInstaller() } : { path: distPath('auto.js') },
         ignoredFailures: mergeIgnoredFailures(
           argv.patched ? replacedTestsPatched : {},
           argv['update-expectations'] ? {} : await readExpectations(expectationsFile)
@@ -109,14 +111,14 @@ async function main() {
     } else {
       results.push(await runTests({
         ...testOptions,
-        label: 'polyfill.js',
-        initScript: { path: distPath('polyfill.js') },
+        label: 'replace.js',
+        initScript: { path: distPath('replace.js') },
         ignoredFailures: mergeIgnoredFailures(ignoredFailuresBase, ignoredFailuresMinified)
       }));
       results.push(await runTests({
         ...testOptions,
-        label: 'polyfill.es5.js',
-        initScript: { path: distPath('polyfill.es5.js') },
+        label: 'replace.es5.js',
+        initScript: { path: distPath('replace.es5.js') },
         ignoredFailures: mergeIgnoredFailures(ignoredFailuresES5, ignoredFailuresMinified)
       }));
     }
@@ -138,9 +140,10 @@ async function main() {
     console.log(`  * ${testResults.passed} passed`);
     console.log(`  * ${testResults.failed} failed`);
     console.log(`  * ${testResults.ignored} ignored`);
-    if ((argv.native || argv.patched) && testResults.unusedIgnoredFailures.length > 0) {
-      console.log(`  * ${testResults.unusedIgnoredFailures.length} expected failures did not fail:`);
-      for (const { suite, test } of testResults.unusedIgnoredFailures) {
+    const unusedIgnoredFailures = testResults.unusedIgnoredFailures.filter(({ suite, test }) => !isReplacedTest(suite, test));
+    if ((argv.native || argv.patched) && unusedIgnoredFailures.length > 0) {
+      console.log(`  * ${unusedIgnoredFailures.length} expected failures did not fail:`);
+      for (const { suite, test } of unusedIgnoredFailures) {
         console.log(`    - ${suite}: ${test}`);
       }
     }
@@ -154,23 +157,18 @@ function distPath(file) {
 }
 
 /**
- * Bundles a classic script that installs all feature modules on the global classes,
- * since the feature modules are only published as ES modules.
+ * Bundles a classic script for --patched --force: it hides the browser's own features, installs all feature modules,
+ * and makes every TransformStream use ours. (The feature modules are only published as ES modules.)
  */
-async function bundleFeatureInstaller({ force = false } = {}) {
+async function bundleFeatureInstaller() {
   const forceFeatures = JSON.stringify(path.resolve(import.meta.dirname, '../shared/force-features.mjs'));
-  const entry = force
-    ? `
-      import { installAll } from ${JSON.stringify(distPath('feature/index.mjs'))};
-      import { hideNativeFeatures, forceOwnTransformStream } from ${forceFeatures};
-      hideNativeFeatures(globalThis);
-      globalThis.__featureReport = installAll(globalThis);
-      forceOwnTransformStream(globalThis);
-    `
-    : `
-      import { installAll } from ${JSON.stringify(distPath('feature/index.mjs'))};
-      globalThis.__featureReport = installAll(globalThis);
-    `;
+  const entry = `
+    import { installAll } from ${JSON.stringify(distPath('feature/index.mjs'))};
+    import { hideNativeFeatures, forceOwnTransformStream } from ${forceFeatures};
+    hideNativeFeatures(globalThis);
+    installAll(globalThis);
+    forceOwnTransformStream(globalThis);
+  `;
   const result = await build({
     input: 'virtual:feature-installer',
     plugins: [{
