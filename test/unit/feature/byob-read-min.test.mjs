@@ -107,7 +107,7 @@ describe('byob-read-min feature', () => {
     const first = reader.read(new Uint8Array(2), { min: 2 });
     const view = new Uint8Array(1);
     const second = reader.read(view);
-    assert.equal(view.buffer.byteLength, 0);
+    assert.equal(view.buffer.detached, true);
     controller.enqueue(new Uint8Array([1, 2, 3]));
     assert.deepEqual([...(await first).value], [1, 2]);
     assert.deepEqual([...(await second).value], [3]);
