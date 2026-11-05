@@ -141,6 +141,18 @@ export function install(classes: StreamClasses = getGlobals()): boolean {
     }
 
     /**
+     * Cancels our pending reads on the byte stream, after the native reads that they were for were rejected.
+     * Otherwise, their chunks would end up in the native stream's queue, where a BYOB reader can't read them.
+     * Our byte stream keeps those chunks in its own queue instead, for the next reader.
+     */
+    _cancelInternalReads() {
+      if (this._internalReads > 0 && this._internalReader !== undefined) {
+        this._releaseInternalReader();
+        this._acquireInternalReader();
+      }
+    }
+
+    /**
      * Locks the native stream, and releases our byte stream, so it can be locked by a BYOB reader (or tee()).
      * Throws a TypeError if the native stream is locked.
      */
@@ -406,6 +418,7 @@ export function install(classes: StreamClasses = getGlobals()): boolean {
       if (adapter !== undefined) {
         adapter._nativeReads = 0;
         readerAdapters.delete(this);
+        adapter._cancelInternalReads();
       }
     }
   }.releaseLock);
