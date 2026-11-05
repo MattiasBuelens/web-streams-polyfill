@@ -76,6 +76,9 @@ The native and patched Node.js runs don't use jsdom, since it runs scripts in a 
 Instead, each `.any.js` test file runs in a worker thread, in Node's own realm.
 The Node.js expectations are recorded with Node.js 22.
 
+To run the tests against older browsers (such as Safari 16.4), see [test/wpt/OLD-BROWSERS.md](test/wpt/OLD-BROWSERS.md).
+Those runs are not part of CI.
+
 The expectations follow the browser versions of the installed Playwright release.
 After updating Playwright (or Node.js 22 for the Node.js expectations), re-record them and commit the result:
 

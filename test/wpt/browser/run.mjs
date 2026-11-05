@@ -2,8 +2,8 @@ import path from 'node:path';
 import http from 'node:http';
 import fs from 'node:fs/promises';
 import { promisify } from 'node:util';
+import { pathToFileURL } from 'node:url';
 import micromatch from 'micromatch';
-import { chromium, firefox, webkit } from 'playwright';
 import minimist from 'minimist';
 import { build } from 'rolldown';
 import { setupServer } from './server.mjs';
@@ -25,7 +25,15 @@ import {
   withoutReplacedTests
 } from '../shared/exclusions.mjs';
 
+// To test an older browser, point WPT_PLAYWRIGHT_MODULE to an older Playwright release (see test/wpt/OLD-BROWSERS.md).
+const { chromium, firefox, webkit } = await import(
+  process.env.WPT_PLAYWRIGHT_MODULE ? pathToFileURL(process.env.WPT_PLAYWRIGHT_MODULE).href : 'playwright'
+);
+
 const serverCloseAsync = promisify(http.Server.prototype.close);
+
+// testharness.js times out a test file after 60 seconds (with `timeout=long`), so this only catches hangs and crashes.
+const testFileTimeout = 120_000;
 
 const argv = minimist(process.argv.slice(2), {
   string: ['browser'],
@@ -345,8 +353,23 @@ async function runTest(page, testUrl, reporter) {
     }
   });
 
-  await page.goto(testUrl);
-  return await donePromise;
+  // Fail the test file if the page crashes or never reports completion (e.g. an older browser hangs),
+  // instead of waiting forever.
+  page.on('crash', () => {
+    reporter.fail('test page crashed');
+    resolveDone(false);
+  });
+  const completionTimeout = setTimeout(() => {
+    reporter.fail(`test harness did not complete within ${testFileTimeout / 1000} seconds`);
+    resolveDone(false);
+  }, testFileTimeout);
+
+  try {
+    await page.goto(testUrl);
+    return await donePromise;
+  } finally {
+    clearTimeout(completionTimeout);
+  }
 }
 
 function browserTypeByName(name) {
