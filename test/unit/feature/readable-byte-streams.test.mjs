@@ -261,4 +261,35 @@ describe('readable-byte-streams feature', () => {
     new ReadableStream(source);
     assert.deepEqual(gets.toSorted(), ['autoAllocateChunkSize', 'cancel', 'pull', 'start', 'type']);
   });
+
+  // This replaces the constructor of Node's own ReadableStreamDefaultReader, so it runs last.
+  it('counts the reads of readers from new ReadableStreamDefaultReader()', async () => {
+    const classes = createClasses();
+    const NativeReader = globalThis.ReadableStreamDefaultReader;
+    classes.ReadableStreamDefaultReader = NativeReader;
+    assert.equal(install(classes), true);
+    const { ReadableStream, ReadableStreamDefaultReader } = classes;
+    assert.notEqual(ReadableStreamDefaultReader, NativeReader);
+    assert.equal(ReadableStreamDefaultReader.prototype, NativeReader.prototype);
+    assert.equal(ReadableStreamDefaultReader.length, 1);
+    assert.throws(() => ReadableStreamDefaultReader(new ReadableStream()), TypeError);
+    assert.throws(() => new ReadableStreamDefaultReader({}), TypeError);
+
+    let controller;
+    const stream = new ReadableStream({
+      type: 'bytes',
+      start(c) {
+        controller = c;
+      }
+    });
+    const reader = new ReadableStreamDefaultReader(stream);
+    assert.ok(reader instanceof ReadableStreamDefaultReader);
+    const read = reader.read();
+    await new Promise(resolve => setTimeout(resolve, 0));
+    reader.releaseLock();
+    await assert.rejects(read, TypeError);
+    controller.enqueue(new Uint8Array([1, 2]));
+    const { value } = await stream.getReader({ mode: 'byob' }).read(new Uint8Array(2));
+    assert.deepEqual([...value], [1, 2]);
+  });
 });

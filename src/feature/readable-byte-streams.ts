@@ -26,7 +26,15 @@ import { assertDictionary, assertObject, assertRequiredArgument } from '../lib/v
 import { convertQueuingStrategy } from '../lib/validators/queuing-strategy';
 import { convertReaderOptions } from '../lib/validators/reader-options';
 import { convertUnderlyingDefaultOrByteSource } from '../lib/validators/underlying-source';
-import { bindMethods, defineClass, fixConstructor, getPropertyDescriptor, readMembers, replaceMethod } from './patch';
+import {
+  bindMethods,
+  defineClass,
+  fixConstructor,
+  getPropertyDescriptor,
+  readMembers,
+  replaceConstructor,
+  replaceMethod
+} from './patch';
 import { defineMethod, getGlobals, type StreamClasses } from './types';
 
 /**
@@ -300,18 +308,7 @@ export function install(classes: StreamClasses = getGlobals()): boolean {
     }
   };
   setFunctionName(ReadableStream, 'ReadableStream');
-  // Keep the static methods (such as from()), and the native class's own prototype chain.
-  Object.setPrototypeOf(ReadableStream, Object.getPrototypeOf(NativeReadableStream));
-  for (const key of Reflect.ownKeys(NativeReadableStream)) {
-    if (key !== 'prototype' && key !== 'name' && key !== 'length') {
-      Object.defineProperty(ReadableStream, key, Object.getOwnPropertyDescriptor(NativeReadableStream, key)!);
-    }
-  }
-  Object.defineProperty(ReadableStream, 'prototype', { value: streamPrototype, writable: false });
-  Object.defineProperty(streamPrototype, 'constructor', {
-    ...Object.getOwnPropertyDescriptor(streamPrototype, 'constructor'),
-    value: ReadableStream
-  });
+  replaceConstructor(NativeReadableStream, ReadableStream);
 
   const ownReaderPrototype = OwnReadableStreamBYOBReader.prototype;
   const ownClosed = getPropertyDescriptor(ownReaderPrototype, 'closed')!.get!;
@@ -449,16 +446,41 @@ export function install(classes: StreamClasses = getGlobals()): boolean {
         // ReadableStreamBYOBReader's constructor throws if this is not a byte stream.
         return new ReadableStreamBYOBReader(this);
       }
-      const reader = reflectCall(nativeGetReader, this, []);
-      const adapter = adapters.get(this);
-      if (adapter !== undefined) {
-        Object.setPrototypeOf(reader, countingReaderPrototype);
-        readerAdapters.set(reader, adapter);
-      }
-      return reader;
+      return trackReader(reflectCall(nativeGetReader, this, []), this);
     }
   };
   replaceMethod(streamPrototype, 'getReader', getReader);
+
+  /**
+   * Counts the reads of a native default reader of one of our byte streams, see ByteStreamAdapter.
+   */
+  function trackReader(reader: any, stream: unknown): any {
+    const adapter = typeIsObject(stream) ? adapters.get(stream) : undefined;
+    // Leave instances of other subclasses alone, since we would lose their own members.
+    if (adapter !== undefined && Object.getPrototypeOf(reader) === nativeDefaultReaderPrototype) {
+      Object.setPrototypeOf(reader, countingReaderPrototype);
+      readerAdapters.set(reader, adapter);
+    }
+    return reader;
+  }
+
+  // `new ReadableStreamDefaultReader(stream)` must count reads too.
+  // This replaces the native reader's constructor, so only do it if `classes` has one (e.g. on the global object).
+  // (`web-streams-polyfill/extend-native` leaves the native reader alone.)
+  const NativeReadableStreamDefaultReader = classes.ReadableStreamDefaultReader;
+  if (NativeReadableStreamDefaultReader !== undefined && NativeReadableStreamDefaultReader.prototype === nativeDefaultReaderPrototype) {
+    const { ReadableStreamDefaultReader } = {
+      ReadableStreamDefaultReader: function (this: any, stream: any): any {
+        if (new.target === undefined) {
+          throw new TypeError('Constructor ReadableStreamDefaultReader requires \'new\'');
+        }
+        return trackReader(Reflect.construct(NativeReadableStreamDefaultReader, [stream], new.target), stream);
+      }
+    };
+    setFunctionName(ReadableStreamDefaultReader, 'ReadableStreamDefaultReader');
+    replaceConstructor(NativeReadableStreamDefaultReader, ReadableStreamDefaultReader);
+    defineClass(classes, 'ReadableStreamDefaultReader', ReadableStreamDefaultReader);
+  }
 
   defineClass(classes, 'ReadableStream', ReadableStream);
   defineClass(classes, 'ReadableByteStreamController', ReadableByteStreamController);

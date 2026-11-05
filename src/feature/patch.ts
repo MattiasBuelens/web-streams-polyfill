@@ -50,6 +50,26 @@ export function replaceMethod(prototype: any, key: string, method: (...args: any
 }
 
 /**
+ * Makes `Class` take the place of `NativeClass`, sharing its prototype:
+ * `Class` gets the native class's static members and prototype chain,
+ * and the prototype's `constructor` points to `Class`.
+ */
+export function replaceConstructor(NativeClass: any, Class: any) {
+  Object.setPrototypeOf(Class, Object.getPrototypeOf(NativeClass));
+  for (const key of Reflect.ownKeys(NativeClass)) {
+    if (key !== 'prototype' && key !== 'name' && key !== 'length') {
+      Object.defineProperty(Class, key, Object.getOwnPropertyDescriptor(NativeClass, key)!);
+    }
+  }
+  const prototype = NativeClass.prototype;
+  Object.defineProperty(Class, 'prototype', { value: prototype, writable: false });
+  Object.defineProperty(prototype, 'constructor', {
+    ...Object.getOwnPropertyDescriptor(prototype, 'constructor'),
+    value: Class
+  });
+}
+
+/**
  * Finds a property descriptor on the prototype chain, e.g. when the classes are subclasses of the native ones.
  */
 export function getPropertyDescriptor(object: any, key: string): PropertyDescriptor | undefined {

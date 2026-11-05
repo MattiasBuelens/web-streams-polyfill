@@ -13,6 +13,7 @@ export interface StreamClasses {
    */
   ReadableByteStreamController?: any;
   ReadableStreamBYOBReader?: any;
+  ReadableStreamDefaultReader?: any;
   ReadableStreamBYOBRequest?: any;
   /**
    * The prototype of this class is patched instead of the prototype of the native controller,
