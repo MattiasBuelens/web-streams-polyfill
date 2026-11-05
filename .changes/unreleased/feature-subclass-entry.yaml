@@ -5,5 +5,5 @@ body: |
   Its streams work with platform APIs such as `fetch()`, `Response` and `postMessage()`.
   Use `adopt(stream)` to convert a native stream (e.g. `Response.body`) in place.
   If the native implementation is not complete enough to build on, it exports this library's own implementation instead.
-  ([#251](https://github.com/MattiasBuelens/web-streams-polyfill/pull/251))
+  ([#252](https://github.com/MattiasBuelens/web-streams-polyfill/pull/252))
 time: 2026-11-05T05:00:00Z
