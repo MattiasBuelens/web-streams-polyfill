@@ -228,6 +228,9 @@ A few things work differently when a feature is built on top of the built-in str
   but they can only read it with a default reader, and `postMessage()` transfers it as a stream without a byte source.
   Byte streams created by the browser (such as `Response.body`) still don't support BYOB readers.
 * Bugs in the built-in implementation are not fixed.
+  For example, `releaseLock()` on a default reader throws if there are pending reads in Chrome before 105
+  and Safari before 17, instead of rejecting those reads. This also applies to default readers of byte streams
+  built on top of the built-in streams (but not to their BYOB readers).
 * Stream classes from other realms (such as an `<iframe>` or a worker) are not patched,
   unless the polyfill is loaded there too.
 
