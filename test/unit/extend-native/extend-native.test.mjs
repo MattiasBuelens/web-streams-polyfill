@@ -19,10 +19,27 @@ function loadExtendNative(globals) {
 }
 
 /**
- * Snapshots the own properties of the given objects, to check that nothing changed them.
+ * Snapshots the own property descriptors of the given objects, to check that nothing changed them.
  */
 function snapshot(...objects) {
   return objects.map(object => Object.getOwnPropertyDescriptors(object));
+}
+
+/**
+ * Asserts that two snapshots have the same keys, with the same descriptors (comparing values and accessors by identity).
+ * (This doesn't use assert.deepEqual(), since that also compares the property values deeply,
+ * and some versions of Node.js report differences between prototypes that are identical.)
+ */
+function assertSameSnapshot(actual, expected) {
+  assert.equal(actual.length, expected.length);
+  actual.forEach((descriptors, i) => {
+    assert.deepEqual(Reflect.ownKeys(descriptors), Reflect.ownKeys(expected[i]));
+    for (const key of Reflect.ownKeys(descriptors)) {
+      for (const field of ['value', 'get', 'set', 'writable', 'enumerable', 'configurable']) {
+        assert.equal(descriptors[key][field], expected[i][key][field], `${String(key)}.${field} of object ${i}`);
+      }
+    }
+  });
 }
 
 /**
@@ -166,7 +183,7 @@ describe('web-streams-polyfill/extend-native', () => {
     const exports = loadExtendNative({ ReadableStream, WritableStream, TransformStream, AbortSignal });
     assert.equal(Object.getPrototypeOf(exports.ReadableStream), ReadableStream);
     const after = snapshot(ReadableStream, ReadableStream.prototype, ReadableStreamBYOBReader.prototype, TransformStream.prototype);
-    assert.deepEqual(after, before);
+    assertSameSnapshot(after, before);
   });
 
   describe('on an implementation without the features', () => {
@@ -191,7 +208,7 @@ describe('web-streams-polyfill/extend-native', () => {
       assert.equal(typeof exports.ReadableStream.from, 'function');
       assert.equal(typeof exports.ReadableStream.prototype.values, 'function');
       assert.equal(typeof exports.ReadableStream.prototype[Symbol.asyncIterator], 'function');
-      assert.deepEqual(snapshot(...globals), before);
+      assertSameSnapshot(snapshot(...globals), before);
     });
 
     it('supports ReadableStream.from() and async iteration', async () => {
