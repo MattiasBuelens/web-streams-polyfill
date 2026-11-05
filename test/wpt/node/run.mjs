@@ -70,7 +70,7 @@ const bufferTypes = [
 ];
 
 const argv = minimist(process.argv.slice(2), {
-  boolean: ['native', 'patched', 'extend-native', 'force', 'update-expectations']
+  boolean: ['native', 'patched', 'extend-native', 'force', 'hide-bytes', 'update-expectations']
 });
 
 // --patched and --extend-native both build on the native implementation, and install the features that it's missing.
@@ -135,12 +135,17 @@ async function runPolyfillTests(results, { includedTests, excludedTests }) {
  * With --patched, the feature modules are installed first: Node implements every feature,
  * so we hide the native ones to exercise our implementations against Node's streams.
  * With --patched --force, every TransformStream also uses our implementation on top of Node's streams.
+ * With --patched --hide-bytes, Node's byte streams are hidden too, so our byte streams are used on top of Node's streams.
  *
  * These tests don't use jsdom, since it runs scripts in a different realm than Node's own stream classes.
  * Instead, each test file runs in a worker thread, in Node's own realm.
  */
 async function runNativeTests({ includedTests, excludedTests }) {
-  const mode = argv['extend-native'] ? 'extend-native' : !argv.patched ? 'native' : argv.force ? 'patched-forced' : 'patched';
+  const mode = argv['extend-native'] ? 'extend-native'
+    : !argv.patched ? 'native'
+      : argv.force ? 'patched-forced'
+        : argv['hide-bytes'] ? 'patched-no-bytes'
+          : 'patched';
   const label = `${mode} node ${process.version}`;
   const expectationsFile = expectationsPath(`${mode}-node`);
 
@@ -150,6 +155,7 @@ async function runNativeTests({ includedTests, excludedTests }) {
       ? path.resolve(import.meta.dirname, '../../../dist/feature/index.mjs')
       : undefined,
     force: argv.force,
+    noBytes: argv['hide-bytes'],
     extendNativeModule: argv['extend-native']
       ? path.resolve(import.meta.dirname, '../../../dist/extend-native.mjs')
       : undefined,
@@ -191,7 +197,7 @@ async function runNativeTests({ includedTests, excludedTests }) {
   return result;
 }
 
-async function runWorkerTests({ label, featureInstaller, force, extendNativeModule, includedTests, excludedTests, ignoredFailures }) {
+async function runWorkerTests({ label, featureInstaller, force, noBytes, extendNativeModule, includedTests, excludedTests, ignoredFailures }) {
   const wptPath = path.resolve(import.meta.dirname, '../../web-platform-tests');
   const testsPath = path.resolve(wptPath, 'streams');
 
@@ -214,7 +220,7 @@ async function runWorkerTests({ label, featureInstaller, force, extendNativeModu
 
   for (const { suite, testFile } of tests) {
     reporter.startSuite(suite);
-    const { results, harnessStatus, unhandledRejections } = await runWorker({ wptPath, testFile, featureInstaller, force, extendNativeModule });
+    const { results, harnessStatus, unhandledRejections } = await runWorker({ wptPath, testFile, featureInstaller, force, noBytes, extendNativeModule });
     for (const test of results) {
       reportTestResult(reporter, test);
     }

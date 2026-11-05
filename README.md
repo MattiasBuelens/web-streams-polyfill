@@ -89,8 +89,8 @@ for await (const chunk of body) {
 ### Compatibility with built-in streams
 
 `web-streams-polyfill/auto` keeps the built-in stream classes whenever they are complete enough to build on:
-they must support readable byte streams and `WritableStreamDefaultController.signal`.
-This is the case in Chrome 98+, Firefox 102+, Safari 26.4+, Node.js 16.5+, and current versions of Deno and Bun.
+they must support `pipeTo()` and `WritableStreamDefaultController.signal`.
+This is the case in Chrome 98+, Firefox 100+, Safari 16.4+, Node.js 16.5+, and current versions of Deno and Bun.
 It then adds only the features that are missing. Streams created by the browser, such as `Response.body`,
 are instances of the same classes, so they get those features too.
 Otherwise, it replaces all stream classes, just like `web-streams-polyfill/replace`.
@@ -208,6 +208,7 @@ for example to pass a polyfilled stream to a browser API that only accepts built
 
 | Feature | Module | Missing in |
 | --- | --- | --- |
+| [Readable byte streams][rbs] and BYOB readers | `readable-byte-streams` | Safari before 26.4 |
 | [`ReadableStream.from()`][rs-from] | `readable-stream-from` | Chrome |
 | [Async iteration][rs-asynciterator] (`values()` and `[Symbol.asyncIterator]()`) | `async-iterator` | Safari before 27 |
 | [`reader.read(view, { min })`][byob-reader-read] | `byob-read-min` | Safari |
@@ -222,6 +223,10 @@ A few things work differently when a feature is built on top of the built-in str
   Its `readable` and `writable` sides can still be transferred with `postMessage()`, but the `TransformStream` itself can't.
   Transfer `{ readable, writable }` instead, which works with `pipeThrough()` just the same.
 * With `reader.read(view, { min })`, the underlying byte source sees several smaller BYOB requests instead of a single one.
+* A byte stream built on top of the built-in streams is a built-in `ReadableStream` with a default source,
+  which reads its chunks from this library's own byte stream. Platform APIs (such as `Response`) read it like any other stream,
+  but they can only read it with a default reader, and `postMessage()` transfers it as a stream without a byte source.
+  Byte streams created by the browser (such as `Response.body`) still don't support BYOB readers.
 * Bugs in the built-in implementation are not fixed.
 * Stream classes from other realms (such as an `<iframe>` or a worker) are not patched,
   unless the polyfill is loaded there too.
@@ -318,6 +323,7 @@ Thanks to these people for their work on [the original polyfill][creatorrr-polyf
 [promise-polyfill]: https://www.npmjs.com/package/promise-polyfill
 [rs-asynciterator]: https://streams.spec.whatwg.org/#rs-asynciterator
 [ws-controller-signal]: https://streams.spec.whatwg.org/#ws-default-controller-signal
+[rbs]: https://streams.spec.whatwg.org/#readablebytestreamcontroller
 [rs-from]: https://streams.spec.whatwg.org/#rs-from
 [byob-reader-read]: https://streams.spec.whatwg.org/#byob-reader-read
 [transformer-cancel]: https://streams.spec.whatwg.org/#dom-transformer-cancel

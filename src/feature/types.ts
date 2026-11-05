@@ -9,6 +9,12 @@ export interface StreamClasses {
   WritableStream?: any;
   TransformStream?: any;
   /**
+   * Installed by the `readable-byte-streams` feature.
+   */
+  ReadableByteStreamController?: any;
+  ReadableStreamBYOBReader?: any;
+  ReadableStreamBYOBRequest?: any;
+  /**
    * The prototype of this class is patched instead of the prototype of the native controller,
    * if a feature needs to patch the controller (e.g. `transformer-cancel`).
    * Defaults to the class of the controller that `TransformStream` passes to its transformer.

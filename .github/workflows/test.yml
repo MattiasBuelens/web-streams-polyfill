@@ -42,6 +42,9 @@ jobs:
       - name: Check Node with forced features against its recorded expectations
         if: matrix.node-version == 22
         run: npm run test:wpt:patched-forced:node
+      - name: Check Node with features installed and byte streams hidden against its recorded expectations
+        if: matrix.node-version == 22
+        run: npm run test:wpt:patched-no-bytes:node
       - name: Check Node with the extend-native ponyfill against its recorded expectations
         if: matrix.node-version == 22
         run: npm run test:wpt:extend-native:node
@@ -140,6 +143,10 @@ jobs:
           HOME: /root
       - name: Check ${{ matrix.browser }} with forced features against its recorded expectations
         run: npm run test:wpt:patched-forced:${{ matrix.browser }}
+        env:
+          HOME: /root
+      - name: Check ${{ matrix.browser }} with features installed and byte streams hidden against its recorded expectations
+        run: npm run test:wpt:patched-no-bytes:${{ matrix.browser }}
         env:
           HOME: /root
       - name: Check ${{ matrix.browser }} with the extend-native ponyfill against its recorded expectations

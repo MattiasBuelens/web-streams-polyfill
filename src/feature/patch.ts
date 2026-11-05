@@ -51,7 +51,7 @@ export function replaceMethod(prototype: any, key: string, method: (...args: any
 /**
  * Finds a property descriptor on the prototype chain, e.g. when the classes are subclasses of the native ones.
  */
-function getPropertyDescriptor(object: any, key: string): PropertyDescriptor | undefined {
+export function getPropertyDescriptor(object: any, key: string): PropertyDescriptor | undefined {
   while (object !== null) {
     const descriptor = Object.getOwnPropertyDescriptor(object, key);
     if (descriptor !== undefined) {

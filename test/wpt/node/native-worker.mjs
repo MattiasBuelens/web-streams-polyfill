@@ -7,10 +7,10 @@ import { parentPort, workerData } from 'node:worker_threads';
 import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
-import { forceOwnTransformStream, hideNativeFeatures } from '../shared/force-features.mjs';
+import { forceOwnTransformStream, hideByteStreams, hideNativeFeatures } from '../shared/force-features.mjs';
 import { installExtendNativeGlobals } from '../shared/extend-native-globals.mjs';
 
-const { wptPath, testFile, featureInstaller, force, extendNativeModule } = workerData;
+const { wptPath, testFile, featureInstaller, force, noBytes, extendNativeModule } = workerData;
 
 // The same rewrites as the WPT server (see tools/serve/serve.py)
 const scriptRewrites = {
@@ -54,10 +54,14 @@ process.on('unhandledRejection', (reason) => {
 if (featureInstaller) {
   // Node implements every feature already, so hide the native ones first.
   hideNativeFeatures(globalThis);
-  const { installAll } = await import(featureInstaller);
+  if (noBytes) {
+    hideByteStreams(globalThis);
+  }
+  const { features, installAll } = await import(featureInstaller);
   const report = installAll(globalThis);
-  if (!report.success || report.installed.length !== 4) {
-    throw new Error(`Failed to install the feature modules: ${report.installed.join(', ')}`);
+  const missing = features.filter(feature => !feature.check(globalThis)).map(feature => feature.name);
+  if (!report.success || missing.length > 0) {
+    throw new Error(`Failed to install the feature modules: ${missing.join(', ')}`);
   }
   if (force) {
     forceOwnTransformStream(globalThis);

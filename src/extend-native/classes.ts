@@ -46,6 +46,17 @@ function getClass(object: object): any {
 }
 
 /**
+ * Returns the prototype of the native BYOB reader, or `undefined` if the native implementation doesn't support byte streams.
+ */
+function getNativeBYOBReaderPrototype(NativeReadableStream: any, nativeGetReader: (this: any, options?: any) => any): any {
+  try {
+    return Object.getPrototypeOf(reflectCall(nativeGetReader, new NativeReadableStream({ type: 'bytes' }), [{ mode: 'byob' }]));
+  } catch {
+    return undefined;
+  }
+}
+
+/**
  * Returns the class of the controller that a stream class passes to `start()`.
  */
 function getControllerClass(StreamClass: any, underlyingObject: object): any {
@@ -129,22 +140,28 @@ export function createSubclasses(global: any): ExtendNativeExports {
   const nativeTransformReadable = getGetter(NativeTransformStream.prototype, 'readable');
   const nativeTransformWritable = getGetter(NativeTransformStream.prototype, 'writable');
 
-  const nativeByobReaderProto = Object.getPrototypeOf(reflectCall(nativeGetReader, new NativeReadableStream({ type: 'bytes' }), [{ mode: 'byob' }]));
-  const NativeReadableStreamBYOBReader = nativeByobReaderProto.constructor;
+  // If the native implementation doesn't support byte streams, the `readable-byte-streams` feature installs them.
+  const nativeByobReaderProto = getNativeBYOBReaderPrototype(NativeReadableStream, nativeGetReader);
   const NativeTransformStreamDefaultController = getControllerClass(NativeTransformStream, {});
 
-  class ReadableStreamBYOBReader extends NativeReadableStreamBYOBReader {
-    // Not useless: this gives the constructor a length of 1, like the native one.
-    // eslint-disable-next-line @typescript-eslint/no-useless-constructor
-    constructor(stream: any) {
-      super(stream);
-    }
+  let ReadableStreamBYOBReader: any;
+  if (nativeByobReaderProto !== undefined) {
+    const NativeReadableStreamBYOBReader = nativeByobReaderProto.constructor;
+    // A class expression gets its name from the variable it's assigned to.
+    ReadableStreamBYOBReader = class extends NativeReadableStreamBYOBReader {
+      // Not useless: this gives the constructor a length of 1, like the native one.
+      // eslint-disable-next-line @typescript-eslint/no-useless-constructor
+      constructor(stream: any) {
+        super(stream);
+      }
+    };
+    copyMembers(ReadableStreamBYOBReader.prototype, NativeReadableStreamBYOBReader.prototype);
   }
 
   class ReadableStream extends NativeReadableStream {
     getReader(options: any = undefined): any {
       const reader = reflectCall(nativeGetReader, this, [options]);
-      if (Object.getPrototypeOf(reader) === nativeByobReaderProto) {
+      if (nativeByobReaderProto !== undefined && Object.getPrototypeOf(reader) === nativeByobReaderProto) {
         Object.setPrototypeOf(reader, ReadableStreamBYOBReader.prototype);
       }
       return reader;
@@ -178,7 +195,6 @@ export function createSubclasses(global: any): ExtendNativeExports {
     }
   }
 
-  copyMembers(ReadableStreamBYOBReader.prototype, NativeReadableStreamBYOBReader.prototype);
   copyMembers(ReadableStream.prototype, nativeReadableProto);
   copyMembers(WritableStream.prototype, NativeWritableStream.prototype);
   copyMembers(TransformStream.prototype, NativeTransformStream.prototype);
@@ -194,19 +210,21 @@ export function createSubclasses(global: any): ExtendNativeExports {
     TransformStreamDefaultController: TransformStreamDefaultControllerForFeatures
   };
   installAll(classes);
-  // `transformer-cancel` replaces the TransformStream class, but keeps our prototype.
+  // `readable-byte-streams` and `transformer-cancel` replace the ReadableStream and TransformStream classes,
+  // but keep our prototypes.
+  const InstalledReadableStream = classes.ReadableStream;
   const InstalledTransformStream = classes.TransformStream;
 
   // A native ReadableStream.from() returns a native stream.
   // (If the native one is missing, `readable-stream-from` defines its own, which constructs our subclass.)
-  if (!Object.prototype.hasOwnProperty.call(ReadableStream, 'from') && typeof NativeReadableStream.from === 'function') {
+  if (!Object.prototype.hasOwnProperty.call(InstalledReadableStream, 'from') && typeof NativeReadableStream.from === 'function') {
     const nativeFrom = NativeReadableStream.from;
     const { from } = {
       from(asyncIterable: unknown): any {
         return adoptReadable(reflectCall(nativeFrom, NativeReadableStream, [asyncIterable]));
       }
     };
-    defineMethod(ReadableStream, 'from', from);
+    defineMethod(InstalledReadableStream, 'from', from);
   }
 
   function adoptReadable(stream: any): any {
@@ -243,12 +261,16 @@ export function createSubclasses(global: any): ExtendNativeExports {
   }
 
   return {
-    ReadableStream,
+    ReadableStream: InstalledReadableStream,
     ReadableStreamDefaultController: getControllerClass(NativeReadableStream, {}),
-    ReadableByteStreamController: getControllerClass(NativeReadableStream, { type: 'bytes' }),
-    ReadableStreamBYOBRequest: global.ReadableStreamBYOBRequest,
+    ReadableByteStreamController: nativeByobReaderProto !== undefined
+      ? getControllerClass(NativeReadableStream, { type: 'bytes' })
+      : classes.ReadableByteStreamController,
+    ReadableStreamBYOBRequest: nativeByobReaderProto !== undefined
+      ? global.ReadableStreamBYOBRequest
+      : classes.ReadableStreamBYOBRequest,
     ReadableStreamDefaultReader: getClass(reflectCall(nativeGetReader, new NativeReadableStream(), [])),
-    ReadableStreamBYOBReader,
+    ReadableStreamBYOBReader: ReadableStreamBYOBReader ?? classes.ReadableStreamBYOBReader,
     WritableStream,
     WritableStreamDefaultController: getControllerClass(NativeWritableStream, {}),
     WritableStreamDefaultWriter: getClass(new NativeWritableStream().getWriter()),

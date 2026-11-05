@@ -271,9 +271,8 @@ describe('web-streams-polyfill/extend-native', () => {
     });
   });
 
-  describe('on an implementation that is not complete enough to build on', () => {
-    // A ReadableStream without byte streams
-    class IncompleteReadableStream extends ReadableStream {
+  describe('on an implementation without byte streams', () => {
+    class ReadableStreamWithoutBytes extends ReadableStream {
       constructor(source, strategy) {
         if (source?.type === 'bytes') {
           throw new RangeError('Byte streams are not supported');
@@ -282,14 +281,46 @@ describe('web-streams-polyfill/extend-native', () => {
       }
     }
     const exports = loadExtendNative({
-      ReadableStream: IncompleteReadableStream,
+      ReadableStream: ReadableStreamWithoutBytes,
       WritableStream,
       TransformStream,
       AbortSignal
     });
 
+    it('extends the native classes', () => {
+      assert.ok(new exports.ReadableStream() instanceof ReadableStreamWithoutBytes);
+      assert.equal(Object.getPrototypeOf(exports.WritableStream), WritableStream);
+    });
+
+    it('supports byte streams and BYOB readers', async () => {
+      const stream = new exports.ReadableStream({
+        type: 'bytes',
+        start(c) {
+          c.enqueue(new Uint8Array([1, 2, 3]));
+          c.close();
+        }
+      });
+      assert.ok(stream instanceof ReadableStreamWithoutBytes);
+      const reader = stream.getReader({ mode: 'byob' });
+      assert.ok(reader instanceof exports.ReadableStreamBYOBReader);
+      const { value } = await reader.read(new Uint8Array(3), { min: 3 });
+      assert.deepEqual([...value], [1, 2, 3]);
+      const [branch] = new exports.ReadableStream({ type: 'bytes' }).tee();
+      assert.ok(branch instanceof exports.ReadableStream);
+      branch.getReader({ mode: 'byob' });
+    });
+  });
+
+  describe('on an implementation that is not complete enough to build on', () => {
+    // Without AbortSignal, there's no WritableStreamDefaultController.signal.
+    const exports = loadExtendNative({
+      ReadableStream,
+      WritableStream,
+      TransformStream
+    });
+
     it('exports its own implementation', () => {
-      assert.notEqual(Object.getPrototypeOf(exports.ReadableStream), IncompleteReadableStream);
+      assert.notEqual(Object.getPrototypeOf(exports.ReadableStream), ReadableStream);
       assert.notEqual(Object.getPrototypeOf(exports.WritableStream), WritableStream);
       new exports.ReadableStream({ type: 'bytes' }).getReader({ mode: 'byob' });
     });
@@ -297,7 +328,7 @@ describe('web-streams-polyfill/extend-native', () => {
     it('cannot adopt native streams', () => {
       const stream = new exports.ReadableStream();
       assert.equal(exports.adopt(stream), stream);
-      assert.throws(() => exports.adopt(new IncompleteReadableStream()), { name: 'TypeError' });
+      assert.throws(() => exports.adopt(new ReadableStream()), { name: 'TypeError' });
     });
   });
 

@@ -1,0 +1,8 @@
+kind: 🚀
+body: |
+  Add `web-streams-polyfill/feature/readable-byte-streams`, which adds readable byte streams and BYOB readers
+  on top of a native `ReadableStream` that doesn't support them (e.g. Safari before 26.4).
+  `web-streams-polyfill/auto` and `web-streams-polyfill/extend-native` now build on such a native implementation
+  instead of replacing it, so its streams keep working with platform APIs such as `fetch()` and `Response`.
+  ([#PR](https://github.com/MattiasBuelens/web-streams-polyfill/pull/PR))
+time: 2026-11-05T12:00:00Z

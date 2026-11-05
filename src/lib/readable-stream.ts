@@ -433,7 +433,7 @@ export function CreateReadableByteStream(
   return stream;
 }
 
-function InitializeReadableStream(stream: ReadableStream) {
+export function InitializeReadableStream(stream: ReadableStream) {
   stream._state = 'readable';
   stream._reader = undefined;
   stream._storedError = undefined;

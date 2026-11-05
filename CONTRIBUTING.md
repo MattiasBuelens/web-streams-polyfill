@@ -51,6 +51,13 @@ not only those whose transformer has a `cancel()` method. That runs all Transfor
 The results are compared against `test/wpt/expectations/patched-forced-<browser>.json`,
 and must not fail any test that passes natively either.
 
+`npm run test:wpt:patched-no-bytes` hides the browser's own features too, and also hides its byte streams:
+`new ReadableStream({ type: 'bytes' })` throws, `getReader({ mode: 'byob' })` throws,
+and the byte stream classes are removed from the global object, like on a browser without byte streams (e.g. Safari before 26.4).
+That way, the `readable-byte-streams` feature module installs our byte streams on top of the native streams.
+The results are compared against `test/wpt/expectations/patched-no-bytes-<browser>.json`,
+and must not fail any test that passes natively either.
+
 `npm run test:wpt:extend-native` replaces the global stream classes with the subclasses of `web-streams-polyfill/extend-native`,
 which installs the missing features on those subclasses instead of on the native classes.
 It compares against `test/wpt/expectations/extend-native-<browser>.json`, and must not fail any test that passes natively.
@@ -76,6 +83,7 @@ After updating Playwright (or Node.js 22 for the Node.js expectations), re-recor
 npm run test:wpt:native:chromium -- --update-expectations
 npm run test:wpt:patched:chromium -- --update-expectations
 npm run test:wpt:patched-forced:chromium -- --update-expectations
+npm run test:wpt:patched-no-bytes:chromium -- --update-expectations
 npm run test:wpt:extend-native:chromium -- --update-expectations
 # ...and the same for firefox, webkit and node
 ```

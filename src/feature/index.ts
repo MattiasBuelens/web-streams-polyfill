@@ -1,6 +1,7 @@
 import { isPatchable } from './patchable';
 import * as asyncIterator from './async-iterator';
 import * as byobReadMin from './byob-read-min';
+import * as readableByteStreams from './readable-byte-streams';
 import * as readableStreamFrom from './readable-stream-from';
 import * as transformerCancel from './transformer-cancel';
 import { getGlobals, type StreamClasses } from './types';
@@ -27,6 +28,8 @@ export interface Feature {
  * @public
  */
 export const features: readonly Feature[] = [
+  // Byte streams replace the ReadableStream class, so install them before the features that patch its prototype.
+  readableByteStreams,
   readableStreamFrom,
   asyncIterator,
   byobReadMin,
