@@ -77,7 +77,7 @@ function hasBrand(getter: Getter, x: unknown): boolean {
 /**
  * Changes the class of a native object to our subclass.
  */
-function setClass(object: object, NativeClass: any, Subclass: any) {
+function setClass(object: any, NativeClass: any, Subclass: any) {
   Object.setPrototypeOf(object, Subclass.prototype);
   // Node.js defines an own `constructor` property on streams that it creates internally (e.g. the branches of `tee()`).
   const descriptor = Object.getOwnPropertyDescriptor(object, 'constructor');
