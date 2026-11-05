@@ -160,8 +160,9 @@ describe('readable-byte-streams feature', () => {
     assert.deepEqual(await readAll(stream.getReader()), [2, 3, 4]);
   });
 
-  it('keeps chunks for the next reader after releasing a reader with a pending read', async () => {
-    for (const mode of ['byob', undefined]) {
+  // node:test has no it.each(), so generate one test per reader mode.
+  for (const mode of ['byob', undefined]) {
+    it(`keeps chunks for the next reader after releasing a reader with a pending read (next reader: ${mode ?? 'default'})`, async () => {
       const { ReadableStream } = installed();
       let controller;
       const stream = new ReadableStream({
@@ -169,19 +170,19 @@ describe('readable-byte-streams feature', () => {
         start(c) {
           controller = c;
         }
-      });
-      const reader = stream.getReader();
-      const read = reader.read();
-      await new Promise(resolve => setTimeout(resolve, 0));
-      reader.releaseLock();
-      await assert.rejects(read, TypeError);
-      // Nobody is reading now, so this chunk must stay in our byte stream's queue (not in the native stream's queue).
-      controller.enqueue(new Uint8Array([1, 2]));
-      const nextReader = stream.getReader({ mode });
-      const { value } = mode === 'byob' ? await nextReader.read(new Uint8Array(2)) : await nextReader.read();
-      assert.deepEqual([...value], [1, 2], `mode: ${mode}`);
-    }
-  });
+    });
+    const reader = stream.getReader();
+    const read = reader.read();
+    await new Promise(resolve => setTimeout(resolve, 0));
+    reader.releaseLock();
+    await assert.rejects(read, TypeError);
+    // Nobody is reading now, so this chunk must stay in our byte stream's queue (not in the native stream's queue).
+    controller.enqueue(new Uint8Array([1, 2]));
+    const nextReader = stream.getReader({ mode });
+    const { value } = mode === 'byob' ? await nextReader.read(new Uint8Array(2)) : await nextReader.read();
+    assert.deepEqual([...value], [1, 2]);
+    });
+  }
 
   it('tees a byte stream into two byte streams', async () => {
     const { ReadableStream } = installed();
