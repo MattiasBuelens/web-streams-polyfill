@@ -8,6 +8,9 @@ describe('require() package exports', () => {
   describe('es5 export', () => {
     testPonyfill('web-streams-polyfill/es5', 'ponyfill.es5.js');
   });
+  describe('subclass export', () => {
+    testPonyfill('web-streams-polyfill/subclass', 'subclass.js');
+  });
   describe('auto export', () => {
     testPolyfill('web-streams-polyfill/auto', 'auto.js');
   });

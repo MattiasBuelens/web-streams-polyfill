@@ -31,6 +31,16 @@
         "default": "./dist/ponyfill.es5.js"
       }
     },
+    "./subclass": {
+      "import": {
+        "types": "./types/subclass.d.mts",
+        "default": "./dist/subclass.mjs"
+      },
+      "require": {
+        "types": "./types/subclass.d.ts",
+        "default": "./dist/subclass.js"
+      }
+    },
     "./auto": {
       "types": "./types/auto.d.ts",
       "default": "./dist/auto.js"
@@ -90,6 +100,11 @@
     "test:wpt:patched-forced:firefox": "node ./test/wpt/browser/run.mjs --patched --force --browser firefox",
     "test:wpt:patched-forced:webkit": "node ./test/wpt/browser/run.mjs --patched --force --browser webkit",
     "test:wpt:patched-forced:node": "node --expose_gc ./test/wpt/node/run.mjs --patched --force",
+    "test:wpt:subclass": "npm run test:wpt:subclass:chromium && npm run test:wpt:subclass:firefox && npm run test:wpt:subclass:webkit && npm run test:wpt:subclass:node",
+    "test:wpt:subclass:chromium": "node ./test/wpt/browser/run.mjs --subclass --browser chromium",
+    "test:wpt:subclass:firefox": "node ./test/wpt/browser/run.mjs --subclass --browser firefox",
+    "test:wpt:subclass:webkit": "node ./test/wpt/browser/run.mjs --subclass --browser webkit",
+    "test:wpt:subclass:node": "node --expose_gc ./test/wpt/node/run.mjs --subclass",
     "test:bundlers": "npm run test:bundler:rolldown && npm run test:bundler:rollup && npm run test:bundler:webpack",
     "test:bundler:rolldown": "npm test --workspace=test/rolldown-test",
     "test:bundler:rollup": "npm test --workspace=test/rollup-test",

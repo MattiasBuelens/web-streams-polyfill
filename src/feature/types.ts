@@ -8,6 +8,12 @@ export interface StreamClasses {
   ReadableStream?: any;
   WritableStream?: any;
   TransformStream?: any;
+  /**
+   * The prototype of this class is patched instead of the prototype of the native controller,
+   * if a feature needs to patch the controller (e.g. `transformer-cancel`).
+   * Defaults to the class of the controller that `TransformStream` passes to its transformer.
+   */
+  TransformStreamDefaultController?: any;
 }
 
 export function getGlobals(): StreamClasses {

@@ -13,6 +13,7 @@ import { FilteringReporter } from '../shared/filtering-reporter.mjs';
 import { expectationsPath, readExpectations, writeExpectations } from '../shared/expectations.mjs';
 import {
   excludedTestsNonES2018,
+  excludedTestsSubclass,
   excludedTestsBase,
   ignoredFailuresBase,
   ignoredFailuresMinified,
@@ -69,8 +70,11 @@ const bufferTypes = [
 ];
 
 const argv = minimist(process.argv.slice(2), {
-  boolean: ['native', 'patched', 'force', 'update-expectations']
+  boolean: ['native', 'patched', 'subclass', 'force', 'update-expectations']
 });
+
+// --patched and --subclass both build on the native implementation, and install the features that it's missing.
+const patchesNative = argv.patched || argv.subclass;
 
 main().catch((e) => {
   console.error(e.stack);
@@ -81,11 +85,12 @@ async function main() {
   const includedTests = argv._.length > 0 ? argv._.map(String) : ['**/*.html'];
   const excludedTests = [
     ...excludedTestsBase,
-    ...(runtimeSupportsAsyncGenerators() ? [] : excludedTestsNonES2018)
+    ...(runtimeSupportsAsyncGenerators() ? [] : excludedTestsNonES2018),
+    ...(argv.subclass ? excludedTestsSubclass : [])
   ];
 
   const results = [];
-  if (argv.native || argv.patched) {
+  if (argv.native || patchesNative) {
     results.push(await runNativeTests({ includedTests, excludedTests }));
   } else {
     await runPolyfillTests(results, { includedTests, excludedTests });
@@ -101,7 +106,7 @@ async function main() {
       console.log(`  * ${rejectionsCount} unhandled promise rejections`);
     }
     const unusedIgnoredFailures = testResults.unusedIgnoredFailures.filter(({ suite, test }) => !isReplacedTest(suite, test));
-    if ((argv.native || argv.patched) && unusedIgnoredFailures.length > 0) {
+    if ((argv.native || patchesNative) && unusedIgnoredFailures.length > 0) {
       console.log(`  * ${unusedIgnoredFailures.length} expected failures did not fail:`);
       for (const { suite, test } of unusedIgnoredFailures) {
         console.log(`    - ${suite}: ${test}`);
@@ -135,7 +140,7 @@ async function runPolyfillTests(results, { includedTests, excludedTests }) {
  * Instead, each test file runs in a worker thread, in Node's own realm.
  */
 async function runNativeTests({ includedTests, excludedTests }) {
-  const mode = !argv.patched ? 'native' : argv.force ? 'patched-forced' : 'patched';
+  const mode = argv.subclass ? 'subclass' : !argv.patched ? 'native' : argv.force ? 'patched-forced' : 'patched';
   const label = `${mode} node ${process.version}`;
   const expectationsFile = expectationsPath(`${mode}-node`);
 
@@ -145,10 +150,13 @@ async function runNativeTests({ includedTests, excludedTests }) {
       ? path.resolve(import.meta.dirname, '../../../dist/feature/index.mjs')
       : undefined,
     force: argv.force,
+    subclassModule: argv.subclass
+      ? path.resolve(import.meta.dirname, '../../../dist/subclass.mjs')
+      : undefined,
     includedTests,
     excludedTests,
     ignoredFailures: mergeIgnoredFailures(
-      argv.patched ? replacedTestsPatched : {},
+      patchesNative ? replacedTestsPatched : {},
       argv['update-expectations'] ? {} : await readExpectations(expectationsFile)
     )
   });
@@ -157,8 +165,8 @@ async function runNativeTests({ includedTests, excludedTests }) {
     if (argv._.length > 0) {
       throw new Error('Cannot update expectations when running a subset of the tests');
     }
-    const failures = argv.patched ? withoutReplacedTests(result.testResults.failures) : result.testResults.failures;
-    if (argv.patched) {
+    const failures = patchesNative ? withoutReplacedTests(result.testResults.failures) : result.testResults.failures;
+    if (patchesNative) {
       // Patching must never break a test that passes natively.
       const nativeFailures = await readExpectations(expectationsPath('native-node'));
       let regressions = 0;
@@ -183,7 +191,7 @@ async function runNativeTests({ includedTests, excludedTests }) {
   return result;
 }
 
-async function runWorkerTests({ label, featureInstaller, force, includedTests, excludedTests, ignoredFailures }) {
+async function runWorkerTests({ label, featureInstaller, force, subclassModule, includedTests, excludedTests, ignoredFailures }) {
   const wptPath = path.resolve(import.meta.dirname, '../../web-platform-tests');
   const testsPath = path.resolve(wptPath, 'streams');
 
@@ -206,7 +214,7 @@ async function runWorkerTests({ label, featureInstaller, force, includedTests, e
 
   for (const { suite, testFile } of tests) {
     reporter.startSuite(suite);
-    const { results, harnessStatus, unhandledRejections } = await runWorker({ wptPath, testFile, featureInstaller, force });
+    const { results, harnessStatus, unhandledRejections } = await runWorker({ wptPath, testFile, featureInstaller, force, subclassModule });
     for (const test of results) {
       reportTestResult(reporter, test);
     }

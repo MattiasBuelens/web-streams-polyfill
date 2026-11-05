@@ -1,0 +1,20 @@
+{
+  "browser": "webkit 27.2",
+  "failures": {
+    "piping/abort.any.html": [
+      "a rejection from underlyingSink.abort() should be preferred to one from underlyingSource.cancel()"
+    ],
+    "piping/error-propagation-backward.any.html": [
+      "test harness threw unexpected error"
+    ],
+    "transform-streams/errors.any.html": [
+      "controller.error() should close writable immediately after readable.cancel()"
+    ],
+    "transform-streams/general.any.html": [
+      "terminate() should abort writable immediately after readable.cancel()"
+    ],
+    "transform-streams/reentrant-strategies.any.html": [
+      "writer.abort() inside size() should work"
+    ]
+  }
+}

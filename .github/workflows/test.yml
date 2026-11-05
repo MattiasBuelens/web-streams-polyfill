@@ -42,6 +42,9 @@ jobs:
       - name: Check Node with forced features against its recorded expectations
         if: matrix.node-version == 22
         run: npm run test:wpt:patched-forced:node
+      - name: Check Node with the subclass ponyfill against its recorded expectations
+        if: matrix.node-version == 22
+        run: npm run test:wpt:subclass:node
       - run: npm run test:bundlers
 
   package:
@@ -137,6 +140,10 @@ jobs:
           HOME: /root
       - name: Check ${{ matrix.browser }} with forced features against its recorded expectations
         run: npm run test:wpt:patched-forced:${{ matrix.browser }}
+        env:
+          HOME: /root
+      - name: Check ${{ matrix.browser }} with the subclass ponyfill against its recorded expectations
+        run: npm run test:wpt:subclass:${{ matrix.browser }}
         env:
           HOME: /root
 

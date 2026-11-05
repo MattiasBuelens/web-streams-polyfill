@@ -364,6 +364,36 @@ function autoBundle(): RolldownOptions {
 }
 
 /**
+ * `dist/subclass.mjs` and `dist/subclass.js`: a ponyfill that subclasses the native stream classes.
+ * It includes the feature modules, so it targets ES2018 like them.
+ */
+function subclassBundle(format: 'esm' | 'cjs'): RolldownOptions {
+  const input = sourceInput('subclass', 'es2018');
+  return {
+    ...input,
+    plugins: [input.plugins, outputGuard('es2018')],
+    output: {
+      file: `dist/subclass.${format === 'esm' ? 'mjs' : 'js'}`,
+      format,
+      exports: 'named',
+      strict: false,
+      intro: format === 'esm' ? undefined : '"use strict";',
+      generatedCode: { preset: 'es2015', symbols: false },
+      sourcemap: debug ? 'inline' : false,
+      postBanner: banner,
+      comments: debug ? true : { legal: false, annotation: false, jsdoc: false },
+      minify: debug
+        ? false
+        : {
+            compress: { target: 'es2018' },
+            mangle: { toplevel: true, reserved: keepNames },
+            codegen: true
+          }
+    }
+  };
+}
+
+/**
  * Copies `ponyfill.d.ts` to `ponyfill.d.mts`, so TypeScript sees ESM types for the `import` condition
  * (instead of CommonJS types, which would make default imports ambiguous).
  */
@@ -381,7 +411,7 @@ function dtsForESM(): Plugin {
 
 /**
  * Bundled type definitions in `types/ponyfill.d.ts`.
- * (`types/replace.d.ts` and `types/auto.d.ts` are hand-written.)
+ * (`types/replace.d.ts`, `types/auto.d.ts` and `types/subclass.d.(m)ts` are hand-written.)
  */
 function types(): RolldownOptions {
   return {
@@ -447,6 +477,8 @@ function featureTypes(): RolldownOptions {
 export default defineConfig([
   ...outputs.flatMap(output => [bundle(output, 'es2015'), bundle(output, 'es5')]),
   autoBundle(),
+  subclassBundle('esm'),
+  subclassBundle('cjs'),
   types(),
   featureBundle(),
   featureTypes()

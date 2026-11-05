@@ -13,6 +13,7 @@ import { FilteringReporter } from '../shared/filtering-reporter.mjs';
 import { expectationsPath, readExpectations, writeExpectations } from '../shared/expectations.mjs';
 import {
   excludedTestsBase,
+  excludedTestsSubclass,
   mergeIgnoredFailures,
   ignoredFailuresBase,
   ignoredFailuresMinified,
@@ -28,8 +29,11 @@ const serverCloseAsync = promisify(http.Server.prototype.close);
 
 const argv = minimist(process.argv.slice(2), {
   string: ['browser'],
-  boolean: ['native', 'patched', 'force', 'update-expectations']
+  boolean: ['native', 'patched', 'subclass', 'force', 'update-expectations']
 });
+
+// --patched and --subclass both build on the browser's own implementation, and install the features that it's missing.
+const patchesNative = argv.patched || argv.subclass;
 
 main().catch((e) => {
   console.error(e.stack);
@@ -39,7 +43,7 @@ main().catch((e) => {
 async function main() {
   const browserType = argv.browser || 'chromium';
   const includedTests = argv._.length > 0 ? argv._ : ['**/*.html'];
-  const excludedTests = [...excludedTestsBase];
+  const excludedTests = [...excludedTestsBase, ...(argv.subclass ? excludedTestsSubclass : [])];
 
   const wptPath = path.resolve(import.meta.dirname, '../../web-platform-tests');
   const results = [];
@@ -68,22 +72,25 @@ async function main() {
         { testsPath: modifiedTestsPath, urlPrefix: modifiedUrlPrefix, suitePrefix: modifiedSuitePrefix }
       ]
     };
-    if (argv.native || argv.patched) {
+    if (argv.native || patchesNative) {
       // Run against the browser's own implementation, without loading the polyfill.
       // With --patched, first install the feature modules that the browser is missing.
+      // With --subclass, replace the global classes with those of `web-streams-polyfill/subclass`.
       // With --patched --force, hide the browser's own features first, so all feature modules get installed,
       // and use our TransformStream (on top of native streams) for every transformer.
       // Known failures are recorded per browser in an expectations file.
-      const mode = !argv.patched ? 'native' : argv.force ? 'patched-forced' : 'patched';
+      const mode = argv.subclass ? 'subclass' : !argv.patched ? 'native' : argv.force ? 'patched-forced' : 'patched';
       const label = `${mode} ${browserType} ${browserVersion}`;
       const expectationsFile = expectationsPath(`${mode}-${browserType}`);
       const result = await runTests({
         ...testOptions,
         label,
         // Without --force, this is exactly what `web-streams-polyfill/auto` does.
-        initScript: !argv.patched ? undefined : argv.force ? { content: await bundleFeatureInstaller() } : { path: distPath('auto.js') },
+        initScript: argv.subclass
+          ? { content: await bundleSubclassInstaller() }
+          : !argv.patched ? undefined : argv.force ? { content: await bundleFeatureInstaller() } : { path: distPath('auto.js') },
         ignoredFailures: mergeIgnoredFailures(
-          argv.patched ? replacedTestsPatched : {},
+          patchesNative ? replacedTestsPatched : {},
           argv['update-expectations'] ? {} : await readExpectations(expectationsFile)
         )
       });
@@ -91,8 +98,8 @@ async function main() {
         if (argv._.length > 0) {
           throw new Error('Cannot update expectations when running a subset of the tests');
         }
-        const failures = argv.patched ? withoutReplacedTests(result.testResults.failures) : result.testResults.failures;
-        if (argv.patched) {
+        const failures = patchesNative ? withoutReplacedTests(result.testResults.failures) : result.testResults.failures;
+        if (patchesNative) {
           // Patching must never break a test that passes natively.
           const nativeFailures = await readExpectations(expectationsPath(`native-${browserType}`));
           const regressions = findNewFailures(failures, nativeFailures);
@@ -141,7 +148,7 @@ async function main() {
     console.log(`  * ${testResults.failed} failed`);
     console.log(`  * ${testResults.ignored} ignored`);
     const unusedIgnoredFailures = testResults.unusedIgnoredFailures.filter(({ suite, test }) => !isReplacedTest(suite, test));
-    if ((argv.native || argv.patched) && unusedIgnoredFailures.length > 0) {
+    if ((argv.native || patchesNative) && unusedIgnoredFailures.length > 0) {
       console.log(`  * ${unusedIgnoredFailures.length} expected failures did not fail:`);
       for (const { suite, test } of unusedIgnoredFailures) {
         console.log(`    - ${suite}: ${test}`);
@@ -162,19 +169,37 @@ function distPath(file) {
  */
 async function bundleFeatureInstaller() {
   const forceFeatures = JSON.stringify(path.resolve(import.meta.dirname, '../shared/force-features.mjs'));
-  const entry = `
+  return bundleScript(`
     import { installAll } from ${JSON.stringify(distPath('feature/index.mjs'))};
     import { hideNativeFeatures, forceOwnTransformStream } from ${forceFeatures};
     hideNativeFeatures(globalThis);
     installAll(globalThis);
     forceOwnTransformStream(globalThis);
-  `;
+  `);
+}
+
+/**
+ * Bundles a classic script for --subclass: it replaces the global classes with those of `web-streams-polyfill/subclass`.
+ */
+async function bundleSubclassInstaller() {
+  const subclassGlobals = JSON.stringify(path.resolve(import.meta.dirname, '../shared/subclass-globals.mjs'));
+  return bundleScript(`
+    import * as subclass from ${JSON.stringify(distPath('subclass.mjs'))};
+    import { installSubclassGlobals } from ${subclassGlobals};
+    installSubclassGlobals(globalThis, subclass);
+  `);
+}
+
+/**
+ * Bundles an ES module entry (given as source code) into a classic script.
+ */
+async function bundleScript(entry) {
   const result = await build({
-    input: 'virtual:feature-installer',
+    input: 'virtual:entry',
     plugins: [{
       name: 'virtual-entry',
-      resolveId: id => (id === 'virtual:feature-installer' ? id : undefined),
-      load: id => (id === 'virtual:feature-installer' ? entry : undefined)
+      resolveId: id => (id === 'virtual:entry' ? id : undefined),
+      load: id => (id === 'virtual:entry' ? entry : undefined)
     }],
     write: false,
     logLevel: 'warn',
