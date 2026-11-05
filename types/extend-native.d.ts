@@ -22,6 +22,9 @@ export type ReadableStreamChunk<S> = S extends { pipeTo(destination: infer D, ..
  * Converts a native stream (e.g. `Response.body`, or a `CompressionStream`) into a stream of this module, in place:
  * it changes the stream's prototype, and returns the same object.
  * Streams that are already streams of this module are returned as-is.
+ * So are instances of other subclasses of the native classes (e.g. a `FileSystemWritableFileStream`),
+ * since changing their prototype would lose that subclass's own members.
+ * They still work as native streams, but don't get the features that this module adds.
  *
  * Streams that this module's own methods return, such as the branches of `tee()`
  * or the result of `pipeThrough()`, are converted automatically.

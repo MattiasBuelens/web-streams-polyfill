@@ -75,9 +75,15 @@ function hasBrand(getter: Getter, x: unknown): boolean {
 }
 
 /**
- * Changes the class of a native object to our subclass.
+ * Changes the class of a native object to our subclass,
+ * but only if our subclass inherits from its current class, so that the object keeps all of its members.
+ * Instances of other subclasses (e.g. a `FileSystemWritableFileStream`, or a user-defined subclass)
+ * keep their own prototype, since replacing it would lose that subclass's members.
  */
 function setClass(object: any, NativeClass: any, Subclass: any) {
+  if (!Object.prototype.isPrototypeOf.call(Object.getPrototypeOf(object), Subclass.prototype)) {
+    return;
+  }
   Object.setPrototypeOf(object, Subclass.prototype);
   // Node.js defines an own `constructor` property on streams that it creates internally (e.g. the branches of `tee()`).
   const descriptor = Object.getOwnPropertyDescriptor(object, 'constructor');

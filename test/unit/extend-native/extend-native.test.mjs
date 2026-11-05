@@ -137,6 +137,24 @@ describe('web-streams-polyfill/extend-native', () => {
     assert.ok(transform.readable instanceof extendNative.ReadableStream);
   });
 
+  it('leaves instances of other native subclasses unchanged', async () => {
+    // Like FileSystemWritableFileStream, a platform subclass of WritableStream.
+    class FileStream extends WritableStream {
+      seek() {
+        return 'seek';
+      }
+    }
+    class CustomReadableStream extends ReadableStream {}
+    const writable = new FileStream();
+    const readable = new CustomReadableStream();
+    assert.equal(extendNative.adopt(writable), writable);
+    assert.equal(extendNative.adopt(readable), readable);
+    assert.equal(Object.getPrototypeOf(writable), FileStream.prototype);
+    assert.equal(Object.getPrototypeOf(readable), CustomReadableStream.prototype);
+    assert.equal(writable.seek(), 'seek');
+    await writable.getWriter().close();
+  });
+
   it('only adopts streams', () => {
     for (const value of [undefined, null, 'stream', {}, { readable: {}, writable: {} }, Object.create(ReadableStream.prototype)]) {
       assert.throws(() => extendNative.adopt(value), TypeError);
