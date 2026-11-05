@@ -170,17 +170,17 @@ describe('readable-byte-streams feature', () => {
         start(c) {
           controller = c;
         }
-    });
-    const reader = stream.getReader();
-    const read = reader.read();
-    await new Promise(resolve => setTimeout(resolve, 0));
-    reader.releaseLock();
-    await assert.rejects(read, TypeError);
-    // Nobody is reading now, so this chunk must stay in our byte stream's queue (not in the native stream's queue).
-    controller.enqueue(new Uint8Array([1, 2]));
-    const nextReader = stream.getReader({ mode });
-    const { value } = mode === 'byob' ? await nextReader.read(new Uint8Array(2)) : await nextReader.read();
-    assert.deepEqual([...value], [1, 2]);
+      });
+      const reader = stream.getReader();
+      const read = reader.read();
+      await new Promise(resolve => setTimeout(resolve, 0));
+      reader.releaseLock();
+      await assert.rejects(read, TypeError);
+      // Nobody is reading now, so this chunk must stay in our byte stream's queue (not in the native stream's queue).
+      controller.enqueue(new Uint8Array([1, 2]));
+      const nextReader = stream.getReader({ mode });
+      const { value } = mode === 'byob' ? await nextReader.read(new Uint8Array(2)) : await nextReader.read();
+      assert.deepEqual([...value], [1, 2]);
     });
   }
 
