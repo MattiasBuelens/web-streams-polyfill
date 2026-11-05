@@ -100,6 +100,8 @@ It never mixes the two implementations.
 instead of to the global classes. Streams that its own methods return (such as the branches of `tee()`,
 or the result of `pipeThrough()`) are instances of its subclasses.
 Streams created by the browser (such as `Response.body`) are not, so use `adopt(stream)` to convert them in place.
+Instances of other subclasses of the built-in classes (such as a `FileSystemWritableFileStream`) are returned unchanged,
+since changing their prototype would lose their own methods.
 When the built-in streams are not complete enough, it exports this library's own implementation instead,
 and `adopt()` throws a `TypeError` for built-in streams.
 
