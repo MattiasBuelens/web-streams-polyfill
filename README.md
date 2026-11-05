@@ -90,7 +90,7 @@ for await (const chunk of body) {
 
 `web-streams-polyfill/auto` keeps the built-in stream classes whenever they are complete enough to build on:
 they must support `pipeTo()` and `WritableStreamDefaultController.signal`.
-This is the case in Chrome 98+, Firefox 100+, Safari 16.4+, Node.js 16.5+, and current versions of Deno and Bun.
+This is the case in Chrome 98+, Firefox 102+, Safari 16.4+, Node.js 16.5+, and current versions of Deno and Bun.
 It then adds only the features that are missing. Streams created by the browser, such as `Response.body`,
 are instances of the same classes, so they get those features too.
 Otherwise, it replaces all stream classes, just like `web-streams-polyfill/replace`.

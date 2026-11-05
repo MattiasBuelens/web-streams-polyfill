@@ -26,7 +26,7 @@ import { assertDictionary, assertObject, assertRequiredArgument } from '../lib/v
 import { convertQueuingStrategy } from '../lib/validators/queuing-strategy';
 import { convertReaderOptions } from '../lib/validators/reader-options';
 import { convertUnderlyingDefaultOrByteSource } from '../lib/validators/underlying-source';
-import { getPropertyDescriptor, replaceMethod } from './patch';
+import { bindMethods, defineClass, fixConstructor, getPropertyDescriptor, readMembers, replaceMethod } from './patch';
 import { defineMethod, getGlobals, type StreamClasses } from './types';
 
 /**
@@ -254,13 +254,16 @@ export function install(classes: StreamClasses = getGlobals()): boolean {
       const strategyMembers = readMembers(rawStrategy, ['highWaterMark', 'size']);
       assertDictionary(rawUnderlyingSource, 'First parameter');
       const sourceMembers = readMembers(rawUnderlyingSource, ['autoAllocateChunkSize', 'cancel', 'pull', 'start', 'type']);
-      // Validate them.
+      // Validate them. Call the source's methods on the original source object.
       const strategy = convertQueuingStrategy(strategyMembers, 'Second parameter');
-      const { type } = convertUnderlyingDefaultOrByteSource(sourceMembers, 'First parameter');
-      // Call the source's methods on the original source object.
       const boundSource = bindMethods(sourceMembers, rawUnderlyingSource, ['cancel', 'pull', 'start']);
-      if (type !== 'bytes') {
+      const underlyingSource = convertUnderlyingDefaultOrByteSource(boundSource, 'First parameter');
+      if (underlyingSource.type !== 'bytes') {
         // Hand off to the native constructor, without reading the source's or strategy's members again.
+        // Only pass the methods: the native constructor would convert `autoAllocateChunkSize` a second time.
+        // (It's ignored for a default source, but converting it calls its valueOf() method.)
+        // Pass the raw methods, not the converted ones, since those would add extra promise ticks.
+        const nativeSource = readMembers(boundSource, ['cancel', 'pull', 'start']);
         const nativeStrategy = Object.create(null);
         if (strategy.highWaterMark !== undefined) {
           nativeStrategy.highWaterMark = strategy.highWaterMark;
@@ -268,11 +271,8 @@ export function install(classes: StreamClasses = getGlobals()): boolean {
         if (strategyMembers.size !== undefined) {
           nativeStrategy.size = strategyMembers.size;
         }
-        delete boundSource.type;
-        delete boundSource.autoAllocateChunkSize;
-        return Reflect.construct(NativeReadableStream, [boundSource, nativeStrategy], new.target);
+        return Reflect.construct(NativeReadableStream, [nativeSource, nativeStrategy], new.target);
       }
-      const underlyingSource = convertUnderlyingDefaultOrByteSource(boundSource, 'First parameter');
       if (strategy.size !== undefined) {
         throw new RangeError('The strategy for a byte stream cannot have a size function');
       }
@@ -401,6 +401,7 @@ export function install(classes: StreamClasses = getGlobals()): boolean {
     releaseLock(this: ReadableStreamDefaultReader) {
       reflectCall(nativeReleaseLock, this, []);
       // This rejects all pending reads.
+      // (Older engines throw instead if there are pending reads, in which case we keep counting them.)
       const adapter = readerAdapters.get(this);
       if (adapter !== undefined) {
         adapter._nativeReads = 0;
@@ -451,55 +452,4 @@ export function install(classes: StreamClasses = getGlobals()): boolean {
   defineClass(classes, 'ReadableStreamBYOBReader', ReadableStreamBYOBReader);
   defineClass(classes, 'ReadableStreamBYOBRequest', ReadableStreamBYOBRequest);
   return true;
-}
-
-/**
- * Node.js defines an own `constructor` property on streams that it creates internally (e.g. the branches of `tee()`),
- * which still points to the native class after we replaced it.
- */
-function fixConstructor(stream: any, NativeClass: any, Class: any) {
-  const descriptor = Object.getOwnPropertyDescriptor(stream, 'constructor');
-  if (descriptor !== undefined && descriptor.configurable && descriptor.value !== Class
-    && typeof descriptor.value === 'function' && descriptor.value.prototype === NativeClass.prototype) {
-    Object.defineProperty(stream, 'constructor', { ...descriptor, value: Class });
-  }
-}
-
-/**
- * Copies the given members of a dictionary into an object without a prototype, reading each member once.
- */
-function readMembers(dictionary: any, keys: string[]): any {
-  const result = Object.create(null);
-  for (const key of keys) {
-    const value = dictionary?.[key];
-    if (value !== undefined) {
-      result[key] = value;
-    }
-  }
-  return result;
-}
-
-/**
- * Returns a copy of `members`, where the given methods are called with `original` as their `this` value.
- * Members that are not functions are copied as-is, so they still fail validation.
- */
-function bindMethods(members: any, original: any, keys: string[]): any {
-  const result = Object.create(null);
-  for (const key of Object.keys(members)) {
-    const value = members[key];
-    result[key] = keys.indexOf(key) !== -1 && typeof value === 'function'
-      ? (...args: any[]) => reflectCall(value, original, args)
-      : value;
-  }
-  return result;
-}
-
-function defineClass(classes: StreamClasses, key: string, value: any) {
-  const existing = Object.getOwnPropertyDescriptor(classes, key);
-  Object.defineProperty(classes, key, {
-    value,
-    writable: existing?.writable ?? true,
-    enumerable: existing?.enumerable ?? false,
-    configurable: existing?.configurable ?? true
-  });
 }

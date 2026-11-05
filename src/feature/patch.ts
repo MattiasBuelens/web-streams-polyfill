@@ -1,4 +1,5 @@
 import { reflectCall } from '../lib/helpers/webidl';
+import type { StreamClasses } from './types';
 
 /**
  * Replaces a getter on a native prototype with one that handles our own objects,
@@ -60,4 +61,58 @@ export function getPropertyDescriptor(object: any, key: string): PropertyDescrip
     object = Object.getPrototypeOf(object);
   }
   return undefined;
+}
+
+/**
+ * Node.js defines an own `constructor` property on streams that it creates internally (e.g. the branches of `tee()`),
+ * which still points to the native class after we replaced it.
+ */
+export function fixConstructor(stream: any, NativeClass: any, Class: any) {
+  const descriptor = Object.getOwnPropertyDescriptor(stream, 'constructor');
+  if (descriptor !== undefined && descriptor.configurable && descriptor.value !== Class
+    && typeof descriptor.value === 'function' && descriptor.value.prototype === NativeClass.prototype) {
+    Object.defineProperty(stream, 'constructor', { ...descriptor, value: Class });
+  }
+}
+
+/**
+ * Copies the given members of a dictionary into an object without a prototype, reading each member once.
+ */
+export function readMembers(dictionary: any, keys: string[]): any {
+  const result = Object.create(null);
+  for (const key of keys) {
+    const value = dictionary?.[key];
+    if (value !== undefined) {
+      result[key] = value;
+    }
+  }
+  return result;
+}
+
+/**
+ * Returns a copy of `members`, where the given methods are called with `original` as their `this` value.
+ * Members that are not functions are copied as-is, so they still fail validation.
+ */
+export function bindMethods(members: any, original: any, keys: string[]): any {
+  const result = Object.create(null);
+  for (const key of Object.keys(members)) {
+    const value = members[key];
+    result[key] = keys.indexOf(key) !== -1 && typeof value === 'function'
+      ? (...args: any[]) => reflectCall(value, original, args)
+      : value;
+  }
+  return result;
+}
+
+/**
+ * Defines a class on `classes`, keeping the attributes of the property it replaces (if any).
+ */
+export function defineClass(classes: StreamClasses, key: string, value: any) {
+  const existing = Object.getOwnPropertyDescriptor(classes, key);
+  Object.defineProperty(classes, key, {
+    value,
+    writable: existing?.writable ?? true,
+    enumerable: existing?.enumerable ?? false,
+    configurable: existing?.configurable ?? true
+  });
 }
