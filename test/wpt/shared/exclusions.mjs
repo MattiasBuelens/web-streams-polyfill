@@ -33,8 +33,8 @@ export const excludedTestsNonES2018 = [
   'readable-streams/patched-global.any.html'
 ];
 
-export const excludedTestsSubclass = [
-  // The subclasses of web-streams-polyfill/subclass inherit from the native classes,
+export const excludedTestsExtendNative = [
+  // The subclasses of web-streams-polyfill/extend-native inherit from the native classes,
   // so they can never look like WebIDL interface objects (whose prototype must be Function.prototype).
   'idlharness.any.html'
 ];

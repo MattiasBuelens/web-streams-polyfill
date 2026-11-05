@@ -364,16 +364,16 @@ function autoBundle(): RolldownOptions {
 }
 
 /**
- * `dist/subclass.mjs` and `dist/subclass.js`: a ponyfill that subclasses the native stream classes.
+ * `dist/extend-native.mjs` and `dist/extend-native.js`: a ponyfill that subclasses the native stream classes.
  * It includes the feature modules, so it targets ES2018 like them.
  */
-function subclassBundle(format: 'esm' | 'cjs'): RolldownOptions {
-  const input = sourceInput('subclass', 'es2018');
+function extendNativeBundle(format: 'esm' | 'cjs'): RolldownOptions {
+  const input = sourceInput('extend-native', 'es2018');
   return {
     ...input,
     plugins: [input.plugins, outputGuard('es2018')],
     output: {
-      file: `dist/subclass.${format === 'esm' ? 'mjs' : 'js'}`,
+      file: `dist/extend-native.${format === 'esm' ? 'mjs' : 'js'}`,
       format,
       exports: 'named',
       strict: false,
@@ -411,7 +411,7 @@ function dtsForESM(): Plugin {
 
 /**
  * Bundled type definitions in `types/ponyfill.d.ts`.
- * (`types/replace.d.ts`, `types/auto.d.ts` and `types/subclass.d.(m)ts` are hand-written.)
+ * (`types/replace.d.ts`, `types/auto.d.ts` and `types/extend-native.d.(m)ts` are hand-written.)
  */
 function types(): RolldownOptions {
   return {
@@ -477,8 +477,8 @@ function featureTypes(): RolldownOptions {
 export default defineConfig([
   ...outputs.flatMap(output => [bundle(output, 'es2015'), bundle(output, 'es5')]),
   autoBundle(),
-  subclassBundle('esm'),
-  subclassBundle('cjs'),
+  extendNativeBundle('esm'),
+  extendNativeBundle('cjs'),
   types(),
   featureBundle(),
   featureTypes()

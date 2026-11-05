@@ -3,18 +3,18 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
 import { createRequire } from 'node:module';
-import * as subclass from 'web-streams-polyfill/subclass';
+import * as extendNative from 'web-streams-polyfill/extend-native';
 
 const require = createRequire(import.meta.url);
-const subclassSource = fs.readFileSync(require.resolve('web-streams-polyfill/subclass'), 'utf8');
+const extendNativeSource = fs.readFileSync(require.resolve('web-streams-polyfill/extend-native'), 'utf8');
 
 /**
- * Loads the CommonJS build of `web-streams-polyfill/subclass` with the given globals.
+ * Loads the CommonJS build of `web-streams-polyfill/extend-native` with the given globals.
  */
-function loadSubclass(globals) {
+function loadExtendNative(globals) {
   const context = vm.createContext(globals);
   const module = { exports: {} };
-  vm.runInContext(`(function (exports, module) {\n${subclassSource}\n})`, context)(module.exports, module);
+  vm.runInContext(`(function (exports, module) {\n${extendNativeSource}\n})`, context)(module.exports, module);
   return module.exports;
 }
 
@@ -63,49 +63,49 @@ function createIncompleteClasses() {
   return { IncompleteReadableStream, IncompleteBYOBReader, IncompleteTransformStream };
 }
 
-describe('web-streams-polyfill/subclass', () => {
+describe('web-streams-polyfill/extend-native', () => {
   it('exports subclasses of the native classes', () => {
-    assert.equal(Object.getPrototypeOf(subclass.ReadableStream), ReadableStream);
-    assert.equal(Object.getPrototypeOf(subclass.WritableStream), WritableStream);
-    assert.equal(Object.getPrototypeOf(subclass.ReadableStreamBYOBReader), ReadableStreamBYOBReader);
+    assert.equal(Object.getPrototypeOf(extendNative.ReadableStream), ReadableStream);
+    assert.equal(Object.getPrototypeOf(extendNative.WritableStream), WritableStream);
+    assert.equal(Object.getPrototypeOf(extendNative.ReadableStreamBYOBReader), ReadableStreamBYOBReader);
     // Node.js supports transformer.cancel(), so the TransformStream class isn't replaced.
-    assert.equal(Object.getPrototypeOf(subclass.TransformStream), TransformStream);
-    assert.equal(subclass.ReadableStreamDefaultReader, ReadableStreamDefaultReader);
-    assert.equal(subclass.TransformStreamDefaultController, TransformStreamDefaultController);
-    assert.equal(subclass.CountQueuingStrategy, CountQueuingStrategy);
+    assert.equal(Object.getPrototypeOf(extendNative.TransformStream), TransformStream);
+    assert.equal(extendNative.ReadableStreamDefaultReader, ReadableStreamDefaultReader);
+    assert.equal(extendNative.TransformStreamDefaultController, TransformStreamDefaultController);
+    assert.equal(extendNative.CountQueuingStrategy, CountQueuingStrategy);
   });
 
   it('constructs streams that work with platform APIs', async () => {
-    const stream = new subclass.ReadableStream({
+    const stream = new extendNative.ReadableStream({
       start(c) {
         c.enqueue(new TextEncoder().encode('hello'));
         c.close();
       }
     });
-    assert.ok(stream instanceof subclass.ReadableStream);
+    assert.ok(stream instanceof extendNative.ReadableStream);
     assert.ok(stream instanceof ReadableStream);
     assert.equal(await new Response(stream).text(), 'hello');
   });
 
   it('converts the streams returned by its own methods', async () => {
-    const stream = subclass.ReadableStream.from(['a', 'b']);
-    assert.ok(stream instanceof subclass.ReadableStream);
+    const stream = extendNative.ReadableStream.from(['a', 'b']);
+    assert.ok(stream instanceof extendNative.ReadableStream);
 
     const [branch1, branch2] = stream.tee();
-    assert.ok(branch1 instanceof subclass.ReadableStream);
-    assert.ok(branch2 instanceof subclass.ReadableStream);
+    assert.ok(branch1 instanceof extendNative.ReadableStream);
+    assert.ok(branch2 instanceof extendNative.ReadableStream);
 
     // pipeThrough() with a platform transform stream
     const encoded = branch1.pipeThrough(new TextEncoderStream());
-    assert.ok(encoded instanceof subclass.ReadableStream);
+    assert.ok(encoded instanceof extendNative.ReadableStream);
     assert.equal(await new Response(encoded).text(), 'ab');
 
-    const transform = new subclass.TransformStream();
-    assert.ok(transform.readable instanceof subclass.ReadableStream);
-    assert.ok(transform.writable instanceof subclass.WritableStream);
+    const transform = new extendNative.TransformStream();
+    assert.ok(transform.readable instanceof extendNative.ReadableStream);
+    assert.ok(transform.writable instanceof extendNative.WritableStream);
 
-    const byobReader = new subclass.ReadableStream({ type: 'bytes' }).getReader({ mode: 'byob' });
-    assert.ok(byobReader instanceof subclass.ReadableStreamBYOBReader);
+    const byobReader = new extendNative.ReadableStream({ type: 'bytes' }).getReader({ mode: 'byob' });
+    assert.ok(byobReader instanceof extendNative.ReadableStreamBYOBReader);
 
     const chunks = [];
     for await (const chunk of branch2) {
@@ -116,36 +116,36 @@ describe('web-streams-polyfill/subclass', () => {
 
   it('adopts native streams in place', async () => {
     const body = new Response('hello').body;
-    assert.equal(subclass.adopt(body), body);
-    assert.ok(body instanceof subclass.ReadableStream);
-    assert.equal(subclass.adopt(body), body);
+    assert.equal(extendNative.adopt(body), body);
+    assert.ok(body instanceof extendNative.ReadableStream);
+    assert.equal(extendNative.adopt(body), body);
     assert.equal(await new Response(body).text(), 'hello');
 
     const writable = new WritableStream();
-    assert.equal(subclass.adopt(writable), writable);
-    assert.ok(writable instanceof subclass.WritableStream);
+    assert.equal(extendNative.adopt(writable), writable);
+    assert.ok(writable instanceof extendNative.WritableStream);
 
     // A CompressionStream is not a TransformStream, but its sides can be adopted.
     const compression = new CompressionStream('gzip');
-    assert.throws(() => subclass.adopt(compression), TypeError);
-    assert.ok(subclass.adopt(compression.readable) instanceof subclass.ReadableStream);
-    assert.ok(subclass.adopt(compression.writable) instanceof subclass.WritableStream);
+    assert.throws(() => extendNative.adopt(compression), TypeError);
+    assert.ok(extendNative.adopt(compression.readable) instanceof extendNative.ReadableStream);
+    assert.ok(extendNative.adopt(compression.writable) instanceof extendNative.WritableStream);
 
     const transform = new TransformStream();
-    assert.equal(subclass.adopt(transform), transform);
-    assert.ok(transform instanceof subclass.TransformStream);
-    assert.ok(transform.readable instanceof subclass.ReadableStream);
+    assert.equal(extendNative.adopt(transform), transform);
+    assert.ok(transform instanceof extendNative.TransformStream);
+    assert.ok(transform.readable instanceof extendNative.ReadableStream);
   });
 
   it('only adopts streams', () => {
     for (const value of [undefined, null, 'stream', {}, { readable: {}, writable: {} }, Object.create(ReadableStream.prototype)]) {
-      assert.throws(() => subclass.adopt(value), TypeError);
+      assert.throws(() => extendNative.adopt(value), TypeError);
     }
   });
 
   it('leaves the native classes untouched', () => {
     const before = snapshot(ReadableStream, ReadableStream.prototype, ReadableStreamBYOBReader.prototype, TransformStream.prototype);
-    const exports = loadSubclass({ ReadableStream, WritableStream, TransformStream, AbortSignal });
+    const exports = loadExtendNative({ ReadableStream, WritableStream, TransformStream, AbortSignal });
     assert.equal(Object.getPrototypeOf(exports.ReadableStream), ReadableStream);
     const after = snapshot(ReadableStream, ReadableStream.prototype, ReadableStreamBYOBReader.prototype, TransformStream.prototype);
     assert.deepEqual(after, before);
@@ -162,7 +162,7 @@ describe('web-streams-polyfill/subclass', () => {
       TransformStreamDefaultController.prototype
     ];
     const before = snapshot(...globals);
-    const exports = loadSubclass({
+    const exports = loadExtendNative({
       ReadableStream: IncompleteReadableStream,
       WritableStream,
       TransformStream: IncompleteTransformStream,
@@ -246,7 +246,7 @@ describe('web-streams-polyfill/subclass', () => {
         super(source, strategy);
       }
     }
-    const exports = loadSubclass({
+    const exports = loadExtendNative({
       ReadableStream: IncompleteReadableStream,
       WritableStream,
       TransformStream,
@@ -267,7 +267,7 @@ describe('web-streams-polyfill/subclass', () => {
   });
 
   it('exports its own implementation without native streams', () => {
-    const exports = loadSubclass({});
+    const exports = loadExtendNative({});
     for (const name of ['ReadableStream', 'WritableStream', 'TransformStream', 'ByteLengthQueuingStrategy']) {
       assert.equal(typeof exports[name], 'function', name);
     }

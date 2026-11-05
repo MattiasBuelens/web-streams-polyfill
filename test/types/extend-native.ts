@@ -1,7 +1,7 @@
 /*
  * This test verifies the type definitions of the subclass ponyfill.
  */
-import { adopt, ReadableStream, TransformStream, WritableStream } from 'web-streams-polyfill/subclass';
+import { adopt, ReadableStream, TransformStream, WritableStream } from 'web-streams-polyfill/extend-native';
 
 const readable: ReadableStream<string> = new ReadableStream<string>();
 const writable: WritableStream<string> = new WritableStream<string>();

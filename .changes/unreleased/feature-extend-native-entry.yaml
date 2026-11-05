@@ -1,6 +1,6 @@
 kind: 🚀
 body: |
-  Add `web-streams-polyfill/subclass`, a ponyfill that exports subclasses of the native stream classes
+  Add `web-streams-polyfill/extend-native`, a ponyfill that exports subclasses of the native stream classes
   with the missing features installed on them, without changing any globals.
   Its streams work with platform APIs such as `fetch()`, `Response` and `postMessage()`.
   Use `adopt(stream)` to convert a native stream (e.g. `Response.body`) in place.

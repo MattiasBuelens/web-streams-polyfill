@@ -8,9 +8,9 @@ import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
 import { forceOwnTransformStream, hideNativeFeatures } from '../shared/force-features.mjs';
-import { installSubclassGlobals } from '../shared/subclass-globals.mjs';
+import { installExtendNativeGlobals } from '../shared/extend-native-globals.mjs';
 
-const { wptPath, testFile, featureInstaller, force, subclassModule } = workerData;
+const { wptPath, testFile, featureInstaller, force, extendNativeModule } = workerData;
 
 // The same rewrites as the WPT server (see tools/serve/serve.py)
 const scriptRewrites = {
@@ -64,11 +64,11 @@ if (featureInstaller) {
   }
 }
 
-if (subclassModule) {
+if (extendNativeModule) {
   // Node implements every feature already, so hide the native ones first.
   hideNativeFeatures(globalThis);
   // Replace the global classes with their subclasses, and check that the features were installed on them.
-  installSubclassGlobals(globalThis, await import(subclassModule));
+  installExtendNativeGlobals(globalThis, await import(extendNativeModule));
   if (typeof ReadableStream.from !== 'function' || typeof ReadableStream.prototype.values !== 'function') {
     throw new Error('Failed to install the feature modules on the subclasses');
   }

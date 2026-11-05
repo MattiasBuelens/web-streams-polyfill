@@ -51,9 +51,9 @@ not only those whose transformer has a `cancel()` method. That runs all Transfor
 The results are compared against `test/wpt/expectations/patched-forced-<browser>.json`,
 and must not fail any test that passes natively either.
 
-`npm run test:wpt:subclass` replaces the global stream classes with the subclasses of `web-streams-polyfill/subclass`,
+`npm run test:wpt:extend-native` replaces the global stream classes with the subclasses of `web-streams-polyfill/extend-native`,
 which installs the missing features on those subclasses instead of on the native classes.
-It compares against `test/wpt/expectations/subclass-<browser>.json`, and must not fail any test that passes natively.
+It compares against `test/wpt/expectations/extend-native-<browser>.json`, and must not fail any test that passes natively.
 It skips `idlharness.any.html`, since a subclass can never look like a WebIDL interface object.
 On Node.js, it hides Node's own features first, like the patched run.
 
@@ -61,7 +61,7 @@ A few tests cannot pass when a feature is built on top of a native implementatio
 for example because they inspect state that only exists inside the native implementation.
 These are listed in `replacedTestsPatched` in `test/wpt/shared/exclusions.mjs`, and skipped in the patched runs.
 Each one has a relaxed copy in `test/wpt/modified/`, laid out like the WPT `streams/` directory.
-The modified tests run in every mode (polyfill, native, patched and subclass), and must pass in all of them.
+The modified tests run in every mode (polyfill, native, patched and extend-native), and must pass in all of them.
 
 Node.js implements every feature already, so `npm run test:wpt:patched:node` also hides Node's own features first,
 so that our feature modules are tested on top of Node's streams.
@@ -76,7 +76,7 @@ After updating Playwright (or Node.js 22 for the Node.js expectations), re-recor
 npm run test:wpt:native:chromium -- --update-expectations
 npm run test:wpt:patched:chromium -- --update-expectations
 npm run test:wpt:patched-forced:chromium -- --update-expectations
-npm run test:wpt:subclass:chromium -- --update-expectations
+npm run test:wpt:extend-native:chromium -- --update-expectations
 # ...and the same for firefox, webkit and node
 ```
 

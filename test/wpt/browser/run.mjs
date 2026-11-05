@@ -13,7 +13,7 @@ import { FilteringReporter } from '../shared/filtering-reporter.mjs';
 import { expectationsPath, readExpectations, writeExpectations } from '../shared/expectations.mjs';
 import {
   excludedTestsBase,
-  excludedTestsSubclass,
+  excludedTestsExtendNative,
   mergeIgnoredFailures,
   ignoredFailuresBase,
   ignoredFailuresMinified,
@@ -29,11 +29,11 @@ const serverCloseAsync = promisify(http.Server.prototype.close);
 
 const argv = minimist(process.argv.slice(2), {
   string: ['browser'],
-  boolean: ['native', 'patched', 'subclass', 'force', 'update-expectations']
+  boolean: ['native', 'patched', 'extend-native', 'force', 'update-expectations']
 });
 
-// --patched and --subclass both build on the browser's own implementation, and install the features that it's missing.
-const patchesNative = argv.patched || argv.subclass;
+// --patched and --extend-native both build on the browser's own implementation, and install the features that it's missing.
+const patchesNative = argv.patched || argv['extend-native'];
 
 main().catch((e) => {
   console.error(e.stack);
@@ -43,7 +43,7 @@ main().catch((e) => {
 async function main() {
   const browserType = argv.browser || 'chromium';
   const includedTests = argv._.length > 0 ? argv._ : ['**/*.html'];
-  const excludedTests = [...excludedTestsBase, ...(argv.subclass ? excludedTestsSubclass : [])];
+  const excludedTests = [...excludedTestsBase, ...(argv['extend-native'] ? excludedTestsExtendNative : [])];
 
   const wptPath = path.resolve(import.meta.dirname, '../../web-platform-tests');
   const results = [];
@@ -75,19 +75,19 @@ async function main() {
     if (argv.native || patchesNative) {
       // Run against the browser's own implementation, without loading the polyfill.
       // With --patched, first install the feature modules that the browser is missing.
-      // With --subclass, replace the global classes with those of `web-streams-polyfill/subclass`.
+      // With --extend-native, replace the global classes with those of `web-streams-polyfill/extend-native`.
       // With --patched --force, hide the browser's own features first, so all feature modules get installed,
       // and use our TransformStream (on top of native streams) for every transformer.
       // Known failures are recorded per browser in an expectations file.
-      const mode = argv.subclass ? 'subclass' : !argv.patched ? 'native' : argv.force ? 'patched-forced' : 'patched';
+      const mode = argv['extend-native'] ? 'extend-native' : !argv.patched ? 'native' : argv.force ? 'patched-forced' : 'patched';
       const label = `${mode} ${browserType} ${browserVersion}`;
       const expectationsFile = expectationsPath(`${mode}-${browserType}`);
       const result = await runTests({
         ...testOptions,
         label,
         // Without --force, this is exactly what `web-streams-polyfill/auto` does.
-        initScript: argv.subclass
-          ? { content: await bundleSubclassInstaller() }
+        initScript: argv['extend-native']
+          ? { content: await bundleExtendNativeInstaller() }
           : !argv.patched ? undefined : argv.force ? { content: await bundleFeatureInstaller() } : { path: distPath('auto.js') },
         ignoredFailures: mergeIgnoredFailures(
           patchesNative ? replacedTestsPatched : {},
@@ -179,14 +179,14 @@ async function bundleFeatureInstaller() {
 }
 
 /**
- * Bundles a classic script for --subclass: it replaces the global classes with those of `web-streams-polyfill/subclass`.
+ * Bundles a classic script for --extend-native: it replaces the global classes with those of `web-streams-polyfill/extend-native`.
  */
-async function bundleSubclassInstaller() {
-  const subclassGlobals = JSON.stringify(path.resolve(import.meta.dirname, '../shared/subclass-globals.mjs'));
+async function bundleExtendNativeInstaller() {
+  const extendNativeGlobals = JSON.stringify(path.resolve(import.meta.dirname, '../shared/extend-native-globals.mjs'));
   return bundleScript(`
-    import * as subclass from ${JSON.stringify(distPath('subclass.mjs'))};
-    import { installSubclassGlobals } from ${subclassGlobals};
-    installSubclassGlobals(globalThis, subclass);
+    import * as extendNative from ${JSON.stringify(distPath('extend-native.mjs'))};
+    import { installExtendNativeGlobals } from ${extendNativeGlobals};
+    installExtendNativeGlobals(globalThis, extendNative);
   `);
 }
 

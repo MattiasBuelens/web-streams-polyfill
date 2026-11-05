@@ -4,9 +4,9 @@ import { typeIsObject } from '../lib/helpers/miscellaneous';
 import { reflectCall } from '../lib/helpers/webidl';
 
 /**
- * The classes exported by `web-streams-polyfill/subclass`, plus `adopt()`.
+ * The classes exported by `web-streams-polyfill/extend-native`, plus `adopt()`.
  */
-export type SubclassExports = Record<
+export type ExtendNativeExports = Record<
   'ReadableStream'
   | 'ReadableStreamDefaultController'
   | 'ReadableByteStreamController'
@@ -108,7 +108,7 @@ function copyMembers(target: object, nativePrototype: object) {
  * and `adopt()` converts any other native stream.
  * The subclasses can't keep any state of their own, since adopted streams never run their constructor.
  */
-export function createSubclasses(global: any): SubclassExports {
+export function createSubclasses(global: any): ExtendNativeExports {
   const NativeReadableStream = global.ReadableStream;
   const NativeWritableStream = global.WritableStream;
   const NativeTransformStream = global.TransformStream;

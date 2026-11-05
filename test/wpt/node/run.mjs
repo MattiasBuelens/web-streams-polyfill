@@ -13,7 +13,7 @@ import { FilteringReporter } from '../shared/filtering-reporter.mjs';
 import { expectationsPath, readExpectations, writeExpectations } from '../shared/expectations.mjs';
 import {
   excludedTestsNonES2018,
-  excludedTestsSubclass,
+  excludedTestsExtendNative,
   excludedTestsBase,
   ignoredFailuresBase,
   ignoredFailuresMinified,
@@ -70,11 +70,11 @@ const bufferTypes = [
 ];
 
 const argv = minimist(process.argv.slice(2), {
-  boolean: ['native', 'patched', 'subclass', 'force', 'update-expectations']
+  boolean: ['native', 'patched', 'extend-native', 'force', 'update-expectations']
 });
 
-// --patched and --subclass both build on the native implementation, and install the features that it's missing.
-const patchesNative = argv.patched || argv.subclass;
+// --patched and --extend-native both build on the native implementation, and install the features that it's missing.
+const patchesNative = argv.patched || argv['extend-native'];
 
 main().catch((e) => {
   console.error(e.stack);
@@ -86,7 +86,7 @@ async function main() {
   const excludedTests = [
     ...excludedTestsBase,
     ...(runtimeSupportsAsyncGenerators() ? [] : excludedTestsNonES2018),
-    ...(argv.subclass ? excludedTestsSubclass : [])
+    ...(argv['extend-native'] ? excludedTestsExtendNative : [])
   ];
 
   const results = [];
@@ -140,7 +140,7 @@ async function runPolyfillTests(results, { includedTests, excludedTests }) {
  * Instead, each test file runs in a worker thread, in Node's own realm.
  */
 async function runNativeTests({ includedTests, excludedTests }) {
-  const mode = argv.subclass ? 'subclass' : !argv.patched ? 'native' : argv.force ? 'patched-forced' : 'patched';
+  const mode = argv['extend-native'] ? 'extend-native' : !argv.patched ? 'native' : argv.force ? 'patched-forced' : 'patched';
   const label = `${mode} node ${process.version}`;
   const expectationsFile = expectationsPath(`${mode}-node`);
 
@@ -150,8 +150,8 @@ async function runNativeTests({ includedTests, excludedTests }) {
       ? path.resolve(import.meta.dirname, '../../../dist/feature/index.mjs')
       : undefined,
     force: argv.force,
-    subclassModule: argv.subclass
-      ? path.resolve(import.meta.dirname, '../../../dist/subclass.mjs')
+    extendNativeModule: argv['extend-native']
+      ? path.resolve(import.meta.dirname, '../../../dist/extend-native.mjs')
       : undefined,
     includedTests,
     excludedTests,
@@ -191,7 +191,7 @@ async function runNativeTests({ includedTests, excludedTests }) {
   return result;
 }
 
-async function runWorkerTests({ label, featureInstaller, force, subclassModule, includedTests, excludedTests, ignoredFailures }) {
+async function runWorkerTests({ label, featureInstaller, force, extendNativeModule, includedTests, excludedTests, ignoredFailures }) {
   const wptPath = path.resolve(import.meta.dirname, '../../web-platform-tests');
   const testsPath = path.resolve(wptPath, 'streams');
 
@@ -214,7 +214,7 @@ async function runWorkerTests({ label, featureInstaller, force, subclassModule, 
 
   for (const { suite, testFile } of tests) {
     reporter.startSuite(suite);
-    const { results, harnessStatus, unhandledRejections } = await runWorker({ wptPath, testFile, featureInstaller, force, subclassModule });
+    const { results, harnessStatus, unhandledRejections } = await runWorker({ wptPath, testFile, featureInstaller, force, extendNativeModule });
     for (const test of results) {
       reportTestResult(reporter, test);
     }
