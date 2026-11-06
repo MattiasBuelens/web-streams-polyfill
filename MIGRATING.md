@@ -3,7 +3,7 @@
 ## Version 4 to 5
 
 Version 5 can build on top of the built-in streams implementation of your browser or runtime,
-instead of always replacing it. See the [README](README.md#usage) for an overview of all variants.
+instead of always replacing it. See the [README](README.md#which-variant-should-i-use) for an overview of all variants.
 
 * The `polyfill` and `polyfill/es5` variants are renamed to `replace` and `replace/es5`.
   They still unconditionally replace the global stream classes, just like before.
