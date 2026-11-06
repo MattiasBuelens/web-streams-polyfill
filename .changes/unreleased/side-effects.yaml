@@ -1,0 +1,6 @@
+kind: 💅
+body: |
+  Add `"sideEffects"` to `package.json`, so bundlers can remove unused imports of `web-streams-polyfill`
+  and `web-streams-polyfill/es5`. Only `web-streams-polyfill/polyfill` and `web-streams-polyfill/polyfill/es5`
+  are marked as having side effects. ([#255](https://github.com/MattiasBuelens/web-streams-polyfill/pull/255))
+time: 2026-11-06T07:30:00Z

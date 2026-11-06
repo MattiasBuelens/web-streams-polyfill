@@ -4,6 +4,10 @@
   "description": "Web Streams, based on the WHATWG spec reference implementation",
   "main": "dist/ponyfill.js",
   "module": "dist/ponyfill.mjs",
+  "sideEffects": [
+    "./dist/polyfill.js",
+    "./dist/polyfill.es5.js"
+  ],
   "types": "types/ponyfill.d.ts",
   "exports": {
     ".": {
