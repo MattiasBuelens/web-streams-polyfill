@@ -1,0 +1,11 @@
+{
+  "browser": "chromium 156.0.8078.4",
+  "failures": {
+    "readable-byte-streams/patched-global.any.html": [
+      "Patched then() sees byobRequest after filling all pending pull-into descriptors"
+    ],
+    "readable-streams/general.any.html": [
+      "ReadableStream can't be constructed with an invalid type"
+    ]
+  }
+}

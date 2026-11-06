@@ -1,0 +1,5 @@
+kind: 🚀
+body: |
+  Add `web-streams-polyfill/feature/transformer-cancel`, which adds support for `transformer.cancel()`
+  on top of a native `TransformStream`. ([#248](https://github.com/MattiasBuelens/web-streams-polyfill/pull/248))
+time: 2026-11-03T08:00:00Z

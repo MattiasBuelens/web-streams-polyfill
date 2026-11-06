@@ -7,8 +7,9 @@ import { parentPort, workerData } from 'node:worker_threads';
 import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
+import { forceOwnTransformStream, hideNativeFeatures } from '../shared/force-features.mjs';
 
-const { wptPath, testFile, featureInstaller } = workerData;
+const { wptPath, testFile, featureInstaller, force } = workerData;
 
 // The same rewrites as the WPT server (see tools/serve/serve.py)
 const scriptRewrites = {
@@ -50,14 +51,15 @@ process.on('unhandledRejection', (reason) => {
 });
 
 if (featureInstaller) {
-  // Node implements every feature already, so remove the native ones first.
-  delete ReadableStream.from;
-  delete ReadableStream.prototype.values;
-  delete ReadableStream.prototype[Symbol.asyncIterator];
+  // Node implements every feature already, so hide the native ones first.
+  hideNativeFeatures(globalThis);
   const { installAll } = await import(featureInstaller);
   const report = installAll(globalThis);
-  if (!report.success || report.installed.length === 0) {
-    throw new Error('Failed to install the feature modules');
+  if (!report.success || report.installed.length !== 3) {
+    throw new Error(`Failed to install the feature modules: ${report.installed.join(', ')}`);
+  }
+  if (force) {
+    forceOwnTransformStream(globalThis);
   }
 }
 

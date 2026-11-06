@@ -367,7 +367,7 @@ function types(): RolldownOptions {
  * They're only published as ES modules, and only run in engines with native streams,
  * so they target ES2018 (they need async generators for `%AsyncIteratorPrototype%`).
  */
-const features = ['index', 'readable-stream-from', 'async-iterator'];
+const features = ['index', 'readable-stream-from', 'async-iterator', 'transformer-cancel'];
 const featureInput = Object.fromEntries(features.map(name => [`feature/${name}`, `src/feature/${name}.ts`]));
 
 function featureBundle(): RolldownOptions {
