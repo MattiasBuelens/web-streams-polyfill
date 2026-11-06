@@ -75,12 +75,7 @@ export function ReadableStreamPipeTo<T>(
   });
 }
 
-const enum StateChange {
-  None,
-  SourceErrored,
-  SourceClosed,
-  DestErrored
-}
+type StateChange = 'none' | 'source-errored' | 'source-closed' | 'dest-errored';
 
 const resolvedPromise = promiseResolvedWith<void>(undefined);
 const resolvedTruePromise = promiseResolvedWith(true);
@@ -124,7 +119,7 @@ class PipeEngine<T> implements ReadRequest<T> {
   readonly _stepExecutor: (resolve: (done: boolean) => void, reject: (reason: any) => void) => void;
 
   // The first state change of the source or the destination.
-  _stateChange = StateChange.None;
+  _stateChange: StateChange = 'none';
   _stateChangeError: any = undefined;
   _resolveStateChange: (() => void) | undefined = undefined;
 
@@ -324,23 +319,23 @@ class PipeEngine<T> implements ReadRequest<T> {
     if (source._state === 'readable') {
       readerSetStateChangeListener(this._reader, () => {
         if (source._state === 'errored') {
-          this._onStateChange(StateChange.SourceErrored, source._storedError);
+          this._onStateChange('source-errored', source._storedError);
         } else {
           assert(source._state === 'closed');
-          this._onStateChange(StateChange.SourceClosed, undefined);
+          this._onStateChange('source-closed', undefined);
         }
       });
     }
     if (dest._state === 'writable' || dest._state === 'erroring') {
       writerSetStateChangeListener(this._writer, () => {
         assert(dest._state === 'errored');
-        this._onStateChange(StateChange.DestErrored, dest._storedError);
+        this._onStateChange('dest-errored', dest._storedError);
       });
     }
   }
 
   _onStateChange(stateChange: StateChange, storedError: any): void {
-    if (this._stateChange !== StateChange.None) {
+    if (this._stateChange !== 'none') {
       // Already notified. The shutdown steps of the first change win, as with separate promise reactions.
       return;
     }
@@ -351,13 +346,13 @@ class PipeEngine<T> implements ReadRequest<T> {
 
   _runStateChangeSteps(): void {
     switch (this._stateChange) {
-      case StateChange.SourceErrored:
+      case 'source-errored':
         this._sourceErrored(this._stateChangeError);
         break;
-      case StateChange.SourceClosed:
+      case 'source-closed':
         this._sourceClosed();
         break;
-      case StateChange.DestErrored:
+      case 'dest-errored':
         this._destErrored(this._stateChangeError);
         break;
       default:
@@ -546,7 +541,13 @@ class PipeEngine<T> implements ReadRequest<T> {
 }
 
 class PipeWriteRequest<T> implements WriteRequest {
-  constructor(private readonly _engine: PipeEngine<T>, private readonly _writeNumber: number) {}
+  readonly _engine: PipeEngine<T>;
+  readonly _writeNumber: number;
+
+  constructor(engine: PipeEngine<T>, writeNumber: number) {
+    this._engine = engine;
+    this._writeNumber = writeNumber;
+  }
 
   _resolve() {
     this._engine._writeSettled(this._writeNumber);
