@@ -59,9 +59,41 @@ jobs:
           echo '## Bundle size' >> $GITHUB_STEP_SUMMARY
           npm run --silent size | tee --append $GITHUB_STEP_SUMMARY
 
+  playwright-version:
+    name: Detect Playwright version
+    runs-on: ubuntu-latest
+    if: |
+      (github.event_name != 'pull_request' || github.event.pull_request.draft != true) &&
+      (github.event_name != 'push' || !contains(github.event.head_commit.message, '[skip ci]'))
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: Check out commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          sparse-checkout: package-lock.json
+          sparse-checkout-cone-mode: false
+      # Dependabot doesn't update job container images, so read the locked
+      # Playwright version and use the matching image instead of pinning it.
+      - name: Read Playwright version from package-lock.json
+        id: version
+        run: |
+          version="$(jq -r '.packages["node_modules/playwright"].version // empty' package-lock.json)"
+          if [[ -z "$version" ]]; then
+            echo '::error::Playwright is missing from package-lock.json.'
+            exit 1
+          fi
+          echo "Playwright $version"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
   test-browser:
     name: ${{ matrix.browser }}
     runs-on: ubuntu-latest
+    needs: playwright-version
+    container:
+      image: mcr.microsoft.com/playwright:v${{ needs.playwright-version.outputs.version }}-noble
+    timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
@@ -81,8 +113,10 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: npm
       - run: npm ci
-      - run: npx playwright install --with-deps ${{ matrix.browser }}
       - run: npm run test:wpt:${{ matrix.browser }}
+        env:
+          # Firefox won't launch as root when HOME is owned by another user (/github/home).
+          HOME: /root
 
   changes:
     name: Detect changes
