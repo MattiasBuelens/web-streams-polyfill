@@ -5,7 +5,6 @@ import {
   type ReadableByteStream
 } from '../lib/readable-stream';
 import {
-  type ByteQueueElement,
   ReadableByteStreamController,
   ReadableStreamBYOBRequest,
   SetUpReadableByteStreamControllerFromUnderlyingSource
@@ -19,7 +18,6 @@ import {
 } from '../lib/readable-stream/default-reader';
 import { readerSetStateChangeListener } from '../lib/readable-stream/generic-reader';
 import { ReadableByteStreamTee } from '../lib/readable-stream/tee';
-import { SimpleQueue } from '../lib/simple-queue';
 import type { ValidatedUnderlyingByteSource } from '../lib/readable-stream/underlying-source';
 import { ExtractHighWaterMark } from '../lib/abstract-ops/queuing-strategy';
 import { setFunctionName, typeIsObject } from '../lib/helpers/miscellaneous';
@@ -305,11 +303,7 @@ export function install(classes: StreamClasses = getGlobals()): boolean {
         return false;
       }
       const controller = byteStream._readableStreamController as ReadableByteStreamController;
-      const queue = controller._queue;
-      const newQueue = new SimpleQueue<ByteQueueElement>();
-      newQueue.push({ buffer: chunk.buffer as ArrayBuffer, byteOffset: chunk.byteOffset, byteLength: chunk.byteLength });
-      queue.forEach(element => newQueue.push(element));
-      controller._queue = newQueue;
+      controller._queue.pushFront({ buffer: chunk.buffer as ArrayBuffer, byteOffset: chunk.byteOffset, byteLength: chunk.byteLength });
       controller._queueTotalSize += chunk.byteLength;
       return true;
     }

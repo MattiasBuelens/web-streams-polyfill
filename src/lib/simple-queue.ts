@@ -84,6 +84,36 @@ export class SimpleQueue<T> {
     ++this._size;
   }
 
+  // Adds an element to the front of the queue, so the next shift() returns it.
+  pushFront(element: T): void {
+    if (this._front === EMPTY_NODE) {
+      this.push(element);
+      return;
+    }
+
+    const front = this._front;
+    const cursor = this._cursor;
+    if (cursor > 0) {
+      // Reuse the slot of the last shifted element.
+      front._elements[cursor - 1] = element;
+      this._cursor = cursor - 1;
+    } else if (front._elements.length < QUEUE_MAX_ARRAY_SIZE - 1) {
+      // The front node is also the back node, and push() can still add to it after this.
+      assert(front === this._back);
+      front._elements.unshift(element);
+    } else {
+      // The front node is full: add a new full-sized front node, with only its last slot in use.
+      const elements: T[] = new Array(QUEUE_MAX_ARRAY_SIZE);
+      elements[QUEUE_MAX_ARRAY_SIZE - 1] = element;
+      this._front = {
+        _elements: elements,
+        _next: front
+      };
+      this._cursor = QUEUE_MAX_ARRAY_SIZE - 1;
+    }
+    ++this._size;
+  }
+
   // Like push(), shift() follows the read -> calculate -> mutate pattern for
   // exception safety.
   shift(): T {
