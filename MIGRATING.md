@@ -1,5 +1,36 @@
 # Migrating
 
+## Version 4 to 5
+
+Version 5 can build on top of the built-in streams implementation of your browser or runtime,
+instead of always replacing it. See the [README](README.md#usage) for an overview of all variants.
+
+* The `polyfill` and `polyfill/es5` variants are renamed to `replace` and `replace/es5`.
+  They still unconditionally replace the global stream classes, just like before.
+  The old names are removed, so that no existing import silently changes its behavior.
+* The new `auto` variant is the recommended polyfill for web apps. It keeps the built-in stream classes
+  if they are complete enough, and only adds the features they're missing (such as `ReadableStream.from()`
+  or `transformer.cancel()`). Otherwise, it replaces them, like `replace`.
+  Unlike `replace`, streams keep working with browser APIs such as `fetch()` and `Response`.
+  The `auto` variant targets ES2018. If you need to support ES5 environments, keep using `replace/es5`.
+* The new `extend-native` variant is a ponyfill that exports subclasses of the built-in stream classes,
+  with the missing features added. Use `adopt(stream)` to convert streams created by the browser,
+  such as `Response.body`. It falls back to this library's own implementation if the built-in streams are not complete enough.
+* The new `feature` variants let you install individual features on top of the built-in streams.
+* The ponyfill variants (`web-streams-polyfill` and `web-streams-polyfill/es5`) are unchanged.
+
+The following table shows how to upgrade your v4 import to its equivalent v5 import:
+
+| v4 import | v5 import | description |
+| --- | --- | --- |
+| `web-streams-polyfill/polyfill` | `web-streams-polyfill/auto` (recommended) or `web-streams-polyfill/replace` | ES2018+ polyfill on top of built-in streams, or ES2015+ polyfill that always replaces them |
+| `web-streams-polyfill/polyfill/es5` | `web-streams-polyfill/replace/es5` | ES5+ polyfill |
+| `web-streams-polyfill` | `web-streams-polyfill` | ES2015+ ponyfill |
+| `web-streams-polyfill/es5` | `web-streams-polyfill/es5` | ES5+ ponyfill |
+
+If you load the polyfill through a `<script>` tag, replace `dist/polyfill.js` with `dist/auto.js` (or `dist/replace.js`),
+and `dist/polyfill.es5.js` with `dist/replace.es5.js`.
+
 ## Version 3 to 4
 
 Version 4 restructures the library's exports to have more modern defaults, and employs modern best practices for publishing npm packages.
