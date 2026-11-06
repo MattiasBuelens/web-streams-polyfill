@@ -13,7 +13,6 @@ import {
   WritableStreamDefaultController,
   WritableStreamDefaultWriter
 } from './ponyfill';
-import { globals } from './globals';
 
 const exports = {
   ReadableStream,
@@ -34,13 +33,17 @@ const exports = {
   TransformStreamDefaultController
 };
 
-// Add classes to global scope
-for (const prop in exports) {
-  if (Object.prototype.hasOwnProperty.call(exports, prop)) {
-    Object.defineProperty(globals!, prop, {
-      value: exports[prop as (keyof typeof exports)],
-      writable: true,
-      configurable: true
-    });
+/**
+ * Replaces the stream classes on the given global object with our own implementation.
+ */
+export function installGlobals(target: object): void {
+  for (const prop in exports) {
+    if (Object.prototype.hasOwnProperty.call(exports, prop)) {
+      Object.defineProperty(target, prop, {
+        value: exports[prop as (keyof typeof exports)],
+        writable: true,
+        configurable: true
+      });
+    }
   }
 }

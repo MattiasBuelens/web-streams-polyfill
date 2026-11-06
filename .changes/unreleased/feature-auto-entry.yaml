@@ -1,0 +1,6 @@
+kind: 🚀
+body: |
+  Add `web-streams-polyfill/auto`, a script that installs only the missing features on top of
+  the native stream classes, or replaces them entirely if they're not complete enough to build on.
+  It targets ES2018. ([#250](https://github.com/MattiasBuelens/web-streams-polyfill/pull/250))
+time: 2026-11-04T08:30:01Z

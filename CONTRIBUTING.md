@@ -40,6 +40,7 @@ These baselines tell us which tests a browser already fails on its own, before t
 
 `npm run test:wpt:patched` runs them again after installing the feature modules (`web-streams-polyfill/feature`)
 on top of each native implementation, and compares against `test/wpt/expectations/patched-<browser>.json`.
+In browsers, this loads `dist/auto.js` (`web-streams-polyfill/auto`), which does exactly that for a patchable browser.
 Installing features must never break a test that passes natively: re-recording patched expectations fails
 if a test fails only when patched.
 

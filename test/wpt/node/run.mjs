@@ -17,6 +17,7 @@ import {
   ignoredFailuresBase,
   ignoredFailuresMinified,
   ignoredFailuresES5,
+  isReplacedTest,
   mergeIgnoredFailures,
   modifiedSuitePrefix,
   modifiedTestsPath,
@@ -99,9 +100,10 @@ async function main() {
     if (rejectionsCount > 0) {
       console.log(`  * ${rejectionsCount} unhandled promise rejections`);
     }
-    if ((argv.native || argv.patched) && testResults.unusedIgnoredFailures.length > 0) {
-      console.log(`  * ${testResults.unusedIgnoredFailures.length} expected failures did not fail:`);
-      for (const { suite, test } of testResults.unusedIgnoredFailures) {
+    const unusedIgnoredFailures = testResults.unusedIgnoredFailures.filter(({ suite, test }) => !isReplacedTest(suite, test));
+    if ((argv.native || argv.patched) && unusedIgnoredFailures.length > 0) {
+      console.log(`  * ${unusedIgnoredFailures.length} expected failures did not fail:`);
+      for (const { suite, test } of unusedIgnoredFailures) {
         console.log(`    - ${suite}: ${test}`);
       }
     }
@@ -111,12 +113,12 @@ async function main() {
 }
 
 async function runPolyfillTests(results, { includedTests, excludedTests }) {
-  results.push(await runJsdomTests('polyfill.js', {
+  results.push(await runJsdomTests('replace.js', {
     includedTests,
     excludedTests,
     ignoredFailures: mergeIgnoredFailures(ignoredFailuresBase, ignoredFailuresMinified)
   }));
-  results.push(await runJsdomTests('polyfill.es5.js', {
+  results.push(await runJsdomTests('replace.es5.js', {
     includedTests,
     excludedTests,
     ignoredFailures: mergeIgnoredFailures(ignoredFailuresES5, ignoredFailuresMinified)

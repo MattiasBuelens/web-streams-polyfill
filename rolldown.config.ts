@@ -50,7 +50,7 @@ const keepNames = [
 type Target = 'es2015' | 'es5' | 'es2018';
 
 interface Output {
-  entry: 'polyfill' | 'ponyfill';
+  entry: 'replace' | 'ponyfill';
   format: ModuleFormat;
   ext: 'js' | 'mjs';
 }
@@ -60,7 +60,7 @@ interface Output {
  * `dist/<entry>.<ext>` for ES2015 and `dist/<entry>.es5.<ext>` for ES5.
  */
 const outputs: Output[] = [
-  { entry: 'polyfill', format: 'iife', ext: 'js' },
+  { entry: 'replace', format: 'iife', ext: 'js' },
   { entry: 'ponyfill', format: 'umd', ext: 'js' },
   { entry: 'ponyfill', format: 'esm', ext: 'mjs' }
 ];
@@ -68,12 +68,12 @@ const outputs: Output[] = [
 /**
  * Input options shared by all bundles, for bundling our TypeScript sources at ES2015.
  */
-function sourceInput(entry: string): InputOptions {
+function sourceInput(entry: string, target: 'es2015' | 'es2018' = 'es2015'): InputOptions {
   return {
     input: `src/${entry}.ts`,
     tsconfig: 'tsconfig.json',
     transform: {
-      target: 'es2015',
+      target,
       define: { DEBUG: String(debug) }
     },
     plugins: [!debug && stripAsserts()],
@@ -333,6 +333,37 @@ function bundle({ entry, format, ext }: Output, target: Target): RolldownOptions
 }
 
 /**
+ * `dist/auto.js`, which installs the missing features on top of a native implementation,
+ * or replaces it entirely if it's not complete enough to build on.
+ * It includes the feature modules, so it targets ES2018 like them.
+ */
+function autoBundle(): RolldownOptions {
+  const input = sourceInput('auto', 'es2018');
+  return {
+    ...input,
+    plugins: [input.plugins, outputGuard('es2018')],
+    output: {
+      file: 'dist/auto.js',
+      format: 'iife',
+      exports: 'none',
+      strict: false,
+      intro: '"use strict";',
+      generatedCode: { preset: 'es2015', symbols: false },
+      sourcemap: debug ? 'inline' : false,
+      postBanner: banner,
+      comments: debug ? true : { legal: false, annotation: false, jsdoc: false },
+      minify: debug
+        ? false
+        : {
+            compress: { target: 'es2018' },
+            mangle: { toplevel: true, reserved: keepNames },
+            codegen: true
+          }
+    }
+  };
+}
+
+/**
  * Copies `ponyfill.d.ts` to `ponyfill.d.mts`, so TypeScript sees ESM types for the `import` condition
  * (instead of CommonJS types, which would make default imports ambiguous).
  */
@@ -350,7 +381,7 @@ function dtsForESM(): Plugin {
 
 /**
  * Bundled type definitions in `types/ponyfill.d.ts`.
- * (`types/polyfill.d.ts` is hand-written, and re-exports these.)
+ * (`types/replace.d.ts` and `types/auto.d.ts` are hand-written.)
  */
 function types(): RolldownOptions {
   return {
@@ -415,6 +446,7 @@ function featureTypes(): RolldownOptions {
 
 export default defineConfig([
   ...outputs.flatMap(output => [bundle(output, 'es2015'), bundle(output, 'es5')]),
+  autoBundle(),
   types(),
   featureBundle(),
   featureTypes()

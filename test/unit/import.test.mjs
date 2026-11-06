@@ -8,11 +8,14 @@ describe('import() package exports', () => {
   describe('es5 export', () => {
     testPonyfill('web-streams-polyfill/es5', 'ponyfill.es5.mjs');
   });
-  describe('polyfill export', () => {
-    testPolyfill('web-streams-polyfill/polyfill', 'polyfill.js');
+  describe('auto export', () => {
+    testPolyfill('web-streams-polyfill/auto', 'auto.js');
   });
-  describe('polyfill/es5 export', () => {
-    testPolyfill('web-streams-polyfill/polyfill/es5', 'polyfill.es5.js');
+  describe('replace export', () => {
+    testPolyfill('web-streams-polyfill/replace', 'replace.js');
+  });
+  describe('replace/es5 export', () => {
+    testPolyfill('web-streams-polyfill/replace/es5', 'replace.es5.js');
   });
 });
 
