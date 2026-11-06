@@ -244,6 +244,48 @@ describe('readable-byte-streams feature', () => {
     assert.deepEqual(chunks, [1, 2]);
   });
 
+  it('keeps chunks for the next reader after an aborted pipe released its reader', async () => {
+    const { ReadableStream } = installed();
+    let controller;
+    const stream = new ReadableStream({
+      type: 'bytes',
+      start(c) {
+        controller = c;
+      }
+    });
+    const abortController = new AbortController();
+    const pipe = stream.pipeTo(new WritableStream(), { signal: abortController.signal, preventCancel: true });
+    await new Promise(resolve => setTimeout(resolve, 0));
+    abortController.abort();
+    await assert.rejects(pipe);
+    // The pipe's reader is gone, so this chunk must stay in our byte stream's queue (not in the native stream's queue).
+    controller.enqueue(new Uint8Array([42]));
+    const reader = stream.getReader({ mode: 'byob' });
+    const { value } = await reader.read(new Uint8Array(1));
+    assert.deepEqual([...value], [42]);
+  });
+
+  it('disturbs the native stream on a BYOB read', async () => {
+    const { ReadableStream } = installed();
+    const stream = new ReadableStream({
+      type: 'bytes',
+      start(c) {
+        c.enqueue(new Uint8Array([1, 2, 3]));
+        c.close();
+      }
+    });
+    const response = new Response(stream);
+    assert.equal(response.bodyUsed, false);
+    const reader = stream.getReader({ mode: 'byob' });
+    const { value } = await reader.read(new Uint8Array(1));
+    assert.deepEqual([...value], [1]);
+    assert.equal(response.bodyUsed, true);
+    reader.releaseLock();
+    assert.throws(() => response.clone(), TypeError);
+    // The next reader gets the rest of the bytes.
+    assert.deepEqual(await readAll(stream.getReader()), [2, 3]);
+  });
+
   it('rejects a BYOB reader for a default stream', () => {
     const { ReadableStream } = installed();
     assert.throws(() => new ReadableStream().getReader({ mode: 'byob' }), TypeError);

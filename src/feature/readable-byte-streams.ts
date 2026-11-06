@@ -5,6 +5,7 @@ import {
   type ReadableByteStream
 } from '../lib/readable-stream';
 import {
+  type ByteQueueElement,
   ReadableByteStreamController,
   ReadableStreamBYOBRequest,
   SetUpReadableByteStreamControllerFromUnderlyingSource
@@ -18,6 +19,7 @@ import {
 } from '../lib/readable-stream/default-reader';
 import { readerSetStateChangeListener } from '../lib/readable-stream/generic-reader';
 import { ReadableByteStreamTee } from '../lib/readable-stream/tee';
+import { SimpleQueue } from '../lib/simple-queue';
 import type { ValidatedUnderlyingByteSource } from '../lib/readable-stream/underlying-source';
 import { ExtractHighWaterMark } from '../lib/abstract-ops/queuing-strategy';
 import { setFunctionName, typeIsObject } from '../lib/helpers/miscellaneous';
@@ -100,6 +102,7 @@ export function install(classes: StreamClasses = getGlobals()): boolean {
    */
   class ByteStreamAdapter {
     readonly _byteStream: ReadableByteStream;
+    _nativeStream: ReadableStream<Uint8Array> | undefined = undefined;
     _nativeController: ReadableStreamDefaultController<Uint8Array> | undefined = undefined;
     _internalReader: OwnReadableStreamDefaultReader<Uint8Array> | undefined = undefined;
     _nativeReader: ReadableStreamDefaultReader | undefined = undefined;
@@ -107,6 +110,12 @@ export function install(classes: StreamClasses = getGlobals()): boolean {
     _nativeReads = 0;
     /** The number of pending reads on our byte stream, made by _pull(). */
     _internalReads = 0;
+    /** Whether the native stream is locked by a reader from getReader(), whose reads we count. */
+    _countingReaderActive = false;
+    /** Whether a BYOB read has disturbed the native stream, see _disturbNative(). */
+    _nativeDisturbed = false;
+    /** Whether _nativeReader has a pending read from _disturbNative(). */
+    _disturbReadPending = false;
 
     constructor(byteStream: ReadableByteStream) {
       this._byteStream = byteStream;
@@ -127,6 +136,7 @@ export function install(classes: StreamClasses = getGlobals()): boolean {
       strategy.highWaterMark = 0;
       const stream: ReadableStream<Uint8Array> = Reflect.construct(NativeReadableStream, [source, strategy], newTarget) as any;
       adapters.set(stream, this);
+      this._nativeStream = stream;
       this._acquireInternalReader();
       return stream;
     }
@@ -169,7 +179,35 @@ export function install(classes: StreamClasses = getGlobals()): boolean {
       this._releaseInternalReader();
     }
 
+    /**
+     * Marks the native stream as disturbed (e.g. for `Response.bodyUsed`), once a BYOB read has disturbed our byte stream.
+     * This makes a read on the native reader that locks the native stream. Nobody else can read from it,
+     * so the read stays pending until the native stream closes or errors, or until _unlockNative() settles it.
+     */
+    _disturbNative() {
+      if (this._nativeDisturbed || this._nativeReader === undefined || !this._byteStream._disturbed) {
+        return;
+      }
+      this._nativeDisturbed = true;
+      this._disturbReadPending = true;
+      reflectCall(nativeRead, this._nativeReader, []).then(this._onDisturbReadSettled, this._onDisturbReadSettled);
+    }
+
+    private readonly _onDisturbReadSettled = () => {
+      this._disturbReadPending = false;
+    };
+
     _unlockNative() {
+      if (this._disturbReadPending) {
+        // Settle the pending read with a dummy chunk, since older engines throw in releaseLock() while a read is pending.
+        // (If the native stream is closed or errored, the read is already settled and enqueue() throws.)
+        this._disturbReadPending = false;
+        try {
+          this._nativeController!.enqueue(new Uint8Array(0));
+        } catch {
+          // The native stream is closed or errored.
+        }
+      }
       reflectCall(nativeReleaseLock, this._nativeReader, []);
       this._nativeReader = undefined;
       this._acquireInternalReader();
@@ -234,6 +272,10 @@ export function install(classes: StreamClasses = getGlobals()): boolean {
       this._internalReads--;
       if (this._nativeReads > 0) {
         this._nativeReads--;
+      } else if (this._isNativeIdle() && this._putBack(chunk)) {
+        // The native read that this read was for is gone, e.g. pipeTo() released its reader after an abort.
+        // Keep the chunk in our byte stream's queue for the next reader, which might be a BYOB reader.
+        return;
       }
       try {
         this._nativeController!.enqueue(chunk);
@@ -244,6 +286,33 @@ export function install(classes: StreamClasses = getGlobals()): boolean {
         this._syncState();
       }
     };
+
+    /**
+     * Returns whether nobody can be waiting on a read of the native stream:
+     * it's unlocked, or locked by a reader whose reads we count and which has no pending reads.
+     */
+    _isNativeIdle(): boolean {
+      return this._countingReaderActive || !reflectCall(nativeLocked, this._nativeStream, []);
+    }
+
+    /**
+     * Puts a chunk that our internal reader has read back at the front of our byte stream's queue.
+     * Returns false if that's no longer possible, because our byte stream is now closed.
+     */
+    _putBack(chunk: Uint8Array): boolean {
+      const byteStream = this._byteStream;
+      if (byteStream._state !== 'readable') {
+        return false;
+      }
+      const controller = byteStream._readableStreamController as ReadableByteStreamController;
+      const queue = controller._queue;
+      const newQueue = new SimpleQueue<ByteQueueElement>();
+      newQueue.push({ buffer: chunk.buffer as ArrayBuffer, byteOffset: chunk.byteOffset, byteLength: chunk.byteLength });
+      queue.forEach(element => newQueue.push(element));
+      controller._queue = newQueue;
+      controller._queueTotalSize += chunk.byteLength;
+      return true;
+    }
 
     private readonly _onDone = () => {
       this._internalReads--;
@@ -366,7 +435,9 @@ export function install(classes: StreamClasses = getGlobals()): boolean {
       } catch (e) {
         return promiseRejectedWith(e);
       }
-      return reflectCall(ownReaderPrototype.read as any, state.reader, [view, options]);
+      const promise: Promise<any> = reflectCall(ownReaderPrototype.read as any, state.reader, [view, options]);
+      state.adapter._disturbNative();
+      return promise;
     }
 
     releaseLock(): void {
@@ -414,6 +485,7 @@ export function install(classes: StreamClasses = getGlobals()): boolean {
       const adapter = readerAdapters.get(this);
       if (adapter !== undefined) {
         adapter._nativeReads = 0;
+        adapter._countingReaderActive = false;
         readerAdapters.delete(this);
         adapter._cancelInternalReads();
       }
@@ -460,6 +532,7 @@ export function install(classes: StreamClasses = getGlobals()): boolean {
     if (adapter !== undefined && Object.getPrototypeOf(reader) === nativeDefaultReaderPrototype) {
       Object.setPrototypeOf(reader, countingReaderPrototype);
       readerAdapters.set(reader, adapter);
+      adapter._countingReaderActive = true;
     }
     return reader;
   }

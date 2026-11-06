@@ -141,7 +141,7 @@ if (typeof Symbol.toStringTag === 'symbol') {
   });
 }
 
-interface ByteQueueElement {
+export interface ByteQueueElement {
   buffer: ArrayBuffer;
   byteOffset: number;
   byteLength: number;
