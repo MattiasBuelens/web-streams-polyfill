@@ -2,8 +2,8 @@ import path from 'node:path';
 import http from 'node:http';
 import fs from 'node:fs/promises';
 import { promisify } from 'node:util';
+import { pathToFileURL } from 'node:url';
 import micromatch from 'micromatch';
-import { chromium, firefox, webkit } from 'playwright';
 import minimist from 'minimist';
 import { build } from 'rolldown';
 import { setupServer } from './server.mjs';
@@ -25,11 +25,19 @@ import {
   withoutReplacedTests
 } from '../shared/exclusions.mjs';
 
+// To test an older browser, point WPT_PLAYWRIGHT_MODULE to an older Playwright release (see test/wpt/OLD-BROWSERS.md).
+const { chromium, firefox, webkit } = await import(
+  process.env.WPT_PLAYWRIGHT_MODULE ? pathToFileURL(process.env.WPT_PLAYWRIGHT_MODULE).href : 'playwright'
+);
+
 const serverCloseAsync = promisify(http.Server.prototype.close);
+
+// testharness.js times out a test file after 60 seconds (with `timeout=long`), so this only catches hangs and crashes.
+const testFileTimeout = 120_000;
 
 const argv = minimist(process.argv.slice(2), {
   string: ['browser'],
-  boolean: ['native', 'patched', 'extend-native', 'force', 'update-expectations']
+  boolean: ['native', 'patched', 'extend-native', 'force', 'hide-bytes', 'update-expectations']
 });
 
 // --patched and --extend-native both build on the browser's own implementation, and install the features that it's missing.
@@ -78,17 +86,25 @@ async function main() {
       // With --extend-native, replace the global classes with those of `web-streams-polyfill/extend-native`.
       // With --patched --force, hide the browser's own features first, so all feature modules get installed,
       // and use our TransformStream (on top of native streams) for every transformer.
+      // With --patched --hide-bytes, also hide the browser's byte streams, so our byte streams are used on top of native streams
+      // (like on a browser without byte streams, e.g. Safari before 26.4).
       // Known failures are recorded per browser in an expectations file.
-      const mode = argv['extend-native'] ? 'extend-native' : !argv.patched ? 'native' : argv.force ? 'patched-forced' : 'patched';
+      const mode = argv['extend-native'] ? 'extend-native'
+        : !argv.patched ? 'native'
+          : argv.force ? 'patched-forced'
+            : argv['hide-bytes'] ? 'patched-no-bytes'
+              : 'patched';
       const label = `${mode} ${browserType} ${browserVersion}`;
       const expectationsFile = expectationsPath(`${mode}-${browserType}`);
       const result = await runTests({
         ...testOptions,
         label,
-        // Without --force, this is exactly what `web-streams-polyfill/auto` does.
+        // Without --force or --hide-bytes, this is exactly what `web-streams-polyfill/auto` does.
         initScript: argv['extend-native']
           ? { content: await bundleExtendNativeInstaller() }
-          : !argv.patched ? undefined : argv.force ? { content: await bundleFeatureInstaller() } : { path: distPath('auto.js') },
+          : !argv.patched ? undefined
+            : argv.force || argv['hide-bytes'] ? { content: await bundleFeatureInstaller({ force: argv.force, hideBytes: argv['hide-bytes'] }) }
+              : { path: distPath('auto.js') },
         ignoredFailures: mergeIgnoredFailures(
           patchesNative ? replacedTestsPatched : {},
           argv['update-expectations'] ? {} : await readExpectations(expectationsFile)
@@ -164,17 +180,19 @@ function distPath(file) {
 }
 
 /**
- * Bundles a classic script for --patched --force: it hides the browser's own features, installs all feature modules,
- * and makes every TransformStream use ours. (The feature modules are only published as ES modules.)
+ * Bundles a classic script for --patched --force or --patched --hide-bytes: it hides the browser's own features
+ * (and with `hideBytes`, its byte streams), and installs all feature modules.
+ * With `force`, it also makes every TransformStream use ours. (The feature modules are only published as ES modules.)
  */
-async function bundleFeatureInstaller() {
+async function bundleFeatureInstaller({ force, hideBytes }) {
   const forceFeatures = JSON.stringify(path.resolve(import.meta.dirname, '../shared/force-features.mjs'));
   return bundleScript(`
     import { installAll } from ${JSON.stringify(distPath('feature/index.mjs'))};
-    import { hideNativeFeatures, forceOwnTransformStream } from ${forceFeatures};
+    import { hideNativeFeatures, hideByteStreams, forceOwnTransformStream } from ${forceFeatures};
     hideNativeFeatures(globalThis);
+    ${hideBytes ? 'hideByteStreams(globalThis);' : ''}
     installAll(globalThis);
-    forceOwnTransformStream(globalThis);
+    ${force ? 'forceOwnTransformStream(globalThis);' : ''}
   `);
 }
 
@@ -335,8 +353,23 @@ async function runTest(page, testUrl, reporter) {
     }
   });
 
-  await page.goto(testUrl);
-  return await donePromise;
+  // Fail the test file if the page crashes or never reports completion (e.g. an older browser hangs),
+  // instead of waiting forever.
+  page.on('crash', () => {
+    reporter.fail('test page crashed');
+    resolveDone(false);
+  });
+  const completionTimeout = setTimeout(() => {
+    reporter.fail(`test harness did not complete within ${testFileTimeout / 1000} seconds`);
+    resolveDone(false);
+  }, testFileTimeout);
+
+  try {
+    await page.goto(testUrl);
+    return await donePromise;
+  } finally {
+    clearTimeout(completionTimeout);
+  }
 }
 
 function browserTypeByName(name) {

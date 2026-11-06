@@ -57,6 +57,10 @@
       "types": "./types/feature/index.d.mts",
       "default": "./dist/feature/index.mjs"
     },
+    "./feature/readable-byte-streams": {
+      "types": "./types/feature/readable-byte-streams.d.mts",
+      "default": "./dist/feature/readable-byte-streams.mjs"
+    },
     "./feature/readable-stream-from": {
       "types": "./types/feature/readable-stream-from.d.mts",
       "default": "./dist/feature/readable-stream-from.mjs"
@@ -100,6 +104,11 @@
     "test:wpt:patched-forced:firefox": "node ./test/wpt/browser/run.mjs --patched --force --browser firefox",
     "test:wpt:patched-forced:webkit": "node ./test/wpt/browser/run.mjs --patched --force --browser webkit",
     "test:wpt:patched-forced:node": "node --expose_gc ./test/wpt/node/run.mjs --patched --force",
+    "test:wpt:patched-no-bytes": "npm run test:wpt:patched-no-bytes:chromium && npm run test:wpt:patched-no-bytes:firefox && npm run test:wpt:patched-no-bytes:webkit && npm run test:wpt:patched-no-bytes:node",
+    "test:wpt:patched-no-bytes:chromium": "node ./test/wpt/browser/run.mjs --patched --hide-bytes --browser chromium",
+    "test:wpt:patched-no-bytes:firefox": "node ./test/wpt/browser/run.mjs --patched --hide-bytes --browser firefox",
+    "test:wpt:patched-no-bytes:webkit": "node ./test/wpt/browser/run.mjs --patched --hide-bytes --browser webkit",
+    "test:wpt:patched-no-bytes:node": "node --expose_gc ./test/wpt/node/run.mjs --patched --hide-bytes",
     "test:wpt:extend-native": "npm run test:wpt:extend-native:chromium && npm run test:wpt:extend-native:firefox && npm run test:wpt:extend-native:webkit && npm run test:wpt:extend-native:node",
     "test:wpt:extend-native:chromium": "node ./test/wpt/browser/run.mjs --extend-native --browser chromium",
     "test:wpt:extend-native:firefox": "node ./test/wpt/browser/run.mjs --extend-native --browser firefox",

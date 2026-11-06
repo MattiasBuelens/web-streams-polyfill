@@ -2,8 +2,8 @@ import { getGlobals, type StreamClasses } from './types';
 
 /**
  * Checks whether the given classes are a native streams implementation that the features can build on:
- * readable streams (including byte streams), writable streams with `controller.signal`,
- * transform streams and `pipeTo()`.
+ * readable streams, writable streams with `controller.signal`, transform streams and `pipeTo()`.
+ * (Byte streams are not required, since the `readable-byte-streams` feature can install them.)
  *
  * If this returns `false`, no feature should be installed on these classes,
  * since that would mix two implementations in one stream graph.
@@ -19,8 +19,6 @@ export function isPatchable(classes: StreamClasses = getGlobals()): boolean {
     return false;
   }
   try {
-    // Byte streams and BYOB readers
-    new ReadableStream({ type: 'bytes' }).getReader({ mode: 'byob' });
     // WritableStreamDefaultController.signal (start() is called synchronously)
     let hasSignal = false;
     new WritableStream({

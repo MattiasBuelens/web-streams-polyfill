@@ -30,9 +30,8 @@ describe('web-streams-polyfill/auto', () => {
     assert.equal(typeof NativeReadableStream.from, 'function');
   });
 
-  it('replaces an implementation that is not complete enough to build on', () => {
-    // A ReadableStream without byte streams
-    class IncompleteReadableStream extends ReadableStream {
+  it('installs byte streams on an implementation without them', async () => {
+    class ReadableStreamWithoutBytes extends ReadableStream {
       constructor(source, strategy) {
         if (source?.type === 'bytes') {
           throw new RangeError('Byte streams are not supported');
@@ -41,12 +40,36 @@ describe('web-streams-polyfill/auto', () => {
       }
     }
     const context = runAuto({
-      ReadableStream: IncompleteReadableStream,
+      ReadableStream: ReadableStreamWithoutBytes,
       WritableStream,
       TransformStream,
       AbortSignal
     });
-    assert.notEqual(context.ReadableStream, IncompleteReadableStream);
+    // The new constructor shares the native prototype, so its streams are still native streams.
+    assert.equal(context.ReadableStream.prototype, ReadableStreamWithoutBytes.prototype);
+    assert.equal(context.WritableStream, WritableStream);
+    assert.equal(context.TransformStream, TransformStream);
+    assert.equal(typeof context.ReadableByteStreamController, 'function');
+    const stream = new context.ReadableStream({
+      type: 'bytes',
+      start(c) {
+        c.enqueue(new Uint8Array([1, 2]));
+        c.close();
+      }
+    });
+    assert.ok(stream instanceof ReadableStream);
+    const { value } = await stream.getReader({ mode: 'byob' }).read(new Uint8Array(2));
+    assert.deepEqual([...value], [1, 2]);
+  });
+
+  it('replaces an implementation that is not complete enough to build on', () => {
+    // Without AbortSignal, there's no WritableStreamDefaultController.signal.
+    const context = runAuto({
+      ReadableStream,
+      WritableStream,
+      TransformStream
+    });
+    assert.notEqual(context.ReadableStream, ReadableStream);
     assert.notEqual(context.WritableStream, WritableStream);
     assert.notEqual(context.TransformStream, TransformStream);
     assert.equal(typeof context.ReadableByteStreamController, 'function');

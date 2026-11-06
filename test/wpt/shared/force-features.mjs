@@ -64,3 +64,54 @@ export function forceOwnTransformStream(global) {
 }
 
 function noopCancel() {}
+
+/**
+ * Makes the native ReadableStream behave like one without byte streams (e.g. Safari before 26.4):
+ * the constructor rejects `type: 'bytes'`, `getReader({ mode: 'byob' })` throws,
+ * and the byte stream classes are removed from the global object.
+ * Streams created by the platform (e.g. `Response.body`) can still be native byte streams,
+ * but they can't be read with a BYOB reader either.
+ */
+export function hideByteStreams(global) {
+  const NativeReadableStream = global.ReadableStream;
+  const prototype = NativeReadableStream.prototype;
+  const ReadableStream = {
+    ReadableStream: function (source = undefined, strategy = undefined) {
+      if (new.target === undefined) {
+        throw new TypeError('Constructor ReadableStream requires \'new\'');
+      }
+      if (source !== null && typeof source === 'object' && source.type === 'bytes') {
+        throw new RangeError('Byte streams are not supported');
+      }
+      return Reflect.construct(NativeReadableStream, [source, strategy], new.target);
+    }
+  }.ReadableStream;
+  Object.setPrototypeOf(ReadableStream, Object.getPrototypeOf(NativeReadableStream));
+  for (const key of Reflect.ownKeys(NativeReadableStream)) {
+    if (key !== 'prototype' && key !== 'name' && key !== 'length') {
+      Object.defineProperty(ReadableStream, key, Object.getOwnPropertyDescriptor(NativeReadableStream, key));
+    }
+  }
+  Object.defineProperty(ReadableStream, 'prototype', { value: prototype, writable: false });
+  Object.defineProperty(prototype, 'constructor', { value: ReadableStream, writable: true, configurable: true });
+
+  const nativeGetReader = prototype.getReader;
+  Object.defineProperty(prototype, 'getReader', {
+    value: {
+      getReader(options = undefined) {
+        if (options !== undefined && options !== null && options.mode !== undefined) {
+          throw new TypeError('Unsupported reader mode');
+        }
+        return nativeGetReader.call(this);
+      }
+    }.getReader,
+    writable: true,
+    enumerable: true,
+    configurable: true
+  });
+
+  global.ReadableStream = ReadableStream;
+  delete global.ReadableByteStreamController;
+  delete global.ReadableStreamBYOBReader;
+  delete global.ReadableStreamBYOBRequest;
+}
