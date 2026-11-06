@@ -1,0 +1,36 @@
+{
+  "browser": "webkit 27.2",
+  "failures": {
+    "idlharness.any.html": [
+      "CountQueuingStrategy interface: attribute size",
+      "WritableStreamDefaultController interface: operation error(optional any)"
+    ],
+    "piping/abort.any.html": [
+      "a rejection from underlyingSink.abort() should be preferred to one from underlyingSource.cancel()"
+    ],
+    "piping/error-propagation-backward.any.html": [
+      "test harness threw unexpected error"
+    ],
+    "transform-streams/cancel.any.html": [
+      "aborting the writable side should call transformer.abort()",
+      "aborting the writable side should reject if transformer.cancel() throws",
+      "cancelling the readable side should call transformer.cancel()",
+      "cancelling the readable side should reject if transformer.cancel() throws",
+      "closing the writable side should reject if a parallel transformer.cancel() throws",
+      "readable.cancel() and a parallel writable.close() should reject if a transformer.cancel() calls controller.error()",
+      "readable.cancel() should not call cancel() again when already called from writable.abort()",
+      "writable.abort() and readable.cancel() should reject if a transformer.cancel() calls controller.error()",
+      "writable.abort() should not call cancel() again when already called from readable.cancel()",
+      "writable.close() should not call flush() when cancel() is already called from readable.cancel()"
+    ],
+    "transform-streams/errors.any.html": [
+      "controller.error() should close writable immediately after readable.cancel()"
+    ],
+    "transform-streams/general.any.html": [
+      "terminate() should abort writable immediately after readable.cancel()"
+    ],
+    "transform-streams/reentrant-strategies.any.html": [
+      "writer.abort() inside size() should work"
+    ]
+  }
+}

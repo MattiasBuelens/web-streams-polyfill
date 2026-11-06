@@ -3,12 +3,13 @@ import http from 'node:http';
 import fs from 'node:fs/promises';
 import { promisify } from 'node:util';
 import micromatch from 'micromatch';
-import { chromium, firefox } from 'playwright';
+import { chromium, firefox, webkit } from 'playwright';
 import minimist from 'minimist';
 import { setupServer } from './server.mjs';
 import consoleReporter from 'wpt-runner/lib/console-reporter.js';
 import { SourceFile } from 'wpt-runner/lib/internal/sourcefile.js';
 import { FilteringReporter } from '../shared/filtering-reporter.mjs';
+import { expectationsPath, readExpectations, writeExpectations } from '../shared/expectations.mjs';
 import {
   excludedTestsBase,
   mergeIgnoredFailures,
@@ -20,7 +21,8 @@ import {
 const serverCloseAsync = promisify(http.Server.prototype.close);
 
 const argv = minimist(process.argv.slice(2), {
-  string: ['browser']
+  string: ['browser'],
+  boolean: ['native', 'update-expectations']
 });
 
 main().catch((e) => {
@@ -37,6 +39,7 @@ async function main() {
   const results = [];
   let server;
   let browser;
+  let browserVersion;
   try {
     server = setupServer(wptPath, { rootURL: '/' });
     const urlPrefix = `http://127.0.0.1:${server.address().port}`;
@@ -45,17 +48,38 @@ async function main() {
     browser = await browserTypeByName(browserType).launch({
       executablePath: process.env.WPT_BROWSER_EXECUTABLE_PATH || undefined
     });
+    browserVersion = browser.version();
     const testOptions = { includedTests, excludedTests, browser, wptPath, urlPrefix };
-    results.push(await runTests({
-      ...testOptions,
-      entryFile: 'polyfill.js',
-      ignoredFailures: mergeIgnoredFailures(ignoredFailuresBase, ignoredFailuresMinified)
-    }));
-    results.push(await runTests({
-      ...testOptions,
-      entryFile: 'polyfill.es5.js',
-      ignoredFailures: mergeIgnoredFailures(ignoredFailuresES5, ignoredFailuresMinified)
-    }));
+    if (argv.native) {
+      // Run against the browser's own implementation, without loading any polyfill.
+      // Known native failures are recorded per browser in an expectations file.
+      const expectationsFile = expectationsPath(`native-${browserType}`);
+      const result = await runTests({
+        ...testOptions,
+        entryFile: undefined,
+        ignoredFailures: argv['update-expectations'] ? {} : await readExpectations(expectationsFile)
+      });
+      if (argv['update-expectations']) {
+        if (argv._.length > 0) {
+          throw new Error('Cannot update expectations when running a subset of the tests');
+        }
+        await writeExpectations(expectationsFile, result.testResults.failures, { browser: `${browserType} ${browserVersion}` });
+        console.log(`Updated ${path.relative(process.cwd(), expectationsFile)}`);
+        result.failures = 0;
+      }
+      results.push(result);
+    } else {
+      results.push(await runTests({
+        ...testOptions,
+        entryFile: 'polyfill.js',
+        ignoredFailures: mergeIgnoredFailures(ignoredFailuresBase, ignoredFailuresMinified)
+      }));
+      results.push(await runTests({
+        ...testOptions,
+        entryFile: 'polyfill.es5.js',
+        ignoredFailures: mergeIgnoredFailures(ignoredFailuresES5, ignoredFailuresMinified)
+      }));
+    }
   } finally {
     if (browser) {
       await browser.close();
@@ -67,17 +91,23 @@ async function main() {
 
   const failures = results.reduce((sum, result) => sum + result.failures, 0);
   for (const { entryFile, testResults } of results) {
-    console.log(`> ${entryFile}`);
+    console.log(`> ${entryFile ?? `native ${browserType} ${browserVersion}`}`);
     console.log(`  * ${testResults.passed} passed`);
     console.log(`  * ${testResults.failed} failed`);
     console.log(`  * ${testResults.ignored} ignored`);
+    if (entryFile === undefined && testResults.unusedIgnoredFailures.length > 0) {
+      console.log(`  * ${testResults.unusedIgnoredFailures.length} expected failures did not fail:`);
+      for (const { suite, test } of testResults.unusedIgnoredFailures) {
+        console.log(`    - ${suite}: ${test}`);
+      }
+    }
   }
 
   process.exitCode = failures;
 }
 
 async function runTests({ entryFile, includedTests, excludedTests, ignoredFailures, browser, wptPath, urlPrefix }) {
-  const entryPath = path.resolve(import.meta.dirname, `../../../dist/${entryFile}`);
+  const entryPath = entryFile && path.resolve(import.meta.dirname, `../../../dist/${entryFile}`);
   const testsBase = '/streams/';
   const testsPath = path.resolve(wptPath, 'streams');
 
@@ -94,12 +124,14 @@ async function runTests({ entryFile, includedTests, excludedTests, ignoredFailur
 
   const reporter = new FilteringReporter(consoleReporter, ignoredFailures);
 
-  console.log(`>>> ${entryFile}`);
+  console.log(`>>> ${entryFile ?? 'native'}`);
 
   let context;
   try {
     context = await browser.newContext();
-    await context.addInitScript({ path: entryPath });
+    if (entryPath) {
+      await context.addInitScript({ path: entryPath });
+    }
     await context.route(`${urlPrefix}/resources/testharnessreport.js`, (route) => {
       route.fulfill({
         body: `
@@ -195,6 +227,8 @@ function browserTypeByName(name) {
   switch (name) {
     case 'firefox':
       return firefox;
+    case 'webkit':
+      return webkit;
     case 'chromium':
     default:
       return chromium;
