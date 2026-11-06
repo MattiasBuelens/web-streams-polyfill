@@ -1,4 +1,4 @@
-import assert from '../stub/assert';
+import assert from '../stub/assert.ts';
 
 // Original from Chromium
 // https://chromium.googlesource.com/chromium/src/+/0aee4434a4dba42a42abaea9bfbc0cd196a63bc1/third_party/blink/renderer/core/streams/SimpleQueue.js

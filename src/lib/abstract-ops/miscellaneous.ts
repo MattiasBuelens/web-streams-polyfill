@@ -1,5 +1,5 @@
-import NumberIsNaN from '../../stub/number-isnan';
-import { ArrayBufferSlice } from './ecmascript';
+import NumberIsNaN from '../../stub/number-isnan.ts';
+import { ArrayBufferSlice } from './ecmascript.ts';
 
 export function IsNonNegativeNumber(v: number): boolean {
   if (typeof v !== 'number') {

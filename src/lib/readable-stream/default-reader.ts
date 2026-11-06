@@ -1,5 +1,5 @@
-import assert from '../../stub/assert';
-import { SimpleQueue } from '../simple-queue';
+import assert from '../../stub/assert.ts';
+import { SimpleQueue } from '../simple-queue.ts';
 import {
   ReadableStreamReaderGenericCancel,
   ReadableStreamReaderGenericInitialize,
@@ -7,13 +7,13 @@ import {
   readerClosedPromise,
   readerLockException,
   readerReleasedException
-} from './generic-reader';
-import { IsReadableStreamLocked, ReadableStream } from '../readable-stream';
-import { setFunctionName, typeIsObject } from '../helpers/miscellaneous';
-import { CanPullSyncSteps, PullSteps } from '../abstract-ops/internal-methods';
-import { newPromise, promiseRejectedWith, promiseResolve } from '../helpers/webidl';
-import { assertRequiredArgument } from '../validators/basic';
-import { assertReadableStream } from '../validators/readable-stream';
+} from './generic-reader.ts';
+import { IsReadableStreamLocked, ReadableStream } from '../readable-stream.ts';
+import { setFunctionName, typeIsObject } from '../helpers/miscellaneous.ts';
+import { CanPullSyncSteps, PullSteps } from '../abstract-ops/internal-methods.ts';
+import { newPromise, promiseRejectedWith, promiseResolve } from '../helpers/webidl.ts';
+import { assertRequiredArgument } from '../validators/basic.ts';
+import { assertReadableStream } from '../validators/readable-stream.ts';
 
 /**
  * A result returned by {@link ReadableStreamDefaultReader.read}.

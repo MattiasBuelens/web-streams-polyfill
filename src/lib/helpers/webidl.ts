@@ -1,5 +1,5 @@
-import { rethrowAssertionErrorRejection, typeIsObject } from './miscellaneous';
-import assert from '../../stub/assert';
+import { rethrowAssertionErrorRejection, typeIsObject } from './miscellaneous.ts';
+import assert from '../../stub/assert.ts';
 
 const originalPromise = Promise;
 const originalPromiseResolve = Promise.resolve.bind(originalPromise);

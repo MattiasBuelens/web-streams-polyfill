@@ -1,4 +1,4 @@
-import { globals } from '../globals';
+import { globals } from '../globals.ts';
 
 // This module is only used by the ES5 builds, which replace every `Symbol` reference with it.
 // - Look up Symbol through the global object, so the build has no direct references to the global `Symbol`.

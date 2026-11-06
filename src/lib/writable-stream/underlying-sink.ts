@@ -1,4 +1,4 @@
-import { WritableStreamDefaultController } from '../writable-stream';
+import { WritableStreamDefaultController } from '../writable-stream.ts';
 
 /** @public */
 export type UnderlyingSinkStartCallback

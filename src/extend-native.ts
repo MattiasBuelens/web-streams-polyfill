@@ -1,7 +1,7 @@
-import { globals } from './globals';
-import * as ponyfill from './ponyfill';
-import { createSubclasses, type ExtendNativeExports } from './extend-native/classes';
-import { isPatchable } from './feature/index';
+import { globals } from './globals.ts';
+import * as ponyfill from './ponyfill.ts';
+import { createSubclasses, type ExtendNativeExports } from './extend-native/classes.ts';
+import { isPatchable } from './feature/index.ts';
 
 // If the native streams implementation is complete enough, extend it with subclasses.
 // Otherwise, use our own implementation, so that one stream graph never mixes two implementations.

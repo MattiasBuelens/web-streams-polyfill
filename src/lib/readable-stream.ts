@@ -1,47 +1,47 @@
-import assert from '../stub/assert';
+import assert from '../stub/assert.ts';
 import {
   promiseRejectedWith,
   promiseResolvedWith,
   setPromiseIsHandledToTrue,
   transformPromiseWith
-} from './helpers/webidl';
-import type { QueuingStrategy, QueuingStrategySizeCallback } from './queuing-strategy';
-import { AcquireReadableStreamAsyncIterator, type ReadableStreamAsyncIterator } from './readable-stream/async-iterator';
+} from './helpers/webidl.ts';
+import type { QueuingStrategy, QueuingStrategySizeCallback } from './queuing-strategy.ts';
+import { AcquireReadableStreamAsyncIterator, type ReadableStreamAsyncIterator } from './readable-stream/async-iterator.ts';
 import {
   readerClosedPromiseReject,
   readerClosedPromiseResolve,
   readerRunStateChangeListener
-} from './readable-stream/generic-reader';
+} from './readable-stream/generic-reader.ts';
 import {
   AcquireReadableStreamDefaultReader,
   IsReadableStreamDefaultReader,
   ReadableStreamDefaultReader,
   ReadableStreamDefaultReaderErrorReadRequests,
   type ReadableStreamDefaultReadResult
-} from './readable-stream/default-reader';
+} from './readable-stream/default-reader.ts';
 import {
   AcquireReadableStreamBYOBReader,
   IsReadableStreamBYOBReader,
   ReadableStreamBYOBReader,
   ReadableStreamBYOBReaderErrorReadIntoRequests,
   type ReadableStreamBYOBReadResult
-} from './readable-stream/byob-reader';
-import { ReadableStreamPipeTo } from './readable-stream/pipe';
-import { ReadableStreamTee } from './readable-stream/tee';
-import { ReadableStreamFrom } from './readable-stream/from';
-import { IsWritableStream, IsWritableStreamLocked, WritableStream } from './writable-stream';
-import { SimpleQueue } from './simple-queue';
+} from './readable-stream/byob-reader.ts';
+import { ReadableStreamPipeTo } from './readable-stream/pipe.ts';
+import { ReadableStreamTee } from './readable-stream/tee.ts';
+import { ReadableStreamFrom } from './readable-stream/from.ts';
+import { IsWritableStream, IsWritableStreamLocked, WritableStream } from './writable-stream.ts';
+import { SimpleQueue } from './simple-queue.ts';
 import {
   ReadableByteStreamController,
   ReadableStreamBYOBRequest,
   SetUpReadableByteStreamController,
   SetUpReadableByteStreamControllerFromUnderlyingSource
-} from './readable-stream/byte-stream-controller';
+} from './readable-stream/byte-stream-controller.ts';
 import {
   ReadableStreamDefaultController,
   SetUpReadableStreamDefaultController,
   SetUpReadableStreamDefaultControllerFromUnderlyingSource
-} from './readable-stream/default-controller';
+} from './readable-stream/default-controller.ts';
 import type {
   UnderlyingByteSource,
   UnderlyingByteSourcePullCallback,
@@ -50,28 +50,28 @@ import type {
   UnderlyingSourceCancelCallback,
   UnderlyingSourcePullCallback,
   UnderlyingSourceStartCallback
-} from './readable-stream/underlying-source';
-import { noop } from '../utils';
-import { setFunctionName, typeIsObject } from './helpers/miscellaneous';
-import { CreateArrayFromList, SymbolAsyncIterator } from './abstract-ops/ecmascript';
-import { CancelSteps } from './abstract-ops/internal-methods';
-import { IsNonNegativeNumber } from './abstract-ops/miscellaneous';
-import { assertObject, assertRequiredArgument } from './validators/basic';
-import { convertQueuingStrategy } from './validators/queuing-strategy';
-import { defaultSizeAlgorithm, ExtractHighWaterMark, ExtractSizeAlgorithm } from './abstract-ops/queuing-strategy';
-import { convertUnderlyingDefaultOrByteSource } from './validators/underlying-source';
+} from './readable-stream/underlying-source.ts';
+import { noop } from '../utils.ts';
+import { setFunctionName, typeIsObject } from './helpers/miscellaneous.ts';
+import { CreateArrayFromList, SymbolAsyncIterator } from './abstract-ops/ecmascript.ts';
+import { CancelSteps } from './abstract-ops/internal-methods.ts';
+import { IsNonNegativeNumber } from './abstract-ops/miscellaneous.ts';
+import { assertObject, assertRequiredArgument } from './validators/basic.ts';
+import { convertQueuingStrategy } from './validators/queuing-strategy.ts';
+import { defaultSizeAlgorithm, ExtractHighWaterMark, ExtractSizeAlgorithm } from './abstract-ops/queuing-strategy.ts';
+import { convertUnderlyingDefaultOrByteSource } from './validators/underlying-source.ts';
 import type {
   ReadableStreamBYOBReaderReadOptions,
   ReadableStreamGetReaderOptions
-} from './readable-stream/reader-options';
-import { convertReaderOptions } from './validators/reader-options';
-import type { StreamPipeOptions, ValidatedStreamPipeOptions } from './readable-stream/pipe-options';
-import type { ReadableStreamIteratorOptions } from './readable-stream/iterator-options';
-import { convertIteratorOptions } from './validators/iterator-options';
-import { convertPipeOptions } from './validators/pipe-options';
-import type { ReadableWritablePair } from './readable-stream/readable-writable-pair';
-import { convertReadableWritablePair } from './validators/readable-writable-pair';
-import type { ReadableStreamDefaultReaderLike, ReadableStreamLike } from './readable-stream/readable-stream-like';
+} from './readable-stream/reader-options.ts';
+import { convertReaderOptions } from './validators/reader-options.ts';
+import type { StreamPipeOptions, ValidatedStreamPipeOptions } from './readable-stream/pipe-options.ts';
+import type { ReadableStreamIteratorOptions } from './readable-stream/iterator-options.ts';
+import { convertIteratorOptions } from './validators/iterator-options.ts';
+import { convertPipeOptions } from './validators/pipe-options.ts';
+import type { ReadableWritablePair } from './readable-stream/readable-writable-pair.ts';
+import { convertReadableWritablePair } from './validators/readable-writable-pair.ts';
+import type { ReadableStreamDefaultReaderLike, ReadableStreamLike } from './readable-stream/readable-stream-like.ts';
 
 export type DefaultReadableStream<R = any> = ReadableStream<R> & {
   _readableStreamController: ReadableStreamDefaultController<R>;

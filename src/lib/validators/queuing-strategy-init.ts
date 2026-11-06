@@ -1,5 +1,5 @@
-import type { QueuingStrategyInit } from '../queuing-strategy';
-import { assertDictionary, assertRequiredField, convertUnrestrictedDouble } from './basic';
+import type { QueuingStrategyInit } from '../queuing-strategy.ts';
+import { assertDictionary, assertRequiredField, convertUnrestrictedDouble } from './basic.ts';
 
 export function convertQueuingStrategyInit(
   init: QueuingStrategyInit | null | undefined,

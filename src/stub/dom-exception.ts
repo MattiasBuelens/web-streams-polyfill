@@ -1,5 +1,5 @@
-import { globals } from '../globals';
-import { setFunctionName } from '../lib/helpers/miscellaneous';
+import { globals } from '../globals.ts';
+import { setFunctionName } from '../lib/helpers/miscellaneous.ts';
 
 declare global {
   interface ErrorConstructor {

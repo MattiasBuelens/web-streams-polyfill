@@ -23,7 +23,7 @@ export {
   type UnderlyingSourceCancelCallback,
   type UnderlyingSourcePullCallback,
   type UnderlyingSourceStartCallback
-} from './lib/readable-stream';
+} from './lib/readable-stream.ts';
 export {
   type UnderlyingSink,
   type UnderlyingSinkAbortCallback,
@@ -33,10 +33,10 @@ export {
   WritableStream,
   WritableStreamDefaultController,
   WritableStreamDefaultWriter
-} from './lib/writable-stream';
-export type { QueuingStrategy, QueuingStrategyInit, QueuingStrategySizeCallback } from './lib/queuing-strategy';
-export { default as ByteLengthQueuingStrategy } from './lib/byte-length-queuing-strategy';
-export { default as CountQueuingStrategy } from './lib/count-queuing-strategy';
+} from './lib/writable-stream.ts';
+export type { QueuingStrategy, QueuingStrategyInit, QueuingStrategySizeCallback } from './lib/queuing-strategy.ts';
+export { default as ByteLengthQueuingStrategy } from './lib/byte-length-queuing-strategy.ts';
+export { default as CountQueuingStrategy } from './lib/count-queuing-strategy.ts';
 export {
   type Transformer,
   type TransformerCancelCallback,
@@ -45,5 +45,5 @@ export {
   type TransformerTransformCallback,
   TransformStream,
   TransformStreamDefaultController
-} from './lib/transform-stream';
-export type { AbortSignal } from './lib/abort-signal';
+} from './lib/transform-stream.ts';
+export type { AbortSignal } from './lib/abort-signal.ts';

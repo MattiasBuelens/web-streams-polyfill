@@ -1,8 +1,11 @@
 {
   "compilerOptions": {
-    "target": "es2015",
-    "module": "es2015",
-    "moduleResolution": "bundler",
+    // Node's recommended settings for type stripping: https://nodejs.org/api/typescript.html#type-stripping
+    // Rolldown and SWC lower the syntax for each build target.
+    "target": "esnext",
+    "module": "nodenext",
+    // Keep the class field semantics of the old ES2015 target in the build output.
+    "useDefineForClassFields": false,
     "lib": [
       "es5",
       "es2015.core",
@@ -19,6 +22,8 @@
     "declarationMap": true,
     "isolatedModules": true,
     "verbatimModuleSyntax": true,
+    "erasableSyntaxOnly": true,
+    "rewriteRelativeImportExtensions": true,
     "rootDir": "./src"
   },
   "include": [

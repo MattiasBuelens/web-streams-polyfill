@@ -3,29 +3,29 @@ import {
   ReadableStream as OwnReadableStream,
   ReadableStreamCancel,
   type ReadableByteStream
-} from '../lib/readable-stream';
+} from '../lib/readable-stream.ts';
 import {
   ReadableByteStreamController,
   ReadableStreamBYOBRequest,
   SetUpReadableByteStreamControllerFromUnderlyingSource
-} from '../lib/readable-stream/byte-stream-controller';
-import { ReadableStreamBYOBReader as OwnReadableStreamBYOBReader } from '../lib/readable-stream/byob-reader';
+} from '../lib/readable-stream/byte-stream-controller.ts';
+import { ReadableStreamBYOBReader as OwnReadableStreamBYOBReader } from '../lib/readable-stream/byob-reader.ts';
 import {
   AcquireReadableStreamDefaultReader,
   ReadableStreamDefaultReaderRead,
   ReadableStreamDefaultReaderRelease,
   type ReadableStreamDefaultReader as OwnReadableStreamDefaultReader
-} from '../lib/readable-stream/default-reader';
-import { readerSetStateChangeListener } from '../lib/readable-stream/generic-reader';
-import { ReadableByteStreamTee } from '../lib/readable-stream/tee';
-import type { ValidatedUnderlyingByteSource } from '../lib/readable-stream/underlying-source';
-import { ExtractHighWaterMark } from '../lib/abstract-ops/queuing-strategy';
-import { setFunctionName, typeIsObject } from '../lib/helpers/miscellaneous';
-import { promiseRejectedWith, promiseResolvedWith, reflectCall } from '../lib/helpers/webidl';
-import { assertDictionary, assertObject, assertRequiredArgument } from '../lib/validators/basic';
-import { convertQueuingStrategy } from '../lib/validators/queuing-strategy';
-import { convertReaderOptions } from '../lib/validators/reader-options';
-import { convertUnderlyingDefaultOrByteSource } from '../lib/validators/underlying-source';
+} from '../lib/readable-stream/default-reader.ts';
+import { readerSetStateChangeListener } from '../lib/readable-stream/generic-reader.ts';
+import { ReadableByteStreamTee } from '../lib/readable-stream/tee.ts';
+import type { ValidatedUnderlyingByteSource } from '../lib/readable-stream/underlying-source.ts';
+import { ExtractHighWaterMark } from '../lib/abstract-ops/queuing-strategy.ts';
+import { setFunctionName, typeIsObject } from '../lib/helpers/miscellaneous.ts';
+import { promiseRejectedWith, promiseResolvedWith, reflectCall } from '../lib/helpers/webidl.ts';
+import { assertDictionary, assertObject, assertRequiredArgument } from '../lib/validators/basic.ts';
+import { convertQueuingStrategy } from '../lib/validators/queuing-strategy.ts';
+import { convertReaderOptions } from '../lib/validators/reader-options.ts';
+import { convertUnderlyingDefaultOrByteSource } from '../lib/validators/underlying-source.ts';
 import {
   bindMethods,
   defineClass,
@@ -34,8 +34,8 @@ import {
   readMembers,
   replaceConstructor,
   replaceMethod
-} from './patch';
-import { defineMethod, getGlobals, type StreamClasses } from './types';
+} from './patch.ts';
+import { defineMethod, getGlobals, type StreamClasses } from './types.ts';
 
 /**
  * Adds readable byte streams (`new ReadableStream({ type: 'bytes' })`) and BYOB readers.

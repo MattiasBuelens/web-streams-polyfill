@@ -1,6 +1,6 @@
-import assert from '../../stub/assert';
-import { SimpleQueue } from '../simple-queue';
-import { IsNonNegativeNumber } from './miscellaneous';
+import assert from '../../stub/assert.ts';
+import { SimpleQueue } from '../simple-queue.ts';
+import { IsNonNegativeNumber } from './miscellaneous.ts';
 
 export interface QueueContainer<T> {
   _queue: SimpleQueue<T>;

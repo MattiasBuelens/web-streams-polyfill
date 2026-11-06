@@ -1,8 +1,8 @@
-import { assertDictionary, assertRequiredField } from './basic';
-import { ReadableStream } from '../readable-stream';
-import { WritableStream } from '../writable-stream';
-import { assertReadableStream } from './readable-stream';
-import { assertWritableStream } from './writable-stream';
+import { assertDictionary, assertRequiredField } from './basic.ts';
+import { ReadableStream } from '../readable-stream.ts';
+import { WritableStream } from '../writable-stream.ts';
+import { assertReadableStream } from './readable-stream.ts';
+import { assertWritableStream } from './writable-stream.ts';
 
 export function convertReadableWritablePair<RS extends ReadableStream, WS extends WritableStream>(
   pair: { readable: RS; writable: WS } | null | undefined,

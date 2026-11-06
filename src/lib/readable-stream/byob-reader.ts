@@ -1,5 +1,5 @@
-import assert from '../../stub/assert';
-import { SimpleQueue } from '../simple-queue';
+import assert from '../../stub/assert.ts';
+import { SimpleQueue } from '../simple-queue.ts';
 import {
   ReadableStreamReaderGenericCancel,
   ReadableStreamReaderGenericInitialize,
@@ -7,25 +7,25 @@ import {
   readerClosedPromise,
   readerLockException,
   readerReleasedException
-} from './generic-reader';
-import { IsReadableStreamLocked, type ReadableByteStream, type ReadableStream } from '../readable-stream';
+} from './generic-reader.ts';
+import { IsReadableStreamLocked, type ReadableByteStream, type ReadableStream } from '../readable-stream.ts';
 import {
   IsReadableByteStreamController,
   ReadableByteStreamController,
   ReadableByteStreamControllerCanPullIntoSync,
   ReadableByteStreamControllerPullInto
-} from './byte-stream-controller';
-import { setFunctionName, typeIsObject } from '../helpers/miscellaneous';
-import { newPromise, promiseRejectedWith, promiseResolve } from '../helpers/webidl';
-import { assertRequiredArgument } from '../validators/basic';
-import { assertReadableStream } from '../validators/readable-stream';
-import { IsDetachedBuffer } from '../abstract-ops/ecmascript';
+} from './byte-stream-controller.ts';
+import { setFunctionName, typeIsObject } from '../helpers/miscellaneous.ts';
+import { newPromise, promiseRejectedWith, promiseResolve } from '../helpers/webidl.ts';
+import { assertRequiredArgument } from '../validators/basic.ts';
+import { assertReadableStream } from '../validators/readable-stream.ts';
+import { IsDetachedBuffer } from '../abstract-ops/ecmascript.ts';
 import type {
   ReadableStreamBYOBReaderReadOptions,
   ValidatedReadableStreamBYOBReaderReadOptions
-} from './reader-options';
-import { convertByobReadOptions } from '../validators/reader-options';
-import { isDataView, type TypedArray } from '../helpers/array-buffer-view';
+} from './reader-options.ts';
+import { convertByobReadOptions } from '../validators/reader-options.ts';
+import { isDataView, type TypedArray } from '../helpers/array-buffer-view.ts';
 
 /**
  * A result returned by {@link ReadableStreamBYOBReader.read}.

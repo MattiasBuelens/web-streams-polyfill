@@ -1,8 +1,8 @@
-import { assertDictionary } from './basic';
+import { assertDictionary } from './basic.ts';
 import type {
   ReadableStreamIteratorOptions,
   ValidatedReadableStreamIteratorOptions
-} from '../readable-stream/iterator-options';
+} from '../readable-stream/iterator-options.ts';
 
 export function convertIteratorOptions(
   options: ReadableStreamIteratorOptions | null | undefined,

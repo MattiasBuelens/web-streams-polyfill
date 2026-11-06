@@ -1,4 +1,4 @@
-import { assertDictionary, assertFunction, convertUnsignedLongLongWithEnforceRange } from './basic';
+import { assertDictionary, assertFunction, convertUnsignedLongLongWithEnforceRange } from './basic.ts';
 import type {
   ReadableStreamController,
   UnderlyingByteSource,
@@ -8,8 +8,8 @@ import type {
   UnderlyingSource,
   UnderlyingSourceCancelCallback,
   ValidatedUnderlyingDefaultOrByteSource
-} from '../readable-stream/underlying-source';
-import { promiseCall, reflectCall } from '../helpers/webidl';
+} from '../readable-stream/underlying-source.ts';
+import { promiseCall, reflectCall } from '../helpers/webidl.ts';
 
 export function convertUnderlyingDefaultOrByteSource<R>(
   source: UnderlyingSource<R> | UnderlyingByteSource | null,

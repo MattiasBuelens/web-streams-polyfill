@@ -1,4 +1,4 @@
-import assert from '../stub/assert';
+import assert from '../stub/assert.ts';
 import {
   newPromise,
   promiseRejectedWith,
@@ -7,21 +7,21 @@ import {
   queueMicrotask,
   setPromiseIsHandledToTrue,
   uponPromise
-} from './helpers/webidl';
+} from './helpers/webidl.ts';
 import {
   DequeueValue,
   EnqueueValueWithSize,
   PeekQueueValue,
   type QueuePair,
   ResetQueue
-} from './abstract-ops/queue-with-sizes';
-import type { QueuingStrategy, QueuingStrategySizeCallback } from './queuing-strategy';
-import { SimpleQueue } from './simple-queue';
-import { setFunctionName, typeIsObject } from './helpers/miscellaneous';
-import { AbortSteps, ErrorSteps } from './abstract-ops/internal-methods';
-import { IsNonNegativeNumber } from './abstract-ops/miscellaneous';
-import { defaultSizeAlgorithm, ExtractHighWaterMark, ExtractSizeAlgorithm } from './abstract-ops/queuing-strategy';
-import { convertQueuingStrategy } from './validators/queuing-strategy';
+} from './abstract-ops/queue-with-sizes.ts';
+import type { QueuingStrategy, QueuingStrategySizeCallback } from './queuing-strategy.ts';
+import { SimpleQueue } from './simple-queue.ts';
+import { setFunctionName, typeIsObject } from './helpers/miscellaneous.ts';
+import { AbortSteps, ErrorSteps } from './abstract-ops/internal-methods.ts';
+import { IsNonNegativeNumber } from './abstract-ops/miscellaneous.ts';
+import { defaultSizeAlgorithm, ExtractHighWaterMark, ExtractSizeAlgorithm } from './abstract-ops/queuing-strategy.ts';
+import { convertQueuingStrategy } from './validators/queuing-strategy.ts';
 import type {
   UnderlyingSink,
   UnderlyingSinkAbortCallback,
@@ -29,11 +29,11 @@ import type {
   UnderlyingSinkStartCallback,
   UnderlyingSinkWriteCallback,
   ValidatedUnderlyingSink
-} from './writable-stream/underlying-sink';
-import { assertObject, assertRequiredArgument } from './validators/basic';
-import { convertUnderlyingSink } from './validators/underlying-sink';
-import { assertWritableStream } from './validators/writable-stream';
-import { type AbortController, type AbortSignal, createAbortController } from './abort-signal';
+} from './writable-stream/underlying-sink.ts';
+import { assertObject, assertRequiredArgument } from './validators/basic.ts';
+import { convertUnderlyingSink } from './validators/underlying-sink.ts';
+import { assertWritableStream } from './validators/writable-stream.ts';
+import { type AbortController, type AbortSignal, createAbortController } from './abort-signal.ts';
 
 type WritableStreamState = 'writable' | 'closed' | 'erroring' | 'errored';
 

@@ -1,5 +1,5 @@
-import { reflectCall } from '../lib/helpers/webidl';
-import type { StreamClasses } from './types';
+import { reflectCall } from '../lib/helpers/webidl.ts';
+import type { StreamClasses } from './types.ts';
 
 /**
  * Replaces a getter on a native prototype with one that handles our own objects,

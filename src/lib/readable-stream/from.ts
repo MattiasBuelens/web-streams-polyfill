@@ -1,12 +1,12 @@
-import { CreateReadableStream, type DefaultReadableStream } from '../readable-stream';
-import type { ReadableStreamLike } from './readable-stream-like';
+import { CreateReadableStream, type DefaultReadableStream } from '../readable-stream.ts';
+import type { ReadableStreamLike } from './readable-stream-like.ts';
 import {
   type ReadableStreamDefaultController,
   ReadableStreamDefaultControllerClose,
   ReadableStreamDefaultControllerEnqueue
-} from './default-controller';
-import { type FromSourceControllerOps, ReadableStreamFromSource } from './from-source';
-import { noop } from '../../utils';
+} from './default-controller.ts';
+import { type FromSourceControllerOps, ReadableStreamFromSource } from './from-source.ts';
+import { noop } from '../../utils.ts';
 
 const defaultControllerOps: FromSourceControllerOps<ReadableStreamDefaultController<any>> = {
   enqueue: ReadableStreamDefaultControllerEnqueue,

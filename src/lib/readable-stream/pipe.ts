@@ -1,12 +1,12 @@
-import { IsReadableStream, IsReadableStreamLocked, ReadableStream, ReadableStreamCancel } from '../readable-stream';
+import { IsReadableStream, IsReadableStreamLocked, ReadableStream, ReadableStreamCancel } from '../readable-stream.ts';
 import {
   AcquireReadableStreamDefaultReader,
   ReadableStreamDefaultReaderCanReadSync,
   ReadableStreamDefaultReader,
   ReadableStreamDefaultReaderRead,
   type ReadRequest
-} from './default-reader';
-import { ReadableStreamReaderGenericRelease, readerSetStateChangeListener } from './generic-reader';
+} from './default-reader.ts';
+import { ReadableStreamReaderGenericRelease, readerSetStateChangeListener } from './generic-reader.ts';
 import {
   AcquireWritableStreamDefaultWriter,
   IsWritableStream,
@@ -22,8 +22,8 @@ import {
   type WriteRequest,
   writerReadyPromise,
   writerSetStateChangeListener
-} from '../writable-stream';
-import assert, { unexpected } from '../../stub/assert';
+} from '../writable-stream.ts';
+import assert, { unexpected } from '../../stub/assert.ts';
 import {
   newPromise,
   PerformPromiseThen,
@@ -31,10 +31,10 @@ import {
   setPromiseIsHandledToTrue,
   uponFulfillment,
   uponPromise
-} from '../helpers/webidl';
-import { noop } from '../../utils';
-import { type AbortSignal, isAbortSignal } from '../abort-signal';
-import { DOMException } from '../../stub/dom-exception';
+} from '../helpers/webidl.ts';
+import { noop } from '../../utils.ts';
+import { type AbortSignal, isAbortSignal } from '../abort-signal.ts';
+import { DOMException } from '../../stub/dom-exception.ts';
 
 export function ReadableStreamPipeTo<T>(
   source: ReadableStream<T>,

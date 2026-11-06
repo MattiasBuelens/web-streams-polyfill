@@ -1,7 +1,7 @@
-import { assertDictionary, assertFunction } from './basic';
-import { promiseCall, reflectCall } from '../helpers/webidl';
-import type { Transformer, ValidatedTransformer } from '../transform-stream/transformer';
-import type { TransformStreamDefaultController } from '../transform-stream';
+import { assertDictionary, assertFunction } from './basic.ts';
+import { promiseCall, reflectCall } from '../helpers/webidl.ts';
+import type { Transformer, ValidatedTransformer } from '../transform-stream/transformer.ts';
+import type { TransformStreamDefaultController } from '../transform-stream.ts';
 
 /**
  * Reads and validates the members of a transformer dictionary, without wrapping its callbacks.

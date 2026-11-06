@@ -1,0 +1,5 @@
+{
+  "//": "Lets Node run these files as ES modules with type stripping (e.g. in unit tests). The library itself has no side effects, as in the root package.json.",
+  "type": "module",
+  "sideEffects": false
+}

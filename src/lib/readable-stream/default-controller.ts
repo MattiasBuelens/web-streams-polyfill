@@ -1,18 +1,18 @@
-import type { QueuingStrategySizeCallback } from '../queuing-strategy';
-import assert from '../../stub/assert';
-import { DequeueValue, EnqueueValueWithSize, type QueuePair, ResetQueue } from '../abstract-ops/queue-with-sizes';
+import type { QueuingStrategySizeCallback } from '../queuing-strategy.ts';
+import assert from '../../stub/assert.ts';
+import { DequeueValue, EnqueueValueWithSize, type QueuePair, ResetQueue } from '../abstract-ops/queue-with-sizes.ts';
 import {
   ReadableStreamAddReadRequest,
   ReadableStreamFulfillReadRequest,
   ReadableStreamGetNumReadRequests,
   type ReadRequest
-} from './default-reader';
-import { SimpleQueue } from '../simple-queue';
-import { IsReadableStreamLocked, ReadableStream, ReadableStreamClose, ReadableStreamError } from '../readable-stream';
-import type { ValidatedUnderlyingSource } from './underlying-source';
-import { setFunctionName, typeIsObject } from '../helpers/miscellaneous';
-import { CancelSteps, CanPullSyncSteps, PullSteps, ReleaseSteps } from '../abstract-ops/internal-methods';
-import { promiseResolvedWith, queueMicrotask, uponPromise } from '../helpers/webidl';
+} from './default-reader.ts';
+import { SimpleQueue } from '../simple-queue.ts';
+import { IsReadableStreamLocked, ReadableStream, ReadableStreamClose, ReadableStreamError } from '../readable-stream.ts';
+import type { ValidatedUnderlyingSource } from './underlying-source.ts';
+import { setFunctionName, typeIsObject } from '../helpers/miscellaneous.ts';
+import { CancelSteps, CanPullSyncSteps, PullSteps, ReleaseSteps } from '../abstract-ops/internal-methods.ts';
+import { promiseResolvedWith, queueMicrotask, uponPromise } from '../helpers/webidl.ts';
 
 /**
  * Allows control of a {@link ReadableStream | readable stream}'s state and internal queue.

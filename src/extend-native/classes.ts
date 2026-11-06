@@ -1,7 +1,7 @@
-import { installAll } from '../feature/index';
-import { defineMethod, type StreamClasses } from '../feature/types';
-import { typeIsObject } from '../lib/helpers/miscellaneous';
-import { reflectCall } from '../lib/helpers/webidl';
+import { installAll } from '../feature/index.ts';
+import { defineMethod, type StreamClasses } from '../feature/types.ts';
+import { typeIsObject } from '../lib/helpers/miscellaneous.ts';
+import { reflectCall } from '../lib/helpers/webidl.ts';
 
 /**
  * The classes exported by `web-streams-polyfill/extend-native`, plus `adopt()`.

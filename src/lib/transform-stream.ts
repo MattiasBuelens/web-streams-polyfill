@@ -1,21 +1,21 @@
-import assert from '../stub/assert';
-import { newPromise } from './helpers/webidl';
-import { CreateReadableStream, type DefaultReadableStream, ReadableStream } from './readable-stream';
-import type { QueuingStrategy, QueuingStrategySizeCallback } from './queuing-strategy';
-import { CreateWritableStream, WritableStream } from './writable-stream';
-import { referenceSides, type TransformStreamSides } from './transform-stream/sides';
-import { setFunctionName, typeIsObject } from './helpers/miscellaneous';
-import { IsNonNegativeNumber } from './abstract-ops/miscellaneous';
-import { convertQueuingStrategy } from './validators/queuing-strategy';
-import { defaultSizeAlgorithm, ExtractHighWaterMark, ExtractSizeAlgorithm } from './abstract-ops/queuing-strategy';
+import assert from '../stub/assert.ts';
+import { newPromise } from './helpers/webidl.ts';
+import { CreateReadableStream, type DefaultReadableStream, ReadableStream } from './readable-stream.ts';
+import type { QueuingStrategy, QueuingStrategySizeCallback } from './queuing-strategy.ts';
+import { CreateWritableStream, WritableStream } from './writable-stream.ts';
+import { referenceSides, type TransformStreamSides } from './transform-stream/sides.ts';
+import { setFunctionName, typeIsObject } from './helpers/miscellaneous.ts';
+import { IsNonNegativeNumber } from './abstract-ops/miscellaneous.ts';
+import { convertQueuingStrategy } from './validators/queuing-strategy.ts';
+import { defaultSizeAlgorithm, ExtractHighWaterMark, ExtractSizeAlgorithm } from './abstract-ops/queuing-strategy.ts';
 import type {
   Transformer,
   TransformerCancelCallback,
   TransformerFlushCallback,
   TransformerStartCallback,
   TransformerTransformCallback
-} from './transform-stream/transformer';
-import { convertTransformer } from './validators/transformer';
+} from './transform-stream/transformer.ts';
+import { convertTransformer } from './validators/transformer.ts';
 import {
   InitializeTransformStreamState,
   SetUpTransformStreamDefaultController,
@@ -28,7 +28,7 @@ import {
   TransformStreamDefaultSinkWriteAlgorithm,
   TransformStreamDefaultSourceCancelAlgorithm,
   TransformStreamDefaultSourcePullAlgorithm
-} from './transform-stream/core';
+} from './transform-stream/core.ts';
 
 // Class TransformStream
 

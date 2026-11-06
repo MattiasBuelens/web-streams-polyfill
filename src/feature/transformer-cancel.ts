@@ -1,5 +1,5 @@
-import type { TransformStream as OwnTransformStream, TransformStreamDefaultController } from '../lib/transform-stream';
-import type { TransformStreamSides } from '../lib/transform-stream/sides';
+import type { TransformStream as OwnTransformStream, TransformStreamDefaultController } from '../lib/transform-stream.ts';
+import type { TransformStreamSides } from '../lib/transform-stream/sides.ts';
 import {
   InitializeTransformStreamState,
   SetUpTransformStreamDefaultControllerFromTransformer,
@@ -11,15 +11,15 @@ import {
   TransformStreamDefaultSinkWriteAlgorithm,
   TransformStreamDefaultSourceCancelAlgorithm,
   TransformStreamDefaultSourcePullAlgorithm
-} from '../lib/transform-stream/core';
-import type { Transformer } from '../lib/transform-stream/transformer';
-import { readTransformer, wrapTransformer } from '../lib/validators/transformer';
-import { convertQueuingStrategy } from '../lib/validators/queuing-strategy';
-import { ExtractHighWaterMark, ExtractSizeAlgorithm } from '../lib/abstract-ops/queuing-strategy';
-import { setFunctionName, typeIsObject } from '../lib/helpers/miscellaneous';
-import { newPromise, promiseResolvedWith, reflectCall, setPromiseIsHandledToTrue, uponPromise } from '../lib/helpers/webidl';
-import { patchGetter, patchMethod } from './patch';
-import { getGlobals, type StreamClasses } from './types';
+} from '../lib/transform-stream/core.ts';
+import type { Transformer } from '../lib/transform-stream/transformer.ts';
+import { readTransformer, wrapTransformer } from '../lib/validators/transformer.ts';
+import { convertQueuingStrategy } from '../lib/validators/queuing-strategy.ts';
+import { ExtractHighWaterMark, ExtractSizeAlgorithm } from '../lib/abstract-ops/queuing-strategy.ts';
+import { setFunctionName, typeIsObject } from '../lib/helpers/miscellaneous.ts';
+import { newPromise, promiseResolvedWith, reflectCall, setPromiseIsHandledToTrue, uponPromise } from '../lib/helpers/webidl.ts';
+import { patchGetter, patchMethod } from './patch.ts';
+import { getGlobals, type StreamClasses } from './types.ts';
 
 /**
  * Adds support for `transformer.cancel()`, which is called when the readable side is cancelled

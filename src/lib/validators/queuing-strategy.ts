@@ -1,5 +1,5 @@
-import type { QueuingStrategy, QueuingStrategySizeCallback } from '../queuing-strategy';
-import { assertDictionary, assertFunction, convertUnrestrictedDouble } from './basic';
+import type { QueuingStrategy, QueuingStrategySizeCallback } from '../queuing-strategy.ts';
+import { assertDictionary, assertFunction, convertUnrestrictedDouble } from './basic.ts';
 
 export function convertQueuingStrategy<T>(
   init: QueuingStrategy<T> | null | undefined,

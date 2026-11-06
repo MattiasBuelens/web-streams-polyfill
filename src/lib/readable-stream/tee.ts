@@ -7,27 +7,27 @@ import {
   ReadableStream,
   ReadableStreamCancel,
   type ReadableStreamReader
-} from '../readable-stream';
-import { ReadableStreamReaderGenericRelease, readerClosedPromise } from './generic-reader';
+} from '../readable-stream.ts';
+import { ReadableStreamReaderGenericRelease, readerClosedPromise } from './generic-reader.ts';
 import {
   AcquireReadableStreamDefaultReader,
   IsReadableStreamDefaultReader,
   ReadableStreamDefaultReaderRead,
   type ReadRequest
-} from './default-reader';
+} from './default-reader.ts';
 import {
   AcquireReadableStreamBYOBReader,
   IsReadableStreamBYOBReader,
   ReadableStreamBYOBReaderRead,
   type ReadIntoRequest
-} from './byob-reader';
-import assert from '../../stub/assert';
-import { newPromise, promiseResolvedWith, queueMicrotask, uponRejection } from '../helpers/webidl';
+} from './byob-reader.ts';
+import assert from '../../stub/assert.ts';
+import { newPromise, promiseResolvedWith, queueMicrotask, uponRejection } from '../helpers/webidl.ts';
 import {
   ReadableStreamDefaultControllerClose,
   ReadableStreamDefaultControllerEnqueue,
   ReadableStreamDefaultControllerError
-} from './default-controller';
+} from './default-controller.ts';
 import {
   IsReadableByteStreamController,
   ReadableByteStreamControllerClose,
@@ -36,9 +36,9 @@ import {
   ReadableByteStreamControllerGetBYOBRequest,
   ReadableByteStreamControllerRespond,
   ReadableByteStreamControllerRespondWithNewView
-} from './byte-stream-controller';
-import { CreateArrayFromList } from '../abstract-ops/ecmascript';
-import { CloneAsUint8Array } from '../abstract-ops/miscellaneous';
+} from './byte-stream-controller.ts';
+import { CreateArrayFromList } from '../abstract-ops/ecmascript.ts';
+import { CloneAsUint8Array } from '../abstract-ops/miscellaneous.ts';
 
 export function ReadableStreamTee<R>(
   stream: ReadableStream<R>,

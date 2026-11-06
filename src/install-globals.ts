@@ -12,7 +12,7 @@ import {
   WritableStream,
   WritableStreamDefaultController,
   WritableStreamDefaultWriter
-} from './ponyfill';
+} from './ponyfill.ts';
 
 const exports = {
   ReadableStream,

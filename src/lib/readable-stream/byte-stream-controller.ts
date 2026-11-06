@@ -1,6 +1,6 @@
-import assert from '../../stub/assert';
-import { SimpleQueue } from '../simple-queue';
-import { ResetQueue } from '../abstract-ops/queue-with-sizes';
+import assert from '../../stub/assert.ts';
+import { SimpleQueue } from '../simple-queue.ts';
+import { ResetQueue } from '../abstract-ops/queue-with-sizes.ts';
 import {
   IsReadableStreamDefaultReader,
   ReadableStreamAddReadRequest,
@@ -8,23 +8,23 @@ import {
   ReadableStreamGetNumReadRequests,
   ReadableStreamHasDefaultReader,
   type ReadRequest
-} from './default-reader';
+} from './default-reader.ts';
 import {
   ReadableStreamAddReadIntoRequest,
   ReadableStreamFulfillReadIntoRequest,
   ReadableStreamGetNumReadIntoRequests,
   ReadableStreamHasBYOBReader,
   type ReadIntoRequest
-} from './byob-reader';
-import NumberIsInteger from '../../stub/number-isinteger';
+} from './byob-reader.ts';
+import NumberIsInteger from '../../stub/number-isinteger.ts';
 import {
   IsReadableStreamLocked,
   type ReadableByteStream,
   ReadableStreamClose,
   ReadableStreamError
-} from '../readable-stream';
-import type { ValidatedUnderlyingByteSource } from './underlying-source';
-import { setFunctionName, typeIsObject } from '../helpers/miscellaneous';
+} from '../readable-stream.ts';
+import type { ValidatedUnderlyingByteSource } from './underlying-source.ts';
+import { setFunctionName, typeIsObject } from '../helpers/miscellaneous.ts';
 import {
   ArrayBufferSlice,
   CanCopyDataBlockBytes,
@@ -32,15 +32,15 @@ import {
   CopyDataBlockBytes,
   IsDetachedBuffer,
   TransferArrayBuffer
-} from '../abstract-ops/ecmascript';
-import { CancelSteps, CanPullSyncSteps, PullSteps, ReleaseSteps } from '../abstract-ops/internal-methods';
-import { promiseResolvedWith, queueMicrotask, uponPromise } from '../helpers/webidl';
-import { assertRequiredArgument, convertUnsignedLongLongWithEnforceRange } from '../validators/basic';
+} from '../abstract-ops/ecmascript.ts';
+import { CancelSteps, CanPullSyncSteps, PullSteps, ReleaseSteps } from '../abstract-ops/internal-methods.ts';
+import { promiseResolvedWith, queueMicrotask, uponPromise } from '../helpers/webidl.ts';
+import { assertRequiredArgument, convertUnsignedLongLongWithEnforceRange } from '../validators/basic.ts';
 import {
   type ArrayBufferViewConstructor,
   arrayBufferViewElementSize,
   type TypedArrayConstructor
-} from '../helpers/array-buffer-view';
+} from '../helpers/array-buffer-view.ts';
 
 /**
  * A pull-into request in a {@link ReadableByteStreamController}.

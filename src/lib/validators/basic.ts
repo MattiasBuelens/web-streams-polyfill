@@ -1,5 +1,5 @@
-import NumberIsFinite from '../../stub/number-isfinite';
-import MathTrunc from '../../stub/math-trunc';
+import NumberIsFinite from '../../stub/number-isfinite.ts';
+import MathTrunc from '../../stub/math-trunc.ts';
 
 // https://heycam.github.io/webidl/#idl-dictionaries
 export function isDictionary(x: any): x is object | null {
