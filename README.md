@@ -98,11 +98,14 @@ These type definitions require TypeScript version 5.7 or higher.
 
 | Feature | Module | Missing in |
 | --- | --- | --- |
-| [Readable byte streams][rbs] and BYOB readers | `readable-byte-streams` | Safari before 26.4 |
-| [`ReadableStream.from()`][rs-from] | `readable-stream-from` | Chrome |
-| [Async iteration][rs-asynciterator] (`values()` and `[Symbol.asyncIterator]()`) | `async-iterator` | Safari before 27 |
-| [`reader.read(view, { min })`][byob-reader-read] | `byob-read-min` | Safari |
-| [`transformer.cancel()`][transformer-cancel] | `transformer-cancel` | Chrome, Firefox, Safari |
+| [Readable byte streams][rbs] and BYOB readers | `readable-byte-streams` | [Safari before 26.4][compat-rbs] |
+| [`ReadableStream.from()`][rs-from] | `readable-stream-from` | [Chrome][compat-rs-from] |
+| [Async iteration][rs-asynciterator] (`values()` and `[Symbol.asyncIterator]()`) | `async-iterator` | [Safari before 27][compat-rs-asynciterator] |
+| [`reader.read(view, { min })`][byob-reader-read] | `byob-read-min` | [Safari][compat-byob-reader-read] |
+| [`transformer.cancel()`][transformer-cancel] | `transformer-cancel` | [Chrome, Firefox, Safari][compat-transformer-cancel] |
+
+The "Missing in" column is based on browser compatibility data from November 2026.
+Follow its links to MDN's browser compatibility tables for the latest information.
 
 Each feature is only installed if the built-in implementation doesn't already support it.
 Features are detected by checking their behavior, not by checking the browser version.
@@ -186,6 +189,11 @@ Thanks to these people for their work on [the original polyfill][creatorrr-polyf
 [rs-from]: https://streams.spec.whatwg.org/#rs-from
 [byob-reader-read]: https://streams.spec.whatwg.org/#byob-reader-read
 [transformer-cancel]: https://streams.spec.whatwg.org/#dom-transformer-cancel
+[compat-rbs]: https://developer.mozilla.org/en-US/docs/Web/API/ReadableByteStreamController#browser_compatibility
+[compat-rs-from]: https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream/from_static#browser_compatibility
+[compat-rs-asynciterator]: https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream#browser_compatibility
+[compat-byob-reader-read]: https://developer.mozilla.org/en-US/docs/Web/API/ReadableStreamBYOBReader/read#browser_compatibility
+[compat-transformer-cancel]: https://developer.mozilla.org/en-US/docs/Web/API/TransformStream/TransformStream#browser_compatibility
 [wpt-modified]: https://github.com/MattiasBuelens/web-streams-polyfill/tree/master/test/wpt/modified
 [abortcontroller-polyfill]: https://www.npmjs.com/package/abortcontroller-polyfill
 [mdn-byob-read]: https://developer.mozilla.org/en-US/docs/Web/API/ReadableStreamBYOBReader/read
