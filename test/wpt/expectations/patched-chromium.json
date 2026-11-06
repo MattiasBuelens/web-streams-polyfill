@@ -1,0 +1,35 @@
+{
+  "browser": "chromium 156.0.8078.4",
+  "failures": {
+    "readable-byte-streams/patched-global.any.html": [
+      "Patched then() sees byobRequest after filling all pending pull-into descriptors"
+    ],
+    "readable-streams/async-iterator.any.html": [
+      "Async iterator instances should have the correct list of properties"
+    ],
+    "readable-streams/general.any.html": [
+      "ReadableStream can't be constructed with an invalid type"
+    ],
+    "transform-streams/cancel.any.html": [
+      "aborting the writable side should call transformer.abort()",
+      "aborting the writable side should reject if transformer.cancel() throws",
+      "cancelling the readable side should call transformer.cancel()",
+      "cancelling the readable side should reject if transformer.cancel() throws",
+      "closing the writable side should reject if a parallel transformer.cancel() throws",
+      "readable.cancel() and a parallel writable.close() should reject if a transformer.cancel() calls controller.error()",
+      "readable.cancel() should not call cancel() again when already called from writable.abort()",
+      "writable.abort() and readable.cancel() should reject if a transformer.cancel() calls controller.error()",
+      "writable.abort() should not call cancel() again when already called from readable.cancel()",
+      "writable.close() should not call flush() when cancel() is already called from readable.cancel()"
+    ],
+    "transform-streams/errors.any.html": [
+      "controller.error() should close writable immediately after readable.cancel()"
+    ],
+    "transform-streams/general.any.html": [
+      "terminate() should abort writable immediately after readable.cancel()"
+    ],
+    "transform-streams/reentrant-strategies.any.html": [
+      "writer.abort() inside size() should work"
+    ]
+  }
+}

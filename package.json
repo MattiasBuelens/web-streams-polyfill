@@ -38,6 +38,18 @@
       "types": "./types/polyfill.d.ts",
       "default": "./dist/polyfill.es5.js"
     },
+    "./feature": {
+      "types": "./types/feature/index.d.mts",
+      "default": "./dist/feature/index.mjs"
+    },
+    "./feature/readable-stream-from": {
+      "types": "./types/feature/readable-stream-from.d.mts",
+      "default": "./dist/feature/readable-stream-from.mjs"
+    },
+    "./feature/async-iterator": {
+      "types": "./types/feature/async-iterator.d.mts",
+      "default": "./dist/feature/async-iterator.mjs"
+    },
     "./dist/*": "./dist/*",
     "./types/*": "./types/*",
     "./package": "./package.json",
@@ -50,17 +62,23 @@
     "test:wpt:chromium": "node ./test/wpt/browser/run.mjs --browser chromium",
     "test:wpt:firefox": "node ./test/wpt/browser/run.mjs --browser firefox",
     "test:wpt:webkit": "node ./test/wpt/browser/run.mjs --browser webkit",
-    "test:wpt:native": "npm run test:wpt:native:chromium && npm run test:wpt:native:firefox && npm run test:wpt:native:webkit",
+    "test:wpt:native": "npm run test:wpt:native:chromium && npm run test:wpt:native:firefox && npm run test:wpt:native:webkit && npm run test:wpt:native:node",
     "test:wpt:native:chromium": "node ./test/wpt/browser/run.mjs --native --browser chromium",
     "test:wpt:native:firefox": "node ./test/wpt/browser/run.mjs --native --browser firefox",
     "test:wpt:native:webkit": "node ./test/wpt/browser/run.mjs --native --browser webkit",
+    "test:wpt:native:node": "node --expose_gc ./test/wpt/node/run.mjs --native",
+    "test:wpt:patched": "npm run test:wpt:patched:chromium && npm run test:wpt:patched:firefox && npm run test:wpt:patched:webkit && npm run test:wpt:patched:node",
+    "test:wpt:patched:chromium": "node ./test/wpt/browser/run.mjs --patched --browser chromium",
+    "test:wpt:patched:firefox": "node ./test/wpt/browser/run.mjs --patched --browser firefox",
+    "test:wpt:patched:webkit": "node ./test/wpt/browser/run.mjs --patched --browser webkit",
+    "test:wpt:patched:node": "node --expose_gc ./test/wpt/node/run.mjs --patched",
     "test:bundlers": "npm run test:bundler:rolldown && npm run test:bundler:rollup && npm run test:bundler:webpack",
     "test:bundler:rolldown": "npm test --workspace=test/rolldown-test",
     "test:bundler:rollup": "npm test --workspace=test/rollup-test",
     "test:bundler:webpack": "npm test --workspace=test/webpack-test",
     "test:types": "tsc -p ./test/types/tsconfig.json",
     "test:api": "node ./scripts/check-api.mjs",
-    "test:package": "publint --strict && attw --pack . --profile node16 --ignore-rules named-exports",
+    "test:package": "publint --strict && attw --pack . --profile node16 --ignore-rules named-exports cjs-resolves-to-esm",
     "test:unit": "cd test/unit && node --test",
     "lint": "eslint \"*.mjs\" \"*.ts\" \"scripts/**/*.mjs\" \"src/**/*.ts\"",
     "build": "npm run build:prod",

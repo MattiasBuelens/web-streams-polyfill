@@ -47,7 +47,7 @@ const keepNames = [
   'size'
 ];
 
-type Target = 'es2015' | 'es5';
+type Target = 'es2015' | 'es5' | 'es2018';
 
 interface Output {
   entry: 'polyfill' | 'ponyfill';
@@ -260,7 +260,7 @@ const polyfilledGlobals = ['Symbol'];
  * This catches syntax that Oxc or SWC left unlowered, and helpers that reference a global directly.
  */
 function outputGuard(target: Target): Plugin {
-  const ecmaVersion = target === 'es5' ? 5 : 2015;
+  const ecmaVersion = target === 'es5' ? 5 : target === 'es2018' ? 2018 : 2015;
   return {
     name: 'output-guard',
     generateBundle(options, files) {
@@ -362,7 +362,60 @@ function types(): RolldownOptions {
   };
 }
 
+/**
+ * Feature modules, which install missing features on top of a native streams implementation.
+ * They're only published as ES modules, and only run in engines with native streams,
+ * so they target ES2018 (they need async generators for `%AsyncIteratorPrototype%`).
+ */
+const features = ['index', 'readable-stream-from', 'async-iterator'];
+const featureInput = Object.fromEntries(features.map(name => [`feature/${name}`, `src/feature/${name}.ts`]));
+
+function featureBundle(): RolldownOptions {
+  return {
+    input: featureInput,
+    tsconfig: 'tsconfig.json',
+    transform: {
+      target: 'es2018',
+      define: { DEBUG: String(debug) }
+    },
+    plugins: [!debug && stripAsserts(), outputGuard('es2018')],
+    checks: { circularDependency: false },
+    output: {
+      dir: 'dist',
+      format: 'esm',
+      entryFileNames: '[name].mjs',
+      // Code shared between feature modules.
+      chunkFileNames: 'feature/_[name].mjs',
+      sourcemap: debug ? 'inline' : false,
+      postBanner: banner,
+      comments: debug ? true : { legal: false, annotation: false, jsdoc: false },
+      minify: debug
+        ? false
+        : {
+            compress: { target: 'es2018' },
+            mangle: { toplevel: true, reserved: keepNames },
+            codegen: true
+          }
+    }
+  };
+}
+
+/**
+ * Type definitions for the feature modules, in `types/feature/<name>.d.mts`.
+ */
+function featureTypes(): RolldownOptions {
+  return {
+    input: featureInput,
+    tsconfig: 'tsconfig.json',
+    plugins: [dts({ tsconfig: 'tsconfig.json', emitDtsOnly: true, sourcemap: false })],
+    checks: { circularDependency: false },
+    output: { dir: 'types', format: 'esm', entryFileNames: '[name].mjs', chunkFileNames: 'feature/_[name].mjs' }
+  };
+}
+
 export default defineConfig([
   ...outputs.flatMap(output => [bundle(output, 'es2015'), bundle(output, 'es5')]),
-  types()
+  types(),
+  featureBundle(),
+  featureTypes()
 ]);

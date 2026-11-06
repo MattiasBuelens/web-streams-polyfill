@@ -3,10 +3,14 @@
 
 import path from 'node:path';
 import fs from 'node:fs/promises';
+import { Worker } from 'node:worker_threads';
 import micromatch from 'micromatch';
+import minimist from 'minimist';
 import wptRunner from 'wpt-runner';
 import consoleReporter from 'wpt-runner/lib/console-reporter.js';
+import { SourceFile } from 'wpt-runner/lib/internal/sourcefile.js';
 import { FilteringReporter } from '../shared/filtering-reporter.mjs';
+import { expectationsPath, readExpectations, writeExpectations } from '../shared/expectations.mjs';
 import {
   excludedTestsNonES2018,
   excludedTestsBase,
@@ -59,46 +63,216 @@ const bufferTypes = [
   'DataView'
 ];
 
+const argv = minimist(process.argv.slice(2), {
+  boolean: ['native', 'patched', 'update-expectations']
+});
+
 main().catch((e) => {
   console.error(e.stack);
   process.exitCode = 1;
 });
 
 async function main() {
-  const includedTests = process.argv.length >= 3 ? process.argv.slice(2) : ['**/*.html'];
+  const includedTests = argv._.length > 0 ? argv._.map(String) : ['**/*.html'];
   const excludedTests = [
     ...excludedTestsBase,
     ...(runtimeSupportsAsyncGenerators() ? [] : excludedTestsNonES2018)
   ];
 
   const results = [];
-  results.push(await runTests('polyfill.js', {
-    includedTests,
-    excludedTests,
-    ignoredFailures: mergeIgnoredFailures(ignoredFailuresBase, ignoredFailuresMinified)
-  }));
-  results.push(await runTests('polyfill.es5.js', {
-    includedTests,
-    excludedTests,
-    ignoredFailures: mergeIgnoredFailures(ignoredFailuresES5, ignoredFailuresMinified)
-  }));
+  if (argv.native || argv.patched) {
+    results.push(await runNativeTests({ includedTests, excludedTests }));
+  } else {
+    await runPolyfillTests(results, { includedTests, excludedTests });
+  }
 
   const failures = results.reduce((sum, result) => sum + result.failures, 0);
-  for (const { entryFile, testResults, rejectionsCount } of results) {
-    console.log(`> ${entryFile}`);
+  for (const { label, testResults, rejectionsCount } of results) {
+    console.log(`> ${label}`);
     console.log(`  * ${testResults.passed} passed`);
     console.log(`  * ${testResults.failed} failed`);
     console.log(`  * ${testResults.ignored} ignored`);
     if (rejectionsCount > 0) {
       console.log(`  * ${rejectionsCount} unhandled promise rejections`);
     }
+    if ((argv.native || argv.patched) && testResults.unusedIgnoredFailures.length > 0) {
+      console.log(`  * ${testResults.unusedIgnoredFailures.length} expected failures did not fail:`);
+      for (const { suite, test } of testResults.unusedIgnoredFailures) {
+        console.log(`    - ${suite}: ${test}`);
+      }
+    }
   }
 
   process.exitCode = failures;
 }
 
-async function runTests(entryFile, { includedTests = ['**/*.html'], excludedTests = [], ignoredFailures = {} } = {}) {
-  const entryPath = path.resolve(import.meta.dirname, `../../../dist/${entryFile}`);
+async function runPolyfillTests(results, { includedTests, excludedTests }) {
+  results.push(await runJsdomTests('polyfill.js', {
+    includedTests,
+    excludedTests,
+    ignoredFailures: mergeIgnoredFailures(ignoredFailuresBase, ignoredFailuresMinified)
+  }));
+  results.push(await runJsdomTests('polyfill.es5.js', {
+    includedTests,
+    excludedTests,
+    ignoredFailures: mergeIgnoredFailures(ignoredFailuresES5, ignoredFailuresMinified)
+  }));
+}
+
+/**
+ * Runs the tests against Node's own streams implementation.
+ * With --patched, the feature modules are force-installed first: Node implements every feature,
+ * so we remove the native ones to exercise our implementations against Node's streams.
+ *
+ * These tests don't use jsdom, since it runs scripts in a different realm than Node's own stream classes.
+ * Instead, each test file runs in a worker thread, in Node's own realm.
+ */
+async function runNativeTests({ includedTests, excludedTests }) {
+  const mode = argv.patched ? 'patched' : 'native';
+  const label = `${mode} node ${process.version}`;
+  const expectationsFile = expectationsPath(`${mode}-node`);
+
+  const result = await runWorkerTests({
+    label,
+    featureInstaller: argv.patched
+      ? path.resolve(import.meta.dirname, '../../../dist/feature/index.mjs')
+      : undefined,
+    includedTests,
+    excludedTests,
+    ignoredFailures: argv['update-expectations'] ? {} : await readExpectations(expectationsFile)
+  });
+
+  if (argv['update-expectations']) {
+    if (argv._.length > 0) {
+      throw new Error('Cannot update expectations when running a subset of the tests');
+    }
+    if (argv.patched) {
+      // Patching must never break a test that passes natively.
+      const nativeFailures = await readExpectations(expectationsPath('native-node'));
+      let regressions = 0;
+      for (const suite of Object.keys(result.testResults.failures)) {
+        const expected = new Set((nativeFailures[suite] ?? []).map(String));
+        for (const test of result.testResults.failures[suite]) {
+          if (!expected.has(test)) {
+            console.error(`Fails when patched, but passes natively: ${suite}: ${test}`);
+            regressions++;
+          }
+        }
+      }
+      if (regressions > 0) {
+        throw new Error(`${regressions} tests fail only when patched`);
+      }
+    }
+    await writeExpectations(expectationsFile, result.testResults.failures, { runtime: `node ${process.version}` });
+    console.log(`Updated ${path.relative(process.cwd(), expectationsFile)}`);
+    result.failures = 0;
+  }
+
+  return result;
+}
+
+async function runWorkerTests({ label, featureInstaller, includedTests, excludedTests, ignoredFailures }) {
+  const wptPath = path.resolve(import.meta.dirname, '../../web-platform-tests');
+  const testsPath = path.resolve(wptPath, 'streams');
+
+  const includeMatcher = micromatch.matcher(includedTests);
+  const excludeMatcher = micromatch.matcher(excludedTests);
+  // Only the .any.js tests can run without a DOM.
+  const testPaths = (await readTestPaths(testsPath)).filter((testPath) => {
+    return testPath.endsWith('.any.html')
+      && includeMatcher(testPath)
+      && !excludeMatcher(testPath);
+  });
+
+  const reporter = new FilteringReporter(consoleReporter, ignoredFailures);
+  let rejectionsCount = 0;
+
+  console.log(`>>> ${label}`);
+
+  for (const testPath of testPaths) {
+    reporter.startSuite(testPath);
+    const testFile = path.resolve(testsPath, testPath.replace(/\.any\.html$/, '.any.js'));
+    const { results, harnessStatus, unhandledRejections } = await runWorker({ wptPath, testFile, featureInstaller });
+    for (const test of results) {
+      reportTestResult(reporter, test);
+    }
+    reportHarnessStatus(reporter, harnessStatus);
+    for (const reason of unhandledRejections) {
+      reporter.fail('unhandled promise rejection\n');
+      reporter.reportStack(reason);
+      rejectionsCount++;
+    }
+  }
+
+  const testResults = reporter.getResults();
+  console.log();
+
+  return { label, failures: testResults.failed, testResults, rejectionsCount };
+}
+
+function runWorker(workerData, timeout = 60_000) {
+  return new Promise((resolve) => {
+    const worker = new Worker(new URL('./native-worker.mjs', import.meta.url), { workerData });
+    const timer = setTimeout(() => {
+      worker.terminate();
+      resolve({ results: [], harnessStatus: { status: 2 }, unhandledRejections: [] });
+    }, timeout);
+    worker.once('message', (message) => {
+      clearTimeout(timer);
+      worker.terminate();
+      resolve(message);
+    });
+    worker.once('error', (e) => {
+      clearTimeout(timer);
+      resolve({ results: [], harnessStatus: { status: 1, message: e.message, stack: e.stack }, unhandledRejections: [] });
+    });
+  });
+}
+
+const testStatusSuffixes = ['', '', ' (timeout)', ' (incomplete)', ' (precondition failed)'];
+
+function reportTestResult(reporter, { name, status, message, stack }) {
+  if (status === 0) {
+    reporter.pass(name);
+  } else if (status in testStatusSuffixes) {
+    reporter.fail(`${name}${testStatusSuffixes[status]}\n`);
+    reporter.reportStack(`${message}\n${stack}`);
+  } else {
+    reporter.fail(`unknown test status: ${status}`);
+  }
+}
+
+function reportHarnessStatus(reporter, { status, message, stack }) {
+  if (status === 0) {
+    return;
+  }
+  if (status === 1) {
+    reporter.fail('test harness threw unexpected error');
+    reporter.reportStack(`${message}\n${stack}`);
+  } else if (status === 2) {
+    reporter.fail('test harness should not timeout');
+  } else if (status === 4) {
+    reporter.fail('test harness precondition failed');
+    reporter.reportStack(`${message}\n${stack}`);
+  } else {
+    reporter.fail(`unknown test harness status: ${status}`);
+  }
+}
+
+async function readTestPaths(testsPath) {
+  const fileNames = await fs.readdir(testsPath, { recursive: true });
+  const testPaths = [];
+  for (const fileName of fileNames) {
+    testPaths.push(...new SourceFile(testsPath, fileName).testPaths());
+  }
+  return testPaths.sort();
+}
+
+/**
+ * Runs the tests against a polyfill bundle, which is loaded inside the jsdom window of each test.
+ */
+async function runJsdomTests(entryFile, { includedTests = ['**/*.html'], excludedTests = [], ignoredFailures = {} } = {}) {
+  const label = entryFile;
   const wptPath = path.resolve(import.meta.dirname, '../../web-platform-tests');
   const testsPath = path.resolve(wptPath, 'streams');
 
@@ -108,9 +282,9 @@ async function runTests(entryFile, { includedTests = ['**/*.html'], excludedTest
 
   const reporter = new FilteringReporter(consoleReporter, ignoredFailures);
 
-  const bundledJS = await fs.readFile(entryPath, { encoding: 'utf8' });
+  const bundledJS = await fs.readFile(path.resolve(import.meta.dirname, `../../../dist/${entryFile}`), { encoding: 'utf8' });
 
-  console.log(`>>> ${entryFile}`);
+  console.log(`>>> ${label}`);
 
   const wptFailures = await wptRunner(testsPath, {
     rootURL: 'streams/',
@@ -171,7 +345,7 @@ async function runTests(entryFile, { includedTests = ['**/*.html'], excludedTest
 
   console.log();
 
-  return { entryFile, failures, testResults, rejectionsCount: rejections.size };
+  return { label, failures, testResults, rejectionsCount: rejections.size };
 }
 
 function runtimeSupportsAsyncGenerators() {

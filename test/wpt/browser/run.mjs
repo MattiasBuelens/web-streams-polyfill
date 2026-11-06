@@ -5,6 +5,7 @@ import { promisify } from 'node:util';
 import micromatch from 'micromatch';
 import { chromium, firefox, webkit } from 'playwright';
 import minimist from 'minimist';
+import { build } from 'rolldown';
 import { setupServer } from './server.mjs';
 import consoleReporter from 'wpt-runner/lib/console-reporter.js';
 import { SourceFile } from 'wpt-runner/lib/internal/sourcefile.js';
@@ -22,7 +23,7 @@ const serverCloseAsync = promisify(http.Server.prototype.close);
 
 const argv = minimist(process.argv.slice(2), {
   string: ['browser'],
-  boolean: ['native', 'update-expectations']
+  boolean: ['native', 'patched', 'update-expectations']
 });
 
 main().catch((e) => {
@@ -50,18 +51,33 @@ async function main() {
     });
     browserVersion = browser.version();
     const testOptions = { includedTests, excludedTests, browser, wptPath, urlPrefix };
-    if (argv.native) {
-      // Run against the browser's own implementation, without loading any polyfill.
-      // Known native failures are recorded per browser in an expectations file.
-      const expectationsFile = expectationsPath(`native-${browserType}`);
+    if (argv.native || argv.patched) {
+      // Run against the browser's own implementation, without loading the polyfill.
+      // With --patched, first install the feature modules that the browser is missing.
+      // Known failures are recorded per browser in an expectations file.
+      const mode = argv.patched ? 'patched' : 'native';
+      const label = `${mode} ${browserType} ${browserVersion}`;
+      const expectationsFile = expectationsPath(`${mode}-${browserType}`);
       const result = await runTests({
         ...testOptions,
-        entryFile: undefined,
+        label,
+        initScript: argv.patched ? { content: await bundleFeatureInstaller() } : undefined,
         ignoredFailures: argv['update-expectations'] ? {} : await readExpectations(expectationsFile)
       });
       if (argv['update-expectations']) {
         if (argv._.length > 0) {
           throw new Error('Cannot update expectations when running a subset of the tests');
+        }
+        if (argv.patched) {
+          // Patching must never break a test that passes natively.
+          const nativeFailures = await readExpectations(expectationsPath(`native-${browserType}`));
+          const regressions = findNewFailures(result.testResults.failures, nativeFailures);
+          if (regressions.length > 0) {
+            for (const { suite, test } of regressions) {
+              console.error(`Fails when patched, but passes natively: ${suite}: ${test}`);
+            }
+            throw new Error(`${regressions.length} tests fail only when patched`);
+          }
         }
         await writeExpectations(expectationsFile, result.testResults.failures, { browser: `${browserType} ${browserVersion}` });
         console.log(`Updated ${path.relative(process.cwd(), expectationsFile)}`);
@@ -71,12 +87,14 @@ async function main() {
     } else {
       results.push(await runTests({
         ...testOptions,
-        entryFile: 'polyfill.js',
+        label: 'polyfill.js',
+        initScript: { path: distPath('polyfill.js') },
         ignoredFailures: mergeIgnoredFailures(ignoredFailuresBase, ignoredFailuresMinified)
       }));
       results.push(await runTests({
         ...testOptions,
-        entryFile: 'polyfill.es5.js',
+        label: 'polyfill.es5.js',
+        initScript: { path: distPath('polyfill.es5.js') },
         ignoredFailures: mergeIgnoredFailures(ignoredFailuresES5, ignoredFailuresMinified)
       }));
     }
@@ -90,12 +108,12 @@ async function main() {
   }
 
   const failures = results.reduce((sum, result) => sum + result.failures, 0);
-  for (const { entryFile, testResults } of results) {
-    console.log(`> ${entryFile ?? `native ${browserType} ${browserVersion}`}`);
+  for (const { label, testResults } of results) {
+    console.log(`> ${label}`);
     console.log(`  * ${testResults.passed} passed`);
     console.log(`  * ${testResults.failed} failed`);
     console.log(`  * ${testResults.ignored} ignored`);
-    if (entryFile === undefined && testResults.unusedIgnoredFailures.length > 0) {
+    if ((argv.native || argv.patched) && testResults.unusedIgnoredFailures.length > 0) {
       console.log(`  * ${testResults.unusedIgnoredFailures.length} expected failures did not fail:`);
       for (const { suite, test } of testResults.unusedIgnoredFailures) {
         console.log(`    - ${suite}: ${test}`);
@@ -106,8 +124,47 @@ async function main() {
   process.exitCode = failures;
 }
 
-async function runTests({ entryFile, includedTests, excludedTests, ignoredFailures, browser, wptPath, urlPrefix }) {
-  const entryPath = entryFile && path.resolve(import.meta.dirname, `../../../dist/${entryFile}`);
+function distPath(file) {
+  return path.resolve(import.meta.dirname, '../../../dist', file);
+}
+
+/**
+ * Bundles a classic script that installs all feature modules on the global classes,
+ * since the feature modules are only published as ES modules.
+ */
+async function bundleFeatureInstaller() {
+  const entry = `
+    import { installAll } from ${JSON.stringify(distPath('feature/index.mjs'))};
+    globalThis.__featureReport = installAll(globalThis);
+  `;
+  const result = await build({
+    input: 'virtual:feature-installer',
+    plugins: [{
+      name: 'virtual-entry',
+      resolveId: id => (id === 'virtual:feature-installer' ? id : undefined),
+      load: id => (id === 'virtual:feature-installer' ? entry : undefined)
+    }],
+    write: false,
+    logLevel: 'warn',
+    output: { format: 'iife' }
+  });
+  return result.output[0].code;
+}
+
+function findNewFailures(failures, expected) {
+  const result = [];
+  for (const suite of Object.keys(failures)) {
+    const expectedNames = new Set((expected[suite] ?? []).map(String));
+    for (const test of failures[suite]) {
+      if (!expectedNames.has(test)) {
+        result.push({ suite, test });
+      }
+    }
+  }
+  return result;
+}
+
+async function runTests({ label, initScript, includedTests, excludedTests, ignoredFailures, browser, wptPath, urlPrefix }) {
   const testsBase = '/streams/';
   const testsPath = path.resolve(wptPath, 'streams');
 
@@ -124,13 +181,13 @@ async function runTests({ entryFile, includedTests, excludedTests, ignoredFailur
 
   const reporter = new FilteringReporter(consoleReporter, ignoredFailures);
 
-  console.log(`>>> ${entryFile ?? 'native'}`);
+  console.log(`>>> ${label}`);
 
   let context;
   try {
     context = await browser.newContext();
-    if (entryPath) {
-      await context.addInitScript({ path: entryPath });
+    if (initScript) {
+      await context.addInitScript(initScript);
     }
     await context.route(`${urlPrefix}/resources/testharnessreport.js`, (route) => {
       route.fulfill({
@@ -164,7 +221,7 @@ async function runTests({ entryFile, includedTests, excludedTests, ignoredFailur
 
   console.log();
 
-  return { entryFile, failures, testResults };
+  return { label, failures, testResults };
 }
 
 async function runTest(page, testUrl, reporter) {
