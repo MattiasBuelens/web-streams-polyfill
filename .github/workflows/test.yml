@@ -33,21 +33,23 @@ jobs:
       - run: npm run test:unit
       - run: npm run test:wpt:node
       # The Node expectations are recorded with Node 22.
-      - name: Check native Node against its recorded expectations
-        if: matrix.node-version == 22
-        run: npm run test:wpt:native:node
-      - name: Check Node with features installed against its recorded expectations
-        if: matrix.node-version == 22
-        run: npm run test:wpt:patched:node
-      - name: Check Node with forced features against its recorded expectations
-        if: matrix.node-version == 22
-        run: npm run test:wpt:patched-forced:node
-      - name: Check Node with features installed and byte streams hidden against its recorded expectations
-        if: matrix.node-version == 22
-        run: npm run test:wpt:patched-no-bytes:node
-      - name: Check Node with the extend-native ponyfill against its recorded expectations
-        if: matrix.node-version == 22
-        run: npm run test:wpt:extend-native:node
+      # Each run is independent, so run them side by side.
+      - parallel:
+          - name: Check native Node against its recorded expectations
+            if: matrix.node-version == 22
+            run: npm run test:wpt:native:node
+          - name: Check Node with features installed against its recorded expectations
+            if: matrix.node-version == 22
+            run: npm run test:wpt:patched:node
+          - name: Check Node with forced features against its recorded expectations
+            if: matrix.node-version == 22
+            run: npm run test:wpt:patched-forced:node
+          - name: Check Node with features installed and byte streams hidden against its recorded expectations
+            if: matrix.node-version == 22
+            run: npm run test:wpt:patched-no-bytes:node
+          - name: Check Node with the extend-native ponyfill against its recorded expectations
+            if: matrix.node-version == 22
+            run: npm run test:wpt:extend-native:node
       - run: npm run test:bundlers
 
   package:
@@ -129,30 +131,32 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: npm
       - run: npm ci
-      - run: npm run test:wpt:${{ matrix.browser }}
-        env:
-          # Firefox won't launch as root when HOME is owned by another user (/github/home).
-          HOME: /root
-      - name: Check native ${{ matrix.browser }} against its recorded expectations
-        run: npm run test:wpt:native:${{ matrix.browser }}
-        env:
-          HOME: /root
-      - name: Check ${{ matrix.browser }} with features installed against its recorded expectations
-        run: npm run test:wpt:patched:${{ matrix.browser }}
-        env:
-          HOME: /root
-      - name: Check ${{ matrix.browser }} with forced features against its recorded expectations
-        run: npm run test:wpt:patched-forced:${{ matrix.browser }}
-        env:
-          HOME: /root
-      - name: Check ${{ matrix.browser }} with features installed and byte streams hidden against its recorded expectations
-        run: npm run test:wpt:patched-no-bytes:${{ matrix.browser }}
-        env:
-          HOME: /root
-      - name: Check ${{ matrix.browser }} with the extend-native ponyfill against its recorded expectations
-        run: npm run test:wpt:extend-native:${{ matrix.browser }}
-        env:
-          HOME: /root
+      # Each run starts its own server and browser, so run them side by side.
+      - parallel:
+          - run: npm run test:wpt:${{ matrix.browser }}
+            env:
+              # Firefox won't launch as root when HOME is owned by another user (/github/home).
+              HOME: /root
+          - name: Check native ${{ matrix.browser }} against its recorded expectations
+            run: npm run test:wpt:native:${{ matrix.browser }}
+            env:
+              HOME: /root
+          - name: Check ${{ matrix.browser }} with features installed against its recorded expectations
+            run: npm run test:wpt:patched:${{ matrix.browser }}
+            env:
+              HOME: /root
+          - name: Check ${{ matrix.browser }} with forced features against its recorded expectations
+            run: npm run test:wpt:patched-forced:${{ matrix.browser }}
+            env:
+              HOME: /root
+          - name: Check ${{ matrix.browser }} with features installed and byte streams hidden against its recorded expectations
+            run: npm run test:wpt:patched-no-bytes:${{ matrix.browser }}
+            env:
+              HOME: /root
+          - name: Check ${{ matrix.browser }} with the extend-native ponyfill against its recorded expectations
+            run: npm run test:wpt:extend-native:${{ matrix.browser }}
+            env:
+              HOME: /root
 
   changes:
     name: Detect changes
