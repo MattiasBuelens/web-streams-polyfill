@@ -17,7 +17,11 @@ import {
   ignoredFailuresBase,
   ignoredFailuresMinified,
   ignoredFailuresES5,
-  mergeIgnoredFailures
+  mergeIgnoredFailures,
+  modifiedSuitePrefix,
+  modifiedTestsPath,
+  replacedTestsPatched,
+  withoutReplacedTests
 } from '../shared/exclusions.mjs';
 
 // wpt-runner does not yet support unhandled rejection tracking a la
@@ -141,20 +145,24 @@ async function runNativeTests({ includedTests, excludedTests }) {
     force: argv.force,
     includedTests,
     excludedTests,
-    ignoredFailures: argv['update-expectations'] ? {} : await readExpectations(expectationsFile)
+    ignoredFailures: mergeIgnoredFailures(
+      argv.patched ? replacedTestsPatched : {},
+      argv['update-expectations'] ? {} : await readExpectations(expectationsFile)
+    )
   });
 
   if (argv['update-expectations']) {
     if (argv._.length > 0) {
       throw new Error('Cannot update expectations when running a subset of the tests');
     }
+    const failures = argv.patched ? withoutReplacedTests(result.testResults.failures) : result.testResults.failures;
     if (argv.patched) {
       // Patching must never break a test that passes natively.
       const nativeFailures = await readExpectations(expectationsPath('native-node'));
       let regressions = 0;
-      for (const suite of Object.keys(result.testResults.failures)) {
+      for (const suite of Object.keys(failures)) {
         const expected = new Set((nativeFailures[suite] ?? []).map(String));
-        for (const test of result.testResults.failures[suite]) {
+        for (const test of failures[suite]) {
           if (!expected.has(test)) {
             console.error(`Fails when patched, but passes natively: ${suite}: ${test}`);
             regressions++;
@@ -165,7 +173,7 @@ async function runNativeTests({ includedTests, excludedTests }) {
         throw new Error(`${regressions} tests fail only when patched`);
       }
     }
-    await writeExpectations(expectationsFile, result.testResults.failures, { runtime: `node ${process.version}` });
+    await writeExpectations(expectationsFile, failures, { runtime: `node ${process.version}` });
     console.log(`Updated ${path.relative(process.cwd(), expectationsFile)}`);
     result.failures = 0;
   }
@@ -180,20 +188,22 @@ async function runWorkerTests({ label, featureInstaller, force, includedTests, e
   const includeMatcher = micromatch.matcher(includedTests);
   const excludeMatcher = micromatch.matcher(excludedTests);
   // Only the .any.js tests can run without a DOM.
-  const testPaths = (await readTestPaths(testsPath)).filter((testPath) => {
-    return testPath.endsWith('.any.html')
-      && includeMatcher(testPath)
-      && !excludeMatcher(testPath);
-  });
+  const tests = [];
+  for (const { path: rootPath, suitePrefix } of testRoots(testsPath)) {
+    for (const testPath of await readTestPaths(rootPath)) {
+      if (testPath.endsWith('.any.html') && includeMatcher(testPath) && !excludeMatcher(testPath)) {
+        tests.push({ suite: suitePrefix + testPath, testFile: path.resolve(rootPath, testPath.replace(/\.any\.html$/, '.any.js')) });
+      }
+    }
+  }
 
   const reporter = new FilteringReporter(consoleReporter, ignoredFailures);
   let rejectionsCount = 0;
 
   console.log(`>>> ${label}`);
 
-  for (const testPath of testPaths) {
-    reporter.startSuite(testPath);
-    const testFile = path.resolve(testsPath, testPath.replace(/\.any\.html$/, '.any.js'));
+  for (const { suite, testFile } of tests) {
+    reporter.startSuite(suite);
     const { results, harnessStatus, unhandledRejections } = await runWorker({ wptPath, testFile, featureInstaller, force });
     for (const test of results) {
       reportTestResult(reporter, test);
@@ -288,47 +298,54 @@ async function runJsdomTests(entryFile, { includedTests = ['**/*.html'], exclude
 
   console.log(`>>> ${label}`);
 
-  const wptFailures = await wptRunner(testsPath, {
-    rootURL: 'streams/',
-    reporter,
-    setup(window) {
-      window.Promise.allSettled = Promise.allSettled;
-      window.Promise.withResolvers = Promise.withResolvers;
-      window.queueMicrotask = global.queueMicrotask;
+  let wptFailures = 0;
+  for (const { path: rootPath, suitePrefix } of testRoots(testsPath)) {
+    wptFailures += await wptRunner(rootPath, {
+      rootURL: 'streams/',
+      reporter: prefixSuites(reporter, suitePrefix),
+      setup,
+      filter
+    });
+  }
 
-      // jsdom does not yet support structuredClone, use parent implementation.
-      window.structuredClone = global.structuredClone;
+  function setup(window) {
+    window.Promise.allSettled = Promise.allSettled;
+    window.Promise.withResolvers = Promise.withResolvers;
+    window.queueMicrotask = global.queueMicrotask;
 
-      // Use buffer types from parent for structuredClone and transfer to work.
-      for (const name of bufferTypes) {
-        window[name] = global[name];
-      }
+    // jsdom does not yet support structuredClone, use parent implementation.
+    window.structuredClone = global.structuredClone;
 
-      window.fetch = async function (url) {
-        const filePath = path.join(wptPath, url);
-        if (!filePath.startsWith(wptPath)) {
-          throw new TypeError('Invalid URL');
-        }
-        return {
-          ok: true,
-          async text() {
-            return await fs.readFile(filePath, { encoding: 'utf8' });
-          }
-        };
-      };
-
-      window.eval(bundledJS);
-    },
-    filter(testPath) {
-      // Ignore the worker versions
-      if (workerTestPattern.test(testPath)) {
-        return false;
-      }
-
-      return includeMatcher(testPath)
-        && !excludeMatcher(testPath);
+    // Use buffer types from parent for structuredClone and transfer to work.
+    for (const name of bufferTypes) {
+      window[name] = global[name];
     }
-  });
+
+    window.fetch = async function (url) {
+      const filePath = path.join(wptPath, url);
+      if (!filePath.startsWith(wptPath)) {
+        throw new TypeError('Invalid URL');
+      }
+      return {
+        ok: true,
+        async text() {
+          return await fs.readFile(filePath, { encoding: 'utf8' });
+        }
+      };
+    };
+
+    window.eval(bundledJS);
+  }
+
+  function filter(testPath) {
+    // Ignore the worker versions
+    if (workerTestPattern.test(testPath)) {
+      return false;
+    }
+
+    return includeMatcher(testPath)
+      && !excludeMatcher(testPath);
+  }
 
   const testResults = reporter.getResults();
   let failures = Math.max(testResults.failed, wptFailures - testResults.ignored);
@@ -348,6 +365,28 @@ async function runJsdomTests(entryFile, { includedTests = ['**/*.html'], exclude
   console.log();
 
   return { label, failures, testResults, rejectionsCount: rejections.size };
+}
+
+/**
+ * The directories with tests: the WPT `streams/` directory, and our own modified tests.
+ */
+function testRoots(testsPath) {
+  return [
+    { path: testsPath, suitePrefix: '' },
+    { path: modifiedTestsPath, suitePrefix: modifiedSuitePrefix }
+  ];
+}
+
+/**
+ * Wraps a reporter to add a prefix to each suite name.
+ */
+function prefixSuites(reporter, suitePrefix) {
+  return {
+    startSuite: name => reporter.startSuite(suitePrefix + name),
+    pass: message => reporter.pass(message),
+    fail: message => reporter.fail(message),
+    reportStack: stack => reporter.reportStack(stack)
+  };
 }
 
 function runtimeSupportsAsyncGenerators() {

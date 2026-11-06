@@ -39,6 +39,16 @@ export function patchMethod(prototype: any, key: string, source: Record<string, 
 }
 
 /**
+ * Replaces a method on a native prototype, keeping the attributes of the native property.
+ * Returns the native method.
+ */
+export function replaceMethod(prototype: any, key: string, method: (...args: any[]) => any): (...args: any[]) => any {
+  const nativeDescriptor = getPropertyDescriptor(prototype, key)!;
+  Object.defineProperty(prototype, key, { ...nativeDescriptor, value: method });
+  return nativeDescriptor.value;
+}
+
+/**
  * Finds a property descriptor on the prototype chain, e.g. when the classes are subclasses of the native ones.
  */
 function getPropertyDescriptor(object: any, key: string): PropertyDescriptor | undefined {

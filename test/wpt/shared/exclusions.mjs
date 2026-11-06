@@ -1,3 +1,6 @@
+import path from 'node:path';
+import { ExactName } from './filtering-reporter.mjs';
+
 export const excludedTestsBase = [
   // We cannot detect non-transferability, and Node's WebAssembly.Memory is also not marked as such.
   'readable-byte-streams/non-transferable-buffers.any.html',
@@ -75,6 +78,42 @@ export const ignoredFailuresES5 = mergeIgnoredFailures(ignoredFailuresBase, {
     'CountQueuingStrategy: size should not be a constructor'
   ]
 });
+
+/**
+ * The directory with our own modified copies of WPT tests, laid out like the `streams/` directory.
+ * Their suites are reported as `modified/<path>`.
+ */
+export const modifiedTestsPath = path.resolve(import.meta.dirname, '../modified');
+export const modifiedSuitePrefix = 'modified/';
+
+/**
+ * Tests that cannot pass when a feature module is installed on top of a native implementation.
+ * In the patched modes, these are ignored and never recorded in the expectations.
+ * Each one has a relaxed copy in the modified tests, which runs in every mode instead.
+ */
+export const replacedTestsPatched = {
+  // See modified/readable-byte-streams/read-min.any.js
+  'readable-byte-streams/read-min.any.html': [
+    new ExactName('ReadableStream with byte source: cancel() with partially filled pending read({ min }) request'),
+    new ExactName('ReadableStream with byte source: read({ min }) with 2-element Uint16Array, '
+      + 'then 3 byte enqueue(), then close() must fail')
+  ]
+};
+
+/**
+ * Removes the {@link replacedTestsPatched} from the given failures.
+ */
+export function withoutReplacedTests(failures) {
+  const result = {};
+  for (const suite of Object.keys(failures)) {
+    const replaced = new Set((replacedTestsPatched[suite] ?? []).map(String));
+    const remaining = failures[suite].filter(test => !replaced.has(test));
+    if (remaining.length > 0) {
+      result[suite] = remaining;
+    }
+  }
+  return result;
+}
 
 export function mergeIgnoredFailures(left, right) {
   const result = { ...left };

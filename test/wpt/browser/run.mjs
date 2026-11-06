@@ -16,7 +16,11 @@ import {
   mergeIgnoredFailures,
   ignoredFailuresBase,
   ignoredFailuresMinified,
-  ignoredFailuresES5
+  ignoredFailuresES5,
+  modifiedSuitePrefix,
+  modifiedTestsPath,
+  replacedTestsPatched,
+  withoutReplacedTests
 } from '../shared/exclusions.mjs';
 
 const serverCloseAsync = promisify(http.Server.prototype.close);
@@ -39,18 +43,30 @@ async function main() {
   const wptPath = path.resolve(import.meta.dirname, '../../web-platform-tests');
   const results = [];
   let server;
+  let modifiedServer;
   let browser;
   let browserVersion;
   try {
     server = setupServer(wptPath, { rootURL: '/' });
     const urlPrefix = `http://127.0.0.1:${server.address().port}`;
     console.log(`Server running at ${urlPrefix}`);
+    // Our own modified tests are served by a second server, at the same paths as the WPT tests they replace.
+    modifiedServer = setupServer(modifiedTestsPath, { rootURL: '/streams/' });
+    const modifiedUrlPrefix = `http://127.0.0.1:${modifiedServer.address().port}`;
 
     browser = await browserTypeByName(browserType).launch({
       executablePath: process.env.WPT_BROWSER_EXECUTABLE_PATH || undefined
     });
     browserVersion = browser.version();
-    const testOptions = { includedTests, excludedTests, browser, wptPath, urlPrefix };
+    const testOptions = {
+      includedTests,
+      excludedTests,
+      browser,
+      testRoots: [
+        { testsPath: path.resolve(wptPath, 'streams'), urlPrefix, suitePrefix: '' },
+        { testsPath: modifiedTestsPath, urlPrefix: modifiedUrlPrefix, suitePrefix: modifiedSuitePrefix }
+      ]
+    };
     if (argv.native || argv.patched) {
       // Run against the browser's own implementation, without loading the polyfill.
       // With --patched, first install the feature modules that the browser is missing.
@@ -64,16 +80,20 @@ async function main() {
         ...testOptions,
         label,
         initScript: argv.patched ? { content: await bundleFeatureInstaller({ force: argv.force }) } : undefined,
-        ignoredFailures: argv['update-expectations'] ? {} : await readExpectations(expectationsFile)
+        ignoredFailures: mergeIgnoredFailures(
+          argv.patched ? replacedTestsPatched : {},
+          argv['update-expectations'] ? {} : await readExpectations(expectationsFile)
+        )
       });
       if (argv['update-expectations']) {
         if (argv._.length > 0) {
           throw new Error('Cannot update expectations when running a subset of the tests');
         }
+        const failures = argv.patched ? withoutReplacedTests(result.testResults.failures) : result.testResults.failures;
         if (argv.patched) {
           // Patching must never break a test that passes natively.
           const nativeFailures = await readExpectations(expectationsPath(`native-${browserType}`));
-          const regressions = findNewFailures(result.testResults.failures, nativeFailures);
+          const regressions = findNewFailures(failures, nativeFailures);
           if (regressions.length > 0) {
             for (const { suite, test } of regressions) {
               console.error(`Fails when patched, but passes natively: ${suite}: ${test}`);
@@ -81,7 +101,7 @@ async function main() {
             throw new Error(`${regressions.length} tests fail only when patched`);
           }
         }
-        await writeExpectations(expectationsFile, result.testResults.failures, { browser: `${browserType} ${browserVersion}` });
+        await writeExpectations(expectationsFile, failures, { browser: `${browserType} ${browserVersion}` });
         console.log(`Updated ${path.relative(process.cwd(), expectationsFile)}`);
         result.failures = 0;
       }
@@ -106,6 +126,9 @@ async function main() {
     }
     if (server) {
       await serverCloseAsync.call(server);
+    }
+    if (modifiedServer) {
+      await serverCloseAsync.call(modifiedServer);
     }
   }
 
@@ -175,20 +198,21 @@ function findNewFailures(failures, expected) {
   return result;
 }
 
-async function runTests({ label, initScript, includedTests, excludedTests, ignoredFailures, browser, wptPath, urlPrefix }) {
+async function runTests({ label, initScript, includedTests, excludedTests, ignoredFailures, browser, testRoots }) {
   const testsBase = '/streams/';
-  const testsPath = path.resolve(wptPath, 'streams');
 
   const includeMatcher = micromatch.matcher(includedTests);
   const excludeMatcher = micromatch.matcher(excludedTests);
   const workerTestPattern = /\.(?:dedicated|shared|service)worker(?:\.https)?\.html$/;
-  const testPaths = (await readTestPaths(testsPath)).filter((testPath) => {
-    // Ignore the worker versions
-    if (workerTestPattern.test(testPath)) {
-      return false;
+  const tests = [];
+  for (const { testsPath, urlPrefix, suitePrefix } of testRoots) {
+    for (const testPath of await readTestPaths(testsPath)) {
+      // Ignore the worker versions
+      if (!workerTestPattern.test(testPath) && includeMatcher(testPath) && !excludeMatcher(testPath)) {
+        tests.push({ suite: suitePrefix + testPath, testUrl: `${urlPrefix}${testsBase}${testPath}` });
+      }
     }
-    return includeMatcher(testPath) && !excludeMatcher(testPath);
-  });
+  }
 
   const reporter = new FilteringReporter(consoleReporter, ignoredFailures);
 
@@ -200,23 +224,24 @@ async function runTests({ label, initScript, includedTests, excludedTests, ignor
     if (initScript) {
       await context.addInitScript(initScript);
     }
-    await context.route(`${urlPrefix}/resources/testharnessreport.js`, (route) => {
-      route.fulfill({
-        body: `
-            window.fetch_tests_from_worker = () => undefined;
-            window.add_result_callback(({ name, status, message, stack }) => {
-              window.__wptResultCallback({ name, status, message, stack });
-            });
-            window.add_completion_callback((tests, { status, message, stack }) => {
-              window.__wptCompletionCallback({ status, message, stack });
-            });
-          `
+    for (const { urlPrefix } of testRoots) {
+      await context.route(`${urlPrefix}/resources/testharnessreport.js`, (route) => {
+        route.fulfill({
+          body: `
+              window.fetch_tests_from_worker = () => undefined;
+              window.add_result_callback(({ name, status, message, stack }) => {
+                window.__wptResultCallback({ name, status, message, stack });
+              });
+              window.add_completion_callback((tests, { status, message, stack }) => {
+                window.__wptCompletionCallback({ status, message, stack });
+              });
+            `
+        });
       });
-    });
-    for (const testPath of testPaths) {
-      reporter.startSuite(testPath);
+    }
+    for (const { suite, testUrl } of tests) {
+      reporter.startSuite(suite);
       const page = await context.newPage();
-      const testUrl = `${urlPrefix}${testsBase}${testPath}`;
       await runTest(page, testUrl, reporter);
       await page.close();
     }

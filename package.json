@@ -50,6 +50,10 @@
       "types": "./types/feature/async-iterator.d.mts",
       "default": "./dist/feature/async-iterator.mjs"
     },
+    "./feature/byob-read-min": {
+      "types": "./types/feature/byob-read-min.d.mts",
+      "default": "./dist/feature/byob-read-min.mjs"
+    },
     "./feature/transformer-cancel": {
       "types": "./types/feature/transformer-cancel.d.mts",
       "default": "./dist/feature/transformer-cancel.mjs"

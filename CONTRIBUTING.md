@@ -44,11 +44,17 @@ Installing features must never break a test that passes natively: re-recording p
 if a test fails only when patched.
 
 `npm run test:wpt:patched-forced` goes one step further: it first hides the browser's own features
-(`ReadableStream.from()`, async iteration and `transformer.cancel()`), so that every feature module is installed,
+(`ReadableStream.from()`, async iteration, `read(view, { min })` and `transformer.cancel()`), so that every feature module is installed,
 and then makes every `TransformStream` use our implementation on top of the native streams,
 not only those whose transformer has a `cancel()` method. That runs all TransformStream tests against our code.
 The results are compared against `test/wpt/expectations/patched-forced-<browser>.json`,
 and must not fail any test that passes natively either.
+
+A few tests cannot pass when a feature is built on top of a native implementation,
+for example because they inspect state that only exists inside the native implementation.
+These are listed in `replacedTestsPatched` in `test/wpt/shared/exclusions.mjs`, and skipped in the patched runs.
+Each one has a relaxed copy in `test/wpt/modified/`, laid out like the WPT `streams/` directory.
+The modified tests run in every mode (polyfill, native and patched), and must pass in all of them.
 
 Node.js implements every feature already, so `npm run test:wpt:patched:node` also hides Node's own features first,
 so that our feature modules are tested on top of Node's streams.
