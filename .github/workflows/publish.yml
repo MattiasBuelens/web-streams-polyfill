@@ -1,8 +1,9 @@
 name: Publish release
 on:
-  # Runs whenever a new release is created in GitHub
+  # Runs whenever a release is published in GitHub, including publishing a
+  # draft created by draft-release.yml. Draft releases don't trigger `created`.
   release:
-    types: [ created ]
+    types: [ published ]
 
 jobs:
   # Publish job

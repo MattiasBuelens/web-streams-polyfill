@@ -1,0 +1,70 @@
+name: Draft release
+on:
+  # A merged release PR (see prepare-release.yml) adds the batched Changie notes
+  # for the new version, which is our cue to draft its GitHub release.
+  push:
+    branches: [master, v5]
+    paths: ['.changes/v*.md']
+  # Draft the release for the latest Changie version by hand, e.g. after
+  # deleting a draft that had the wrong notes.
+  workflow_dispatch:
+
+concurrency:
+  group: draft-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  draft:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install Changie
+        uses: miniscruff/changie-action@3223cb29b92a0972dedc864ace3da01e04780ae4 # v3
+        with:
+          version: v1.26.0
+      - name: Create draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          if [[ "$GITHUB_REF_TYPE" != branch ]]; then
+            echo '::error::Select a branch when drafting a release.'
+            exit 1
+          fi
+          version="$(changie latest)"
+          notes_file=".changes/$version.md"
+          if [[ ! -f "$notes_file" ]]; then
+            echo "::error::Missing release notes in $notes_file."
+            exit 1
+          fi
+          if [[ "$(node -p "require('./package.json').version")" != "${version#v}" ]]; then
+            echo '::error::The package version and latest Changie release must match.'
+            exit 1
+          fi
+
+          # Reruns and later pushes must not create a second release for the same
+          # version. The list endpoint includes drafts, which have no tag yet.
+          existing="$(gh api --paginate "repos/$GH_REPO/releases" \
+            --jq ".[] | select(.tag_name == \"$version\") | .html_url")"
+          if [[ -n "$existing" ]]; then
+            echo "Release $version already exists: $existing"
+            echo "Release $version already exists: $existing" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          # Drop the "## x.y.z (date)" heading; the release title shows the version.
+          sed '1d' "$notes_file" | sed '/./,$!d' > "$RUNNER_TEMP/notes.md"
+
+          args=(--draft --target "$GITHUB_SHA" --title "$version" --notes-file "$RUNNER_TEMP/notes.md")
+          if [[ "$version" == *-* ]]; then
+            # publish.yml requires pre-release versions to be marked as such.
+            args+=(--prerelease)
+          fi
+          url="$(gh release create "$version" "${args[@]}")"
+          echo "Drafted release $version: $url"
+          echo "Drafted release [$version]($url). Publish it to release it on npm." >> "$GITHUB_STEP_SUMMARY"
