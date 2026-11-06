@@ -1,17 +1,10 @@
 # web-streams-polyfill
 
-Web Streams, based on the WHATWG spec reference implementation.  
+Web Streams, based on the WHATWG spec reference implementation.
 
-[![build status](https://api.travis-ci.com/MattiasBuelens/web-streams-polyfill.svg?branch=master)](https://travis-ci.com/MattiasBuelens/web-streams-polyfill)
+[![test status](https://github.com/MattiasBuelens/web-streams-polyfill/actions/workflows/test.yml/badge.svg)](https://github.com/MattiasBuelens/web-streams-polyfill/actions/workflows/test.yml)
 [![npm version](https://img.shields.io/npm/v/web-streams-polyfill.svg)](https://www.npmjs.com/package/web-streams-polyfill)
 [![license](https://img.shields.io/npm/l/web-streams-polyfill.svg)](https://github.com/MattiasBuelens/web-streams-polyfill/blob/master/LICENSE)
-
-## Links
-
- - [Official spec][spec]
- - [Reference implementation][ref-impl]
-
-## Usage
 
 Web Streams are [widely supported][mdn-browser-compatibility] across all modern browsers
 (including Chrome, Firefox and Safari) and server runtimes (including Node.js, Deno and Bun),
@@ -19,34 +12,26 @@ but most of them still miss a few newer features, such as `ReadableStream.from()
 This library can either fill in just those missing features on top of the built-in implementation,
 or provide a complete implementation of its own.
 
-This library comes in multiple variants:
+* [Official spec][spec]
+* [Reference implementation][ref-impl]
+* [Migrating from version 4][migrating]
 
-| Variant | What it does | Formats | Targets |
-| --- | --- | --- | --- |
-| `web-streams-polyfill/auto` | Polyfill. Installs only the [features](#features) that the built-in streams are missing. If the built-in streams are missing or too old to build on, replaces them entirely. | script | ES2018+ |
-| `web-streams-polyfill/replace` | Polyfill. Always replaces the built-in stream classes on the global scope with this library's own implementation. | script | ES2015+ |
-| `web-streams-polyfill/replace/es5` | Same as `replace`, for older environments. | script | ES5+ |
-| `web-streams-polyfill` | [Ponyfill][ponyfill]. Exports this library's own implementation, without changing any globals. | ESM, UMD | ES2015+ |
-| `web-streams-polyfill/es5` | Same as the default ponyfill, for older environments. | ESM, UMD | ES5+ |
-| `web-streams-polyfill/extend-native` | Ponyfill. Exports subclasses of the built-in stream classes with the missing features added, without changing any globals. Falls back to this library's own implementation if the built-in streams are missing or too old. | ESM, CommonJS | ES2018+ |
-| `web-streams-polyfill/feature` | Low-level [feature modules](#feature-modules) that install one feature at a time. | ESM | ES2018+ |
+## Quick start
 
-Which one should you use?
-* **Web apps** should use `web-streams-polyfill/auto`. Streams keep using the built-in implementation where possible,
-  so they keep working with browser APIs such as `fetch()`, `Response`, `CompressionStream` and `postMessage()`.
-* **Libraries** should not change the global scope, so they should use a ponyfill.
-  Use `web-streams-polyfill/extend-native` if your streams need to work with built-in streams and browser APIs,
-  or `web-streams-polyfill` if you need the exact same, fully spec-compliant behavior in every environment.
-* Use `web-streams-polyfill/replace` (or `replace/es5`) only if you need this library's own implementation everywhere,
-  for example to work around a bug in a built-in implementation. See [the warning below](#compatibility-with-built-in-streams).
+For a web app, load `web-streams-polyfill/auto`. It adds the missing features to the built-in streams,
+so streams from browser APIs such as `fetch()` get them too:
 
-Each variant also includes TypeScript type definitions, compatible with the DOM type definitions for streams included in TypeScript.
-These type definitions require TypeScript version 5.7 or higher.
+```js
+import "web-streams-polyfill/auto";
 
-In version 5, the polyfill variants were renamed and the `auto`, `extend-native` and `feature` variants were added.
-See the [migration guide][migrating] for more information.
+const response = await fetch("/data");
+for await (const chunk of response.body.pipeThrough(new TextDecoderStream())) {
+  // ...
+}
+```
 
-Usage as a polyfill through a `<script>` tag:
+Or through a `<script>` tag:
+
 ```html
 <!-- option 1: hosted by unpkg CDN -->
 <script src="https://unpkg.com/web-streams-polyfill/dist/auto.js"></script>
@@ -56,24 +41,12 @@ Usage as a polyfill through a `<script>` tag:
 const readable = ReadableStream.from(["a", "b", "c"]);
 </script>
 ```
-Usage as a polyfill from within an ES module:
+
+For a library, use a [ponyfill][ponyfill] that doesn't change any globals.
+`web-streams-polyfill/extend-native` exports subclasses of the built-in streams with the missing features added:
+
 ```js
-import "web-streams-polyfill/auto";
-const readable = ReadableStream.from(["a", "b", "c"]);
-```
-Usage as a ponyfill from within an ES module:
-```js
-import { ReadableStream } from "web-streams-polyfill";
-const readable = new ReadableStream();
-```
-Usage as a ponyfill from within a CommonJS module:
-```js
-const { ReadableStream } = require("web-streams-polyfill");
-const readable = new ReadableStream();
-```
-Usage as a ponyfill on top of the built-in streams:
-```js
-import { ReadableStream, TransformStream, adopt } from "web-streams-polyfill/extend-native";
+import { ReadableStream, adopt } from "web-streams-polyfill/extend-native";
 
 const readable = ReadableStream.from(["a", "b", "c"]);
 // These are real built-in streams, so they work with browser APIs
@@ -81,126 +54,43 @@ const response = new Response(readable.pipeThrough(new TextEncoderStream()));
 
 // Streams created by the browser can be converted in place
 const body = adopt((await fetch("/data")).body);
-for await (const chunk of body) {
-  // ...
-}
 ```
 
-### Compatibility with built-in streams
-
-`web-streams-polyfill/auto` keeps the built-in stream classes whenever they are complete enough to build on:
-they must support `pipeTo()` and `WritableStreamDefaultController.signal`.
-This is the case in Chrome 98+, Firefox 102+, Safari 16.4+, Node.js 16.5+, and current versions of Deno and Bun.
-It then adds only the features that are missing. Streams created by the browser, such as `Response.body`,
-are instances of the same classes, so they get those features too.
-Otherwise, it replaces all stream classes, just like `web-streams-polyfill/replace`.
-It never mixes the two implementations.
-
-`web-streams-polyfill/extend-native` does the same, but adds the missing features to its own subclasses
-instead of to the global classes. Streams that its own methods return (such as the branches of `tee()`,
-or the result of `pipeThrough()`) are instances of its subclasses.
-Streams created by the browser (such as `Response.body`) are not, so use `adopt(stream)` to convert them in place.
-Instances of other subclasses of the built-in classes (such as a `FileSystemWritableFileStream`) are returned unchanged,
-since changing their prototype would lose their own methods.
-When the built-in streams are not complete enough, it exports this library's own implementation instead,
-and `adopt()` throws a `TypeError` for built-in streams.
-
-> [!WARNING]
-> **Replacing the built-in streams**
->
-> `web-streams-polyfill/replace` *unconditionally* replaces the global `ReadableStream`, `WritableStream`
-> and `TransformStream` classes with this library's own implementation.
-> However, browser APIs like `fetch()` will still return stream objects using the *built-in* stream classes,
-> and they won't accept streams from this library either.
-> This can lead to surprising results, for example `Response.body` will not be `instanceof ReadableStream`
-> after the polyfill replaces the global `ReadableStream` class.
->
-> Prefer `web-streams-polyfill/auto` instead, which keeps the built-in stream classes when possible.
-> If you do need to replace them, see [Converting built-in streams](#converting-built-in-streams).
-
-### Converting built-in streams
-
-When `web-streams-polyfill/auto`, `web-streams-polyfill/feature` or `web-streams-polyfill/extend-native`
-build on the built-in streams, those can be used as they are (with `extend-native`, call `adopt(stream)` first).
-But `web-streams-polyfill/replace` and the ponyfill variants (as well as `auto` and `extend-native`
-when they fall back to this library's own implementation) use separate stream classes,
-which don't accept built-in streams. For example, `pipeTo()` and `pipeThrough()` throw a `TypeError`
-when given a built-in `WritableStream` or `TransformStream`, such as `new CompressionStream("gzip")`.
-
-Use `ReadableStream.from()` to convert a built-in `ReadableStream` (e.g. from `fetch()`) to a polyfilled stream:
+`web-streams-polyfill` exports this library's own, fully spec-compliant implementation:
 
 ```js
 import { ReadableStream } from "web-streams-polyfill";
-const response = await fetch("https://example.com/");
-const readable = ReadableStream.from(response.body);
+const readable = new ReadableStream();
 ```
-
-There is no `from()` for other streams, but you can wrap them yourself.
-A built-in `WritableStream` can be wrapped in a polyfilled `WritableStream` that writes to it:
 
 ```js
-import { WritableStream } from "web-streams-polyfill";
-
-function fromNativeWritable(nativeWritable) {
-  const writer = nativeWritable.getWriter();
-  return new WritableStream({
-    start(controller) {
-      writer.closed.catch(reason => controller.error(reason));
-    },
-    write(chunk) {
-      return writer.write(chunk);
-    },
-    close() {
-      return writer.close();
-    },
-    abort(reason) {
-      return writer.abort(reason);
-    }
-  });
-}
+const { ReadableStream } = require("web-streams-polyfill");
+const readable = new ReadableStream();
 ```
 
-A built-in `TransformStream` can be converted by converting both of its sides.
-`pipeThrough()` accepts any `{ readable, writable }` pair:
+## Which variant should I use?
 
-```js
-function fromNativeTransform(nativeTransform) {
-  return {
-    writable: fromNativeWritable(nativeTransform.writable),
-    readable: ReadableStream.from(nativeTransform.readable)
-  };
-}
+| Variant | What it does | Formats | Targets |
+| --- | --- | --- | --- |
+| `web-streams-polyfill/auto` | Polyfill. Installs only the [features](#features) that the built-in streams are missing. If the built-in streams are missing or too old to build on, replaces them entirely. | script | ES2018+ |
+| `web-streams-polyfill/replace` | Polyfill. Always replaces the built-in stream classes on the global scope with this library's own implementation. | script | ES2015+ |
+| `web-streams-polyfill/replace/es5` | Same as `replace`, for older environments. | script | ES5+ |
+| `web-streams-polyfill` | Ponyfill. Exports this library's own implementation, without changing any globals. | ESM, UMD | ES2015+ |
+| `web-streams-polyfill/es5` | Same as the default ponyfill, for older environments. | ESM, UMD | ES5+ |
+| `web-streams-polyfill/extend-native` | Ponyfill. Exports subclasses of the built-in stream classes with the missing features added, without changing any globals. Falls back to this library's own implementation if the built-in streams are missing or too old. | ESM, CommonJS | ES2018+ |
+| `web-streams-polyfill/feature` | Low-level [feature modules][feature-modules] that install one feature at a time. | ESM | ES2018+ |
 
-const compressed = readable.pipeThrough(fromNativeTransform(new CompressionStream("gzip")));
-```
+* **Web apps** should use `web-streams-polyfill/auto`. Streams keep using the built-in implementation where possible,
+  so they keep working with browser APIs such as `fetch()`, `Response`, `CompressionStream` and `postMessage()`.
+* **Libraries** should not change the global scope, so they should use a ponyfill.
+  Use `web-streams-polyfill/extend-native` if your streams need to work with built-in streams and browser APIs,
+  or `web-streams-polyfill` if you need the exact same, fully spec-compliant behavior in every environment.
+* Use `web-streams-polyfill/replace` (or `replace/es5`) only if you need this library's own implementation everywhere,
+  for example to work around a bug in a built-in implementation.
+  Streams from browser APIs then use different classes, see [Working with built-in streams][built-in-streams].
 
-`ReadableStream.from()` always creates a default stream, so you can't read from it with a BYOB reader.
-To read a built-in stream of bytes with a BYOB reader, wrap it in a polyfilled readable byte stream:
-
-```js
-function fromNativeByteStream(nativeReadable) {
-  const reader = nativeReadable.getReader();
-  return new ReadableStream({
-    type: "bytes",
-    async pull(controller) {
-      const { done, value } = await reader.read();
-      if (done) {
-        controller.close();
-        controller.byobRequest?.respond(0);
-      } else {
-        controller.enqueue(value);
-      }
-    },
-    cancel(reason) {
-      return reader.cancel(reason);
-    }
-  });
-}
-```
-
-For a more complete solution, use [web-streams-adapter][web-streams-adapter].
-It converts readable (including byte streams), writable and transform streams in both directions,
-for example to pass a polyfilled stream to a browser API that only accepts built-in streams.
+Each variant also includes TypeScript type definitions, compatible with the DOM type definitions for streams included in TypeScript.
+These type definitions require TypeScript version 5.7 or higher.
 
 ## Features
 
@@ -208,59 +98,29 @@ for example to pass a polyfilled stream to a browser API that only accepts built
 
 | Feature | Module | Missing in |
 | --- | --- | --- |
-| [Readable byte streams][rbs] and BYOB readers | `readable-byte-streams` | Safari before 26.4 |
-| [`ReadableStream.from()`][rs-from] | `readable-stream-from` | Chrome |
-| [Async iteration][rs-asynciterator] (`values()` and `[Symbol.asyncIterator]()`) | `async-iterator` | Safari before 27 |
-| [`reader.read(view, { min })`][byob-reader-read] | `byob-read-min` | Safari |
-| [`transformer.cancel()`][transformer-cancel] | `transformer-cancel` | Chrome, Firefox, Safari |
+| [Readable byte streams][rbs] and BYOB readers | `readable-byte-streams` | [Safari before 26.4][compat-rbs] |
+| [`ReadableStream.from()`][rs-from] | `readable-stream-from` | [Chrome][compat-rs-from] |
+| [Async iteration][rs-asynciterator] (`values()` and `[Symbol.asyncIterator]()`) | `async-iterator` | [Safari before 27][compat-rs-asynciterator] |
+| [`reader.read(view, { min })`][byob-reader-read] | `byob-read-min` | [Safari][compat-byob-reader-read] |
+| [`transformer.cancel()`][transformer-cancel] | `transformer-cancel` | [Chrome, Firefox, Safari][compat-transformer-cancel] |
+
+The "Missing in" column is based on browser compatibility data from November 2026.
+Follow its links to MDN's browser compatibility tables for the latest information.
 
 Each feature is only installed if the built-in implementation doesn't already support it.
 Features are detected by checking their behavior, not by checking the browser version.
+A few things work differently when a feature is built on top of the built-in streams,
+see [Working with built-in streams][built-in-streams].
+To choose which features to install yourself, use the [feature modules][feature-modules].
 
-A few things work differently when a feature is built on top of the built-in streams:
-* A `TransformStream` whose transformer has a `cancel()` method is built from a built-in `ReadableStream` and `WritableStream`
-  if the built-in `TransformStream` doesn't support `transformer.cancel()`.
-  Its `readable` and `writable` sides can still be transferred with `postMessage()`, but the `TransformStream` itself can't.
-  Transfer `{ readable, writable }` instead, which works with `pipeThrough()` just the same.
-* With `reader.read(view, { min })`, the underlying byte source sees several smaller BYOB requests instead of a single one.
-* A byte stream built on top of the built-in streams is a built-in `ReadableStream` with a default source,
-  which reads its chunks from this library's own byte stream. Platform APIs (such as `Response`) read it like any other stream,
-  but they can only read it with a default reader, and `postMessage()` transfers it as a stream without a byte source.
-  Byte streams created by the browser (such as `Response.body`) still don't support BYOB readers.
-* Bugs in the built-in implementation are not fixed.
-  For example, `releaseLock()` on a default reader throws if there are pending reads in Chrome before 105
-  and Safari before 17, instead of rejecting those reads. This also applies to default readers of byte streams
-  built on top of the built-in streams (but not to their BYOB readers).
-* Stream classes from other realms (such as an `<iframe>` or a worker) are not patched,
-  unless the polyfill is loaded there too.
+## Documentation
 
-### Feature modules
-
-If you want to choose which features to install, you can use the feature modules directly.
-Each feature module exports a `check(classes)` and an `install(classes)` function.
-`classes` is the object holding the stream classes, which defaults to `globalThis`.
-Importing a feature module has no side effects.
-
-```js
-import { install } from "web-streams-polyfill/feature/readable-stream-from";
-// Adds ReadableStream.from() to the global ReadableStream, if it's missing
-install();
-```
-
-`web-streams-polyfill/feature` exports `installAll(classes)`, which installs every missing feature
-and reports what it installed. It doesn't install anything if the built-in streams aren't complete enough
-to build on (see `isPatchable(classes)`). This is what `web-streams-polyfill/auto` uses, except that
-`installAll()` never replaces the built-in streams.
-
-```js
-import { installAll } from "web-streams-polyfill/feature";
-const { success, installed } = installAll();
-if (!success) {
-  // The built-in streams are missing or too old, load web-streams-polyfill/replace instead
-}
-```
-
-The feature modules are only available as ES modules.
+* [Working with built-in streams][built-in-streams]: how `auto` and `extend-native` build on the built-in streams,
+  what works differently, and what to watch out for when replacing them.
+* [Converting built-in streams][converting]: how to use built-in streams (e.g. from `fetch()`)
+  with `replace` and the ponyfills.
+* [Feature modules][feature-modules]: installing individual features.
+* [Migration guide][migrating]: upgrading from an earlier version.
 
 ## Compatibility
 
@@ -322,7 +182,6 @@ Thanks to these people for their work on [the original polyfill][creatorrr-polyf
 [ponyfill]: https://github.com/sindresorhus/ponyfill
 [migrating]: https://github.com/MattiasBuelens/web-streams-polyfill/blob/master/MIGRATING.md
 [promise-support]: https://kangax.github.io/compat-table/es6/#test-Promise
-[web-streams-adapter]: https://github.com/MattiasBuelens/web-streams-adapter
 [promise-polyfill]: https://www.npmjs.com/package/promise-polyfill
 [rs-asynciterator]: https://streams.spec.whatwg.org/#rs-asynciterator
 [ws-controller-signal]: https://streams.spec.whatwg.org/#ws-default-controller-signal
@@ -330,6 +189,11 @@ Thanks to these people for their work on [the original polyfill][creatorrr-polyf
 [rs-from]: https://streams.spec.whatwg.org/#rs-from
 [byob-reader-read]: https://streams.spec.whatwg.org/#byob-reader-read
 [transformer-cancel]: https://streams.spec.whatwg.org/#dom-transformer-cancel
+[compat-rbs]: https://developer.mozilla.org/en-US/docs/Web/API/ReadableByteStreamController#browser_compatibility
+[compat-rs-from]: https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream/from_static#browser_compatibility
+[compat-rs-asynciterator]: https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream#browser_compatibility
+[compat-byob-reader-read]: https://developer.mozilla.org/en-US/docs/Web/API/ReadableStreamBYOBReader/read#browser_compatibility
+[compat-transformer-cancel]: https://developer.mozilla.org/en-US/docs/Web/API/TransformStream/TransformStream#browser_compatibility
 [wpt-modified]: https://github.com/MattiasBuelens/web-streams-polyfill/tree/master/test/wpt/modified
 [abortcontroller-polyfill]: https://www.npmjs.com/package/abortcontroller-polyfill
 [mdn-byob-read]: https://developer.mozilla.org/en-US/docs/Web/API/ReadableStreamBYOBReader/read
@@ -338,3 +202,6 @@ Thanks to these people for their work on [the original polyfill][creatorrr-polyf
 [wpt-async-iterator-prototype]: https://github.com/web-platform-tests/wpt/blob/ed5926bf7261f8fcd1716f1831c9480958784a5a/streams/readable-streams/async-iterator.any.js#L24
 [stub-async-iterator-prototype]: https://github.com/MattiasBuelens/web-streams-polyfill/blob/v4.0.0/src/lib/readable-stream/async-iterator.ts#L143-L147
 [creatorrr-polyfill]: https://github.com/creatorrr/web-streams-polyfill
+[built-in-streams]: https://github.com/MattiasBuelens/web-streams-polyfill/blob/master/docs/built-in-streams.md
+[converting]: https://github.com/MattiasBuelens/web-streams-polyfill/blob/master/docs/converting-built-in-streams.md
+[feature-modules]: https://github.com/MattiasBuelens/web-streams-polyfill/blob/master/docs/feature-modules.md
