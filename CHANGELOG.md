@@ -10,6 +10,12 @@
 > - 🏠 Internal
 > - 💅 Polish
 
+## 4.5.1 (2026-11-06)
+
+* 💅 Add `"sideEffects"` to `package.json`, so bundlers can remove unused imports of `web-streams-polyfill`
+  and `web-streams-polyfill/es5`. Only `web-streams-polyfill/polyfill` and `web-streams-polyfill/polyfill/es5`
+  are marked as having side effects. ([#255](https://github.com/MattiasBuelens/web-streams-polyfill/pull/255))
+
 ## 4.5.0 (2026-11-02)
 
 * 🚀 Reduce allocations and promise overhead throughout the implementation. ([#237](https://github.com/MattiasBuelens/web-streams-polyfill/pull/237))
