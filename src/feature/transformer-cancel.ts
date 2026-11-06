@@ -82,7 +82,9 @@ export function install(classes: StreamClasses = getGlobals()): boolean {
 
   const env: NativeEnvironment = { NativeReadableStream, NativeWritableStream };
   const streamPrototype = NativeTransformStream.prototype;
-  const controllerPrototype = getControllerPrototype(NativeTransformStream);
+  const controllerPrototype = typeof classes.TransformStreamDefaultController === 'function'
+    ? classes.TransformStreamDefaultController.prototype
+    : getControllerPrototype(NativeTransformStream);
 
   const { TransformStream } = {
     TransformStream: function (this: any, ...args: any[]): any {
