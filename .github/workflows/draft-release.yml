@@ -57,11 +57,11 @@ jobs:
             exit 0
           fi
 
-          # Match earlier releases: no title, so GitHub shows the tag, and the
-          # notes are the Changie entries without the "## x.y.z (date)" heading.
+          # Title the release with the version without its "v" prefix (e.g. "4.5.1"),
+          # and use the Changie entries without the "## x.y.z (date)" heading as notes.
           sed '1d' "$notes_file" | sed '/./,$!d' > "$RUNNER_TEMP/notes.md"
 
-          args=(--draft --target "$GITHUB_SHA" --notes-file "$RUNNER_TEMP/notes.md")
+          args=(--draft --target "$GITHUB_SHA" --title "${version#v}" --notes-file "$RUNNER_TEMP/notes.md")
           if [[ "$version" == *-* ]]; then
             # publish.yml requires pre-release versions to be marked as such.
             args+=(--prerelease)
