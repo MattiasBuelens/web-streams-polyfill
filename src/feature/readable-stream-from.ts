@@ -1,6 +1,6 @@
-import { ReadableStreamFromSource, type FromSourceControllerOps } from '../lib/readable-stream/from-source';
-import { assertObject } from '../lib/validators/basic';
-import { defineMethod, getGlobals, type StreamClasses } from './types';
+import { ReadableStreamFromSource, type FromSourceControllerOps } from '../lib/readable-stream/from-source.ts';
+import { assertObject } from '../lib/validators/basic.ts';
+import { defineMethod, getGlobals, type StreamClasses } from './types.ts';
 
 /**
  * Adds `ReadableStream.from(asyncIterable)`.

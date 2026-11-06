@@ -1,7 +1,7 @@
-import { convertIteratorOptions } from '../lib/validators/iterator-options';
-import { typeIsObject } from '../lib/helpers/miscellaneous';
-import { promiseRejectedWith, promiseResolvedWith, reflectCall, transformPromiseWith } from '../lib/helpers/webidl';
-import { defineMethod, getGlobals, type StreamClasses } from './types';
+import { convertIteratorOptions } from '../lib/validators/iterator-options.ts';
+import { typeIsObject } from '../lib/helpers/miscellaneous.ts';
+import { promiseRejectedWith, promiseResolvedWith, reflectCall, transformPromiseWith } from '../lib/helpers/webidl.ts';
+import { defineMethod, getGlobals, type StreamClasses } from './types.ts';
 
 /**
  * Adds async iteration to `ReadableStream`: `values()` and `[Symbol.asyncIterator]()`.

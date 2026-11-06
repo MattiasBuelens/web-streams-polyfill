@@ -4,9 +4,9 @@ import {
   promiseResolve,
   promiseResolvedWith,
   reflectCall
-} from '../helpers/webidl';
-import { typeIsObject } from '../helpers/miscellaneous';
-import assert from '../../stub/assert';
+} from '../helpers/webidl.ts';
+import { typeIsObject } from '../helpers/miscellaneous.ts';
+import assert from '../../stub/assert.ts';
 
 declare global {
   interface ArrayBuffer {

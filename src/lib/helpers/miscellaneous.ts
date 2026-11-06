@@ -1,4 +1,4 @@
-import { AssertionError } from '../../stub/assert';
+import { AssertionError } from '../../stub/assert.ts';
 
 export function typeIsObject(x: any): x is object {
   return (typeof x === 'object' && x !== null) || typeof x === 'function';

@@ -1,7 +1,7 @@
-import assert from '../../stub/assert';
-import { ReadableStream, ReadableStreamCancel, type ReadableStreamReader } from '../readable-stream';
-import { newPromise, promiseRejectedWith, promiseResolve, setPromiseIsHandledToTrue } from '../helpers/webidl';
-import { ReleaseSteps } from '../abstract-ops/internal-methods';
+import assert from '../../stub/assert.ts';
+import { ReadableStream, ReadableStreamCancel, type ReadableStreamReader } from '../readable-stream.ts';
+import { newPromise, promiseRejectedWith, promiseResolve, setPromiseIsHandledToTrue } from '../helpers/webidl.ts';
+import { ReleaseSteps } from '../abstract-ops/internal-methods.ts';
 
 export function ReadableStreamReaderGenericInitialize<R>(reader: ReadableStreamReader<R>, stream: ReadableStream<R>) {
   reader._ownerReadableStream = stream;

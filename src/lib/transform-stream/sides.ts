@@ -10,7 +10,7 @@
  * so every operation is a direct call to the corresponding abstract operation or a read of the corresponding slot.
  */
 
-import type { TransformStream } from '../transform-stream';
+import type { TransformStream } from '../transform-stream.ts';
 import {
   ReadableStreamDefaultControllerCanCloseOrEnqueue,
   ReadableStreamDefaultControllerClose,
@@ -18,8 +18,8 @@ import {
   ReadableStreamDefaultControllerError,
   ReadableStreamDefaultControllerGetDesiredSize,
   ReadableStreamDefaultControllerHasBackpressure
-} from '../readable-stream/default-controller';
-import { WritableStreamDefaultControllerErrorIfNeeded } from '../writable-stream';
+} from '../readable-stream/default-controller.ts';
+import { WritableStreamDefaultControllerErrorIfNeeded } from '../writable-stream.ts';
 
 export interface TransformStreamSides {
   // Readable side

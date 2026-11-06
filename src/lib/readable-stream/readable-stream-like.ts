@@ -1,5 +1,5 @@
-import { typeIsObject } from '../helpers/miscellaneous';
-import type { ReadableStreamDefaultReadResult } from './default-reader';
+import { typeIsObject } from '../helpers/miscellaneous.ts';
+import type { ReadableStreamDefaultReadResult } from './default-reader.ts';
 
 /**
  * A common interface for a `ReadadableStream` implementation.

@@ -1,15 +1,15 @@
-import { ReadableStream } from '../readable-stream';
+import { ReadableStream } from '../readable-stream.ts';
 import {
   AcquireReadableStreamDefaultReader,
   ReadableStreamDefaultReader,
   ReadableStreamDefaultReaderRead,
   type ReadableStreamDefaultReadResult,
   type ReadRequest
-} from './default-reader';
-import { ReadableStreamReaderGenericCancel, ReadableStreamReaderGenericRelease } from './generic-reader';
-import assert from '../../stub/assert';
-import { SymbolAsyncIterator } from '../abstract-ops/ecmascript';
-import { typeIsObject } from '../helpers/miscellaneous';
+} from './default-reader.ts';
+import { ReadableStreamReaderGenericCancel, ReadableStreamReaderGenericRelease } from './generic-reader.ts';
+import assert from '../../stub/assert.ts';
+import { SymbolAsyncIterator } from '../abstract-ops/ecmascript.ts';
+import { typeIsObject } from '../helpers/miscellaneous.ts';
 import {
   newPromise,
   promiseRejectedWith,
@@ -17,7 +17,7 @@ import {
   promiseResolvedWith,
   queueMicrotask,
   transformPromiseWith
-} from '../helpers/webidl';
+} from '../helpers/webidl.ts';
 
 /**
  * An async iterator returned by {@link ReadableStream.values}.

@@ -1,9 +1,9 @@
-import { assertDictionary, convertUnsignedLongLongWithEnforceRange } from './basic';
+import { assertDictionary, convertUnsignedLongLongWithEnforceRange } from './basic.ts';
 import type {
   ReadableStreamBYOBReaderReadOptions,
   ReadableStreamGetReaderOptions,
   ValidatedReadableStreamBYOBReaderReadOptions
-} from '../readable-stream/reader-options';
+} from '../readable-stream/reader-options.ts';
 
 export function convertReaderOptions(
   options: ReadableStreamGetReaderOptions | null | undefined,

@@ -1,5 +1,5 @@
-import type { QueuingStrategy, QueuingStrategySizeCallback } from '../queuing-strategy';
-import NumberIsNaN from '../../stub/number-isnan';
+import type { QueuingStrategy, QueuingStrategySizeCallback } from '../queuing-strategy.ts';
+import NumberIsNaN from '../../stub/number-isnan.ts';
 
 export function ExtractHighWaterMark(strategy: QueuingStrategy, defaultHWM: number): number {
   const { highWaterMark } = strategy;

@@ -1,5 +1,5 @@
-import { assertDictionary, assertFunction } from './basic';
-import { promiseCall, reflectCall } from '../helpers/webidl';
+import { assertDictionary, assertFunction } from './basic.ts';
+import { promiseCall, reflectCall } from '../helpers/webidl.ts';
 import type {
   UnderlyingSink,
   UnderlyingSinkAbortCallback,
@@ -7,8 +7,8 @@ import type {
   UnderlyingSinkStartCallback,
   UnderlyingSinkWriteCallback,
   ValidatedUnderlyingSink
-} from '../writable-stream/underlying-sink';
-import { WritableStreamDefaultController } from '../writable-stream';
+} from '../writable-stream/underlying-sink.ts';
+import { WritableStreamDefaultController } from '../writable-stream.ts';
 
 export function convertUnderlyingSink<W>(
   original: UnderlyingSink<W> | null,

@@ -1,4 +1,4 @@
-import { getGlobals, type StreamClasses } from './types';
+import { getGlobals, type StreamClasses } from './types.ts';
 
 /**
  * Checks whether the given classes are a native streams implementation that the features can build on:

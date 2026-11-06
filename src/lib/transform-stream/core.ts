@@ -6,7 +6,7 @@
  * That way, a TransformStream on top of native streams can reuse these without bundling our own streams.
  */
 
-import assert from '../../stub/assert';
+import assert from '../../stub/assert.ts';
 import {
   newPromise,
   promiseRejectedWith,
@@ -14,10 +14,10 @@ import {
   setPromiseIsHandledToTrue,
   transformPromiseWith,
   uponPromise
-} from '../helpers/webidl';
-import type { TransformStream, TransformStreamDefaultController } from '../transform-stream';
-import type { TransformStreamSides } from './sides';
-import type { ValidatedTransformer } from './transformer';
+} from '../helpers/webidl.ts';
+import type { TransformStream, TransformStreamDefaultController } from '../transform-stream.ts';
+import type { TransformStreamSides } from './sides.ts';
+import type { ValidatedTransformer } from './transformer.ts';
 
 /**
  * Initializes the state that every TransformStream has, regardless of how its sides are implemented.

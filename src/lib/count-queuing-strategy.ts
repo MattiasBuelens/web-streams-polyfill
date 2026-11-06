@@ -1,7 +1,7 @@
-import type { QueuingStrategy, QueuingStrategyInit } from './queuing-strategy';
-import { setFunctionName, typeIsObject } from './helpers/miscellaneous';
-import { assertRequiredArgument } from './validators/basic';
-import { convertQueuingStrategyInit } from './validators/queuing-strategy-init';
+import type { QueuingStrategy, QueuingStrategyInit } from './queuing-strategy.ts';
+import { setFunctionName, typeIsObject } from './helpers/miscellaneous.ts';
+import { assertRequiredArgument } from './validators/basic.ts';
+import { convertQueuingStrategyInit } from './validators/queuing-strategy-init.ts';
 
 // The size function must not have a prototype property nor be a constructor
 const countSizeFunction = (): 1 => {

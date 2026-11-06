@@ -55,5 +55,20 @@ export default tseslint.config(
       }],
       '@typescript-eslint/no-useless-constructor': 'error'
     }
+  },
+  {
+    // Node runs src/ directly with type stripping (e.g. in unit tests), which needs explicit .ts extensions.
+    files: ['src/**/*.ts'],
+    rules: {
+      'no-restricted-syntax': ['error', ...[
+        'ImportDeclaration',
+        'ExportNamedDeclaration',
+        'ExportAllDeclaration',
+        'ImportExpression'
+      ].map(node => ({
+        selector: `${node} > Literal.source[value=/^\\.\\.?\\//]:not([value=/\\.ts$/])`,
+        message: 'Relative imports in src/ must end in .ts, so Node can run them with type stripping.'
+      }))]
+    }
   }
 );

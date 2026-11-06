@@ -2,11 +2,11 @@ import {
   isReadableStreamLike,
   type ReadableStreamDefaultReaderLike,
   type ReadableStreamLike
-} from './readable-stream-like';
-import type { ReadableStreamDefaultReadResult } from './default-reader';
-import { GetIterator, GetMethod, IteratorNext } from '../abstract-ops/ecmascript';
-import { promiseCall, promiseRejectedWith, promiseResolvedWith, transformPromiseWith } from '../helpers/webidl';
-import { typeIsObject } from '../helpers/miscellaneous';
+} from './readable-stream-like.ts';
+import type { ReadableStreamDefaultReadResult } from './default-reader.ts';
+import { GetIterator, GetMethod, IteratorNext } from '../abstract-ops/ecmascript.ts';
+import { promiseCall, promiseRejectedWith, promiseResolvedWith, transformPromiseWith } from '../helpers/webidl.ts';
+import { typeIsObject } from '../helpers/miscellaneous.ts';
 
 // This module must not depend on our own ReadableStream class,
 // so that the native ReadableStream.from() feature can use it without pulling in the whole implementation.

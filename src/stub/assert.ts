@@ -1,4 +1,4 @@
-import { noop } from '../utils';
+import { noop } from '../utils.ts';
 
 export const AssertionError = /* @__PURE__ */ (() => {
   // eslint-disable-next-line @typescript-eslint/no-shadow

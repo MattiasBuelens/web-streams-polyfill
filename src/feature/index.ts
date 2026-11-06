@@ -1,10 +1,10 @@
-import { isPatchable } from './patchable';
-import * as asyncIterator from './async-iterator';
-import * as byobReadMin from './byob-read-min';
-import * as readableByteStreams from './readable-byte-streams';
-import * as readableStreamFrom from './readable-stream-from';
-import * as transformerCancel from './transformer-cancel';
-import { getGlobals, type StreamClasses } from './types';
+import { isPatchable } from './patchable.ts';
+import * as asyncIterator from './async-iterator.ts';
+import * as byobReadMin from './byob-read-min.ts';
+import * as readableByteStreams from './readable-byte-streams.ts';
+import * as readableStreamFrom from './readable-stream-from.ts';
+import * as transformerCancel from './transformer-cancel.ts';
+import { getGlobals, type StreamClasses } from './types.ts';
 
 export { isPatchable };
 export type { StreamClasses };

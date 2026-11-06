@@ -1,16 +1,16 @@
-import { IsDetachedBuffer, TransferArrayBuffer } from '../lib/abstract-ops/ecmascript';
-import type { ArrayBufferViewConstructor } from '../lib/helpers/array-buffer-view';
-import { typeIsObject } from '../lib/helpers/miscellaneous';
+import { IsDetachedBuffer, TransferArrayBuffer } from '../lib/abstract-ops/ecmascript.ts';
+import type { ArrayBufferViewConstructor } from '../lib/helpers/array-buffer-view.ts';
+import { typeIsObject } from '../lib/helpers/miscellaneous.ts';
 import {
   newPromise,
   PerformPromiseThen,
   promiseRejectedWith,
   reflectCall,
   setPromiseIsHandledToTrue
-} from '../lib/helpers/webidl';
-import { convertByobReadOptions } from '../lib/validators/reader-options';
-import { replaceMethod } from './patch';
-import { getGlobals, type StreamClasses } from './types';
+} from '../lib/helpers/webidl.ts';
+import { convertByobReadOptions } from '../lib/validators/reader-options.ts';
+import { replaceMethod } from './patch.ts';
+import { getGlobals, type StreamClasses } from './types.ts';
 
 /**
  * Adds the `min` option to `ReadableStreamBYOBReader.prototype.read(view, { min })`.
