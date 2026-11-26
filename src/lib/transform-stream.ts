@@ -498,7 +498,12 @@ function TransformStreamDefaultControllerPerformTransform<I, O>(
     controller._transformRejectCallback = transformRejectCallback;
   }
 
-  const transformPromise = controller._transformAlgorithm(chunk);
+  const transformAlgorithm = controller._transformAlgorithm;
+  if (transformAlgorithm === undefined) {
+    // A cancel, abort or close cleared the algorithms after this write was released.
+    return promiseResolvedWith(undefined);
+  }
+  const transformPromise = transformAlgorithm(chunk);
   return transformPromiseWith(transformPromise, undefined, transformRejectCallback);
 }
 

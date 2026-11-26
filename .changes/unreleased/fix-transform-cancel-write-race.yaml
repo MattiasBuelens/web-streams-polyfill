@@ -1,0 +1,7 @@
+kind: 🐛
+body: |
+  Fix `TypeError: _transformAlgorithm is not a function` when a `TransformStream` write is released by a `read()`
+  and the readable side is cancelled in the same turn. The write now resolves without running `transform()`,
+  as in Node.js ([nodejs/node#62040](https://github.com/nodejs/node/pull/62040)).
+  ([#268](https://github.com/MattiasBuelens/web-streams-polyfill/pull/268))
+time: 2026-11-26T12:00:00Z
