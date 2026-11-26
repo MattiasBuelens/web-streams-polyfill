@@ -94,7 +94,7 @@
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.5",
     "@eslint/js": "^10.0.1",
-    "@stylistic/eslint-plugin": "^5.10.0",
+    "@stylistic/eslint-plugin": "^6.0.1",
     "@swc/core": "^1.16.21",
     "@types/node": "~26.6.5",
     "acorn": "^8.19.0",
